@@ -1,0 +1,37 @@
+pagehelper:
+  helper-dialect: mysql
+  reasonable: true
+  support-methods-arguments: true
+  params: count=countSql
+knife4j:
+  enable: true
+  basic:
+    enable: true
+    username: ${KNIFE4J_USERNAME}
+    password: ${KNIFE4J_PASSWORD}
+mybatis-plus:
+  type-aliases-package: com.dayz.sapientiacloudedupivot.system.entity
+  mapper-locations: classpath:mapper/**/*.xml
+  configuration:
+    cache-enabled: false
+    map-underscore-to-camel-case: true
+  global-config:
+    db-config:
+      id-type: assign_id
+      update-strategy: not_null
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+spring:
+  jpa:
+    open-in-view: false
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+logging:
+  level:
+    com.dayz.sapientiacloud_edupivot.*.mapper: DEBUG
+    com.alibaba.nacos.client: ERROR
+
+KNIFE4J_USERNAME: admin
+KNIFE4J_PASSWORD: zhaosheng123
