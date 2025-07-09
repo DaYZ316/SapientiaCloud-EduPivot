@@ -15,5 +15,5 @@ create table sys_user
     update_time     datetime default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP comment '更新时间 (系统自动生成)',
     is_deleted      int      default 0                 null comment '逻辑删除标记 (内部使用)'
 )
-    comment '系统用户持久化对象 (PO)';
+    comment '系统用户表';
 

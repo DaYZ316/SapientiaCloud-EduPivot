@@ -9,7 +9,22 @@ spring:
       port: ${REDIS_PORT}
       host: ${REDIS_HOST}
       password: ${REDIS_PASSWORD}
-
+  cache:
+    caffeine:
+      spec: maximumSize=500,expireAfterWrite=10m
+knife4j:
+  enable: true
+  basic:
+    enable: true
+    username: ${KNIFE4J_USERNAME}
+    password: ${KNIFE4J_PASSWORD}
+logging:
+  level:
+    com.dayz.sapientiacloud_edupivot.*.mapper: DEBUG
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.http.server.reactive: DEBUG
+    org.springframework.web.reactive: DEBUG
+    com.alibaba.nacos.client.logging.NacosLogging: ERROR
 
 MYSQL_HOST: 127.0.0.1
 MYSQL_PORT: 3306
@@ -20,3 +35,5 @@ REDIS_HOST: 127.0.0.1
 REDIS_PORT: 6379
 REDIS_USERNAME:
 REDIS_PASSWORD: zhaosheng123
+KNIFE4J_USERNAME: admin
+KNIFE4J_PASSWORD: zhaosheng123
