@@ -59,6 +59,13 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
     @Override
     public Boolean addUser(SysUserDTO sysUserDTO) {
+        if (sysUserDTO == null) {
+            throw new BusinessException(SysUserExceptionEnum.USERNAME_CANNOT_BE_EMPTY.getMessage());
+        }
+        if (sysUserMapper.selectByUsername(sysUserDTO.getUsername()) != null) {
+            throw new BusinessException(SysUserExceptionEnum.USERNAME_ALREADY_EXISTS.getMessage());
+        }
+
         SysUser sysUser = checkSysUserInfo(sysUserDTO);
         return this.save(sysUser);
     }
@@ -103,6 +110,13 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
     @Override
     public Boolean registerUser(SysUserRegisterDTO sysUserRegisterDTO) {
+        if (sysUserRegisterDTO == null) {
+            throw new BusinessException(SysUserExceptionEnum.USERNAME_CANNOT_BE_EMPTY.getMessage());
+        }
+        if (sysUserMapper.selectByUsername(sysUserRegisterDTO.getUsername()) != null) {
+            throw new BusinessException(SysUserExceptionEnum.USERNAME_ALREADY_EXISTS.getMessage());
+        }
+
         SysUser sysUser = checkSysUserInfo(sysUserRegisterDTO);
         return this.save(sysUser);
     }

@@ -1,18 +1,33 @@
 package com.dayz.sapientiacloud_edupivot.system.config;
 
+import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
+import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpHeaders;
 
 @Configuration
 public class Knife4jConfig {
 
     @Bean
-    public OpenAPI springOpenAPI() {
+    public OpenAPI springOpenApi() {
         return new OpenAPI()
-                .info(new Info().title("SapientiaCloud-EduPivot API")
-                        .description("智语·云枢 API文档")
+                .components(new Components()
+                        .addSecuritySchemes(HttpHeaders.AUTHORIZATION,
+                                new SecurityScheme()
+                                        .type(SecurityScheme.Type.HTTP)
+                                        .scheme("bearer")
+                                        .bearerFormat("JWT")
+                                        .in(SecurityScheme.In.HEADER)
+                                        .name(HttpHeaders.AUTHORIZATION)
+                        )
+                )
+                .addSecurityItem(new SecurityRequirement().addList(HttpHeaders.AUTHORIZATION))
+                .info(new Info().title("SapientiaCloud-EduPivot--system API")
+                        .description("智语·云枢：系统服务 API文档")
                         .version("1.0.0")
                         .contact(new io.swagger.v3.oas.models.info.Contact()
                                 .name("DaYZ")

@@ -27,43 +27,43 @@ public class SysUser extends BaseEntity implements Serializable {
     @Serial
     private static final long serialVersionUID = 726580191133270732L;
 
-    @Schema(description = "用户ID")
+    @Schema(name = "id", description = "用户ID")
     @TableId(value = "id")
     private UUID id;
 
-    @Schema(description = "用户名")
+    @Schema(name = "username", description = "用户名")
     @TableField("username")
     private String username;
 
-    @Schema(description = "密码", hidden = true)
+    @Schema(name = "password", description = "密码", hidden = true)
     @TableField("password")
     private String password;
 
-    @Schema(description = "用户昵称")
+    @Schema(name = "nick_name", description = "用户昵称")
     @TableField("nick_name")
     private String nickName;
 
-    @Schema(description = "邮箱")
+    @Schema(name = "email", description = "邮箱")
     @TableField("email")
     private String email;
 
-    @Schema(description = "手机号")
+    @Schema(name = "mobile", description = "手机号")
     @TableField("mobile")
     private String mobile;
 
-    @Schema(description = "性别 (0=未知, 1=男, 2=女)")
+    @Schema(name = "gender", description = "性别 (0=未知, 1=男, 2=女)")
     @TableField("gender")
     private Integer gender;
 
-    @Schema(description = "用户头像URL")
+    @Schema(name = "avatar", description = "用户头像URL")
     @TableField("avatar")
     private String avatar;
 
-    @Schema(description = "状态 (0=正常, 1=停用)")
+    @Schema(name = "status", description = "状态 (0=正常, 1=停用)")
     @TableField("status")
     private Integer status;
 
-    @Schema(description = "最后登录时间")
+    @Schema(name = "last_login_time", description = "最后登录时间")
     @TableField("last_login_time")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime lastLoginTime;
