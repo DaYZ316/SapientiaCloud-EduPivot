@@ -3,7 +3,7 @@ package com.dayz.sapientiacloud_edupivot.auth.service.impl;
 import com.dayz.sapientiacloud_edupivot.auth.client.SysUserClient;
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.LoginRequest;
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.LoginResponse;
-import com.dayz.sapientiacloud_edupivot.auth.entity.dto.RefreshTokenRequest;
+import com.dayz.sapientiacloud_edupivot.auth.entity.dto.UserInfoResponse;
 import com.dayz.sapientiacloud_edupivot.auth.entity.po.SysUser;
 import com.dayz.sapientiacloud_edupivot.auth.enums.SysUserExceptionEnum;
 import com.dayz.sapientiacloud_edupivot.auth.exception.BusinessException;
@@ -47,13 +47,11 @@ public class AuthServiceImpl implements AuthService {
         }
         SysUser sysUser = userResult.getData();
 
-        // 3. 生成访问令牌和刷新令牌
+        // 3. 生成访问令牌
         String accessToken = jwtUtil.generateToken(sysUser.getId(), sysUser.getUsername());
-        String refreshToken = jwtUtil.generateRefreshToken(sysUser.getId());
 
         return new LoginResponse(
                 accessToken,
-                refreshToken,
                 TOKEN_TYPE,
                 jwtProperties.getExpiration(),
                 sysUser.getId(),
@@ -62,26 +60,17 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public LoginResponse refreshToken(RefreshTokenRequest refreshTokenRequest) {
-        String refreshToken = refreshTokenRequest.getRefreshToken();
-        jwtUtil.parseToken(refreshToken);
-
-        UUID userId = jwtUtil.getUserId(refreshToken);
-        Result<SysUser> userResult = sysUserClient.getUserById(userId);
+    public UserInfoResponse getUserInfo(String username) {
+        Result<SysUser> userResult = sysUserClient.getUserInfoByUsername(username);
         if (!userResult.isSuccess() || Objects.isNull(userResult.getData())) {
             throw new BusinessException(SysUserExceptionEnum.USER_NOT_FOUND.getMessage());
         }
         SysUser sysUser = userResult.getData();
-
-        String newAccessToken = jwtUtil.refreshToken(refreshToken, userId, sysUser.getUsername());
-
-        return new LoginResponse(
-                newAccessToken,
-                refreshToken,
-                TOKEN_TYPE,
-                jwtProperties.getExpiration(),
-                sysUser.getId(),
-                sysUser.getUsername()
-        );
+        return UserInfoResponse.builder()
+                .userId(sysUser.getId())
+                .username(sysUser.getUsername())
+                .nickname(sysUser.getNickName())
+                .avatar(sysUser.getAvatar())
+                .build();
     }
 }

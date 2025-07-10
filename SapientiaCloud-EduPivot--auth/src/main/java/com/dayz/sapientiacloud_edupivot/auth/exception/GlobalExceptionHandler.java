@@ -9,7 +9,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.stream.Collectors;
 
 @RestControllerAdvice
@@ -66,18 +66,21 @@ public class GlobalExceptionHandler {
     /**
      * 处理JWT相关异常
      */
-    @ExceptionHandler(RuntimeException.class)
+    @ExceptionHandler(JwtAuthenticationException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    public Result<Object> handleJwtException(RuntimeException ex, HttpServletRequest request) {
+    public Result<Object> handleJwtException(JwtAuthenticationException ex, HttpServletRequest request) {
         String requestUri = request.getRequestURI();
+        log.warn("JWT认证失败 - URI: {}, 错误: {}", requestUri, ex.getMessage());
+        return Result.fail(401, "认证失败: " + ex.getMessage());
+    }
 
-        // 如果是JWT相关异常
-        if (ex.getMessage().contains("token") || ex.getMessage().contains("Token")) {
-            log.warn("JWT异常 - URI: {}, 错误: {}", requestUri, ex.getMessage());
-            return Result.fail(401, "认证失败: " + ex.getMessage());
-        }
-
-        // 其他运行时异常
+    /**
+     * 处理其他运行时异常
+     */
+    @ExceptionHandler(RuntimeException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public Result<Object> handleRuntimeException(RuntimeException ex, HttpServletRequest request) {
+        String requestUri = request.getRequestURI();
         log.error("运行时异常 - URI: {}, 错误: {}", requestUri, ex.getMessage(), ex);
         return Result.fail(500, "服务器内部错误");
     }

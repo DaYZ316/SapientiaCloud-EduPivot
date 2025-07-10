@@ -71,6 +71,7 @@ public class SysUserController {
         return Result.success(sysUserService.deleteUser(id));
     }
 
+    @Operation(summary = "注册用户", description = "用户UI端注册用户。")
     @PostMapping("/register")
     public Result<Boolean> register(@Valid @RequestBody SysUserRegisterDTO sysUserRegisterDTO) {
         return Result.success(sysUserService.registerUser(sysUserRegisterDTO));

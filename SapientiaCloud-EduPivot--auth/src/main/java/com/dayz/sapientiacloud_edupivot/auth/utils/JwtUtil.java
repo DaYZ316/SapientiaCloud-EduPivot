@@ -5,6 +5,7 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.auth0.jwt.interfaces.JWTVerifier;
 import com.dayz.sapientiacloud_edupivot.auth.config.JwtProperties;
+import com.dayz.sapientiacloud_edupivot.auth.exception.JwtAuthenticationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -24,7 +25,6 @@ public class JwtUtil {
     private final RedisTemplate<String, Object> redisTemplate;
 
     private static final String TOKEN_PREFIX = "auth:token:";
-    private static final String REFRESH_TOKEN_PREFIX = "auth:refresh:";
 
     /**
      * 生成JWT token
@@ -54,32 +54,6 @@ public class JwtUtil {
     }
 
     /**
-     * 生成刷新token
-     */
-    public String generateRefreshToken(UUID userId) {
-        Date now = new Date();
-        Date expireDate = new Date(now.getTime() + jwtProperties.getRefreshExpiration() * 1000);
-
-        String refreshToken = JWT.create()
-                .withIssuer("SapientiaCloud-EduPivot")
-                .withClaim("userId", userId.toString())
-                .withClaim("type", "refresh")
-                .withIssuedAt(now)
-                .withExpiresAt(expireDate)
-                .sign(Algorithm.HMAC256(jwtProperties.getSecret()));
-
-        // 将刷新token存入Redis
-        redisTemplate.opsForValue().set(
-                REFRESH_TOKEN_PREFIX + userId,
-                refreshToken,
-                jwtProperties.getRefreshExpiration(),
-                TimeUnit.SECONDS
-        );
-
-        return refreshToken;
-    }
-
-    /**
      * 解析JWT token
      */
     public DecodedJWT parseToken(String token) {
@@ -90,7 +64,7 @@ public class JwtUtil {
             return verifier.verify(token);
         } catch (Exception e) {
             log.error("JWT token解析失败: {}", e.getMessage());
-            throw new RuntimeException("Invalid token");
+            throw new JwtAuthenticationException("Invalid token", e);
         }
     }
 
@@ -127,42 +101,12 @@ public class JwtUtil {
     }
 
     /**
-     * 刷新token
-     */
-    public String refreshToken(String refreshToken, UUID userId, String username) {
-        try {
-            DecodedJWT decodedJWT = parseToken(refreshToken);
-            String type = decodedJWT.getClaim("type").asString();
-
-            if (!"refresh".equals(type)) {
-                throw new RuntimeException("Invalid refresh token");
-            }
-
-            UUID tokenUserId = getUserId(refreshToken);
-
-            // 验证刷新token是否存在于Redis
-            String redisRefreshToken = (String) redisTemplate.opsForValue().get(REFRESH_TOKEN_PREFIX + tokenUserId);
-            if (!refreshToken.equals(redisRefreshToken)) {
-                throw new RuntimeException("Refresh token not found or expired");
-            }
-
-            // 生成新的token
-            return generateToken(userId, username);
-
-        } catch (Exception e) {
-            log.error("刷新token失败: {}", e.getMessage());
-            throw new RuntimeException("Invalid refresh token");
-        }
-    }
-
-    /**
      * 注销token
      */
     public void logout(String token) {
         try {
             UUID userId = getUserId(token);
             redisTemplate.delete(TOKEN_PREFIX + userId);
-            redisTemplate.delete(REFRESH_TOKEN_PREFIX + userId);
         } catch (Exception e) {
             log.error("注销token失败: {}", e.getMessage());
         }
