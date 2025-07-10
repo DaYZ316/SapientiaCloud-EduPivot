@@ -3,18 +3,22 @@ package com.dayz.sapientiacloud_edupivot.auth.controller;
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.LoginRequest;
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.LoginResponse;
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.RefreshTokenRequest;
-import com.dayz.sapientiacloud_edupivot.auth.entity.dto.RegisterRequest;
 import com.dayz.sapientiacloud_edupivot.auth.response.Result;
 import com.dayz.sapientiacloud_edupivot.auth.service.AuthService;
 import com.dayz.sapientiacloud_edupivot.auth.utils.JwtUtil;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -26,10 +30,6 @@ public class AuthController {
     private final AuthService authService;
     private final JwtUtil jwtUtil;
 
-    private static final String BEARER_TOKEN_PREFIX = "Bearer ";
-    private static final String AUTHORIZATION_HEADER = "Authorization";
-    private static final int TOKEN_LENGTH = 7;
-
     @PostMapping("/login")
     @Operation(summary = "用户登录", description = "用户登录获取访问令牌")
     public Result<LoginResponse> login(@Valid @RequestBody LoginRequest loginRequest) {
@@ -39,18 +39,6 @@ public class AuthController {
         } catch (Exception e) {
             log.error("用户登录失败: {}", e.getMessage());
             return Result.fail("登录失败: " + e.getMessage());
-        }
-    }
-
-    @PostMapping("/register")
-    @Operation(summary = "用户注册", description = "新用户注册")
-    public Result<String> register(@Valid @RequestBody RegisterRequest registerRequest) {
-        try {
-            authService.register(registerRequest);
-            return Result.success("注册成功");
-        } catch (Exception e) {
-            log.error("用户注册失败: {}", e.getMessage());
-            return Result.fail("注册失败: " + e.getMessage());
         }
     }
 
@@ -68,12 +56,11 @@ public class AuthController {
 
     @PostMapping("/logout")
     @Operation(summary = "用户登出", description = "用户登出并清除令牌")
-    public Result<String> logout(HttpServletRequest request) {
+    @Parameter(name = "Authorization", hidden = true)
+    public Result<String> logout(@RequestHeader("Authorization") String authorizationHeader) {
         try {
-            String token = getTokenFromRequest(request);
-            if (token != null) {
-                jwtUtil.logout(token);
-            }
+            String token = authorizationHeader.substring(7);
+            jwtUtil.logout(token);
             return Result.success("登出成功");
         } catch (Exception e) {
             log.error("用户登出失败: {}", e.getMessage());
@@ -83,54 +70,31 @@ public class AuthController {
 
     @GetMapping("/validate")
     @Operation(summary = "验证令牌", description = "验证当前令牌是否有效")
-    public Result<Boolean> validateToken(HttpServletRequest request) {
-        try {
-            String token = getTokenFromRequest(request);
-            if (token == null) {
-                return Result.fail("缺少令牌");
-            }
-            
-            boolean isValid = jwtUtil.validateToken(token);
-            return Result.success(isValid);
-        } catch (Exception e) {
-            log.error("令牌验证失败: {}", e.getMessage());
-            return Result.fail("令牌验证失败: " + e.getMessage());
-        }
+    @Parameter(name = "Authorization", hidden = true)
+    public Result<Boolean> validateToken(
+            @Parameter(description = "JWT Token", required = true) @RequestParam("token") String token
+    ) {
+        // 调用认证服务验证令牌有效性
+        boolean valid = jwtUtil.validateToken(token);
+
+        // 返回验证结果
+        return Result.success(valid);
     }
 
     @GetMapping("/user-info")
     @Operation(summary = "获取用户信息", description = "根据令牌获取当前用户信息")
-    public Result<Object> getUserInfo(HttpServletRequest request) {
+    @Parameter(name = "Authorization", hidden = true)
+    public Result<Object> getUserInfo(Authentication authentication) {
         try {
-            String token = getTokenFromRequest(request);
-            if (token == null) {
-                return Result.fail("缺少令牌");
-            }
-            
-            if (!jwtUtil.validateToken(token)) {
-                return Result.fail("令牌无效");
-            }
-            
-            Long userId = jwtUtil.getUserId(token);
-            String username = jwtUtil.getUsername(token);
-            
-            // 这里可以根据需要返回更多用户信息
-            Object userInfo = authService.getUserInfo(userId);
-            return Result.success(userInfo);
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            // 在实际场景中，您可能需要一个方法来通过用户名从SysUser中查找完整的UUID
+            // 这里我们假设UserDetails的username就是SysUser的username，并以此调用服务
+            // 注意：UserDetailsServiceImpl需要确保返回的UserDetails的username是准确的
+            // 为了演示，此处直接返回 UserDetails，实际应返回业务VO
+            return Result.success(userDetails);
         } catch (Exception e) {
             log.error("获取用户信息失败: {}", e.getMessage());
             return Result.fail("获取用户信息失败: " + e.getMessage());
         }
-    }
-
-    /**
-     * 从请求中提取JWT令牌
-     */
-    private String getTokenFromRequest(HttpServletRequest request) {
-        String bearerToken = request.getHeader(AUTHORIZATION_HEADER);
-        if (bearerToken != null && bearerToken.startsWith(BEARER_TOKEN_PREFIX)) {
-            return bearerToken.substring(TOKEN_LENGTH);
-        }
-        return null;
     }
 }
