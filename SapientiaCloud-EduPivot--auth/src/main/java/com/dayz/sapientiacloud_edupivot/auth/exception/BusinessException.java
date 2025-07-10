@@ -4,13 +4,10 @@ import com.dayz.sapientiacloud_edupivot.auth.enums.ResultEnum;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.io.Serial;
-
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class BusinessException extends RuntimeException {
 
-    @Serial
     private static final long serialVersionUID = 221477430191313484L;
 
     private int code;
