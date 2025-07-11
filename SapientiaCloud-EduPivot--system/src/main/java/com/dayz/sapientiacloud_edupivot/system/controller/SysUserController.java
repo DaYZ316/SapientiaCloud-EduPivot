@@ -1,5 +1,6 @@
 package com.dayz.sapientiacloud_edupivot.system.controller;
 
+import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserAdminDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserQueryDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserRegisterDTO;
@@ -10,7 +11,6 @@ import com.dayz.sapientiacloud_edupivot.system.service.ISysUserService;
 import com.github.pagehelper.PageInfo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +31,6 @@ public class SysUserController {
             summary = "分页查找用户",
             description = "根据传入的条件分页查询用户信息。支持根据用户名、昵称等字段进行模糊查询。"
     )
-    @Parameter(name = "Authorization", description = "Bearer 令牌", required = true, in = ParameterIn.HEADER)
     @GetMapping("/list")
     public Result<PageInfo<SysUserVO>> listSysUser(@ParameterObject SysUserQueryDTO sysUserQueryDTO) {
         PageInfo<SysUserVO> list = sysUserService.listSysUser(sysUserQueryDTO);
@@ -39,41 +38,37 @@ public class SysUserController {
     }
 
     @Operation(summary = "根据ID获取用户", description = "通过用户的唯一ID获取其详细信息。")
-    @Parameter(name = "Authorization", description = "Bearer 令牌", required = true, in = ParameterIn.HEADER)
     @GetMapping("/{id}")
     public Result<SysUserVO> getUserById(
-            @Parameter(name = "id", description = "用户ID", required = true) @PathVariable UUID id
+            @Parameter(name = "id", description = "用户ID", required = true) @PathVariable("id") UUID id
     ) {
         SysUserVO sysUserVO = sysUserService.getUserById(id);
         return Result.success(sysUserVO);
     }
 
     @Operation(summary = "管理员添加新用户", description = "管理员向系统中添加一个新用户。")
-    @Parameter(name = "Authorization", description = "Bearer 令牌", required = true, in = ParameterIn.HEADER)
     @PostMapping
-    public Result<Boolean> addUser(@Valid @RequestBody SysUserDTO sysUserDTO) {
-        return Result.success(sysUserService.addUser(sysUserDTO));
+    public Result<SysUserVO> addUser(@Valid @RequestBody SysUserAdminDTO sysUserAdminDTO) {
+        return Result.success(sysUserService.addUser(sysUserAdminDTO));
     }
 
     @Operation(summary = "更新现有用户", description = "修改现有用户的信息。")
-    @Parameter(name = "Authorization", description = "Bearer 令牌", required = true, in = ParameterIn.HEADER)
     @PutMapping
-    public Result<Boolean> updateUser(@Valid @RequestBody SysUserDTO sysUserDTO) {
+    public Result<SysUserVO> updateUser(@Valid @RequestBody SysUserDTO sysUserDTO) {
         return Result.success(sysUserService.updateUser(sysUserDTO));
     }
 
     @Operation(summary = "删除用户", description = "根据用户ID从系统中移除用户。")
-    @Parameter(name = "Authorization", description = "Bearer 令牌", required = true, in = ParameterIn.HEADER)
     @DeleteMapping("/{id}")
     public Result<Boolean> deleteUser(
-            @Parameter(name = "id", description = "用户ID", required = true) @PathVariable UUID id
+            @Parameter(name = "id", description = "用户ID", required = true) @PathVariable("id") UUID id
     ) {
         return Result.success(sysUserService.deleteUser(id));
     }
 
     @Operation(summary = "注册用户", description = "用户UI端注册用户。")
     @PostMapping("/register")
-    public Result<Boolean> register(@Valid @RequestBody SysUserRegisterDTO sysUserRegisterDTO) {
+    public Result<SysUserVO> register(@Valid @RequestBody SysUserRegisterDTO sysUserRegisterDTO) {
         return Result.success(sysUserService.registerUser(sysUserRegisterDTO));
     }
 

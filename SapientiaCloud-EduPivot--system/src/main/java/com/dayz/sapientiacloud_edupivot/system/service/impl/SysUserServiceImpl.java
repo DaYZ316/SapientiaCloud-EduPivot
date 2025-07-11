@@ -1,6 +1,7 @@
 package com.dayz.sapientiacloud_edupivot.system.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserAdminDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserQueryDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserRegisterDTO;
@@ -58,20 +59,25 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     }
 
     @Override
-    public Boolean addUser(SysUserDTO sysUserDTO) {
-        if (sysUserDTO == null) {
+    public SysUserVO addUser(SysUserAdminDTO sysUserAdminDTO) {
+        if (sysUserAdminDTO == null) {
             throw new BusinessException(SysUserExceptionEnum.USERNAME_CANNOT_BE_EMPTY.getMessage());
         }
-        if (sysUserMapper.selectByUsername(sysUserDTO.getUsername()) != null) {
+        if (sysUserMapper.selectByUsername(sysUserAdminDTO.getUsername()) != null) {
             throw new BusinessException(SysUserExceptionEnum.USERNAME_ALREADY_EXISTS.getMessage());
         }
 
-        SysUser sysUser = checkSysUserInfo(sysUserDTO);
-        return this.save(sysUser);
+        SysUser sysUser = checkSysUserInfo(sysUserAdminDTO);
+        this.save(sysUser);
+
+        SysUserVO sysUserVO = new SysUserVO();
+        BeanUtils.copyProperties(sysUser, sysUserVO);
+
+        return sysUserVO;
     }
 
     @Override
-    public Boolean updateUser(SysUserDTO sysUserDTO) {
+    public SysUserVO updateUser(SysUserDTO sysUserDTO) {
         if (sysUserDTO.getId() == null) {
             throw new BusinessException(SysUserExceptionEnum.USER_NOT_FOUND.getMessage());
         }
@@ -90,7 +96,12 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         }
         sysUser.setUpdateTime(sysUserDTO.getUpdateTime());
 
-        return this.updateById(sysUser);
+        this.updateById(sysUser);
+
+        SysUserVO sysUserVO = new SysUserVO();
+        BeanUtils.copyProperties(sysUser, sysUserVO);
+
+        return sysUserVO;
     }
 
     @Override
@@ -109,7 +120,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     }
 
     @Override
-    public Boolean registerUser(SysUserRegisterDTO sysUserRegisterDTO) {
+    public SysUserVO registerUser(SysUserRegisterDTO sysUserRegisterDTO) {
         if (sysUserRegisterDTO == null) {
             throw new BusinessException(SysUserExceptionEnum.USERNAME_CANNOT_BE_EMPTY.getMessage());
         }
@@ -118,7 +129,12 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         }
 
         SysUser sysUser = checkSysUserInfo(sysUserRegisterDTO);
-        return this.save(sysUser);
+        this.save(sysUser);
+
+        SysUserVO sysUserVO = new SysUserVO();
+        BeanUtils.copyProperties(sysUser, sysUserVO);
+
+        return sysUserVO;
     }
 
     public SysUser checkSysUserInfo (Object sysUserInfo) {

@@ -1,6 +1,7 @@
 package com.dayz.sapientiacloud_edupivot.system.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserAdminDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserQueryDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserRegisterDTO;
@@ -15,13 +16,13 @@ public interface ISysUserService extends IService<SysUser> {
 
     SysUserVO getUserById(UUID id);
 
-    Boolean addUser(SysUserDTO sysUserDTO);
+    SysUserVO addUser(SysUserAdminDTO sysUserAdminDTO);
 
-    Boolean updateUser(SysUserDTO sysUserDTO);
+    SysUserVO updateUser(SysUserDTO sysUserDTO);
 
     Boolean deleteUser(UUID id);
 
-    Boolean registerUser(SysUserRegisterDTO sysUserRegisterDTO);
+    SysUserVO registerUser(SysUserRegisterDTO sysUserRegisterDTO);
 
     SysUser selectUserByUsername(String username);
 }
