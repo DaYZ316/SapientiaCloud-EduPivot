@@ -15,17 +15,6 @@ public class Knife4jConfig {
     @Bean
     public OpenAPI springOpenApi() {
         return new OpenAPI()
-                .components(new Components()
-                        .addSecuritySchemes(HttpHeaders.AUTHORIZATION,
-                                new SecurityScheme()
-                                        .type(SecurityScheme.Type.HTTP)
-                                        .scheme("bearer")
-                                        .bearerFormat("JWT")
-                                        .in(SecurityScheme.In.HEADER)
-                                        .name(HttpHeaders.AUTHORIZATION)
-                        )
-                )
-                .addSecurityItem(new SecurityRequirement().addList(HttpHeaders.AUTHORIZATION))
                 .info(new Info().title("SapientiaCloud-EduPivot--system API")
                         .description("智语·云枢：系统服务 API文档")
                         .version("1.0.0")

@@ -18,7 +18,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public Result<Void> handleException(Exception e) {
-        log.error("系统异常: ", e);
+        log.error("系统异常: {}", e.getMessage());
         return Result.fail(ResultEnum.FAIL.getCode(), "系统错误: " + e.getMessage());
     }
 } 
