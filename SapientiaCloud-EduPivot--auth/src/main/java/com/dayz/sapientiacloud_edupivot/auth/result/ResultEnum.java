@@ -1,4 +1,4 @@
-package com.dayz.sapientiacloud_edupivot.system.enums;
+package com.dayz.sapientiacloud_edupivot.auth.result;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -45,7 +45,17 @@ public enum ResultEnum {
     /**
      * 服务不可用
      */
-    SERVICE_UNAVAILABLE(503, "服务不可用");
+    SERVICE_UNAVAILABLE(503, "服务不可用"),
+
+    /**
+     * 令牌不存在
+     */
+    TOKEN_NOT_FOUND(1001, "令牌不存在"),
+
+    /**
+     * 令牌已过期
+     */
+    TOKEN_EXPIRED(1002, "令牌已过期" );
 
     /**
      * 状态码

@@ -1,6 +1,6 @@
-package com.dayz.sapientiacloud_edupivot.system.exception;
+package com.dayz.sapientiacloud_edupivot.auth.exception;
 
-import com.dayz.sapientiacloud_edupivot.system.result.ResultEnum;
+import com.dayz.sapientiacloud_edupivot.auth.result.ResultEnum;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

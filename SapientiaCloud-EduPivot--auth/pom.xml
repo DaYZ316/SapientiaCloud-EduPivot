@@ -27,6 +27,7 @@
         <lombok.version>1.18.30</lombok.version>
         <mapstruct.version>1.5.5.Final</mapstruct.version>
         <uuid.version>5.3.3</uuid.version>
+        <spring.cloud.oauth2.version>2.2.5.RELEASE</spring.cloud.oauth2.version>
         <spring.security.version>6.1.5</spring.security.version>
     </properties>
 
@@ -222,6 +223,12 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-oauth2</artifactId>
+            <version>${spring.cloud.oauth2.version}</version>
         </dependency>
 
         <!-- Spring Security -->

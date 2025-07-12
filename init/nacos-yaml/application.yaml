@@ -1,4 +1,6 @@
 spring:
+  servlet:
+    context-path: /sso
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DATABASE}?rewriteBatchedStatements=true&characterEncoding=UTF-8&autoReconnect=true&failOverReadOnly=false&serverTimezone=Asia/Shanghai&allowMultiQueries=true
@@ -25,6 +27,7 @@ logging:
     org.springframework.http.server.reactive: DEBUG
     org.springframework.web.reactive: DEBUG
     com.alibaba.nacos.client.logging.NacosLogging: ERROR
+    org.springframework.security: DEBUG
 
 MYSQL_HOST: 127.0.0.1
 MYSQL_PORT: 3306
