@@ -17,20 +17,15 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-/**
- * Spring Security 配置类
- */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(
     securedEnabled = true,
-    jsr250Enabled = true,
-    prePostEnabled = true
+    jsr250Enabled = true
 )
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    // Feign请求头标识
     private static final String FEIGN_REQUEST_HEADER = "X-Feign-Client";
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
