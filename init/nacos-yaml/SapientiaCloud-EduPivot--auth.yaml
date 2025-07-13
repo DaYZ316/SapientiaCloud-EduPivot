@@ -1,0 +1,13 @@
+jwt:
+  secret: zhaosheng123
+  expiration: 7200000
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 5000
+        readTimeout: 5000
+        loggerLevel: full
+spring:
+  jpa:
+    open-in-view: false

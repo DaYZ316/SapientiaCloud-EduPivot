@@ -1,0 +1,47 @@
+spring:
+  servlet:
+    context-path: /sso
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DATABASE}?rewriteBatchedStatements=true&characterEncoding=UTF-8&autoReconnect=true&failOverReadOnly=false&serverTimezone=Asia/Shanghai&allowMultiQueries=true
+    username: ${MYSQL_USERNAME}
+    password: ${MYSQL_PASSWORD}
+  data:
+    redis:
+      port: ${REDIS_PORT}
+      host: ${REDIS_HOST}
+      password: ${REDIS_PASSWORD}
+  cache:
+    type: redis
+    redis:
+      time-to-live: 1800000
+      cache-null-values: true
+      use-key-prefix: true
+      key-prefix: sapientiacloud
+    caffeine:
+      spec: maximumSize=500,expireAfterWrite=10m
+
+knife4j:
+  enable: true
+  basic:
+    enable: true
+    username: ${KNIFE4J_USERNAME}
+    password: ${KNIFE4J_PASSWORD}
+logging:
+  level:
+    com.dayz.sapientiacloud_edupivot.*.mapper: DEBUG
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.http.server.reactive: DEBUG
+    org.springframework.web.reactive: DEBUG
+
+MYSQL_HOST: 127.0.0.1
+MYSQL_PORT: 3306
+MYSQL_USERNAME: root
+MYSQL_PASSWORD: zhaosheng123
+MYSQL_DATABASE: sapientiacloud_edupivot
+REDIS_HOST: 127.0.0.1
+REDIS_PORT: 6379
+REDIS_USERNAME:
+REDIS_PASSWORD: zhaosheng123
+KNIFE4J_USERNAME: admin
+KNIFE4J_PASSWORD: zhaosheng123

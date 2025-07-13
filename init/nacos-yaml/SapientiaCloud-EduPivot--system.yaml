@@ -1,0 +1,37 @@
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: SapientiaCloud-EduPivot--system
+          uri: lb://SapientiaCloud-EduPivot--system
+          predicates:
+            - Path=/api/system/**
+          filters:
+            - StripPrefix=2
+        - id: SapientiaCloud-EduPivot--auth
+          uri: lb://SapientiaCloud-EduPivot--auth
+          predicates:
+            - Path=/api/auth/**
+          filters:
+            - StripPrefix=2
+  data:
+    redis:
+      port: ${REDIS_PORT}
+      host: ${REDIS_HOST}
+      password: ${REDIS_PASSWORD}
+  cache:
+    caffeine:
+      spec: maximumSize=500,expireAfterWrite=10m
+
+knife4j:
+  gateway:
+    enabled: true
+    strategy: discover
+    discover:
+      enabled: true
+      version: openapi3
+
+REDIS_HOST: 127.0.0.1
+REDIS_PORT: 6379
+REDIS_USERNAME:
+REDIS_PASSWORD: zhaosheng123
