@@ -1,0 +1,24 @@
+server:
+  port: 31600
+spring:
+  application:
+    name: SapientiaCloud-EduPivot--gateway
+  config:
+    import:
+      - nacos:${spring.application.name}.${spring.cloud.nacos.config.file-extension}?refreshEnabled=true
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_HOST:localhost}:${NACOS_PORT:8848}
+        namespace: ${NACOS_NAMESPACE:}
+        username: nacos
+        password: zhaosheng123
+      config:
+        server-addr: ${spring.cloud.nacos.discovery.server-addr}
+        username: ${spring.cloud.nacos.discovery.username}
+        password: ${spring.cloud.nacos.discovery.password}
+        file-extension: yaml
+        extension-configs:
+          - data-id: SapientiaCloudEduPivot--gateway.yaml
+            group: DEFAULT_GROUP
+            refresh: true

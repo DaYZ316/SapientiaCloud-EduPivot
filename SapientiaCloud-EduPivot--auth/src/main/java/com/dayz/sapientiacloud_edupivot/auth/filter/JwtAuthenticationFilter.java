@@ -1,0 +1,113 @@
+package com.dayz.sapientiacloud_edupivot.auth.filter;
+
+import com.dayz.sapientiacloud_edupivot.auth.util.JwtUtil;
+import jakarta.servlet.*;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
+import org.springframework.util.StringUtils;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import java.io.IOException;
+import java.util.Collections;
+
+/**
+ * JWT认证过滤器
+ */
+@Slf4j
+@Component
+@RequiredArgsConstructor
+public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
+    private final JwtUtil jwtUtil;
+    
+    private static final String[] WHITELIST = {
+            "/login", 
+            "/validate",
+            "/logout",
+            "/doc.html",
+            "/webjars/**",
+            "/v3/api-docs",
+            // 常见的通过网关转发后可能的路径形式
+            "/api/auth/login",
+            "/api/auth/validate",
+            "/api/auth/logout",
+            "/api/auth/v3/api-docs",
+    };
+    
+    private final AntPathMatcher pathMatcher = new AntPathMatcher();
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
+        
+        String requestURI = request.getRequestURI();
+        
+        // 如果是白名单中的路径，直接放行
+        if (isWhitelistPath(requestURI)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        String token = extractTokenFromRequest(request);
+        if (token != null) {
+            try {
+                // 验证令牌，此方法会检查令牌是否在黑名单中
+                if (!jwtUtil.isTokenExpired(token)) {
+                    // 从令牌中获取用户名
+                    String username = jwtUtil.getUsernameFromToken(token);
+                    if (username != null) {
+                        // TODO 从数据库中获取用户信息
+                        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                                username, null, 
+                                Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
+                        );
+                        
+                        // 设置认证信息到安全上下文
+                        SecurityContextHolder.getContext().setAuthentication(authentication);
+                        
+                        log.debug("用户 {} 已认证通过JWT令牌", username);
+                    }
+                }
+            } catch (Exception e) {
+                log.error("JWT令牌验证失败: {}", e.getMessage());
+                SecurityContextHolder.clearContext();
+            }
+        } else {
+            log.warn("请求未携带JWT令牌: {}", requestURI);
+            SecurityContextHolder.clearContext();
+        }
+        
+        filterChain.doFilter(request, response);
+    }
+    
+    /**
+     * 判断请求路径是否在白名单中
+     */
+    private boolean isWhitelistPath(String requestURI) {
+        for (String pattern : WHITELIST) {
+            if (pathMatcher.match(pattern, requestURI)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    /**
+     * 从请求中提取JWT令牌
+     */
+    private String extractTokenFromRequest(HttpServletRequest request) {
+        // 从Authorization头中获取令牌
+        String bearerToken = request.getHeader("Authorization");
+        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7);
+        }
+        return null;
+    }
+} 
