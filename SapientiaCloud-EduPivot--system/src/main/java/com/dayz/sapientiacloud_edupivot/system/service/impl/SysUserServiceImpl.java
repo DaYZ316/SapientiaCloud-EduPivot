@@ -25,6 +25,7 @@ import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.cache.annotation.CacheEvict;
 
@@ -43,8 +44,9 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
     @Override
     public PageInfo<SysUserVO> listSysUser(SysUserQueryDTO sysUserQueryDTO) {
-        return PageHelper.startPage(sysUserQueryDTO.getPageNum(), sysUserQueryDTO.getPageSize())
+        PageInfo<SysUserVO> pageInfo = PageHelper.startPage(sysUserQueryDTO.getPageNum(), sysUserQueryDTO.getPageSize())
                 .doSelectPageInfo(() -> sysUserMapper.listSysUser(sysUserQueryDTO));
+        return pageInfo;
     }
 
     @Override
@@ -63,10 +65,11 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     }
 
     @Override
+    @Transactional
     @CacheEvict(value = "sysUser", key = "#result.id", condition = "#result != null")
     public SysUserVO addUser(SysUserAdminDTO sysUserAdminDTO) {
         if (sysUserAdminDTO == null) {
-        throw new BusinessException(SysUserExceptionEnum.USERNAME_CANNOT_BE_EMPTY.getMessage());
+            throw new BusinessException(SysUserExceptionEnum.USERNAME_CANNOT_BE_EMPTY.getMessage());
         }
         if (sysUserAdminDTO.getId() != null && this.getById(sysUserAdminDTO.getId()) != null) {
             throw new BusinessException(SysUserExceptionEnum.USERNAME_ALREADY_EXISTS.getMessage());
@@ -90,6 +93,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     }
 
     @Override
+    @Transactional
     @CacheEvict(value = "sysUser", key = "#result.id", condition = "#result != null")
     public SysUserVO updateUser(SysUserDTO sysUserDTO) {
         if (sysUserDTO.getId() == null) {
@@ -118,7 +122,8 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     }
 
     @Override
-    @CacheEvict(value = "sysUser", key = "#p0",  condition = "#p0 != null")
+    @Transactional
+    @CacheEvict(value = "sysUser", key = "#p0", condition = "#p0 != null")
     public Boolean deleteUser(UUID id) {
         if (id != null) {
             SysUser sysUser = this.getById(id);
@@ -134,6 +139,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     }
 
     @Override
+    @Transactional
     @CacheEvict(value = "sysUser", key = "#result.id", condition = "#result != null")
     public SysUserVO registerUser(SysUserRegisterDTO sysUserRegisterDTO) {
         if (sysUserRegisterDTO == null) {
