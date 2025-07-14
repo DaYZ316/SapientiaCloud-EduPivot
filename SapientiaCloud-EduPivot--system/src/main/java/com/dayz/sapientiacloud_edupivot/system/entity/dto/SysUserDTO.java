@@ -20,10 +20,6 @@ public class SysUserDTO implements Serializable {
     @Schema(description = "用户ID，更新时必须提供")
     private UUID id;
 
-    @Schema(description = "用户名")
-    @Size(min = 1, max = 20, message = "如果提供用户名，其长度必须在1到20个字符之间")
-    private String username;
-
     @Schema(description = "用户昵称")
     @Size(max = 30, message = "用户昵称不能超过30个字符")
     private String nickName;

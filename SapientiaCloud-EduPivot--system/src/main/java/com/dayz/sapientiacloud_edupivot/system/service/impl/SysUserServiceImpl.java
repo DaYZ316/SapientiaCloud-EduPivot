@@ -103,15 +103,10 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
         BeanUtils.copyProperties(sysUserDTO, sysUser);
 
-        if (GenderEnum.isCodeBetween(sysUser.getGender())) {
+        if (sysUser.getGender() == null || GenderEnum.isCodeBetween(sysUser.getGender())) {
             sysUser.setGender(null);
         }
-        if (StringUtils.hasText(sysUser.getPassword())) {
-            String encodePassword = passwordEncoder.encode(sysUser.getPassword());
-            sysUser.setPassword(encodePassword);
-        } else {
-            sysUser.setPassword(null);
-        }
+
         sysUser.setUpdateTime(sysUserDTO.getUpdateTime());
 
         this.updateById(sysUser);
@@ -176,7 +171,6 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             sysUser.setPassword(encodePassword);
         } else {
             sysUser.setPassword(passwordEncoder.encode(sysUser.getPassword()));
-            sysUser.setPassword(sysUser.getPassword());
         }
         sysUser.setStatus(StatusEnum.NORMAL.getCode());
         LocalDateTime now = LocalDateTime.now();

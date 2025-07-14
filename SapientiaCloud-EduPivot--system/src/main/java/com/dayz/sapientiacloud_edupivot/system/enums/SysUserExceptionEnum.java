@@ -40,7 +40,7 @@ public enum SysUserExceptionEnum {
     /**
      * 新密码不能与原密码相同
      */
-    USERNAME_ALREADY_EXISTS(1101, "用户名已存在"),
+    USERNAME_ALREADY_EXISTS(1101, "用户已存在"),
     /**
      * 邮箱地址已被注册
      */

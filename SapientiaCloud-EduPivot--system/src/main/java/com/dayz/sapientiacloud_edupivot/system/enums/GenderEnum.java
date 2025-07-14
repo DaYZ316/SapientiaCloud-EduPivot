@@ -31,9 +31,6 @@ public enum GenderEnum {
     private final String desc;
 
     public static boolean isCodeBetween(Integer code) {
-        if (code < GenderEnum.UNKNOWN.code || code > GenderEnum.FEMALE.code) {
-            return false;
-        }
-        return true;
+        return code >= GenderEnum.UNKNOWN.code && code <= GenderEnum.FEMALE.code;
     }
 }
