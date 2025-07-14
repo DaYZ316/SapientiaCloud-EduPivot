@@ -8,11 +8,6 @@ spring:
             - Path=/api/system/**
           filters:
             - StripPrefix=2
-            - name: RequestRateLimiter
-              args:
-                redis-rate-limiter.replenishRate: 10
-                redis-rate-limiter.burstCapacity: 20
-                redis-rate-limiter.requestedTokens: 1
         - id: SapientiaCloud-EduPivot--auth
           uri: lb://SapientiaCloud-EduPivot--auth
           predicates:
@@ -35,13 +30,6 @@ knife4j:
     discover:
       enabled: true
       version: openapi3
-    resources:
-      - name: 用户服务
-        url: /api/system/v3/api-docs
-        serviceName: SapientiaCloud-EduPivot--system
-      - name: 认证服务
-        url: /api/auth/v3/api-docs
-        serviceName: SapientiaCloud-EduPivot--auth
 
 REDIS_HOST: 127.0.0.1
 REDIS_PORT: 6379

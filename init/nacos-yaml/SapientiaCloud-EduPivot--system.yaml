@@ -1,37 +1,33 @@
-spring:
-  cloud:
-    gateway:
-      routes:
-        - id: SapientiaCloud-EduPivot--system
-          uri: lb://SapientiaCloud-EduPivot--system
-          predicates:
-            - Path=/api/system/**
-          filters:
-            - StripPrefix=2
-        - id: SapientiaCloud-EduPivot--auth
-          uri: lb://SapientiaCloud-EduPivot--auth
-          predicates:
-            - Path=/api/auth/**
-          filters:
-            - StripPrefix=2
-  data:
-    redis:
-      port: ${REDIS_PORT}
-      host: ${REDIS_HOST}
-      password: ${REDIS_PASSWORD}
-  cache:
-    caffeine:
-      spec: maximumSize=500,expireAfterWrite=10m
-
-knife4j:
-  gateway:
+pagehelper:
+  helper-dialect: mysql
+  reasonable: true
+  support-methods-arguments: true
+  params: count=countSql
+mybatis-plus:
+  type-aliases-package: com.dayz.sapientiacloudedupivot.system.entity
+  mapper-locations: classpath:mapper/**/*.xml
+  configuration:
+    cache-enabled: false
+    map-underscore-to-camel-case: true
+  global-config:
+    db-config:
+      id-type: assign_id
+      update-strategy: not_null
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 5000
+        readTimeout: 5000
+        loggerLevel: full
+  httpclient:
     enabled: true
-    strategy: discover
-    discover:
-      enabled: true
-      version: openapi3
-
-REDIS_HOST: 127.0.0.1
-REDIS_PORT: 6379
-REDIS_USERNAME:
-REDIS_PASSWORD: zhaosheng123
+spring:
+  jpa:
+    open-in-view: false
+    show-sql: true
+    hibernate:
+      ddl-auto: update
