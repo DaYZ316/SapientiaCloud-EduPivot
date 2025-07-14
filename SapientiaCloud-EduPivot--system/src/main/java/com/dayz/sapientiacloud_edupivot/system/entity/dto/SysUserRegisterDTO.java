@@ -18,7 +18,7 @@ public class SysUserRegisterDTO implements Serializable {
 
     @Schema(description = "用户名，必须是4-20位的字母、数字或下划线", example = "zhangsan", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank(message = "用户名不能为空")
-    @Size(min = 1, max = 20, message = "用户名长度必须在1到20个字符之间")
+    @Size(min = 4, max = 20, message = "用户名长度必须在4到20个字符之间")
     private String username;
 
     @Schema(description = "用户密码，必须是6-20位的任意字符", example = "MyP@ssw0rd123", requiredMode = Schema.RequiredMode.REQUIRED)

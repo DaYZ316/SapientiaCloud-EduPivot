@@ -21,9 +21,12 @@ import com.github.pagehelper.PageInfo;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.BeanUtils;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.springframework.cache.annotation.CacheEvict;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -45,6 +48,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     }
 
     @Override
+    @Cacheable(value = "sysUser", key = "#p0", condition = "#p0 != null")
     public SysUserVO getUserById(UUID id) {
         if (id == null) {
             throw new BusinessException(SysUserExceptionEnum.USER_NOT_FOUND.getMessage());
@@ -59,15 +63,24 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     }
 
     @Override
+    @CacheEvict(value = "sysUser", key = "#result.id", condition = "#result != null")
     public SysUserVO addUser(SysUserAdminDTO sysUserAdminDTO) {
         if (sysUserAdminDTO == null) {
-            throw new BusinessException(SysUserExceptionEnum.USERNAME_CANNOT_BE_EMPTY.getMessage());
+        throw new BusinessException(SysUserExceptionEnum.USERNAME_CANNOT_BE_EMPTY.getMessage());
+        }
+        if (sysUserAdminDTO.getId() != null && this.getById(sysUserAdminDTO.getId()) != null) {
+            throw new BusinessException(SysUserExceptionEnum.USERNAME_ALREADY_EXISTS.getMessage());
         }
         if (sysUserMapper.selectByUsername(sysUserAdminDTO.getUsername()) != null) {
             throw new BusinessException(SysUserExceptionEnum.USERNAME_ALREADY_EXISTS.getMessage());
         }
 
         SysUser sysUser = checkSysUserInfo(sysUserAdminDTO);
+        if (sysUser.getId() == null) {
+            sysUser.setId(UuidCreator.getTimeOrderedEpoch());
+        } else {
+            sysUserMapper.deleteUserById(sysUser.getId());
+        }
         this.save(sysUser);
 
         SysUserVO sysUserVO = new SysUserVO();
@@ -77,12 +90,17 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     }
 
     @Override
+    @CacheEvict(value = "sysUser", key = "#result.id", condition = "#result != null")
     public SysUserVO updateUser(SysUserDTO sysUserDTO) {
         if (sysUserDTO.getId() == null) {
             throw new BusinessException(SysUserExceptionEnum.USER_NOT_FOUND.getMessage());
         }
 
-        SysUser sysUser = new SysUser();
+        SysUser sysUser = this.getById(sysUserDTO.getId());
+        if (sysUser == null) {
+            throw new BusinessException(SysUserExceptionEnum.USER_NOT_FOUND.getMessage());
+        }
+
         BeanUtils.copyProperties(sysUserDTO, sysUser);
 
         if (GenderEnum.isCodeBetween(sysUser.getGender())) {
@@ -105,6 +123,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     }
 
     @Override
+    @CacheEvict(value = "sysUser", key = "#p0",  condition = "#p0 != null")
     public Boolean deleteUser(UUID id) {
         if (id != null) {
             SysUser sysUser = this.getById(id);
@@ -120,6 +139,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     }
 
     @Override
+    @CacheEvict(value = "sysUser", key = "#result.id", condition = "#result != null")
     public SysUserVO registerUser(SysUserRegisterDTO sysUserRegisterDTO) {
         if (sysUserRegisterDTO == null) {
             throw new BusinessException(SysUserExceptionEnum.USERNAME_CANNOT_BE_EMPTY.getMessage());
@@ -129,6 +149,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         }
 
         SysUser sysUser = checkSysUserInfo(sysUserRegisterDTO);
+        sysUser.setId(UuidCreator.getTimeOrderedEpoch());
         this.save(sysUser);
 
         SysUserVO sysUserVO = new SysUserVO();
@@ -141,7 +162,6 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         SysUser sysUser = new SysUser();
         BeanUtils.copyProperties(sysUserInfo, sysUser);
 
-        sysUser.setId(UuidCreator.getTimeOrderedEpoch());
         if (!StringUtils.hasText(sysUser.getUsername())) {
             sysUser.setUsername(RandomStringUtils.randomAlphanumeric(DEFAULT_USERNAME_LENGTH));
         }
@@ -167,7 +187,14 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     }
 
     @Override
+    @CachePut(value = "sysUser", key = "#result.id", condition = "#result != null")
     public SysUser selectUserByUsername(String username) {
-        return sysUserMapper.selectByUsername(username);
+        SysUser sysUser = sysUserMapper.selectByUsername(username);
+
+        if (sysUser == null) {
+            throw new BusinessException(SysUserExceptionEnum.USER_NOT_FOUND.getMessage());
+        }
+
+        return sysUser;
     }
 }
