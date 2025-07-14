@@ -4,9 +4,11 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserQueryDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.po.SysUser;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysUserVO;
+import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
+import java.util.UUID;
 
 @Mapper
 public interface SysUserMapper extends BaseMapper<SysUser> {
@@ -15,4 +17,6 @@ public interface SysUserMapper extends BaseMapper<SysUser> {
 
     SysUser selectByUsername(String username);
 
+    @Delete("delete from sys_user where id = #{id}")
+    void deleteUserById(UUID id);
 }
