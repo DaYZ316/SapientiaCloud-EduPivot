@@ -5,11 +5,14 @@ import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysRoleAddDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysRoleDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysRoleQueryDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.po.SysRole;
+import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysPermissionVO;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysRoleVO;
 import com.dayz.sapientiacloud_edupivot.system.enums.StatusEnum;
+import com.dayz.sapientiacloud_edupivot.system.enums.SysPermissionEnum;
 import com.dayz.sapientiacloud_edupivot.system.enums.SysRoleEnum;
 import com.dayz.sapientiacloud_edupivot.system.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.system.mapper.SysRoleMapper;
+import com.dayz.sapientiacloud_edupivot.system.mapper.SysRolePermissionMapper;
 import com.dayz.sapientiacloud_edupivot.system.service.ISysRoleService;
 import com.github.f4b6a3.uuid.UuidCreator;
 import com.github.pagehelper.PageHelper;
@@ -23,7 +26,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -31,6 +36,7 @@ import java.util.UUID;
 public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> implements ISysRoleService {
 
     private final SysRoleMapper sysRoleMapper;
+    private final SysRolePermissionMapper sysRolePermissionMapper;
 
     @Override
     public PageInfo<SysRoleVO> listSysRole(SysRoleQueryDTO sysRoleQueryDTO) {
@@ -40,7 +46,7 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
 
     @Override
     @Cacheable(value = "SysRole", key = "#p0", condition = "#p0 != null")
-    public SysRole getRoleById(UUID id) {
+    public SysRoleVO getRoleById(UUID id) {
         if (id == null) {
             throw new BusinessException(SysRoleEnum.ROLE_NOT_FOUND.getMessage());
         }
@@ -48,7 +54,14 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
         if (sysRole == null) {
             throw new BusinessException(SysRoleEnum.ROLE_NOT_FOUND.getMessage());
         }
-        return sysRole;
+        
+        SysRoleVO sysRoleVO = new SysRoleVO();
+        BeanUtils.copyProperties(sysRole, sysRoleVO);
+
+        List<SysPermissionVO> permissions = sysRoleMapper.getRolePermissions(id);
+        sysRoleVO.setPermissions(permissions);
+        
+        return sysRoleVO;
     }
 
     @Override
@@ -131,5 +144,40 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
         });
 
         return this.removeByIds(ids) ? ids.size() : 0;
+    }
+
+    @Override
+    public Boolean assignRolePermissions(UUID roleId, List<UUID> newPermissionIds) {
+        if (roleId == null) {
+            throw new BusinessException(SysRoleEnum.ROLE_NOT_FOUND.getMessage());
+        }
+
+        List<UUID> existingPermissionIds = sysRolePermissionMapper.getRolePermissionIds(roleId);
+
+        Set<UUID> newPermissionSet = new HashSet<>(newPermissionIds);
+        Set<UUID> existingPermissionSet = new HashSet<>(existingPermissionIds);
+
+        List<UUID> PermissionsToAdd = newPermissionIds.stream()
+                .filter(newPermissionId -> !existingPermissionSet.contains(newPermissionId))
+                .toList();
+
+        List<UUID> PermissionsToRemove = existingPermissionIds.stream()
+                .filter(existingPermissionId -> !newPermissionSet.contains(existingPermissionId))
+                .toList();
+
+        if (!PermissionsToAdd.isEmpty()) {
+            int result = sysRolePermissionMapper.addRolePermissions(roleId, PermissionsToAdd);
+            if (result <= 0) {
+                throw new BusinessException(SysRoleEnum.ASSIGN_PERMISSION_FAILED.getMessage());
+            }
+        }
+        if (!PermissionsToRemove.isEmpty()) {
+            int result = sysRolePermissionMapper.removeRolePermissions(roleId, PermissionsToRemove);
+            if (result <= 0) {
+                throw new BusinessException(SysRoleEnum.ASSIGN_PERMISSION_FAILED.getMessage());
+            }
+        }
+
+        return true;
     }
 }

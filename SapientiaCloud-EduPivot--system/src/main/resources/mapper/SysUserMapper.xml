@@ -46,5 +46,16 @@
     <select id="selectByUsername" resultMap="SysUser">
         select * from sys_user where username = #{username} and is_deleted = 0
     </select>
+    
+    <select id="getUserRoles" resultType="com.dayz.sapientiacloud_edupivot.system.entity.vo.SysRoleVO">
+        select 
+            r.id, r.role_name, r.role_key, r.sort, r.status, r.description, r.create_time, r.update_time
+        from 
+            sys_role r
+        join 
+            sys_user_role ur on r.id = ur.role_id
+        where 
+            ur.user_id = #{userId}
+    </select>
 
 </mapper>

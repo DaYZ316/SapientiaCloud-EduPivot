@@ -28,4 +28,6 @@ public interface ISysUserService extends IService<SysUser> {
     SysUserVO addUser(SysUserAdminDTO sysUserAdminDTO);
 
     SysUser selectUserByUsername(String username);
+
+    Boolean assignRoles(UUID userId, List<UUID> roleIds);
 }

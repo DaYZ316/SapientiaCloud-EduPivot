@@ -7,6 +7,7 @@ import lombok.Data;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -36,6 +37,9 @@ public class SysUserVO implements Serializable {
 
     @Schema(description = "用户头像URL")
     private String avatar;
+
+    @Schema(description = "用户角色列表")
+    private List<SysRoleVO> roles;
 
     @Schema(description = "状态 (0=正常, 1=停用)")
     private Integer status;

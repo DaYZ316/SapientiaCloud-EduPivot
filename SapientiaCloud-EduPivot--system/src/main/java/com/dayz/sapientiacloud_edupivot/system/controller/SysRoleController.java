@@ -35,13 +35,13 @@ public class SysRoleController {
         return Result.success(list);
     }
 
-    @Operation(summary = "根据ID获取角色", description = "通过角色ID获取其详细信息。")
+    @Operation(summary = "根据ID获取角色", description = "通过角色ID获取其详细信息和权限列表。")
     @GetMapping("/{id}")
-    public Result<SysRole> getRoleById(
+    public Result<SysRoleVO> getRoleById(
             @Parameter(name = "id", description = "角色ID", required = true) @PathVariable("id") UUID id
     ) {
-        SysRole sysRole = sysRoleService.getRoleById(id);
-        return Result.success(sysRole);
+        SysRoleVO sysRoleVO = sysRoleService.getRoleById(id);
+        return Result.success(sysRoleVO);
     }
 
     @Operation(summary = "添加新角色", description = "管理员向系统中添加一个新角色。")
@@ -70,5 +70,14 @@ public class SysRoleController {
             @Parameter(name = "ids", description = "角色ID列表", required = true) @RequestBody List<UUID> ids
     ) {
         return Result.success(sysRoleService.removeRoleByIds(ids));
+    }
+
+    @Operation(summary = "分配角色权限", description = "为指定角色分配权限。")
+    @PostMapping("/{id}/permission")
+    public Result<Boolean> assignRolePermissions(
+            @Parameter(name = "id", description = "角色ID", required = true) @PathVariable("id") UUID id,
+            @Parameter(name = "permissionIds", description = "权限ID列表", required = true) @RequestBody List<UUID> permissionIds
+    ) {
+        return Result.success(sysRoleService.assignRolePermissions(id, permissionIds));
     }
 }

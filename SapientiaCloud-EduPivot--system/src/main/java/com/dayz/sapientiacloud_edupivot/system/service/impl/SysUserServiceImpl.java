@@ -1,18 +1,14 @@
 package com.dayz.sapientiacloud_edupivot.system.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserAdminDTO;
-import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserDTO;
-import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserQueryDTO;
-import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserRegisterDTO;
+import com.dayz.sapientiacloud_edupivot.system.entity.dto.*;
 import com.dayz.sapientiacloud_edupivot.system.entity.po.SysUser;
+import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysRoleVO;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysUserVO;
-import com.dayz.sapientiacloud_edupivot.system.enums.DeletedEnum;
-import com.dayz.sapientiacloud_edupivot.system.enums.GenderEnum;
-import com.dayz.sapientiacloud_edupivot.system.enums.StatusEnum;
-import com.dayz.sapientiacloud_edupivot.system.enums.SysUserEnum;
+import com.dayz.sapientiacloud_edupivot.system.enums.*;
 import com.dayz.sapientiacloud_edupivot.system.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.system.mapper.SysUserMapper;
+import com.dayz.sapientiacloud_edupivot.system.mapper.SysUserRoleMapper;
 import com.dayz.sapientiacloud_edupivot.system.service.ISysUserService;
 import com.github.f4b6a3.uuid.UuidCreator;
 import com.github.javafaker.Faker;
@@ -34,9 +30,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.cache.annotation.CacheEvict;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -46,6 +40,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     private final static String INIT_PASSWORD = "123456";
 
     private final SysUserMapper sysUserMapper;
+    private final SysUserRoleMapper sysUserRoleMapper;
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -66,6 +61,10 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         }
         SysUserVO sysUserVO = new SysUserVO();
         BeanUtils.copyProperties(sysUser, sysUserVO);
+
+        List<SysRoleVO> roles = sysUserMapper.getUserRoles(id);
+        sysUserVO.setRoles(roles);
+        
         return sysUserVO;
     }
 
@@ -177,6 +176,41 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         }
 
         return sysUser;
+    }
+
+    @Override
+    public Boolean assignRoles(UUID userId, List<UUID> newRoleIds) {
+        if (userId == null) {
+            throw new BusinessException(SysUserEnum.USER_NOT_FOUND.getMessage());
+        }
+
+        List<UUID> existingRoleIds = sysUserRoleMapper.getUserRoleIds(userId);
+
+        Set<UUID> newRoleSet = new HashSet<>(newRoleIds);
+        Set<UUID> existingRoleSet = new HashSet<>(existingRoleIds);
+
+        List<UUID> rolesToAdd = newRoleIds.stream()
+                .filter(newRoleId -> !existingRoleSet.contains(newRoleId))
+                .toList();
+
+        List<UUID> rolesToRemove = existingRoleIds.stream()
+                .filter(existingRoleId -> !newRoleSet.contains(existingRoleId))
+                .toList();
+
+        if (!rolesToAdd.isEmpty()) {
+            int result = sysUserRoleMapper.addUserRoles(userId, rolesToAdd);
+            if (result <= 0) {
+                throw new BusinessException(SysUserEnum.ASSIGN_ROLE_FAILED.getMessage());
+            }
+        }
+        if (!rolesToRemove.isEmpty()) {
+            int result = sysUserRoleMapper.removeUserRoles(userId, rolesToRemove);
+            if (result <= 0) {
+                throw new BusinessException(SysUserEnum.ASSIGN_ROLE_FAILED.getMessage());
+            }
+        }
+
+        return true;
     }
 
     @Override

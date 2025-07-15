@@ -15,7 +15,7 @@ public interface ISysRoleService extends IService<SysRole> {
 
     PageInfo<SysRoleVO> listSysRole(SysRoleQueryDTO sysRoleQueryDTO);
 
-    SysRole getRoleById(UUID id);
+    SysRoleVO getRoleById(UUID id);
 
     Boolean addRole(SysRoleAddDTO sysRole);
 
@@ -24,4 +24,6 @@ public interface ISysRoleService extends IService<SysRole> {
     Boolean removeRoleById(UUID id);
 
     Integer removeRoleByIds(List<UUID> ids);
+
+    Boolean assignRolePermissions(UUID id, List<UUID> permissionIds);
 }

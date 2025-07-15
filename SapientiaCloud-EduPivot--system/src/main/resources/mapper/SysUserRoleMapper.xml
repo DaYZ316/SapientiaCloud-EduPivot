@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dayz.sapientiacloud_edupivot.system.mapper.SysUserRoleMapper">
+
+    <insert id="addUserRoles">
+        insert into sys_user_role (user_id, role_id) values
+        <foreach item="roleId" collection="roleIds" separator=",">
+            (#{userId}, #{roleId})
+        </foreach>
+    </insert>
+
+    <delete id="removeUserRoles">
+        delete from sys_user_role where user_id = #{userId} and role_id in
+        <foreach item="roleId" collection="roleIds" separator=",">
+            #{roleId}
+        </foreach>
+    </delete>
+
+</mapper>

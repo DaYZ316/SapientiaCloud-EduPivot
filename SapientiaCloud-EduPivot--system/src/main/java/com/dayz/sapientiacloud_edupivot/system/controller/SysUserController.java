@@ -74,6 +74,15 @@ public class SysUserController {
         return Result.success(sysUserService.removeUserByIds(ids));
     }
 
+    @Operation(summary = "分配用户角色", description = "为指定用户分配角色。")
+    @PostMapping("/{userId}/role")
+    public Result<Boolean> assignRoles(
+            @Parameter(name = "userId", description = "用户ID", required = true) @PathVariable("userId") UUID userId,
+            @Parameter(name = "roleIds", description = "角色ID列表", required = true) @RequestBody List<UUID> roleIds
+    ) {
+        return Result.success(sysUserService.assignRoles(userId, roleIds));
+    }
+
     @Operation(summary = "内部接口 - 管理员添加新用户", hidden = true)
     @PostMapping("internal/add")
     public Result<SysUserVO> addSysUser(@RequestBody SysUserAdminDTO sysUserAdminDTO) {
