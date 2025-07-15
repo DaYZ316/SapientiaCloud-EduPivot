@@ -11,7 +11,7 @@
 
     <delete id="removeRolePermissions">
         delete from sys_role_permission where role_id = #{roleId} and permission_id in
-        <foreach item="permissionId" collection="permissionIds" separator=",">
+        <foreach item="permissionId" collection="permissionIds" separator="," open="(" close=")">
             #{permissionId}
         </foreach>
     </delete>

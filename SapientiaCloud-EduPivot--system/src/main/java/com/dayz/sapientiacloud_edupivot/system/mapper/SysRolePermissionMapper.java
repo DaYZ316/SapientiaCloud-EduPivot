@@ -12,7 +12,7 @@ public interface SysRolePermissionMapper {
     @Select("SELECT permission_id FROM sys_role_permission WHERE role_id = #{roleId}")
     List<UUID> getRolePermissionIds(UUID roleId);
 
-    int addRolePermissions(@Param("roleId") UUID roleId, @Param("permissionsIds") List<UUID> permissionsIds);
+    int addRolePermissions(@Param("roleId") UUID roleId, @Param("permissionIds") List<UUID> permissionIds);
 
-    int removeRolePermissions(@Param("roleId") UUID roleId, @Param("permissionsIds") List<UUID> permissionsIds);
+    int removeRolePermissions(@Param("roleId") UUID roleId, @Param("permissionIds") List<UUID> permissionIds);
 }

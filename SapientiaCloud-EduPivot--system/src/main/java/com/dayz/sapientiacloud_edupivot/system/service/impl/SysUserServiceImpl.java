@@ -179,6 +179,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     }
 
     @Override
+    @CacheEvict(value = "SysUser", key = "#p0", condition = "#p0 != null")
     public Boolean assignRoles(UUID userId, List<UUID> newRoleIds) {
         if (userId == null) {
             throw new BusinessException(SysUserEnum.USER_NOT_FOUND.getMessage());
