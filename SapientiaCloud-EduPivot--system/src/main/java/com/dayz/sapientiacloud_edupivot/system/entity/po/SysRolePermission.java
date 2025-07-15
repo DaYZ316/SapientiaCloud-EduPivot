@@ -19,7 +19,7 @@ import java.util.UUID;
 public class SysRolePermission implements Serializable {
 
     @Serial
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 5002629267574017459L;
 
     @Schema(name = "role_id", description = "角色ID")
     @TableField("role_id")

@@ -6,6 +6,8 @@ import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserQueryDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserRegisterDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.po.SysUser;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysUserVO;
+import com.dayz.sapientiacloud_edupivot.system.enums.SysUserEnum;
+import com.dayz.sapientiacloud_edupivot.system.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.system.result.Result;
 import com.dayz.sapientiacloud_edupivot.system.service.ISysUserService;
 import com.github.pagehelper.PageInfo;
@@ -17,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @Tag(name = "用户管理", description = "用于管理系统用户的API")
@@ -27,10 +30,7 @@ public class SysUserController {
 
     private final ISysUserService sysUserService;
 
-    @Operation(
-            summary = "分页查找用户",
-            description = "根据传入的条件分页查询用户信息。支持根据用户名、昵称等字段进行模糊查询。"
-    )
+    @Operation(summary = "分页查找用户", description = "根据传入的条件分页查询用户信息。支持根据用户名、昵称等字段进行模糊查询。")
     @GetMapping("/list")
     public Result<PageInfo<SysUserVO>> listSysUser(@ParameterObject SysUserQueryDTO sysUserQueryDTO) {
         PageInfo<SysUserVO> list = sysUserService.listSysUser(sysUserQueryDTO);
@@ -46,30 +46,38 @@ public class SysUserController {
         return Result.success(sysUserVO);
     }
 
-    @Operation(summary = "管理员添加新用户", description = "管理员向系统中添加一个新用户。")
-    @PostMapping
-    public Result<SysUserVO> addUser(@Valid @RequestBody SysUserAdminDTO sysUserAdminDTO) {
-        return Result.success(sysUserService.addUser(sysUserAdminDTO));
+    @Operation(summary = "注册用户", description = "用户UI端注册用户。")
+    @PostMapping("/register")
+    public Result<Boolean> registerUser(@Valid @RequestBody SysUserRegisterDTO sysUserRegisterDTO) {
+        return Result.success(sysUserService.registerUser(sysUserRegisterDTO));
     }
 
     @Operation(summary = "更新现有用户", description = "修改现有用户的信息。")
     @PutMapping
-    public Result<SysUserVO> updateUser(@Valid @RequestBody SysUserDTO sysUserDTO) {
+    public Result<Boolean> updateUser(@Valid @RequestBody SysUserDTO sysUserDTO) {
         return Result.success(sysUserService.updateUser(sysUserDTO));
     }
 
     @Operation(summary = "删除用户", description = "根据用户ID从系统中移除用户。")
     @DeleteMapping("/{id}")
-    public Result<Boolean> deleteUser(
+    public Result<Boolean> removeUser(
             @Parameter(name = "id", description = "用户ID", required = true) @PathVariable("id") UUID id
     ) {
-        return Result.success(sysUserService.deleteUser(id));
+        return Result.success(sysUserService.removeUserById(id));
     }
 
-    @Operation(summary = "注册用户", description = "用户UI端注册用户。")
-    @PostMapping("/register")
-    public Result<SysUserVO> register(@Valid @RequestBody SysUserRegisterDTO sysUserRegisterDTO) {
-        return Result.success(sysUserService.registerUser(sysUserRegisterDTO));
+    @Operation(summary = "批量删除用户", description = "根据用户ID列表批量删除用户。")
+    @DeleteMapping
+    public Result<Integer> removeUsers(
+            @Parameter(name = "ids", description = "用户ID列表", required = true) @RequestBody List<UUID> ids
+    ) {
+        return Result.success(sysUserService.removeUserByIds(ids));
+    }
+
+    @Operation(summary = "内部接口 - 管理员添加新用户", hidden = true)
+    @PostMapping("internal/add")
+    public Result<SysUserVO> addSysUser(@RequestBody SysUserAdminDTO sysUserAdminDTO) {
+        return Result.success(sysUserService.addUser(sysUserAdminDTO));
     }
 
     @Operation(summary = "内部接口 - 根据用户名获取用户信息", hidden = true)

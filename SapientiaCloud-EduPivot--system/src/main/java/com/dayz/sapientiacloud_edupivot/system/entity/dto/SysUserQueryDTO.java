@@ -10,12 +10,13 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.io.Serial;
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Schema(description = "系统用户分页查询数据传输对象")
-public class SysUserQueryDTO extends PageEntity {
+public class SysUserQueryDTO extends PageEntity implements Serializable {
 
     @Serial
     private static final long serialVersionUID = -7909775432716685324L;
@@ -37,13 +38,4 @@ public class SysUserQueryDTO extends PageEntity {
     @Min(value = 0, message = "状态输入不正确")
     @Max(value = 1, message = "状态输入不正确")
     private Integer status;
-
-    @Schema(description = "起始时间", accessMode = Schema.AccessMode.READ_ONLY)
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime startTime;
-
-    @Schema(description = "结束时间", accessMode = Schema.AccessMode.READ_ONLY)
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime endTime;
-
 }

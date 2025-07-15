@@ -4,7 +4,7 @@ import com.dayz.sapientiacloud_edupivot.auth.client.SysUserClient;
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserLoginDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.po.SysUser;
 import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysUserLoginVO;
-import com.dayz.sapientiacloud_edupivot.auth.enums.SysUserExceptionEnum;
+import com.dayz.sapientiacloud_edupivot.auth.enums.SysUserEnum;
 import com.dayz.sapientiacloud_edupivot.auth.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.auth.result.Result;
 import com.dayz.sapientiacloud_edupivot.auth.result.ResultEnum;
@@ -35,19 +35,19 @@ public class AuthServiceImpl implements AuthService {
     public SysUserLoginVO login(SysUserLoginDTO loginDTO) {
         // 参数校验
         if (loginDTO.getUsername() == null || loginDTO.getUsername().isEmpty()) {
-            throw new BusinessException(SysUserExceptionEnum.USERNAME_CANNOT_BE_EMPTY.getCode(), 
-                                       SysUserExceptionEnum.USERNAME_CANNOT_BE_EMPTY.getMessage());
+            throw new BusinessException(SysUserEnum.USERNAME_CANNOT_BE_EMPTY.getCode(),
+                                       SysUserEnum.USERNAME_CANNOT_BE_EMPTY.getMessage());
         }
         if (loginDTO.getPassword() == null || loginDTO.getPassword().isEmpty()) {
-            throw new BusinessException(SysUserExceptionEnum.PASSWORD_CANNOT_BE_EMPTY.getCode(), 
-                                       SysUserExceptionEnum.PASSWORD_CANNOT_BE_EMPTY.getMessage());
+            throw new BusinessException(SysUserEnum.PASSWORD_CANNOT_BE_EMPTY.getCode(),
+                                       SysUserEnum.PASSWORD_CANNOT_BE_EMPTY.getMessage());
         }
 
         // 获取用户信息
         Result<SysUser> userResult = sysUserClient.getUserInfoByUsername(loginDTO.getUsername());
         if (!userResult.isSuccess() || userResult.getData() == null) {
             log.error("用户登录失败: 用户不存在, 用户名: {}", loginDTO.getUsername());
-            throw new BusinessException(SysUserExceptionEnum.USERNAME_OR_PASSWORD_ERROR.getMessage());
+            throw new BusinessException(SysUserEnum.USERNAME_OR_PASSWORD_ERROR.getMessage());
         }
         
         SysUser user = userResult.getData();
@@ -55,13 +55,13 @@ public class AuthServiceImpl implements AuthService {
         // 检查用户状态
         if (user.getStatus() != null && user.getStatus() == 1) {
             log.error("用户登录失败: 用户已被禁用, 用户名: {}", loginDTO.getUsername());
-            throw new BusinessException(SysUserExceptionEnum.USER_ACCOUNT_DISABLED.getMessage());
+            throw new BusinessException(SysUserEnum.USER_ACCOUNT_DISABLED.getMessage());
         }
         
         // 验证密码
         if (!passwordEncoder.matches(loginDTO.getPassword(), user.getPassword())) {
             log.error("用户登录失败: 密码错误, 用户名: {}", loginDTO.getUsername());
-            throw new BusinessException(SysUserExceptionEnum.USERNAME_OR_PASSWORD_ERROR.getMessage());
+            throw new BusinessException(SysUserEnum.USERNAME_OR_PASSWORD_ERROR.getMessage());
         }
         
         // 更新最后登录时间

@@ -23,7 +23,7 @@ import java.util.UUID;
 public class SysPermission extends BaseEntity implements Serializable {
 
     @Serial
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 8437350580466345040L;
 
     @Schema(name = "id", description = "权限ID")
     @TableId(value = "id")

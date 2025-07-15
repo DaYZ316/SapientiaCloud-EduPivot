@@ -9,6 +9,7 @@ import com.dayz.sapientiacloud_edupivot.system.entity.po.SysUser;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysUserVO;
 import com.github.pagehelper.PageInfo;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface ISysUserService extends IService<SysUser> {
@@ -16,13 +17,15 @@ public interface ISysUserService extends IService<SysUser> {
 
     SysUserVO getUserById(UUID id);
 
+    Boolean registerUser(SysUserRegisterDTO sysUserRegisterDTO);
+
+    Boolean updateUser(SysUserDTO sysUserDTO);
+
+    Boolean removeUserById(UUID id);
+
+    Integer removeUserByIds(List<UUID> ids);
+
     SysUserVO addUser(SysUserAdminDTO sysUserAdminDTO);
-
-    SysUserVO updateUser(SysUserDTO sysUserDTO);
-
-    Boolean deleteUser(UUID id);
-
-    SysUserVO registerUser(SysUserRegisterDTO sysUserRegisterDTO);
 
     SysUser selectUserByUsername(String username);
 }

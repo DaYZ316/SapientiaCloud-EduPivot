@@ -7,13 +7,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum StatusEnum {
 
-    /**
-     * 正常
-     */
     NORMAL(0, "正常"),
-    /**
-     * 禁用
-     */
     DISABLED(1, "禁用");
 
     private final int code;

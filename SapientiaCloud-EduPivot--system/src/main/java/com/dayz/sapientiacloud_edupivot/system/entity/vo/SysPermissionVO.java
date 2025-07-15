@@ -6,6 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -14,7 +16,10 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Schema(description = "系统权限视图对象 (VO)")
-public class SysPermissionVO {
+public class SysPermissionVO implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = -824868033585933864L;
 
     @Schema(name = "id", description = "权限ID")
     private UUID id;
@@ -27,6 +32,9 @@ public class SysPermissionVO {
 
     @Schema(name = "permission_key", description = "权限标识")
     private String permissionKey;
+
+    @Schema(name = "children", description = "子权限列表")
+    private List<SysPermissionVO> children;
 
     @Schema(name = "sort", description = "排序")
     private Integer sort;
@@ -41,7 +49,4 @@ public class SysPermissionVO {
     @Schema(name = "update_time", description = "更新时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updateTime;
-    
-    @Schema(name = "children", description = "子权限列表")
-    private List<SysPermissionVO> children;
 } 

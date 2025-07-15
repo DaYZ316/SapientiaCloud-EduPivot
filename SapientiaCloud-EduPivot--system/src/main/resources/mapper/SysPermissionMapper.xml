@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dayz.sapientiacloud_edupivot.system.mapper.SysPermissionMapper">
+
+    <resultMap id="SysPermission" type="com.dayz.sapientiacloud_edupivot.system.entity.po.SysPermission">
+        <id column="id" property="id"/>
+    </resultMap>
+
+    <select id="listSysPermission" resultType="com.dayz.sapientiacloud_edupivot.system.entity.vo.SysPermissionVO">
+        select
+        id, parent_id, permission_name, permission_key, sort, status, create_time, update_time
+        from
+        sys_permission
+        <where>
+            <if test="permissionName != null and permissionName != ''">
+                and permission_name like concat('%', #{permissionName}, '%')
+            </if>
+            <if test="permissionKey != null and permissionKey != ''">
+                and permission_key like concat('%', #{permissionKey}, '%')
+            </if>
+            <if test="status != null">
+                and status = #{status}
+            </if>
+            <if test="parentId != null">
+                and parent_id = #{parentId}
+            </if>
+            <if test="startTime != null or endTime != null">
+                <choose>
+                    <when test="startTime != null and endTime == null">
+                        AND create_time &gt;= #{startTime}
+                    </when>
+                    <when test="startTime == null and endTime != null">
+                        AND create_time &lt;= #{endTime}
+                    </when>
+                    <otherwise>
+                        AND create_time BETWEEN #{startTime} AND #{endTime}
+                    </otherwise>
+                </choose>
+            </if>
+        </where>
+        order by sort asc
+    </select>
+
+</mapper> 

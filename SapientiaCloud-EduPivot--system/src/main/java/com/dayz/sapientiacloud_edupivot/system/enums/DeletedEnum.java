@@ -9,14 +9,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum DeletedEnum {
 
-    /**
-     * 正常，未删除
-     */
     NOT_DELETED(0, "未删除"),
-
-    /**
-     * 已删除
-     */
     DELETED(1, "已删除");
 
     @EnumValue

@@ -11,8 +11,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.UUID;
 
-@MappedJdbcTypes(JdbcType.BINARY)
 @MappedTypes(UUID.class)
+@MappedJdbcTypes(JdbcType.BINARY)
 public class UuidTypeHandler extends BaseTypeHandler<UUID> {
 
     @Override

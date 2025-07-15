@@ -16,7 +16,4 @@ public interface SysUserMapper extends BaseMapper<SysUser> {
     List<SysUserVO> listSysUser(SysUserQueryDTO sysUserQueryDTO);
 
     SysUser selectByUsername(String username);
-
-    @Delete("delete from sys_user where id = #{id}")
-    void deleteUserById(UUID id);
 }

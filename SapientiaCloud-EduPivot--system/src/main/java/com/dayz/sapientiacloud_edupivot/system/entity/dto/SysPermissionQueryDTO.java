@@ -7,6 +7,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.UUID;
 
 @Data
@@ -14,17 +16,20 @@ import java.util.UUID;
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 @Schema(description = "系统权限查询对象 (DTO)")
-public class SysPermissionQueryDTO extends PageEntity {
+public class SysPermissionQueryDTO extends PageEntity implements Serializable {
 
-    @Schema(name = "permission_name", description = "权限名称")
+    @Serial
+    private static final long serialVersionUID = 6491504560605823212L;
+
+    @Schema(description = "权限名称")
     private String permissionName;
 
-    @Schema(name = "permission_key", description = "权限标识")
+    @Schema(description = "权限标识")
     private String permissionKey;
 
-    @Schema(name = "status", description = "状态 (0=正常, 1=停用)")
+    @Schema(description = "状态 (0=正常, 1=停用)")
     private Integer status;
     
-    @Schema(name = "parent_id", description = "父级权限ID")
+    @Schema(description = "父级权限ID")
     private UUID parentId;
 } 

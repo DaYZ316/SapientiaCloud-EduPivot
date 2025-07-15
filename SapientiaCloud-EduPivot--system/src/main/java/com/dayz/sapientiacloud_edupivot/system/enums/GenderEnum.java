@@ -9,19 +9,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum GenderEnum {
 
-    /**
-     * 不暴露
-     */
     UNKNOWN(0, "未知"),
-
-    /**
-     * 男性
-     */
     MALE(1, "男性"),
-
-    /**
-     * 女性
-     */
     FEMALE(2, "女性");
 
     @EnumValue

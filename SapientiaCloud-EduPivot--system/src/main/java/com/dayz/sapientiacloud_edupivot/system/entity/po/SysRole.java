@@ -23,7 +23,9 @@ import java.util.UUID;
 public class SysRole extends BaseEntity implements Serializable {
 
     @Serial
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = -4759063611439691423L;
+
+    public static final String ADMIN_ROLE_KEY = "ADMIN";
 
     @Schema(name = "id", description = "角色ID")
     @TableId(value = "id")
@@ -48,4 +50,8 @@ public class SysRole extends BaseEntity implements Serializable {
     @Schema(name = "description", description = "描述")
     @TableField("description")
     private String description;
+
+    public Boolean isAdmin() {
+        return ADMIN_ROLE_KEY.equals(this.roleKey);
+    }
 } 

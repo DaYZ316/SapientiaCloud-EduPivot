@@ -17,9 +17,6 @@ public class SysUserAdminDTO implements Serializable {
     @Serial
     private static final long serialVersionUID = -2283034824406690559L;
 
-    @Schema(description = "用户ID，更新时必须提供")
-    private UUID id;
-
     @Schema(description = "用户名")
     private String username;
 
