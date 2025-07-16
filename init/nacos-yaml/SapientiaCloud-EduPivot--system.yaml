@@ -31,3 +31,7 @@ spring:
     show-sql: true
     hibernate:
       ddl-auto: update
+# JWT配置
+jwt:
+  secret: zhaosheng123
+  expiration: 7200000

@@ -2,6 +2,20 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.dayz.sapientiacloud_edupivot.system.mapper.SysRolePermissionMapper">
 
+    <select id="getRolePermissions" resultType="com.dayz.sapientiacloud_edupivot.system.entity.vo.SysPermissionVO">
+        select
+            p.id, p.permission_name, p.permission_key, p.parent_id,
+            p.status, p.sort, p.create_time, p.update_time
+        from
+            sys_permission p
+                join
+            sys_role_permission rp on p.id = rp.permission_id
+        where
+            rp.role_id = #{roleId}
+        order by
+            p.sort asc
+    </select>
+
     <insert id="addRolePermissions">
         insert into sys_role_permission (role_id, permission_id) values
         <foreach item="permissionId" collection="permissionIds" separator=",">

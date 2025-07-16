@@ -24,7 +24,8 @@ public enum SysUserEnum {
     PHONE_NUMBER_ALREADY_EXISTS(1103, "手机号码已被注册"),
     USERNAME_CANNOT_BE_EMPTY(1104, "用户名不能为空"),
     PASSWORD_CANNOT_BE_EMPTY(1105, "密码不能为空"),
-    INSUFFICIENT_PERMISSIONS(1201, "用户权限不足");
+    INSUFFICIENT_PERMISSIONS(1201, "用户权限不足"),
+    USER_LOGIN_FAILED(1202, "用户登录失败");
 
     private final int code;
 

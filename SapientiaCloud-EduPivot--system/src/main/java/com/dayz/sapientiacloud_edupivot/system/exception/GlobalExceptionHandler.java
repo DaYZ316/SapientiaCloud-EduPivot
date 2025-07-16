@@ -1,7 +1,7 @@
 package com.dayz.sapientiacloud_edupivot.system.exception;
 
-import com.dayz.sapientiacloud_edupivot.system.result.ResultEnum;
 import com.dayz.sapientiacloud_edupivot.system.result.Result;
+import com.dayz.sapientiacloud_edupivot.system.result.ResultEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;

@@ -1,7 +1,7 @@
 package com.dayz.sapientiacloud_edupivot.auth.service.impl;
 
 import com.dayz.sapientiacloud_edupivot.auth.client.SysUserClient;
-import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserLoginDTO;
+import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.po.SysUser;
 import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysUserLoginVO;
 import com.dayz.sapientiacloud_edupivot.auth.enums.SysUserEnum;
@@ -13,15 +13,14 @@ import com.dayz.sapientiacloud_edupivot.auth.util.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 
-/**
- * 认证服务实现类
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -32,52 +31,52 @@ public class AuthServiceImpl implements AuthService {
     private final JwtUtil jwtUtil;
 
     @Override
-    public SysUserLoginVO login(SysUserLoginDTO loginDTO) {
-        // 参数校验
-        if (loginDTO.getUsername() == null || loginDTO.getUsername().isEmpty()) {
-            throw new BusinessException(SysUserEnum.USERNAME_CANNOT_BE_EMPTY.getCode(),
-                                       SysUserEnum.USERNAME_CANNOT_BE_EMPTY.getMessage());
+    @Transactional(rollbackFor = Exception.class)
+    public SysUserLoginVO login(String username, String password) {
+        if (!StringUtils.hasText(username)) {
+            throw new BusinessException(SysUserEnum.USERNAME_CANNOT_BE_EMPTY.getMessage());
         }
-        if (loginDTO.getPassword() == null || loginDTO.getPassword().isEmpty()) {
-            throw new BusinessException(SysUserEnum.PASSWORD_CANNOT_BE_EMPTY.getCode(),
-                                       SysUserEnum.PASSWORD_CANNOT_BE_EMPTY.getMessage());
+        if (!StringUtils.hasText(password)) {
+            throw new BusinessException(SysUserEnum.PASSWORD_CANNOT_BE_EMPTY.getMessage());
         }
 
-        // 获取用户信息
-        Result<SysUser> userResult = sysUserClient.getUserInfoByUsername(loginDTO.getUsername());
-        if (!userResult.isSuccess() || userResult.getData() == null) {
-            log.error("用户登录失败: 用户不存在, 用户名: {}", loginDTO.getUsername());
+        Result<SysUser> userResult = sysUserClient.getUserInfoByUsername(username);
+        if (userResult == null || !userResult.isSuccess()) {
+            throw new BusinessException(SysUserEnum.USER_NOT_FOUND.getMessage());
+        }
+        SysUser sysUser = userResult.getData();
+        if (sysUser == null) {
+            log.error("用户登录失败: 用户不存在, 用户名: {}", username);
             throw new BusinessException(SysUserEnum.USERNAME_OR_PASSWORD_ERROR.getMessage());
         }
-        
-        SysUser user = userResult.getData();
-        
-        // 检查用户状态
-        if (user.getStatus() != null && user.getStatus() == 1) {
-            log.error("用户登录失败: 用户已被禁用, 用户名: {}", loginDTO.getUsername());
+        if (sysUser.getStatus() != null && sysUser.getStatus() == 1) {
+            log.error("用户登录失败: 用户已被禁用, 用户名: {}", username);
             throw new BusinessException(SysUserEnum.USER_ACCOUNT_DISABLED.getMessage());
         }
-        
-        // 验证密码
-        if (!passwordEncoder.matches(loginDTO.getPassword(), user.getPassword())) {
-            log.error("用户登录失败: 密码错误, 用户名: {}", loginDTO.getUsername());
+        if (!passwordEncoder.matches(password, sysUser.getPassword())) {
+            log.error("用户登录失败: 密码错误, 用户名: {}", username);
             throw new BusinessException(SysUserEnum.USERNAME_OR_PASSWORD_ERROR.getMessage());
         }
-        
-        // 更新最后登录时间
-        user.setLastLoginTime(LocalDateTime.now());
-        
-        // 生成JWT令牌
-        String token = jwtUtil.generateToken(user);
-        
-        // 构建响应对象，添加完整用户信息
+
+        sysUser.setLastLoginTime(LocalDateTime.now());
+
+        SysUserDTO sysUserDTO = new SysUserDTO();
+        BeanUtils.copyProperties(sysUser, sysUserDTO);
+        Result<Boolean> booleanResult = sysUserClient.updateUserInternal(sysUserDTO);
+        if (!booleanResult.isSuccess()) {
+            log.error("用户登录失败: 更新用户信息失败, 用户名: {}", username);
+            throw new BusinessException(SysUserEnum.USER_LOGIN_FAILED.getMessage());
+        }
+
+        String token = jwtUtil.generateToken(sysUser, sysUserClient.getUserRoles(sysUser.getId()).getData());
+
         SysUserLoginVO loginVO = new SysUserLoginVO();
         loginVO.setAccessToken(token);
-        loginVO.setUserId(user.getId());
-        loginVO.setUsername(user.getUsername());
-        loginVO.setNickName(user.getNickName());
+        loginVO.setUserId(sysUser.getId());
+        loginVO.setUsername(sysUser.getUsername());
+        loginVO.setNickName(sysUser.getNickName());
         
-        log.info("用户登录成功: 用户名: {}", loginDTO.getUsername());
+        log.info("用户登录成功: 用户名: {}", sysUser.getUsername());
         return loginVO;
     }
     
@@ -99,17 +98,10 @@ public class AuthServiceImpl implements AuthService {
     
     @Override
     public boolean logout(HttpServletRequest request, String token) {
-        // 优先使用请求参数中的token，如果为空则尝试从请求头中提取
         String tokenToUse = StringUtils.hasText(token) ? token : extractTokenFromRequest(request);
         return processLogout(tokenToUse);
     }
-    
-    /**
-     * 处理登出逻辑
-     * 
-     * @param token JWT令牌
-     * @return 是否成功登出
-     */
+
     private boolean processLogout(String token) {
         if (!StringUtils.hasText(token)) {
             throw new BusinessException(ResultEnum.TOKEN_NOT_FOUND.getMessage());
@@ -144,12 +136,8 @@ public class AuthServiceImpl implements AuthService {
             throw new BusinessException("登出失败，请稍后再试");
         }
     }
-    
-    /**
-     * 从请求中提取JWT令牌
-     */
+
     private String extractTokenFromRequest(HttpServletRequest request) {
-        // 从Authorization头中获取令牌
         String bearerToken = request.getHeader("Authorization");
         if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
             return bearerToken;

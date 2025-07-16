@@ -1,7 +1,6 @@
 package com.dayz.sapientiacloud_edupivot.system.entity.dto;
 
 import com.dayz.sapientiacloud_edupivot.system.entity.base.PageEntity;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -11,7 +10,6 @@ import lombok.EqualsAndHashCode;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.time.LocalDateTime;
 
 @Data
 @EqualsAndHashCode(callSuper = true)

@@ -12,14 +12,8 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "jwt")
 public class JwtConfig {
 
-    /**
-     * JWT密钥
-     */
     private String secret = "SapientiaCloud-EduPivot-Secret";
 
-    /**
-     * 令牌有效期（毫秒）默认2小时
-     */
     private long expiration = 7200000;
 
 } 

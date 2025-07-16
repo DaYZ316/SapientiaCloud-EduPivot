@@ -5,9 +5,8 @@ import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserQueryDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserRegisterDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.po.SysUser;
+import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysRoleVO;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysUserVO;
-import com.dayz.sapientiacloud_edupivot.system.enums.SysUserEnum;
-import com.dayz.sapientiacloud_edupivot.system.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.system.result.Result;
 import com.dayz.sapientiacloud_edupivot.system.service.ISysUserService;
 import com.github.pagehelper.PageInfo;
@@ -83,8 +82,17 @@ public class SysUserController {
         return Result.success(sysUserService.assignRoles(userId, roleIds));
     }
 
+    @Operation(summary = "内部接口 - 获取用户角色列表", hidden = true)
+    @GetMapping("/internal/{userId}/role")
+    public Result<List<SysRoleVO>> getUserRoles(
+            @Parameter(name = "userId", description = "用户ID", required = true) @PathVariable("userId") UUID userId
+    ) {
+        List<SysRoleVO> roles = sysUserService.getUserRoles(userId);
+        return Result.success(roles);
+    }
+
     @Operation(summary = "内部接口 - 管理员添加新用户", hidden = true)
-    @PostMapping("internal/add")
+    @PostMapping("/internal/add")
     public Result<SysUserVO> addSysUser(@RequestBody SysUserAdminDTO sysUserAdminDTO) {
         return Result.success(sysUserService.addUser(sysUserAdminDTO));
     }
@@ -94,5 +102,11 @@ public class SysUserController {
     public Result<SysUser> getUserInfoByUsername(@PathVariable("username") String username) {
         SysUser sysUser = sysUserService.selectUserByUsername(username);
         return Result.success(sysUser);
+    }
+
+    @Operation(summary = "内部接口 - 更新用户信息", hidden = true)
+    @PutMapping("/internal/update")
+    public Result<Boolean> updateUserInternal(@RequestBody SysUserDTO sysUserDTO) {
+        return Result.success(sysUserService.updateUser(sysUserDTO));
     }
 }

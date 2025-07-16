@@ -1,6 +1,5 @@
 package com.dayz.sapientiacloud_edupivot.auth.controller;
 
-import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserLoginDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysUserLoginVO;
 import com.dayz.sapientiacloud_edupivot.auth.result.Result;
 import com.dayz.sapientiacloud_edupivot.auth.service.AuthService;
@@ -23,9 +22,12 @@ public class AuthController {
 
     @PostMapping("/login")
     @Operation(summary = "用户登录", description = "通过用户名和密码登录系统")
-    public Result<SysUserLoginVO> login(@RequestBody SysUserLoginDTO sysUserLoginDTO) {
-        log.info("用户登录请求: 用户名: {}", sysUserLoginDTO.getUsername());
-        SysUserLoginVO loginVO = authService.login(sysUserLoginDTO);
+    public Result<SysUserLoginVO> login(
+            @Parameter(name = "username", description = "用户名", required = true) @RequestParam("username") String username,
+            @Parameter(name = "password", description = "密码", required = true) @RequestParam("password") String password
+    ) {
+        log.info("用户登录请求: 用户名: {}", username);
+        SysUserLoginVO loginVO = authService.login(username, password);
         return Result.success(loginVO);
     }
     

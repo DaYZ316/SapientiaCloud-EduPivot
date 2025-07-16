@@ -1,11 +1,17 @@
 package com.dayz.sapientiacloud_edupivot.system.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.dayz.sapientiacloud_edupivot.system.entity.dto.*;
+import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserAdminDTO;
+import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserDTO;
+import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserQueryDTO;
+import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserRegisterDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.po.SysUser;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysRoleVO;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysUserVO;
-import com.dayz.sapientiacloud_edupivot.system.enums.*;
+import com.dayz.sapientiacloud_edupivot.system.enums.DeletedEnum;
+import com.dayz.sapientiacloud_edupivot.system.enums.GenderEnum;
+import com.dayz.sapientiacloud_edupivot.system.enums.StatusEnum;
+import com.dayz.sapientiacloud_edupivot.system.enums.SysUserEnum;
 import com.dayz.sapientiacloud_edupivot.system.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.system.mapper.SysUserMapper;
 import com.dayz.sapientiacloud_edupivot.system.mapper.SysUserRoleMapper;
@@ -17,8 +23,10 @@ import com.github.pagehelper.PageInfo;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.BeanUtils;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -27,10 +35,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-import org.springframework.cache.annotation.CacheEvict;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -62,7 +72,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         SysUserVO sysUserVO = new SysUserVO();
         BeanUtils.copyProperties(sysUser, sysUserVO);
 
-        List<SysRoleVO> roles = sysUserMapper.getUserRoles(id);
+        List<SysRoleVO> roles = sysUserRoleMapper.getUserRoles(id);
         sysUserVO.setRoles(roles);
         
         return sysUserVO;
@@ -215,13 +225,26 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     }
 
     @Override
+    public List<SysRoleVO> getUserRoles(UUID userId) {
+        return sysUserRoleMapper.getUserRoles(userId);
+    }
+
+    @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         if (!StringUtils.hasText(username)) {
             throw new UsernameNotFoundException(SysUserEnum.USERNAME_CANNOT_BE_EMPTY.getMessage());
         }
         SysUser sysUser = sysUserMapper.selectByUsername(username);
+        if (sysUser == null) {
+            throw new UsernameNotFoundException(SysUserEnum.USER_NOT_FOUND.getMessage());
+        }
 
-        return new User(sysUser.getUsername(), sysUser.getPassword(), new ArrayList<>());
+        List<SysRoleVO> roles = sysUserRoleMapper.getUserRoles(sysUser.getId());
+        List<SimpleGrantedAuthority> authorities = roles.stream()
+                .map(role -> new SimpleGrantedAuthority(role.getRoleKey()))
+                .toList();
+
+        return new User(sysUser.getUsername(), sysUser.getPassword(), authorities);
     }
 
     public SysUser checkSysUserInfo (Object sysUserInfo) {

@@ -1,7 +1,14 @@
 package com.dayz.sapientiacloud_edupivot.auth.filter;
 
+import com.dayz.sapientiacloud_edupivot.auth.client.SysUserClient;
+import com.dayz.sapientiacloud_edupivot.auth.entity.po.SysUser;
+import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysRoleVO;
+import com.dayz.sapientiacloud_edupivot.auth.enums.SysUserEnum;
+import com.dayz.sapientiacloud_edupivot.auth.exception.BusinessException;
+import com.dayz.sapientiacloud_edupivot.auth.result.Result;
 import com.dayz.sapientiacloud_edupivot.auth.util.JwtUtil;
-import jakarta.servlet.*;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -15,17 +22,17 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 
-/**
- * JWT认证过滤器
- */
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
+    private final AntPathMatcher pathMatcher = new AntPathMatcher();
     private final JwtUtil jwtUtil;
+    private final SysUserClient sysUserClient;
     
     private static final String[] WHITELIST = {
             "/login", 
@@ -40,8 +47,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "/api/auth/logout",
             "/api/auth/v3/api-docs",
     };
-    
-    private final AntPathMatcher pathMatcher = new AntPathMatcher();
+    private static final String AUTHORIZATION_HEADER = "Authorization";
+    private static final String BEARER_PREFIX = "Bearer ";
+    private static final Integer TOKEN_PREFIX_LENGTH = BEARER_PREFIX.length();
+
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -63,10 +72,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     // 从令牌中获取用户名
                     String username = jwtUtil.getUsernameFromToken(token);
                     if (username != null) {
-                        // TODO 从数据库中获取用户信息
+                        Result<SysUser> userResult = sysUserClient.getUserInfoByUsername(username);
+                        if (userResult == null || !userResult.isSuccess()) {
+                            throw new BusinessException(SysUserEnum.USER_NOT_FOUND.getMessage());
+                        }
+                        SysUser sysUser = userResult.getData();
+                        List<SysRoleVO> roles = sysUserClient.getUserRoles(sysUser.getId()).getData();
+
                         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                                username, null, 
-                                Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
+                                sysUser.getUsername(),
+                                sysUser.getPassword(),
+                                roles.stream()
+                                        .filter(Objects::nonNull)
+                                        .map(role -> new SimpleGrantedAuthority(role.getRoleKey()))
+                                        .toList()
                         );
                         
                         // 设置认证信息到安全上下文
@@ -86,10 +105,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         
         filterChain.doFilter(request, response);
     }
-    
-    /**
-     * 判断请求路径是否在白名单中
-     */
+
     private boolean isWhitelistPath(String requestURI) {
         for (String pattern : WHITELIST) {
             if (pathMatcher.match(pattern, requestURI)) {
@@ -98,15 +114,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
         return false;
     }
-    
-    /**
-     * 从请求中提取JWT令牌
-     */
+
     private String extractTokenFromRequest(HttpServletRequest request) {
-        // 从Authorization头中获取令牌
-        String bearerToken = request.getHeader("Authorization");
-        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7);
+        String bearerToken = request.getHeader(AUTHORIZATION_HEADER);
+        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith(BEARER_PREFIX)) {
+            return bearerToken.substring(TOKEN_PREFIX_LENGTH);
         }
         return null;
     }

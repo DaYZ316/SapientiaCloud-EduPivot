@@ -8,7 +8,6 @@ import com.dayz.sapientiacloud_edupivot.system.entity.po.SysRole;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysPermissionVO;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysRoleVO;
 import com.dayz.sapientiacloud_edupivot.system.enums.StatusEnum;
-import com.dayz.sapientiacloud_edupivot.system.enums.SysPermissionEnum;
 import com.dayz.sapientiacloud_edupivot.system.enums.SysRoleEnum;
 import com.dayz.sapientiacloud_edupivot.system.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.system.mapper.SysRoleMapper;
@@ -58,7 +57,7 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
         SysRoleVO sysRoleVO = new SysRoleVO();
         BeanUtils.copyProperties(sysRole, sysRoleVO);
 
-        List<SysPermissionVO> permissions = sysRoleMapper.getRolePermissions(id);
+        List<SysPermissionVO> permissions = sysRolePermissionMapper.getRolePermissions(id);
         sysRoleVO.setPermissions(permissions);
         
         return sysRoleVO;
@@ -158,22 +157,22 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
         Set<UUID> newPermissionSet = new HashSet<>(newPermissionIds);
         Set<UUID> existingPermissionSet = new HashSet<>(existingPermissionIds);
 
-        List<UUID> PermissionsToAdd = newPermissionIds.stream()
+        List<UUID> permissionsToAdd = newPermissionIds.stream()
                 .filter(newPermissionId -> !existingPermissionSet.contains(newPermissionId))
                 .toList();
 
-        List<UUID> PermissionsToRemove = existingPermissionIds.stream()
+        List<UUID> permissionsToRemove = existingPermissionIds.stream()
                 .filter(existingPermissionId -> !newPermissionSet.contains(existingPermissionId))
                 .toList();
 
-        if (!PermissionsToAdd.isEmpty()) {
-            int result = sysRolePermissionMapper.addRolePermissions(roleId, PermissionsToAdd);
+        if (!permissionsToAdd.isEmpty()) {
+            int result = sysRolePermissionMapper.addRolePermissions(roleId, permissionsToAdd);
             if (result <= 0) {
                 throw new BusinessException(SysRoleEnum.ASSIGN_PERMISSION_FAILED.getMessage());
             }
         }
-        if (!PermissionsToRemove.isEmpty()) {
-            int result = sysRolePermissionMapper.removeRolePermissions(roleId, PermissionsToRemove);
+        if (!permissionsToRemove.isEmpty()) {
+            int result = sysRolePermissionMapper.removeRolePermissions(roleId, permissionsToRemove);
             if (result <= 0) {
                 throw new BusinessException(SysRoleEnum.ASSIGN_PERMISSION_FAILED.getMessage());
             }

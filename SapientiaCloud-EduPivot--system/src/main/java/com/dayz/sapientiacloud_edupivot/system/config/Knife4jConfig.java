@@ -8,13 +8,13 @@ import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpHeaders;
 
 @Configuration
 public class Knife4jConfig {
 
     @Bean
     public OpenAPI springOpenApi() {
+        
         return new OpenAPI()
                 .info(new Info().title("SapientiaCloud-EduPivot--system API")
                         .description("智语·云枢：系统服务 API文档")
@@ -23,4 +23,4 @@ public class Knife4jConfig {
                                 .name("DaYZ")
                                 .email("dyz472734@gmail.com")));
     }
-}
+} 
