@@ -3,7 +3,7 @@ package com.dayz.sapientiacloud_edupivot.system.entity.po;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.dayz.sapientiacloud_edupivot.system.entity.base.BaseEntity;
+import com.dayz.sapientiacloud_edupivot.system.common.entity.BaseEntity;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;

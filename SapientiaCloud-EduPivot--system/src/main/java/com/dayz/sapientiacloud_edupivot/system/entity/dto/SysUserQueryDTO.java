@@ -1,6 +1,6 @@
 package com.dayz.sapientiacloud_edupivot.system.entity.dto;
 
-import com.dayz.sapientiacloud_edupivot.system.entity.base.PageEntity;
+import com.dayz.sapientiacloud_edupivot.system.common.entity.PageEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;

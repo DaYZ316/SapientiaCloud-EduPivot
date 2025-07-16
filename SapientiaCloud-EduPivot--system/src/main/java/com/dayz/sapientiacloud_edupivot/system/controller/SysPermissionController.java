@@ -5,7 +5,7 @@ import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysPermissionDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysPermissionQueryDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.po.SysPermission;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysPermissionVO;
-import com.dayz.sapientiacloud_edupivot.system.result.Result;
+import com.dayz.sapientiacloud_edupivot.system.common.result.Result;
 import com.dayz.sapientiacloud_edupivot.system.service.ISysPermissionService;
 import com.github.pagehelper.PageInfo;
 import io.swagger.v3.oas.annotations.Operation;

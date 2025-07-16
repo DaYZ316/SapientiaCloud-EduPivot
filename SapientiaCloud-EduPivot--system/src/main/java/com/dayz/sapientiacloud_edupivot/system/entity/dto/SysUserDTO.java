@@ -1,11 +1,13 @@
 package com.dayz.sapientiacloud_edupivot.system.entity.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
@@ -46,4 +48,8 @@ public class SysUserDTO implements Serializable {
     @Min(value = 0, message = "状态输入不正确")
     @Max(value = 1, message = "状态输入不正确")
     private Integer status;
+
+    @Schema(name = "last_login_time", description = "最后登录时间")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime lastLoginTime;
 }

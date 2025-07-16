@@ -1,15 +1,11 @@
-package com.dayz.sapientiacloud_edupivot.auth.util;
+package com.dayz.sapientiacloud_edupivot.system.common.security.util;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
-import com.dayz.sapientiacloud_edupivot.auth.config.JwtConfig;
-import com.dayz.sapientiacloud_edupivot.auth.entity.po.SysUser;
-import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysRoleVO;
-import com.dayz.sapientiacloud_edupivot.auth.enums.SysUserEnum;
-import com.dayz.sapientiacloud_edupivot.auth.exception.BusinessException;
+import com.dayz.sapientiacloud_edupivot.system.common.security.config.JwtConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -18,8 +14,6 @@ import org.springframework.util.StringUtils;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -35,26 +29,6 @@ public class JwtUtil {
     private final RedisTemplate<String, Object> redisTemplate;
 
     private static final String TOKEN_BLACKLIST_PREFIX = "jwt:blacklist:";
-
-    public String generateToken(SysUser sysUser, List<SysRoleVO> roles) {
-        Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + jwtConfig.getExpiration());
-        if (sysUser == null) {
-            throw new BusinessException(SysUserEnum.USER_NOT_FOUND.getMessage());
-        }
-
-        return JWT.create()
-                .withJWTId(UUID.randomUUID().toString())
-                .withClaim("userId", sysUser.getId().toString())
-                .withSubject(sysUser.getUsername())
-                .withClaim("roleKeys", roles.stream()
-                        .filter(Objects::nonNull)
-                        .map(SysRoleVO::getRoleKey)
-                        .toList())
-                .withIssuedAt(now)
-                .withExpiresAt(expiryDate)
-                .sign(Algorithm.HMAC256(jwtConfig.getSecret()));
-    }
 
     public DecodedJWT validateToken(String token) throws JWTVerificationException {
         if (isTokenInBlacklist(token)) {
@@ -83,6 +57,16 @@ public class JwtUtil {
             return jwt.getClaim("userId").asString();
         } catch (JWTVerificationException e) {
             log.error("无法从令牌中获取用户ID", e);
+            return null;
+        }
+    }
+
+    public List<String> getRoleKeysFromToken(String token) {
+        try {
+            DecodedJWT jwt = validateToken(token);
+            return jwt.getClaim("roleKeys").asList(String.class);
+        } catch (JWTVerificationException e) {
+            log.error("无法从令牌中获取用户角色", e);
             return null;
         }
     }
@@ -132,7 +116,7 @@ public class JwtUtil {
         return Boolean.TRUE.equals(redisTemplate.hasKey(blacklistKey));
     }
 
-    private String extractActualToken(String token) {
+    public String extractActualToken(String token) {
         if (StringUtils.hasText(token) && token.startsWith("Bearer ")) {
             return token.substring(7);
         }

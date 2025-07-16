@@ -1,4 +1,4 @@
-package com.dayz.sapientiacloud_edupivot.auth.filter;
+package com.dayz.sapientiacloud_edupivot.auth.security.filter;
 
 import com.dayz.sapientiacloud_edupivot.auth.client.SysUserClient;
 import com.dayz.sapientiacloud_edupivot.auth.entity.po.SysUser;
@@ -6,7 +6,7 @@ import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysRoleVO;
 import com.dayz.sapientiacloud_edupivot.auth.enums.SysUserEnum;
 import com.dayz.sapientiacloud_edupivot.auth.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.auth.result.Result;
-import com.dayz.sapientiacloud_edupivot.auth.util.JwtUtil;
+import com.dayz.sapientiacloud_edupivot.auth.security.util.JwtUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -117,8 +117,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private String extractTokenFromRequest(HttpServletRequest request) {
         String bearerToken = request.getHeader(AUTHORIZATION_HEADER);
-        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith(BEARER_PREFIX)) {
-            return bearerToken.substring(TOKEN_PREFIX_LENGTH);
+        if (StringUtils.hasText(bearerToken)) {
+            // 如果已经有Bearer前缀，则去掉前缀
+            if (bearerToken.startsWith(BEARER_PREFIX)) {
+                return bearerToken.substring(TOKEN_PREFIX_LENGTH);
+            }
+            // 如果没有Bearer前缀，直接返回token
+            return bearerToken;
         }
         return null;
     }

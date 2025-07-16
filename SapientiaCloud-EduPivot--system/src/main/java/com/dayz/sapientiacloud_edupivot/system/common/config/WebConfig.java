@@ -1,4 +1,4 @@
-package com.dayz.sapientiacloud_edupivot.system.config;
+package com.dayz.sapientiacloud_edupivot.system.common.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.format.FormatterRegistry;
