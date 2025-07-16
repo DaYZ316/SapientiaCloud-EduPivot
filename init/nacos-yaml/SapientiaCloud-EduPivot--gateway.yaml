@@ -14,6 +14,13 @@ spring:
             - Path=/api/auth/**
           filters:
             - StripPrefix=2
+knife4j:
+  gateway:
+    enabled: true
+    strategy: discover
+    discover:
+      enabled: true
+      version: openapi3
   data:
     redis:
       port: ${REDIS_PORT}
@@ -22,14 +29,6 @@ spring:
   cache:
     caffeine:
       spec: maximumSize=500,expireAfterWrite=10m
-
-knife4j:
-  gateway:
-    enabled: true
-    strategy: discover
-    discover:
-      enabled: true
-      version: openapi3
 
 REDIS_HOST: 127.0.0.1
 REDIS_PORT: 6379

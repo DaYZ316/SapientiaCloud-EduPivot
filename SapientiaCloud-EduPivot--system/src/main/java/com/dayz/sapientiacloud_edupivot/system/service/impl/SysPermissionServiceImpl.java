@@ -52,7 +52,7 @@ public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, S
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public Boolean addPermission(SysPermissionAddDTO sysPermissionDTO) {
         if (sysPermissionDTO == null || !StringUtils.hasText(sysPermissionDTO.getPermissionName())) {
             throw new BusinessException(SysPermissionEnum.PERMISSION_NAME_CANNOT_BE_EMPTY.getMessage());
@@ -77,7 +77,7 @@ public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, S
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     @CacheEvict(value = "SysPermission", key = "#p0.id", condition = "#p0.id != null")
     public Boolean updatePermission(SysPermissionDTO sysPermissionDTO) {
         if (sysPermissionDTO == null || sysPermissionDTO.getId() == null) {
@@ -95,7 +95,7 @@ public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, S
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     @CacheEvict(value = "SysPermission", key = "#p0", condition = "#p0 != null")
     public Boolean removePermissionById(UUID id) {
         if (id == null) {
@@ -109,7 +109,7 @@ public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, S
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     @CacheEvict(value = "SysPermission", allEntries = true)
     public Integer removePermissionByIds(List<UUID> ids) {
         if (ids == null || ids.isEmpty()) {

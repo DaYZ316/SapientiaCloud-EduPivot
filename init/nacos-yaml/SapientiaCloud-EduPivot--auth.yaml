@@ -1,6 +1,3 @@
-jwt:
-  secret: zhaosheng123
-  expiration: 7200000
 feign:
   client:
     config:

@@ -25,7 +25,8 @@ public enum SysUserEnum {
     USERNAME_CANNOT_BE_EMPTY(1104, "用户名不能为空"),
     PASSWORD_CANNOT_BE_EMPTY(1105, "密码不能为空"),
     INSUFFICIENT_PERMISSIONS(1201, "用户权限不足"),
-    ASSIGN_ROLE_FAILED(1202, "分配角色失败");
+    ASSIGN_ROLE_FAILED(1202, "分配用户角色失败"),
+    USER_ROLE_DELETE_FAILED(1203, "删除用户角色失败");
 
     private final int code;
 

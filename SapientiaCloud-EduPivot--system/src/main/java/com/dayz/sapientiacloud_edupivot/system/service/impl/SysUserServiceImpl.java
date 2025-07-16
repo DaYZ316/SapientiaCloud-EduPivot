@@ -79,7 +79,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public Boolean registerUser(SysUserRegisterDTO sysUserRegisterDTO) {
         if (sysUserRegisterDTO == null) {
             throw new BusinessException(SysUserEnum.USERNAME_CANNOT_BE_EMPTY.getMessage());
@@ -95,7 +95,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     @CacheEvict(value = "SysUser", key = "#p0.id", condition = "#p0.id != null")
     public Boolean updateUser(SysUserDTO sysUserDTO) {
         if (sysUserDTO.getId() == null) {
@@ -119,7 +119,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     @CacheEvict(value = "SysUser", key = "#p0", condition = "#p0 != null")
     public Boolean removeUserById(UUID id) {
         if (id == null) {
@@ -132,21 +132,28 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             throw new BusinessException(SysUserEnum.USER_NOT_FOUND.getMessage());
         }
 
+        // TODO 添加超级管理员判断逻辑
+
+        sysUserRoleMapper.removeRolesByUserId(id);
         return this.removeById(id);
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     @CacheEvict(value = "SysUser", allEntries = true)
     public Integer removeUserByIds(List<UUID> ids) {
         if (ids == null || ids.isEmpty()) {
             throw new BusinessException(SysUserEnum.USER_NOT_FOUND.getMessage());
         }
+
+        // TODO 添加超级管理员判断逻辑
+
+        sysUserRoleMapper.removeRolesByUserIds(ids);
         return this.removeByIds(ids) ? ids.size() : 0;
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     @CacheEvict(value = "SysUser", key = "#result.id", condition = "#result != null")
     public SysUserVO addUser(SysUserAdminDTO sysUserAdminDTO) {
         if (sysUserAdminDTO == null) {
@@ -191,7 +198,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     @Override
     @CacheEvict(value = "SysUser", key = "#p0", condition = "#p0 != null")
     public Boolean assignRoles(UUID userId, List<UUID> newRoleIds) {
-        if (userId == null) {
+        if (userId == null || this.getById(userId).getDeleted().equals(StatusEnum.DISABLED.getCode())) {
             throw new BusinessException(SysUserEnum.USER_NOT_FOUND.getMessage());
         }
 

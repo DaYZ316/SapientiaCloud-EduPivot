@@ -1,6 +1,7 @@
 package com.dayz.sapientiacloud_edupivot.system.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.dayz.sapientiacloud_edupivot.system.common.enums.DeletedEnum;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysRoleAddDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysRoleDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysRoleQueryDTO;
@@ -12,6 +13,7 @@ import com.dayz.sapientiacloud_edupivot.system.enums.SysRoleEnum;
 import com.dayz.sapientiacloud_edupivot.system.common.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.system.mapper.SysRoleMapper;
 import com.dayz.sapientiacloud_edupivot.system.mapper.SysRolePermissionMapper;
+import com.dayz.sapientiacloud_edupivot.system.mapper.SysUserRoleMapper;
 import com.dayz.sapientiacloud_edupivot.system.service.ISysRoleService;
 import com.github.f4b6a3.uuid.UuidCreator;
 import com.github.pagehelper.PageHelper;
@@ -25,10 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -36,6 +35,7 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
 
     private final SysRoleMapper sysRoleMapper;
     private final SysRolePermissionMapper sysRolePermissionMapper;
+    private final SysUserRoleMapper sysUserRoleMapper;
 
     @Override
     public PageInfo<SysRoleVO> listSysRole(SysRoleQueryDTO sysRoleQueryDTO) {
@@ -64,7 +64,7 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public Boolean addRole(SysRoleAddDTO sysRoleDTO) {
         if (sysRoleDTO == null || !StringUtils.hasText(sysRoleDTO.getRoleName())) {
             throw new BusinessException(SysRoleEnum.ROLE_NAME_CANNOT_BE_EMPTY.getMessage());
@@ -88,7 +88,7 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     @CacheEvict(value = "SysRole", key = "#p0.id", condition = "#p0.id != null")
     public Boolean updateRole(SysRoleDTO sysRoleDTO) {
         if (sysRoleDTO == null || sysRoleDTO.getId() == null) {
@@ -107,7 +107,7 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     @CacheEvict(value = "SysRole", key = "#p0", condition = "#p0 != null")
     public Boolean removeRoleById(UUID id) {
         if (id == null) {
@@ -120,11 +120,13 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
         if (sysRole.isAdmin()) {
             throw new BusinessException(SysRoleEnum.ADMIN_OPERATION_FORBIDDEN.getMessage());
         }
+
+        sysRolePermissionMapper.removePermissionsByRoleId(id);
         return this.removeById(id);
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     @CacheEvict(value = "SysRole", allEntries = true)
     public Integer removeRoleByIds(List<UUID> ids) {
         if (ids == null || ids.isEmpty()) {
@@ -139,16 +141,16 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
             if (sysRoles.stream().anyMatch(SysRole::isAdmin)) {
                 throw new BusinessException(SysRoleEnum.ADMIN_OPERATION_FORBIDDEN.getMessage());
             }
-
         });
 
+        sysRolePermissionMapper.removePermissionsByRoleIds(ids);
         return this.removeByIds(ids) ? ids.size() : 0;
     }
 
     @Override
     @CacheEvict(value = "SysRole", key = "#p0", condition = "#p0 != null")
     public Boolean assignRolePermissions(UUID roleId, List<UUID> newPermissionIds) {
-        if (roleId == null) {
+        if (roleId == null || this.getById(roleId).getDeleted().equals(DeletedEnum.DELETED.getCode())) {
             throw new BusinessException(SysRoleEnum.ROLE_NOT_FOUND.getMessage());
         }
 
