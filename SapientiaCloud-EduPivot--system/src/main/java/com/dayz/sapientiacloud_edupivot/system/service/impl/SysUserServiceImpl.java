@@ -5,12 +5,14 @@ import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserAdminDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserQueryDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserRegisterDTO;
+import com.dayz.sapientiacloud_edupivot.system.entity.po.SysRole;
 import com.dayz.sapientiacloud_edupivot.system.entity.po.SysUser;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysRoleVO;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysUserVO;
 import com.dayz.sapientiacloud_edupivot.system.common.enums.DeletedEnum;
 import com.dayz.sapientiacloud_edupivot.system.enums.GenderEnum;
 import com.dayz.sapientiacloud_edupivot.system.common.enums.StatusEnum;
+import com.dayz.sapientiacloud_edupivot.system.enums.SysRoleEnum;
 import com.dayz.sapientiacloud_edupivot.system.enums.SysUserEnum;
 import com.dayz.sapientiacloud_edupivot.system.common.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.system.mapper.SysUserMapper;
@@ -127,12 +129,16 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         }
 
         SysUser sysUser = this.getById(id);
-
-        if (sysUser == null || sysUser.getStatus().equals(StatusEnum.DISABLED.getCode())) {
+        if (sysUser == null) {
             throw new BusinessException(SysUserEnum.USER_NOT_FOUND.getMessage());
         }
 
-        // TODO 添加超级管理员判断逻辑
+        List<SysRoleVO> roles = sysUserRoleMapper.getUserRoles(id);
+        roles.forEach(role -> {
+            if (role.isAdmin()) {
+                throw new BusinessException(SysRoleEnum.ADMIN_OPERATION_FORBIDDEN.getMessage());
+            }
+        });
 
         sysUserRoleMapper.removeRolesByUserId(id);
         return this.removeById(id);
@@ -146,7 +152,19 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             throw new BusinessException(SysUserEnum.USER_NOT_FOUND.getMessage());
         }
 
-        // TODO 添加超级管理员判断逻辑
+        List<SysUser> sysUsers = this.listByIds(ids);
+        ids.forEach(id -> {
+            if (sysUsers.stream().noneMatch(user -> user.getId().equals(id))) {
+                throw new BusinessException(SysUserEnum.USER_NOT_FOUND.getMessage());
+            }
+        });
+
+        List<SysRole> roles = sysUserRoleMapper.getRolesByUserIds(ids);
+        roles.forEach(role -> {
+            if (role.isAdmin()) {
+                throw new BusinessException(SysRoleEnum.ADMIN_OPERATION_FORBIDDEN.getMessage());
+            }
+        });
 
         sysUserRoleMapper.removeRolesByUserIds(ids);
         return this.removeByIds(ids) ? ids.size() : 0;
@@ -198,7 +216,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     @Override
     @CacheEvict(value = "SysUser", key = "#p0", condition = "#p0 != null")
     public Boolean assignRoles(UUID userId, List<UUID> newRoleIds) {
-        if (userId == null || this.getById(userId).getDeleted().equals(StatusEnum.DISABLED.getCode())) {
+        if (userId == null || this.getById(userId) == null) {
             throw new BusinessException(SysUserEnum.USER_NOT_FOUND.getMessage());
         }
 

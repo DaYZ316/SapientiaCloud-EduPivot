@@ -26,11 +26,26 @@
             #{roleId}
         </foreach>
     </delete>
+
     <delete id="removeRolesByUserIds">
         delete from sys_user_role where user_id in
         <foreach item="userId" collection="userIds" separator="," open="(" close=")">
             #{userId}
         </foreach>
     </delete>
+
+    <select id="getRolesByUserIds" resultType="com.dayz.sapientiacloud_edupivot.system.entity.po.SysRole">
+        select
+            r.id, r.role_name, r.role_key, r.sort, r.status, r.description, r.create_time, r.update_time
+        from
+            sys_role r
+                join
+            sys_user_role ur on r.id = ur.role_id
+        where
+            ur.user_id in
+        <foreach item="userId" collection="userIds" separator="," open="(" close=")">
+            #{userId}
+        </foreach>
+    </select>
 
 </mapper>

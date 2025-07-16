@@ -21,6 +21,8 @@ public class SysRoleVO implements Serializable {
     @Serial
     private static final long serialVersionUID = -5337978323517901756L;
 
+    public static final String ADMIN_ROLE_KEY = "ADMIN";
+
     @Schema(name = "id", description = "角色ID")
     private UUID id;
 
@@ -49,4 +51,8 @@ public class SysRoleVO implements Serializable {
     @Schema(name = "update_time", description = "更新时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updateTime;
+
+    public Boolean isAdmin() {
+        return ADMIN_ROLE_KEY.equals(this.roleKey);
+    }
 } 

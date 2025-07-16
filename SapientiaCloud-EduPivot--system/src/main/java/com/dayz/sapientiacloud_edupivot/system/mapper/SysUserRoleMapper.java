@@ -1,5 +1,6 @@
 package com.dayz.sapientiacloud_edupivot.system.mapper;
 
+import com.dayz.sapientiacloud_edupivot.system.entity.po.SysRole;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysRoleVO;
 import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Mapper;
@@ -25,4 +26,6 @@ public interface SysUserRoleMapper {
     boolean removeRolesByUserId(UUID id);
 
     boolean removeRolesByUserIds(@Param("userIds") List<UUID> userIds);
+
+    List<SysRole> getRolesByUserIds(@Param("userIds") List<UUID> userIds);
 }

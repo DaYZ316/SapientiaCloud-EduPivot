@@ -150,7 +150,7 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
     @Override
     @CacheEvict(value = "SysRole", key = "#p0", condition = "#p0 != null")
     public Boolean assignRolePermissions(UUID roleId, List<UUID> newPermissionIds) {
-        if (roleId == null || this.getById(roleId).getDeleted().equals(DeletedEnum.DELETED.getCode())) {
+        if (roleId == null || this.getById(roleId) == null) {
             throw new BusinessException(SysRoleEnum.ROLE_NOT_FOUND.getMessage());
         }
 
