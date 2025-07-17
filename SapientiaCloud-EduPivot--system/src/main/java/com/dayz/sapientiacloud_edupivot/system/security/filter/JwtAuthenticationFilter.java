@@ -31,8 +31,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "/v3/api-docs/**",
             "/doc.html",
             "/webjars/**",
+            "user/register/**",
             // 常见的通过网关转发后可能的路径形式
             "/api/system/v3/api-docs/**",
+            "/api/system/user/register/**",
             // 内部接口白名单
             "/user/internal/**",
     };

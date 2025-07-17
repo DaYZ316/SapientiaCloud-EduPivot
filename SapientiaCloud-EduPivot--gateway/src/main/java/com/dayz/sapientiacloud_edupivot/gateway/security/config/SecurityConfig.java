@@ -23,6 +23,7 @@ public class SecurityConfig {
             "/api/auth/login",
             "/api/auth/validate",
             "/api/auth/logout",
+            "/api/system/user/register",
             "/api/*/v3/api-docs/**",
             "/v3/api-docs/**",
             "/doc.html",
