@@ -4,18 +4,17 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dayz.sapientiacloud_edupivot.system.common.enums.DeletedEnum;
 import com.dayz.sapientiacloud_edupivot.system.common.enums.StatusEnum;
 import com.dayz.sapientiacloud_edupivot.system.common.exception.BusinessException;
-import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserAdminDTO;
-import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserDTO;
-import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserQueryDTO;
-import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserRegisterDTO;
+import com.dayz.sapientiacloud_edupivot.system.entity.dto.*;
 import com.dayz.sapientiacloud_edupivot.system.entity.po.SysRole;
 import com.dayz.sapientiacloud_edupivot.system.entity.po.SysUser;
+import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysPermissionVO;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysRoleVO;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysUserVO;
 import com.dayz.sapientiacloud_edupivot.system.enums.GenderEnum;
 import com.dayz.sapientiacloud_edupivot.system.enums.SysRoleEnum;
 import com.dayz.sapientiacloud_edupivot.system.enums.SysUserEnum;
 import com.dayz.sapientiacloud_edupivot.system.mapper.SysUserMapper;
+import com.dayz.sapientiacloud_edupivot.system.mapper.SysUserPermissionMapper;
 import com.dayz.sapientiacloud_edupivot.system.mapper.SysUserRoleMapper;
 import com.dayz.sapientiacloud_edupivot.system.service.ISysUserService;
 import com.github.f4b6a3.uuid.UuidCreator;
@@ -54,6 +53,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     private final SysUserMapper sysUserMapper;
     private final SysUserRoleMapper sysUserRoleMapper;
     private final PasswordEncoder passwordEncoder;
+    private final SysUserPermissionMapper sysUserPermissionMapper;
 
     @Override
     public PageInfo<SysUserVO> listSysUser(SysUserQueryDTO sysUserQueryDTO) {
@@ -200,7 +200,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
     @Override
     @CachePut(value = "SysUser", key = "#result.id", condition = "#result != null")
-    public SysUser selectUserByUsername(String username) {
+    public SysUserInternalDTO selectUserByUsername(String username) {
         if (!StringUtils.hasText(username)) {
             throw new BusinessException(SysUserEnum.USERNAME_CANNOT_BE_EMPTY.getMessage());
         }
@@ -210,7 +210,13 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             throw new BusinessException(SysUserEnum.USER_NOT_FOUND.getMessage());
         }
 
-        return sysUser;
+        SysUserInternalDTO sysUserInternalDTO = new SysUserInternalDTO();
+        BeanUtils.copyProperties(sysUser, sysUserInternalDTO);
+
+        sysUserInternalDTO.setRoles(sysUserRoleMapper.getUserRoles(sysUser.getId()));
+        sysUserInternalDTO.setPermissions(sysUserPermissionMapper.getUserPermissions(sysUser.getId()));
+
+        return sysUserInternalDTO;
     }
 
     @Override
@@ -251,8 +257,20 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
     @Override
     public List<SysRoleVO> getUserRoles(UUID userId) {
+        if (userId == null || this.getById(userId) == null) {
+            throw new BusinessException(SysUserEnum.USER_NOT_FOUND.getMessage());
+        }
         return sysUserRoleMapper.getUserRoles(userId);
     }
+
+    @Override
+    public List<SysPermissionVO> getUserPermissions(UUID userId) {
+        if (userId == null || this.getById(userId) == null) {
+            throw new BusinessException(SysUserEnum.USER_NOT_FOUND.getMessage());
+        }
+        return sysUserPermissionMapper.getUserPermissions(userId);
+    }
+
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {

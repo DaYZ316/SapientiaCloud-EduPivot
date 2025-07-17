@@ -1,10 +1,7 @@
 package com.dayz.sapientiacloud_edupivot.system.controller;
 
-import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserAdminDTO;
-import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserDTO;
-import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserQueryDTO;
-import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserRegisterDTO;
-import com.dayz.sapientiacloud_edupivot.system.entity.po.SysUser;
+import com.dayz.sapientiacloud_edupivot.system.entity.dto.*;
+import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysPermissionVO;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysRoleVO;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysUserVO;
 import com.dayz.sapientiacloud_edupivot.system.common.result.Result;
@@ -124,6 +121,19 @@ public class SysUserController {
     }
 
     @HasPermission(
+        summary = "内部接口 - 获取用户权限列表",
+        description = "获取指定用户的权限列表",
+        hidden = true
+    )
+    @GetMapping("/internal/{userId}/permission")
+    public Result<List<SysPermissionVO>> getUserPermissions(
+            @Parameter(name = "userId", description = "用户ID", required = true) @PathVariable("userId") UUID userId
+    ) {
+        List<SysPermissionVO> permissions = sysUserService.getUserPermissions(userId);
+        return Result.success(permissions);
+    }
+
+    @HasPermission(
         summary = "内部接口 - 管理员添加新用户", 
         description = "管理员添加系统用户", 
         hidden = true
@@ -139,9 +149,9 @@ public class SysUserController {
         hidden = true
     )
     @GetMapping("/internal/info/{username}")
-    public Result<SysUser> getUserInfoByUsername(@PathVariable("username") String username) {
-        SysUser sysUser = sysUserService.selectUserByUsername(username);
-        return Result.success(sysUser);
+    public Result<SysUserInternalDTO> getUserInfoByUsername(@PathVariable("username") String username) {
+        SysUserInternalDTO sysUserInternalDTO = sysUserService.selectUserByUsername(username);
+        return Result.success(sysUserInternalDTO);
     }
 
     @HasPermission(

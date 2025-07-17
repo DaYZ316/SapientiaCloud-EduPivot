@@ -1,10 +1,8 @@
 package com.dayz.sapientiacloud_edupivot.system.service;
 
-import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserAdminDTO;
-import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserDTO;
-import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserQueryDTO;
-import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserRegisterDTO;
+import com.dayz.sapientiacloud_edupivot.system.entity.dto.*;
 import com.dayz.sapientiacloud_edupivot.system.entity.po.SysUser;
+import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysPermissionVO;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysRoleVO;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysUserVO;
 import com.github.pagehelper.PageInfo;
@@ -31,5 +29,7 @@ public interface ISysUserService {
 
     SysUserVO addUser(SysUserAdminDTO sysUserAdminDTO);
 
-    SysUser selectUserByUsername(String username);
+    SysUserInternalDTO selectUserByUsername(String username);
+
+    List<SysPermissionVO> getUserPermissions(UUID userId);
 }
