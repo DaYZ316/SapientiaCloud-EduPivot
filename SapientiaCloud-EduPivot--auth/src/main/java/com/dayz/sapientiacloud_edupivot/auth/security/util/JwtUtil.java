@@ -5,6 +5,7 @@ import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserInternalDTO;
 import com.dayz.sapientiacloud_edupivot.auth.security.config.JwtConfig;
 import com.dayz.sapientiacloud_edupivot.auth.entity.po.SysUser;
 import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysRoleVO;
@@ -36,18 +37,18 @@ public class JwtUtil {
 
     private static final String TOKEN_BLACKLIST_PREFIX = "jwt:blacklist:";
 
-    public String generateToken(SysUser sysUser, List<SysRoleVO> roles) {
+    public String generateToken(SysUserInternalDTO sysUserInternalDTO) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtConfig.getExpiration());
-        if (sysUser == null) {
+        if (sysUserInternalDTO == null) {
             throw new BusinessException(SysUserEnum.USER_NOT_FOUND.getMessage());
         }
 
         return JWT.create()
                 .withJWTId(UUID.randomUUID().toString())
-                .withClaim("userId", sysUser.getId().toString())
-                .withSubject(sysUser.getUsername())
-                .withClaim("roleKeys", roles.stream()
+                .withClaim("userId", sysUserInternalDTO.getId().toString())
+                .withSubject(sysUserInternalDTO.getUsername())
+                .withClaim("roleKeys", sysUserInternalDTO.getRoles().stream()
                         .filter(Objects::nonNull)
                         .map(SysRoleVO::getRoleKey)
                         .toList())

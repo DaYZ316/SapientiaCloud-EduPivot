@@ -2,7 +2,7 @@ package com.dayz.sapientiacloud_edupivot.auth.service.impl;
 
 import com.dayz.sapientiacloud_edupivot.auth.client.SysUserClient;
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserDTO;
-import com.dayz.sapientiacloud_edupivot.auth.entity.po.SysUser;
+import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserInternalDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysUserLoginVO;
 import com.dayz.sapientiacloud_edupivot.auth.enums.SysUserEnum;
 import com.dayz.sapientiacloud_edupivot.auth.exception.BusinessException;
@@ -40,43 +40,41 @@ public class AuthServiceImpl implements AuthService {
             throw new BusinessException(SysUserEnum.PASSWORD_CANNOT_BE_EMPTY.getMessage());
         }
 
-        Result<SysUser> userResult = sysUserClient.getUserInfoByUsername(username);
+        Result<SysUserInternalDTO> userResult = sysUserClient.getUserInfoByUsername(username);
         if (userResult == null || !userResult.isSuccess()) {
             throw new BusinessException(SysUserEnum.USER_NOT_FOUND.getMessage());
         }
-        SysUser sysUser = userResult.getData();
-        if (sysUser == null) {
+        SysUserInternalDTO sysUserInternalDTO = userResult.getData();
+        if (sysUserInternalDTO == null) {
             log.error("用户登录失败: 用户不存在, 用户名: {}", username);
             throw new BusinessException(SysUserEnum.USERNAME_OR_PASSWORD_ERROR.getMessage());
         }
-        if (sysUser.getStatus() != null && sysUser.getStatus() == 1) {
+        if (sysUserInternalDTO.getStatus() != null && sysUserInternalDTO.getStatus() == 1) {
             log.error("用户登录失败: 用户已被禁用, 用户名: {}", username);
             throw new BusinessException(SysUserEnum.USER_ACCOUNT_DISABLED.getMessage());
         }
-        if (!passwordEncoder.matches(password, sysUser.getPassword())) {
+        if (!passwordEncoder.matches(password, sysUserInternalDTO.getPassword())) {
             log.error("用户登录失败: 密码错误, 用户名: {}", username);
             throw new BusinessException(SysUserEnum.USERNAME_OR_PASSWORD_ERROR.getMessage());
         }
 
-        sysUser.setLastLoginTime(LocalDateTime.now());
+        sysUserInternalDTO.setLastLoginTime(LocalDateTime.now());
 
         SysUserDTO sysUserDTO = new SysUserDTO();
-        BeanUtils.copyProperties(sysUser, sysUserDTO);
+        BeanUtils.copyProperties(sysUserInternalDTO, sysUserDTO);
         Result<Boolean> booleanResult = sysUserClient.updateUserInternal(sysUserDTO);
         if (!booleanResult.isSuccess()) {
             log.error("用户登录失败: 更新用户信息失败, 用户名: {}", username);
             throw new BusinessException(SysUserEnum.USER_LOGIN_FAILED.getMessage());
         }
 
-        String token = jwtUtil.generateToken(sysUser, sysUserClient.getUserRoles(sysUser.getId()).getData());
+        String token = jwtUtil.generateToken(sysUserInternalDTO);
 
         SysUserLoginVO loginVO = new SysUserLoginVO();
         loginVO.setAccessToken(token);
-        loginVO.setUserId(sysUser.getId());
-        loginVO.setUsername(sysUser.getUsername());
-        loginVO.setNickName(sysUser.getNickName());
+        BeanUtils.copyProperties(sysUserInternalDTO, loginVO);
         
-        log.info("用户登录成功: 用户名: {}", sysUser.getUsername());
+        log.info("用户登录成功: 用户名: {}", sysUserInternalDTO.getUsername());
         return loginVO;
     }
     

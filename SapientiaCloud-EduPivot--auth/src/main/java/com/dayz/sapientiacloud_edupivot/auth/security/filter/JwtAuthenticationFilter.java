@@ -1,7 +1,7 @@
 package com.dayz.sapientiacloud_edupivot.auth.security.filter;
 
 import com.dayz.sapientiacloud_edupivot.auth.client.SysUserClient;
-import com.dayz.sapientiacloud_edupivot.auth.entity.po.SysUser;
+import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserInternalDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysRoleVO;
 import com.dayz.sapientiacloud_edupivot.auth.enums.SysUserEnum;
 import com.dayz.sapientiacloud_edupivot.auth.exception.BusinessException;
@@ -72,16 +72,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     // 从令牌中获取用户名
                     String username = jwtUtil.getUsernameFromToken(token);
                     if (username != null) {
-                        Result<SysUser> userResult = sysUserClient.getUserInfoByUsername(username);
+                        Result<SysUserInternalDTO> userResult = sysUserClient.getUserInfoByUsername(username);
                         if (userResult == null || !userResult.isSuccess()) {
                             throw new BusinessException(SysUserEnum.USER_NOT_FOUND.getMessage());
                         }
-                        SysUser sysUser = userResult.getData();
-                        List<SysRoleVO> roles = sysUserClient.getUserRoles(sysUser.getId()).getData();
+                        SysUserInternalDTO sysUserInternalDTO = userResult.getData();
+                        List<SysRoleVO> roles = sysUserClient.getUserRoles(sysUserInternalDTO.getId()).getData();
 
                         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                                sysUser.getUsername(),
-                                sysUser.getPassword(),
+                                sysUserInternalDTO.getUsername(),
+                                sysUserInternalDTO.getPassword(),
                                 roles.stream()
                                         .filter(Objects::nonNull)
                                         .map(role -> new SimpleGrantedAuthority(role.getRoleKey()))

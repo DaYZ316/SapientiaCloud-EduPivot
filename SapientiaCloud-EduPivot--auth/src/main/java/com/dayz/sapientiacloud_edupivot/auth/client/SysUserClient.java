@@ -2,6 +2,7 @@ package com.dayz.sapientiacloud_edupivot.auth.client;
 
 import com.dayz.sapientiacloud_edupivot.auth.config.FeignConfig;
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserDTO;
+import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserInternalDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.po.SysUser;
 import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysRoleVO;
 import com.dayz.sapientiacloud_edupivot.auth.result.Result;
@@ -18,7 +19,7 @@ import java.util.UUID;
 public interface SysUserClient {
 
     @GetMapping("/internal/info/{username}")
-    Result<SysUser> getUserInfoByUsername(@PathVariable("username") String username);
+    Result<SysUserInternalDTO> getUserInfoByUsername(@PathVariable("username") String username);
 
     @GetMapping("/internal/{userId}/role")
     Result<List<SysRoleVO>> getUserRoles(@PathVariable("userId") UUID userId);
