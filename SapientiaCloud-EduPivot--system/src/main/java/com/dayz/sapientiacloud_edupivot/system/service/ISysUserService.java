@@ -1,6 +1,5 @@
 package com.dayz.sapientiacloud_edupivot.system.service;
 
-import com.baomidou.mybatisplus.extension.service.IService;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserAdminDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserQueryDTO;
@@ -13,8 +12,7 @@ import com.github.pagehelper.PageInfo;
 import java.util.List;
 import java.util.UUID;
 
-public interface ISysUserService extends IService<SysUser> {
-
+public interface ISysUserService {
     PageInfo<SysUserVO> listSysUser(SysUserQueryDTO sysUserQueryDTO);
 
     SysUserVO getUserById(UUID id);
@@ -27,11 +25,11 @@ public interface ISysUserService extends IService<SysUser> {
 
     Integer removeUserByIds(List<UUID> ids);
 
-    SysUserVO addUser(SysUserAdminDTO sysUserAdminDTO);
-
-    SysUser selectUserByUsername(String username);
-
     Boolean assignRoles(UUID userId, List<UUID> roleIds);
 
     List<SysRoleVO> getUserRoles(UUID userId);
+
+    SysUserVO addUser(SysUserAdminDTO sysUserAdminDTO);
+
+    SysUser selectUserByUsername(String username);
 }
