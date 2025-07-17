@@ -26,9 +26,6 @@ public class SysPermissionQueryDTO extends PageEntity implements Serializable {
 
     @Schema(description = "权限标识")
     private String permissionKey;
-
-    @Schema(description = "状态 (0=正常, 1=停用)")
-    private Integer status;
     
     @Schema(description = "父级权限ID")
     private UUID parentId;

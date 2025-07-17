@@ -9,7 +9,6 @@ create table sys_permission
     permission_name varchar(50)                        not null,
     permission_key  varchar(100)                       not null,
     sort            int      default 0                 null,
-    status          int      default 0                 null,
     create_time     datetime default CURRENT_TIMESTAMP null,
     update_time     datetime default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
     is_deleted      int      default 0                 null

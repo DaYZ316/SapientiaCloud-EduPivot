@@ -5,7 +5,7 @@
     <select id="getRolePermissions" resultType="com.dayz.sapientiacloud_edupivot.system.entity.vo.SysPermissionVO">
         select
             p.id, p.permission_name, p.permission_key, p.parent_id,
-            p.status, p.sort, p.create_time, p.update_time
+            p.sort, p.create_time, p.update_time
         from
             sys_permission p
                 join

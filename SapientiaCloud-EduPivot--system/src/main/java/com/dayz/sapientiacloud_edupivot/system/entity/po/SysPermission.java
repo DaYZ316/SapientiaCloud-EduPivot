@@ -44,8 +44,4 @@ public class SysPermission extends BaseEntity implements Serializable {
     @Schema(name = "sort", description = "排序")
     @TableField("sort")
     private Integer sort;
-
-    @Schema(name = "status", description = "状态 (0=正常, 1=停用)")
-    @TableField("status")
-    private Integer status;
 } 

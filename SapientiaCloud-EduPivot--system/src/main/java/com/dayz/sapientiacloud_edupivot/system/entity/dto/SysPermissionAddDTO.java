@@ -35,7 +35,4 @@ public class SysPermissionAddDTO implements Serializable {
 
     @Schema(description = "排序")
     private Integer sort;
-
-    @Schema(description = "状态 (0=正常, 1=停用)")
-    private Integer status;
 }

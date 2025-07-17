@@ -34,6 +34,7 @@
                     </otherwise>
                 </choose>
             </if>
+            and is_deleted = 0
         </where>
         order by sort asc
     </select>

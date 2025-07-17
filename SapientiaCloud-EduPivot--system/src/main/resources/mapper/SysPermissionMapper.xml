@@ -8,7 +8,7 @@
 
     <select id="listSysPermission" resultType="com.dayz.sapientiacloud_edupivot.system.entity.vo.SysPermissionVO">
         select
-        id, parent_id, permission_name, permission_key, sort, status, create_time, update_time
+        id, parent_id, permission_name, permission_key, sort, create_time, update_time
         from
         sys_permission
         <where>
@@ -17,9 +17,6 @@
             </if>
             <if test="permissionKey != null and permissionKey != ''">
                 and permission_key like concat('%', #{permissionKey}, '%')
-            </if>
-            <if test="status != null">
-                and status = #{status}
             </if>
             <if test="parentId != null">
                 and parent_id = #{parentId}
@@ -37,6 +34,7 @@
                     </otherwise>
                 </choose>
             </if>
+            and is_deleted = 0
         </where>
         order by sort asc
     </select>

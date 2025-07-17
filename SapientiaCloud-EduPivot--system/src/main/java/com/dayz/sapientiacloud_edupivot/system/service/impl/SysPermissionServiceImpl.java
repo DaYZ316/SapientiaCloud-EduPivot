@@ -69,7 +69,6 @@ public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, S
         BeanUtils.copyProperties(sysPermissionDTO, sysPermission);
 
         sysPermission.setId(UuidCreator.getTimeOrderedEpoch());
-        sysPermission.setStatus(StatusEnum.NORMAL.getCode());
         sysPermission.setCreateTime(LocalDateTime.now());
         sysPermission.setUpdateTime(LocalDateTime.now());
 
