@@ -6,11 +6,20 @@ spring:
     url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DATABASE}?rewriteBatchedStatements=true&characterEncoding=UTF-8&autoReconnect=true&failOverReadOnly=false&serverTimezone=Asia/Shanghai&allowMultiQueries=true
     username: ${MYSQL_USERNAME}
     password: ${MYSQL_PASSWORD}
+
   data:
     redis:
       port: ${REDIS_PORT}
       host: ${REDIS_HOST}
       password: ${REDIS_PASSWORD}
+      timeout: 6000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-wait: -1ms
+          max-idle: 8
+          min-idle: 0
+
   cache:
     type: redis
     redis:
@@ -27,12 +36,13 @@ knife4j:
     enable: true
     username: ${KNIFE4J_USERNAME}
     password: ${KNIFE4J_PASSWORD}
+
 logging:
   level:
     com.dayz.sapientiacloud_edupivot.*.mapper: DEBUG
-    org.springframework.cloud.gateway: DEBUG
     org.springframework.http.server.reactive: DEBUG
     org.springframework.web.reactive: DEBUG
+
 
 MYSQL_HOST: 127.0.0.1
 MYSQL_PORT: 3306

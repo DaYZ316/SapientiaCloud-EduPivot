@@ -1,6 +1,6 @@
-package com.dayz.sapientiacloud_edupivot.system.common.security.config;
+package com.dayz.sapientiacloud_edupivot.system.security.config;
 
-import com.dayz.sapientiacloud_edupivot.system.common.security.filter.JwtAuthenticationFilter;
+import com.dayz.sapientiacloud_edupivot.system.security.filter.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,6 +25,9 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    
+    // Feign请求头标识
+    private static final String FEIGN_REQUEST_HEADER = "X-Feign-Client";
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -42,8 +45,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(authorize -> authorize
                 // Swagger文档
                 .requestMatchers("/v3/api-docs/**", "/doc.html", "/webjars/**").permitAll()
-                // 内部接口
-                .requestMatchers("/user/internal/**").permitAll()
+                // 放行所有带有Feign请求头的请求
+                .requestMatchers(request -> request.getHeader(FEIGN_REQUEST_HEADER) != null).permitAll()
                 // 需要认证的请求
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .anyRequest().authenticated()

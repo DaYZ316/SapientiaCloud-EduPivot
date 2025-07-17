@@ -1,6 +1,6 @@
-package com.dayz.sapientiacloud_edupivot.system.common.security.filter;
+package com.dayz.sapientiacloud_edupivot.system.security.filter;
 
-import com.dayz.sapientiacloud_edupivot.system.common.security.util.JwtUtil;
+import com.dayz.sapientiacloud_edupivot.system.security.util.JwtUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -33,6 +33,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "/webjars/**",
             // 常见的通过网关转发后可能的路径形式
             "/api/system/v3/api-docs/**",
+            // 内部接口白名单
+            "/user/internal/**",
     };
     private static final String AUTHORIZATION_HEADER = "Authorization";
     private static final String BEARER_PREFIX = "Bearer ";

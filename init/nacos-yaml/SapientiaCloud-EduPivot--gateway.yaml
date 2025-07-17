@@ -14,6 +14,20 @@ spring:
             - Path=/api/auth/**
           filters:
             - StripPrefix=2
+
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD}
+      timeout: 6000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-wait: -1ms
+          max-idle: 8
+          min-idle: 0
+
 knife4j:
   gateway:
     enabled: true
@@ -21,14 +35,15 @@ knife4j:
     discover:
       enabled: true
       version: openapi3
-  data:
-    redis:
-      port: ${REDIS_PORT}
-      host: ${REDIS_HOST}
-      password: ${REDIS_PASSWORD}
-  cache:
-    caffeine:
-      spec: maximumSize=500,expireAfterWrite=10m
+
+cache:
+  caffeine:
+    spec: maximumSize=500,expireAfterWrite=10m
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+
 
 REDIS_HOST: 127.0.0.1
 REDIS_PORT: 6379

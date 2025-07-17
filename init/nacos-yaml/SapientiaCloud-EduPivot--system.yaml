@@ -3,6 +3,7 @@ pagehelper:
   reasonable: true
   support-methods-arguments: true
   params: count=countSql
+
 mybatis-plus:
   type-aliases-package: com.dayz.sapientiacloudedupivot.system.entity
   mapper-locations: classpath:mapper/**/*.xml
@@ -16,6 +17,7 @@ mybatis-plus:
       logic-delete-field: deleted
       logic-delete-value: 1
       logic-not-delete-value: 0
+
 feign:
   client:
     config:
@@ -25,6 +27,7 @@ feign:
         loggerLevel: full
   httpclient:
     enabled: true
+
 spring:
   jpa:
     open-in-view: false

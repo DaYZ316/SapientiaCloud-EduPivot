@@ -1,4 +1,4 @@
-package com.dayz.sapientiacloud_edupivot.system.common.security.config;
+package com.dayz.sapientiacloud_edupivot.system.security.config;
 
 import com.alibaba.fastjson2.JSON;
 import com.dayz.sapientiacloud_edupivot.system.common.result.Result;

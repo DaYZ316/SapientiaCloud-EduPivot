@@ -1,5 +1,6 @@
 package com.dayz.sapientiacloud_edupivot.auth.client;
 
+import com.dayz.sapientiacloud_edupivot.auth.config.FeignConfig;
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.po.SysUser;
 import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysRoleVO;
@@ -13,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import java.util.List;
 import java.util.UUID;
 
-@FeignClient(contextId = "SysUserClient", value = "SapientiaCloud-EduPivot--system", path = "/user")
+@FeignClient(contextId = "SysUserClient", value = "SapientiaCloud-EduPivot--system", path = "/user", configuration = FeignConfig.class)
 public interface SysUserClient {
 
     @GetMapping("/internal/info/{username}")
