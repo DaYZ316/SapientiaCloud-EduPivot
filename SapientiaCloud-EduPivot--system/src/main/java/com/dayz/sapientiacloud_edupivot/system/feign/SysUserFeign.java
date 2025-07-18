@@ -69,4 +69,14 @@ public class SysUserFeign {
         SysUserInternalDTO sysUserInternalDTO = sysUserService.selectUserByUsername(username);
         return Result.success(sysUserInternalDTO);
     }
+
+    @HasPermission(
+            summary = "内部接口 - 更新用户信息",
+            description = "内部接口，更新用户信息",
+            hidden = true
+    )
+    @PutMapping("/internal/update")
+    public Result<Boolean> updateUserInternal(@RequestBody SysUserDTO sysUserDTO) {
+        return Result.success(sysUserService.updateUser(sysUserDTO));
+    }
 }
