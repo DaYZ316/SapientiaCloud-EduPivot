@@ -104,17 +104,14 @@ public class AuthServiceImpl implements AuthService {
         if (!StringUtils.hasText(token)) {
             throw new BusinessException(ResultEnum.TOKEN_NOT_FOUND.getMessage());
         }
-        
-        // 验证令牌有效性
+
         try {
             if (jwtUtil.isTokenExpired(token)) {
                 throw new BusinessException(ResultEnum.TOKEN_EXPIRED.getMessage());
             }
-            
-            // 获取用户信息
+
             String username = jwtUtil.getUsernameFromToken(token);
             if (username != null) {
-                // 将令牌加入黑名单
                 boolean invalidated = jwtUtil.invalidateToken(token);
                 if (invalidated) {
                     log.info("用户 {} 已成功登出", username);

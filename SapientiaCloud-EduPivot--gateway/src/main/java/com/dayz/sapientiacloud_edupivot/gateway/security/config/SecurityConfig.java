@@ -4,6 +4,7 @@ import com.dayz.sapientiacloud_edupivot.gateway.security.filter.JwtAuthenticatio
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
@@ -41,6 +42,8 @@ public class SecurityConfig {
             .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
             // 配置请求授权
             .authorizeExchange(exchange -> exchange
+                // 跨域预检请求 - 放行所有OPTIONS请求
+                .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 // 白名单放行
                 .pathMatchers(WHITELIST).permitAll()
                 // 需要认证的请求
