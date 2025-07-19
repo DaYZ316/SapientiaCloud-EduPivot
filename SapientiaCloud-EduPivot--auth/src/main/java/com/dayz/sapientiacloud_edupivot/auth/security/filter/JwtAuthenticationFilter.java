@@ -38,6 +38,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "/login", 
             "/validate",
             "/logout",
+            "/register",
             "/doc.html",
             "/webjars/**",
             "/v3/api-docs",
@@ -45,6 +46,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "/api/auth/login",
             "/api/auth/validate",
             "/api/auth/logout",
+            "/api/auth/register",
             "/api/auth/v3/api-docs",
     };
     private static final String AUTHORIZATION_HEADER = "Authorization";

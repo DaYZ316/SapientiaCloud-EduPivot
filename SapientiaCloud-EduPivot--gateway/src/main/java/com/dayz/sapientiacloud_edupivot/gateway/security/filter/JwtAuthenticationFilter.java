@@ -32,6 +32,7 @@ public class JwtAuthenticationFilter implements WebFilter {
             "/api/auth/login",
             "/api/auth/validate",
             "/api/auth/logout",
+            "/api/auth/register",
             "/api/auth/v3/api-docs/**",
             "/v3/api-docs/**",
             "/doc.html",

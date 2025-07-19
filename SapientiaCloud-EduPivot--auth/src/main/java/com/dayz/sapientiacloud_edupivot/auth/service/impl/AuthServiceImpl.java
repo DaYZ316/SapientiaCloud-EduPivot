@@ -3,6 +3,7 @@ package com.dayz.sapientiacloud_edupivot.auth.service.impl;
 import com.dayz.sapientiacloud_edupivot.auth.client.SysUserClient;
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserInternalDTO;
+import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserLoginDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysUserLoginVO;
 import com.dayz.sapientiacloud_edupivot.auth.enums.SysUserEnum;
 import com.dayz.sapientiacloud_edupivot.auth.exception.BusinessException;
@@ -32,29 +33,29 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public SysUserLoginVO login(String username, String password) {
-        if (!StringUtils.hasText(username)) {
+    public SysUserLoginVO login(SysUserLoginDTO sysUserLoginDTO) {
+        if (!StringUtils.hasText(sysUserLoginDTO.getUsername())) {
             throw new BusinessException(SysUserEnum.USERNAME_CANNOT_BE_EMPTY.getMessage());
         }
-        if (!StringUtils.hasText(password)) {
+        if (!StringUtils.hasText(sysUserLoginDTO.getPassword())) {
             throw new BusinessException(SysUserEnum.PASSWORD_CANNOT_BE_EMPTY.getMessage());
         }
 
-        Result<SysUserInternalDTO> userResult = sysUserClient.getUserInfoByUsername(username);
+        Result<SysUserInternalDTO> userResult = sysUserClient.getUserInfoByUsername(sysUserLoginDTO.getUsername());
         if (userResult == null || !userResult.isSuccess()) {
             throw new BusinessException(SysUserEnum.USER_NOT_FOUND.getMessage());
         }
         SysUserInternalDTO sysUserInternalDTO = userResult.getData();
         if (sysUserInternalDTO == null) {
-            log.error("用户登录失败: 用户不存在, 用户名: {}", username);
+            log.error("用户登录失败: 用户不存在, 用户名: {}", sysUserLoginDTO.getUsername());
             throw new BusinessException(SysUserEnum.USERNAME_OR_PASSWORD_ERROR.getMessage());
         }
         if (sysUserInternalDTO.getStatus() != null && sysUserInternalDTO.getStatus() == 1) {
-            log.error("用户登录失败: 用户已被禁用, 用户名: {}", username);
+            log.error("用户登录失败: 用户已被禁用, 用户名: {}", sysUserLoginDTO.getUsername());
             throw new BusinessException(SysUserEnum.USER_ACCOUNT_DISABLED.getMessage());
         }
-        if (!passwordEncoder.matches(password, sysUserInternalDTO.getPassword())) {
-            log.error("用户登录失败: 密码错误, 用户名: {}", username);
+        if (!passwordEncoder.matches(sysUserLoginDTO.getPassword(), sysUserInternalDTO.getPassword())) {
+            log.error("用户登录失败: 密码错误, 用户名: {}", sysUserLoginDTO.getUsername());
             throw new BusinessException(SysUserEnum.USERNAME_OR_PASSWORD_ERROR.getMessage());
         }
 
@@ -64,7 +65,7 @@ public class AuthServiceImpl implements AuthService {
         BeanUtils.copyProperties(sysUserInternalDTO, sysUserDTO);
         Result<Boolean> booleanResult = sysUserClient.updateUserInternal(sysUserDTO);
         if (!booleanResult.isSuccess()) {
-            log.error("用户登录失败: 更新用户信息失败, 用户名: {}", username);
+            log.error("用户登录失败: 更新用户信息失败, 用户名: {}", sysUserLoginDTO.getUsername());
             throw new BusinessException(SysUserEnum.USER_LOGIN_FAILED.getMessage());
         }
 

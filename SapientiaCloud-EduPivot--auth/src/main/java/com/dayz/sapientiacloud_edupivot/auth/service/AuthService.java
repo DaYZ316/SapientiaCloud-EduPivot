@@ -1,5 +1,6 @@
 package com.dayz.sapientiacloud_edupivot.auth.service;
 
+import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserLoginDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysUserLoginVO;
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -8,7 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
  */
 public interface AuthService {
 
-    SysUserLoginVO login(String username, String password);
+    SysUserLoginVO login(SysUserLoginDTO sysUserLoginDTO);
 
     boolean validateToken(String token);
 

@@ -4,12 +4,14 @@ import com.dayz.sapientiacloud_edupivot.system.common.result.Result;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserAdminDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserInternalDTO;
+import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserRegisterDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysPermissionVO;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysRoleVO;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysUserVO;
 import com.dayz.sapientiacloud_edupivot.system.security.annotation.HasPermission;
 import com.dayz.sapientiacloud_edupivot.system.service.impl.SysUserServiceImpl;
 import io.swagger.v3.oas.annotations.Parameter;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -70,6 +72,7 @@ public class SysUserFeign {
         return Result.success(sysUserInternalDTO);
     }
 
+
     @HasPermission(
             summary = "内部接口 - 更新用户信息",
             description = "内部接口，更新用户信息",
@@ -78,5 +81,14 @@ public class SysUserFeign {
     @PutMapping("/internal/update")
     public Result<Boolean> updateUserInternal(@RequestBody SysUserDTO sysUserDTO) {
         return Result.success(sysUserService.updateUser(sysUserDTO));
+    }
+
+    @HasPermission(
+            summary = "注册用户",
+            description = "用户UI端注册用户。"
+    )
+    @PostMapping("/internal/register")
+    public Result<Boolean> registerUser(@Valid @RequestBody SysUserRegisterDTO sysUserRegisterDTO) {
+        return Result.success(sysUserService.registerUser(sysUserRegisterDTO));
     }
 }

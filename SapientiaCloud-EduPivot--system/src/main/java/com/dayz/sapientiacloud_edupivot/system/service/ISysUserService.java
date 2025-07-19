@@ -15,8 +15,6 @@ public interface ISysUserService {
 
     SysUserVO getUserById(UUID id);
 
-    Boolean registerUser(SysUserRegisterDTO sysUserRegisterDTO);
-
     Boolean updateUser(SysUserDTO sysUserDTO);
 
     Boolean removeUserById(UUID id);
@@ -32,4 +30,6 @@ public interface ISysUserService {
     SysUserInternalDTO selectUserByUsername(String username);
 
     List<SysPermissionVO> getUserPermissions(UUID userId);
+
+    Boolean registerUser(SysUserRegisterDTO sysUserRegisterDTO);
 }

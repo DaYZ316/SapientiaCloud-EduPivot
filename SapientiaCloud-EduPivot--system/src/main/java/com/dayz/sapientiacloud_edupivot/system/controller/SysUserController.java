@@ -1,8 +1,6 @@
 package com.dayz.sapientiacloud_edupivot.system.controller;
 
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.*;
-import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysPermissionVO;
-import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysRoleVO;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysUserVO;
 import com.dayz.sapientiacloud_edupivot.system.common.result.Result;
 import com.dayz.sapientiacloud_edupivot.system.security.annotation.HasPermission;
@@ -49,15 +47,6 @@ public class SysUserController {
     ) {
         SysUserVO sysUserVO = sysUserService.getUserById(id);
         return Result.success(sysUserVO);
-    }
-
-    @HasPermission(
-        summary = "注册用户", 
-        description = "用户UI端注册用户。"
-    )
-    @PostMapping("/register")
-    public Result<Boolean> registerUser(@Valid @RequestBody SysUserRegisterDTO sysUserRegisterDTO) {
-        return Result.success(sysUserService.registerUser(sysUserRegisterDTO));
     }
 
     @HasPermission(

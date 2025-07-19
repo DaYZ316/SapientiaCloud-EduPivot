@@ -3,14 +3,11 @@ package com.dayz.sapientiacloud_edupivot.auth.client;
 import com.dayz.sapientiacloud_edupivot.auth.config.FeignConfig;
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserInternalDTO;
-import com.dayz.sapientiacloud_edupivot.auth.entity.po.SysUser;
+import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserRegisterDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysRoleVO;
 import com.dayz.sapientiacloud_edupivot.auth.result.Result;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -26,4 +23,7 @@ public interface SysUserClient {
 
     @PutMapping("/internal/update")
     Result<Boolean> updateUserInternal(@RequestBody SysUserDTO sysUserDTO);
+
+    @PostMapping("/internal/register")
+    Result<Boolean> registerUser(@RequestBody SysUserRegisterDTO sysUserRegisterDTO);
 }
