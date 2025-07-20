@@ -1,6 +1,7 @@
 package com.dayz.sapientiacloud_edupivot.auth.controller;
 
 import com.dayz.sapientiacloud_edupivot.auth.client.SysUserClient;
+import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserInternalVO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserLoginDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserRegisterDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysUserLoginVO;
@@ -8,6 +9,7 @@ import com.dayz.sapientiacloud_edupivot.auth.result.Result;
 import com.dayz.sapientiacloud_edupivot.auth.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -42,8 +44,8 @@ public class AuthController {
     
     @PostMapping("/logout")
     @Operation(summary = "用户登出", description = "使当前JWT令牌失效")
-    public Result<Boolean> logout(HttpServletRequest request, @RequestParam(value = "token", required = false) String token) {
-        boolean result = authService.logout(request, token);
+    public Result<Boolean> logout(HttpServletRequest request) {
+        boolean result = authService.logout(request);
         return Result.success(result);
     }
 
@@ -51,5 +53,11 @@ public class AuthController {
     @Operation(summary = "用户注册", description = "注册一个新的用户")
     public Result<Boolean> register(@Valid @RequestBody SysUserRegisterDTO sysUserRegisterDTO) {
         return sysUserClient.registerUser(sysUserRegisterDTO);
+    }
+
+    @GetMapping("/info")
+    @Operation(summary = "获取用户信息", description = "获取当前登录用户的信息")
+    public Result<SysUserInternalVO> getUserInfo(HttpServletRequest request) {
+        return authService.getUserInfo(request);
     }
 }

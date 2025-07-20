@@ -10,7 +10,7 @@ import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springdoc.core.customizers.GlobalOperationCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import java.lang.reflect.Method;
+import org.springframework.web.method.HandlerMethod;
 
 @Configuration
 public class Knife4jConfig {
@@ -35,14 +35,25 @@ public class Knife4jConfig {
                 .components(new Components()
                         .addSecuritySchemes("Authorization", securityScheme));
     }
-    
-//    @Bean
-//    public GlobalOperationCustomizer operationCustomizer() {
-//        return (operation, method) -> {
-//            if (operation.getTags() != null && !operation.getTags().contains("登录接口")) {
-//                operation.addSecurityItem(new SecurityRequirement().addList("Authorization"));
-//            }
-//            return operation;
-//        };
-//    }
+
+    @Bean
+    public GlobalOperationCustomizer operationCustomizer() {
+        return (operation, handlerMethod) -> {
+            // 获取操作ID
+            String operationId = operation.getOperationId();
+            
+            // 获取方法名
+            String methodName = null;
+            if (handlerMethod != null) {
+                methodName = handlerMethod.getMethod().getName();
+            }
+            
+            // 仅对logout和获取用户信息(getUserInfo)接口添加Authorization请求头要求
+            if ((methodName != null && (methodName.contains("logout") || methodName.contains("getUserInfo"))) || 
+                (operationId != null && (operationId.contains("logout") || operationId.contains("info")))) {
+                operation.addSecurityItem(new SecurityRequirement().addList("Authorization"));
+            }
+            return operation;
+        };
+    }
 }

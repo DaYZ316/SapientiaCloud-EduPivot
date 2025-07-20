@@ -39,7 +39,7 @@ public class SecurityConfig {
             // 配置请求授权
             .authorizeHttpRequests(authorize -> authorize
                 // 公开接口
-                .requestMatchers("/login", "/validate", "/logout", "/register").permitAll()
+                .requestMatchers("/login", "/validate", "/register").permitAll()
                 // Swagger文档
                 .requestMatchers("/v3/api-docs/**", "/doc.html", "/webjars/**").permitAll()
                 // 需要认证的请求

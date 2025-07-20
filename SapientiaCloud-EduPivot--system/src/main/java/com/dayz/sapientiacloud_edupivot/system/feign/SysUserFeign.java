@@ -3,7 +3,7 @@ package com.dayz.sapientiacloud_edupivot.system.feign;
 import com.dayz.sapientiacloud_edupivot.system.common.result.Result;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserAdminDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserDTO;
-import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserInternalDTO;
+import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysUserInternalVO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserRegisterDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysPermissionVO;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysRoleVO;
@@ -11,6 +11,7 @@ import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysUserVO;
 import com.dayz.sapientiacloud_edupivot.system.security.annotation.HasPermission;
 import com.dayz.sapientiacloud_edupivot.system.service.impl.SysUserServiceImpl;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
+@Tag(name = "用户内部接口", description = "用户内部管理接口")
 @RestController
 @RequestMapping("/user")
 @RequiredArgsConstructor
@@ -27,8 +29,7 @@ public class SysUserFeign {
 
     @HasPermission(
             summary = "内部接口 - 获取用户角色列表",
-            description = "获取指定用户的角色列表",
-            hidden = true
+            description = "获取指定用户的角色列表"
     )
     @GetMapping("/internal/{userId}/role")
     public Result<List<SysRoleVO>> getUserRoles(
@@ -40,8 +41,7 @@ public class SysUserFeign {
 
     @HasPermission(
             summary = "内部接口 - 获取用户权限列表",
-            description = "获取指定用户的权限列表",
-            hidden = true
+            description = "获取指定用户的权限列表"
     )
     @GetMapping("/internal/{userId}/permission")
     public Result<List<SysPermissionVO>> getUserPermissions(
@@ -53,8 +53,7 @@ public class SysUserFeign {
 
     @HasPermission(
             summary = "内部接口 - 管理员添加新用户",
-            description = "管理员添加系统用户",
-            hidden = true
+            description = "管理员添加系统用户"
     )
     @PostMapping("/internal/add")
     public Result<SysUserVO> addSysUser(@RequestBody SysUserAdminDTO sysUserAdminDTO) {
@@ -63,20 +62,18 @@ public class SysUserFeign {
 
     @HasPermission(
             summary = "内部接口 - 根据用户名获取用户信息",
-            description = "通过用户名获取用户详细信息",
-            hidden = true
+            description = "通过用户名获取用户详细信息"
     )
     @GetMapping("/internal/info/{username}")
-    public Result<SysUserInternalDTO> getUserInfoByUsername(@PathVariable("username") String username) {
-        SysUserInternalDTO sysUserInternalDTO = sysUserService.selectUserByUsername(username);
-        return Result.success(sysUserInternalDTO);
+    public Result<SysUserInternalVO> getUserInfoByUsername(@PathVariable("username") String username) {
+        SysUserInternalVO sysUserInternalVO = sysUserService.selectUserByUsername(username);
+        return Result.success(sysUserInternalVO);
     }
 
 
     @HasPermission(
             summary = "内部接口 - 更新用户信息",
-            description = "内部接口，更新用户信息",
-            hidden = true
+            description = "内部接口，更新用户信息"
     )
     @PutMapping("/internal/update")
     public Result<Boolean> updateUserInternal(@RequestBody SysUserDTO sysUserDTO) {

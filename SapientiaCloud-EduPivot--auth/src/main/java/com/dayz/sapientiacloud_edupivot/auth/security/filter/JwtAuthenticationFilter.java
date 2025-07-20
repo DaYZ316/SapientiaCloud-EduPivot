@@ -1,7 +1,7 @@
 package com.dayz.sapientiacloud_edupivot.auth.security.filter;
 
 import com.dayz.sapientiacloud_edupivot.auth.client.SysUserClient;
-import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserInternalDTO;
+import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserInternalVO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysRoleVO;
 import com.dayz.sapientiacloud_edupivot.auth.enums.SysUserEnum;
 import com.dayz.sapientiacloud_edupivot.auth.exception.BusinessException;
@@ -37,7 +37,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private static final String[] WHITELIST = {
             "/login", 
             "/validate",
-            "/logout",
             "/register",
             "/doc.html",
             "/webjars/**",
@@ -45,7 +44,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             // 常见的通过网关转发后可能的路径形式
             "/api/auth/login",
             "/api/auth/validate",
-            "/api/auth/logout",
             "/api/auth/register",
             "/api/auth/v3/api-docs",
     };
@@ -74,16 +72,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     // 从令牌中获取用户名
                     String username = jwtUtil.getUsernameFromToken(token);
                     if (username != null) {
-                        Result<SysUserInternalDTO> userResult = sysUserClient.getUserInfoByUsername(username);
+                        Result<SysUserInternalVO> userResult = sysUserClient.getUserInfoByUsername(username);
                         if (userResult == null || !userResult.isSuccess()) {
                             throw new BusinessException(SysUserEnum.USER_NOT_FOUND.getMessage());
                         }
-                        SysUserInternalDTO sysUserInternalDTO = userResult.getData();
-                        List<SysRoleVO> roles = sysUserClient.getUserRoles(sysUserInternalDTO.getId()).getData();
+                        SysUserInternalVO sysUserInternalVO = userResult.getData();
+                        List<SysRoleVO> roles = sysUserClient.getUserRoles(sysUserInternalVO.getId()).getData();
 
                         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                                sysUserInternalDTO.getUsername(),
-                                sysUserInternalDTO.getPassword(),
+                                sysUserInternalVO.getUsername(),
+                                sysUserInternalVO.getPassword(),
                                 roles.stream()
                                         .filter(Objects::nonNull)
                                         .map(role -> new SimpleGrantedAuthority(role.getRoleKey()))

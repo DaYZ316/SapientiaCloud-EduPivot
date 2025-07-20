@@ -9,6 +9,7 @@ import com.dayz.sapientiacloud_edupivot.system.entity.po.SysRole;
 import com.dayz.sapientiacloud_edupivot.system.entity.po.SysUser;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysPermissionVO;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysRoleVO;
+import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysUserInternalVO;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysUserVO;
 import com.dayz.sapientiacloud_edupivot.system.enums.GenderEnum;
 import com.dayz.sapientiacloud_edupivot.system.enums.SysRoleEnum;
@@ -200,7 +201,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
     @Override
     @CachePut(value = "SysUser", key = "#result.id", condition = "#result != null")
-    public SysUserInternalDTO selectUserByUsername(String username) {
+    public SysUserInternalVO selectUserByUsername(String username) {
         if (!StringUtils.hasText(username)) {
             throw new BusinessException(SysUserEnum.USERNAME_CANNOT_BE_EMPTY.getMessage());
         }
@@ -210,13 +211,13 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             throw new BusinessException(SysUserEnum.USER_NOT_FOUND.getMessage());
         }
 
-        SysUserInternalDTO sysUserInternalDTO = new SysUserInternalDTO();
-        BeanUtils.copyProperties(sysUser, sysUserInternalDTO);
+        SysUserInternalVO sysUserInternalVO = new SysUserInternalVO();
+        BeanUtils.copyProperties(sysUser, sysUserInternalVO);
 
-        sysUserInternalDTO.setRoles(sysUserRoleMapper.getUserRoles(sysUser.getId()));
-        sysUserInternalDTO.setPermissions(sysUserPermissionMapper.getUserPermissions(sysUser.getId()));
+        sysUserInternalVO.setRoles(sysUserRoleMapper.getUserRoles(sysUser.getId()));
+        sysUserInternalVO.setPermissions(sysUserPermissionMapper.getUserPermissions(sysUser.getId()));
 
-        return sysUserInternalDTO;
+        return sysUserInternalVO;
     }
 
     @Override

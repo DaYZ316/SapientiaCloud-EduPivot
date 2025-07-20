@@ -5,12 +5,12 @@ import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
-import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserInternalDTO;
+import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserInternalVO;
 import com.dayz.sapientiacloud_edupivot.auth.security.config.JwtConfig;
-import com.dayz.sapientiacloud_edupivot.auth.entity.po.SysUser;
 import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysRoleVO;
 import com.dayz.sapientiacloud_edupivot.auth.enums.SysUserEnum;
 import com.dayz.sapientiacloud_edupivot.auth.exception.BusinessException;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -18,7 +18,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.util.Date;
-import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -37,18 +36,18 @@ public class JwtUtil {
 
     private static final String TOKEN_BLACKLIST_PREFIX = "jwt:blacklist:";
 
-    public String generateToken(SysUserInternalDTO sysUserInternalDTO) {
+    public String generateToken(SysUserInternalVO sysUserInternalVO) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtConfig.getExpiration());
-        if (sysUserInternalDTO == null) {
+        if (sysUserInternalVO == null) {
             throw new BusinessException(SysUserEnum.USER_NOT_FOUND.getMessage());
         }
 
         return JWT.create()
                 .withJWTId(UUID.randomUUID().toString())
-                .withClaim("userId", sysUserInternalDTO.getId().toString())
-                .withSubject(sysUserInternalDTO.getUsername())
-                .withClaim("roleKeys", sysUserInternalDTO.getRoles().stream()
+                .withClaim("userId", sysUserInternalVO.getId().toString())
+                .withSubject(sysUserInternalVO.getUsername())
+                .withClaim("roleKeys", sysUserInternalVO.getRoles().stream()
                         .filter(Objects::nonNull)
                         .map(SysRoleVO::getRoleKey)
                         .toList())
@@ -118,6 +117,14 @@ public class JwtUtil {
             log.error("无法销毁令牌", e);
             return false;
         }
+    }
+
+    public String extractTokenFromRequest(HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+        if (!StringUtils.hasText(bearerToken)) {
+            throw new BusinessException("令牌为空或格式错误");
+        }
+        return bearerToken;
     }
 
     private boolean isTokenInBlacklist(String token) {
