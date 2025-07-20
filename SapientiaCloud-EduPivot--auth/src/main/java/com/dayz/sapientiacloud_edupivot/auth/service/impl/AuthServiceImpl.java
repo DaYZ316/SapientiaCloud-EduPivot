@@ -10,7 +10,7 @@ import com.dayz.sapientiacloud_edupivot.auth.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.auth.result.Result;
 import com.dayz.sapientiacloud_edupivot.auth.result.ResultEnum;
 import com.dayz.sapientiacloud_edupivot.auth.service.AuthService;
-import com.dayz.sapientiacloud_edupivot.auth.security.util.JwtUtil;
+import com.dayz.sapientiacloud_edupivot.auth.security.utils.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

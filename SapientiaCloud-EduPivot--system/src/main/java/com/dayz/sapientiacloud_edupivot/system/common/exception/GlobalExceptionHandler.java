@@ -1,6 +1,9 @@
 package com.dayz.sapientiacloud_edupivot.system.common.exception;
 
 import com.dayz.sapientiacloud_edupivot.system.common.result.Result;
+import com.dayz.sapientiacloud_edupivot.system.common.result.ResultEnum;
+import com.dayz.sapientiacloud_edupivot.system.enums.SysUserEnum;
+import com.dayz.sapientiacloud_edupivot.system.security.utils.EnumLookupUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
@@ -11,7 +14,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -22,16 +24,30 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    /**
-     * 处理业务异常
-     */
+    private static final String USER = "user";
+
     @ExceptionHandler(BusinessException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Result<String> handleBusinessException(BusinessException e) {
-        log.warn("业务异常: {}", e.getMessage());
-        return Result.fail(e.getMessage());
+    public Result<Void> handleBusinessException(BusinessException e) {
+        log.error("业务异常: {}", e.getMessage());
+        if (e.getMessage().contains(USER)) {
+            EnumLookupUtil.getByAttribute(SysUserEnum.class, e.getMessage(),SysUserEnum::getMessage);
+        }
+        return Result.fail(ResultEnum.SYSTEM_ERROR.getCode(),  e.getMessage());
     }
-    
+
+    @ExceptionHandler(Exception.class)
+    public Result<Void> handleException(Exception e) {
+        log.error("系统异常: {}", e.getMessage());
+        if (e.getMessage().contains(USER)) {
+            if (e.getMessage().contains(SysUserEnum.USER_NOT_FOUND.getMessage())) {
+                return Result.fail(SysUserEnum.USER_NOT_FOUND.getMessage());
+            } else {
+                return Result.fail(SysUserEnum.USER_SERVICE_ERROR.getMessage());
+            }
+        }
+        return Result.fail(ResultEnum.SYSTEM_ERROR.getCode(), ResultEnum.SYSTEM_ERROR + e.getMessage());
+    }
+
     /**
      * 处理权限异常
      */
@@ -76,15 +92,5 @@ public class GlobalExceptionHandler {
                 ));
         log.warn("参数绑定异常: {}", errors);
         return Result.fail("参数绑定失败");
-    }
-
-    /**
-     * 处理通用异常
-     */
-    @ExceptionHandler(Exception.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public Result<String> handleException(Exception e) {
-        log.error("系统异常", e);
-        return Result.fail("系统繁忙，请稍后再试");
     }
 } 

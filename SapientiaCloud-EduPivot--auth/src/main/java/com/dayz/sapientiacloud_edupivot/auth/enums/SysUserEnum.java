@@ -25,7 +25,8 @@ public enum SysUserEnum {
     USERNAME_CANNOT_BE_EMPTY(1104, "用户名不能为空"),
     PASSWORD_CANNOT_BE_EMPTY(1105, "密码不能为空"),
     INSUFFICIENT_PERMISSIONS(1201, "用户权限不足"),
-    USER_LOGIN_FAILED(1202, "用户登录失败");
+    USER_LOGIN_FAILED(1202, "用户登录失败"),
+    USER_SERVICE_ERROR(1301, "用户服务异常");
 
     private final int code;
 

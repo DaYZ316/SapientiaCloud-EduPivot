@@ -1,4 +1,4 @@
-package com.dayz.sapientiacloud_edupivot.system.security.util;
+package com.dayz.sapientiacloud_edupivot.system.security.utils;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
