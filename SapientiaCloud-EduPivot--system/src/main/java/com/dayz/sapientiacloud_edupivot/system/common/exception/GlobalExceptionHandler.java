@@ -45,7 +45,7 @@ public class GlobalExceptionHandler {
                 return Result.fail(SysUserEnum.USER_SERVICE_ERROR.getMessage());
             }
         }
-        return Result.fail(ResultEnum.SYSTEM_ERROR.getCode(), ResultEnum.SYSTEM_ERROR + e.getMessage());
+        return Result.fail(ResultEnum.SYSTEM_ERROR.getCode(), ResultEnum.SYSTEM_ERROR.getMessage() + ": " + e.getMessage());
     }
 
     /**
