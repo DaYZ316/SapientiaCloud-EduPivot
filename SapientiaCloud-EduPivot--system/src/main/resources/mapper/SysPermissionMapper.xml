@@ -36,7 +36,12 @@
             </if>
             and is_deleted = 0
         </where>
-        order by sort asc
+        <if test="orderByColumn != null and orderByColumn != ''">
+            order by ${orderByColumn} ${isAsc == 'asc' ? 'asc' : 'desc'}
+        </if>
+        <if test="orderByColumn == null or orderByColumn == ''">
+            order by create_time desc
+        </if>
     </select>
 
 </mapper> 

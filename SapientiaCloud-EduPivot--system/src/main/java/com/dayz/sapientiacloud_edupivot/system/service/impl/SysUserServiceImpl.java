@@ -57,7 +57,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     private final SysUserPermissionMapper sysUserPermissionMapper;
 
     @Override
-    public PageInfo<SysUserVO> listSysUser(SysUserQueryDTO sysUserQueryDTO) {
+    public PageInfo<SysUserVO> listSysUserPage(SysUserQueryDTO sysUserQueryDTO) {
         return PageHelper.startPage(sysUserQueryDTO.getPageNum(), sysUserQueryDTO.getPageSize())
                 .doSelectPageInfo(() -> sysUserMapper.listSysUser(sysUserQueryDTO));
     }

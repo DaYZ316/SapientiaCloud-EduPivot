@@ -1,11 +1,13 @@
 package com.dayz.sapientiacloud_edupivot.system.controller;
 
+import com.dayz.sapientiacloud_edupivot.system.common.controller.BaseController;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysPermissionAddDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysPermissionDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysPermissionQueryDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.po.SysPermission;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysPermissionVO;
 import com.dayz.sapientiacloud_edupivot.system.common.result.Result;
+import com.dayz.sapientiacloud_edupivot.system.common.result.TableDataResult;
 import com.dayz.sapientiacloud_edupivot.system.security.annotation.HasPermission;
 import com.dayz.sapientiacloud_edupivot.system.security.constant.PermissionConstants;
 import com.dayz.sapientiacloud_edupivot.system.service.ISysPermissionService;
@@ -24,7 +26,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/permission")
 @RequiredArgsConstructor
-public class SysPermissionController {
+public class SysPermissionController extends BaseController {
 
     private final ISysPermissionService sysPermissionService;
 
@@ -34,9 +36,10 @@ public class SysPermissionController {
         description = "根据传入的条件分页查询权限信息。支持根据权限名称、权限标识等字段进行模糊查询。"
     )
     @GetMapping("/list")
-    public Result<PageInfo<SysPermissionVO>> listSysPermission(@ParameterObject SysPermissionQueryDTO sysPermissionQueryDTO) {
-        PageInfo<SysPermissionVO> list = sysPermissionService.listSysPermission(sysPermissionQueryDTO);
-        return Result.success(list);
+    public TableDataResult sysPermissionList(@ParameterObject SysPermissionQueryDTO sysPermissionQueryDTO) {
+        startPage();
+        PageInfo<SysPermissionVO> pageInfo = sysPermissionService.listSysPermission(sysPermissionQueryDTO);
+        return getDataTable(pageInfo.getList());
     }
 
     @HasPermission(

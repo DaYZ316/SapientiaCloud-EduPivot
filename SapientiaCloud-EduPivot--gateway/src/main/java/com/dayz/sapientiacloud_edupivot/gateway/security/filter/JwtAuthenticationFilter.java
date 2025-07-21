@@ -1,10 +1,9 @@
 package com.dayz.sapientiacloud_edupivot.gateway.security.filter;
 
 import com.auth0.jwt.interfaces.DecodedJWT;
-import com.dayz.sapientiacloud_edupivot.gateway.security.util.JwtUtil;
+import com.dayz.sapientiacloud_edupivot.gateway.security.utils.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

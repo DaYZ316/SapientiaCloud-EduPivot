@@ -2,27 +2,22 @@ package com.dayz.sapientiacloud_edupivot.system.common.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.Min;
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
+/**
+ * 分页实体基类
+ */
 @Data
-@Schema(description = "通用分页请求参数")
+@Schema(description = "分页查询参数")
 public class PageEntity implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 6934079705802231364L;
-
-    @Schema(description = "当前页码", example = "1", defaultValue = "1")
-    @Min(value = 1, message = "页码必须从1开始")
-    private int pageNum = 1;
-
-    @Schema(description = "每页记录数", example = "10", defaultValue = "10")
-    @Min(value = 1, message = "每页记录数必须大于0")
-    private int pageSize = 10;
 
     @Schema(description = "起始时间", accessMode = Schema.AccessMode.READ_ONLY)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
@@ -31,4 +26,26 @@ public class PageEntity implements Serializable {
     @Schema(description = "结束时间", accessMode = Schema.AccessMode.READ_ONLY)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime endTime;
+
+    @Schema(description = "当前记录起始索引", example = "1")
+    private Integer pageNum;
+
+    @Schema(description = "每页显示记录数", example = "10")
+    private Integer pageSize;
+
+    @Schema(description = "排序列")
+    private String orderByColumn;
+
+    @Schema(description = "排序的方向", example = "asc", allowableValues = {"asc", "desc"})
+    private String isAsc = "asc";
+
+    @Schema(description = "分页参数合理化")
+    private Boolean reasonable = true;
+
+    public String getOrderBy() {
+        if (StringUtils.isEmpty(orderByColumn)) {
+            return "";
+        }
+        return StringUtils.toRootLowerCase(orderByColumn) + " " + isAsc;
+    }
 }

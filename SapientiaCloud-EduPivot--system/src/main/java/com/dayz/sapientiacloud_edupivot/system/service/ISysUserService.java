@@ -11,7 +11,8 @@ import java.util.List;
 import java.util.UUID;
 
 public interface ISysUserService {
-    PageInfo<SysUserVO> listSysUser(SysUserQueryDTO sysUserQueryDTO);
+
+    PageInfo<SysUserVO> listSysUserPage(SysUserQueryDTO sysUserQueryDTO);
 
     SysUserVO getUserById(UUID id);
 

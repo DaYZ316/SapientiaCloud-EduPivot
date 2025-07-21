@@ -1,10 +1,12 @@
 package com.dayz.sapientiacloud_edupivot.system.controller;
 
+import com.dayz.sapientiacloud_edupivot.system.common.controller.BaseController;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysRoleAddDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysRoleDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysRoleQueryDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysRoleVO;
 import com.dayz.sapientiacloud_edupivot.system.common.result.Result;
+import com.dayz.sapientiacloud_edupivot.system.common.result.TableDataResult;
 import com.dayz.sapientiacloud_edupivot.system.security.annotation.HasPermission;
 import com.dayz.sapientiacloud_edupivot.system.security.constant.PermissionConstants;
 import com.dayz.sapientiacloud_edupivot.system.service.ISysRoleService;
@@ -23,7 +25,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/role")
 @RequiredArgsConstructor
-public class SysRoleController {
+public class SysRoleController extends BaseController {
 
     private final ISysRoleService sysRoleService;
 
@@ -33,9 +35,10 @@ public class SysRoleController {
         description = "根据传入的条件分页查询角色信息。支持根据角色名、角色描述等字段进行模糊查询。"
     )
     @GetMapping("/list")
-    public Result<PageInfo<SysRoleVO>> listSysRole(@ParameterObject SysRoleQueryDTO sysRoleQueryDTO) {
-        PageInfo<SysRoleVO> list = sysRoleService.listSysRole(sysRoleQueryDTO);
-        return Result.success(list);
+    public TableDataResult sysRoleList(@ParameterObject SysRoleQueryDTO sysRoleQueryDTO) {
+        startPage();
+        PageInfo<SysRoleVO> pageInfo = sysRoleService.listSysRole(sysRoleQueryDTO);
+        return getDataTable(pageInfo.getList());
     }
 
     @HasPermission(

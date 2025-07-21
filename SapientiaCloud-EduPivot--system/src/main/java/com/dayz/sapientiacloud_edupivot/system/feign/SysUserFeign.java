@@ -52,15 +52,6 @@ public class SysUserFeign {
     }
 
     @HasPermission(
-            summary = "内部接口 - 管理员添加新用户",
-            description = "管理员添加系统用户"
-    )
-    @PostMapping("/internal/add")
-    public Result<SysUserVO> addSysUser(@RequestBody SysUserAdminDTO sysUserAdminDTO) {
-        return Result.success(sysUserService.addUser(sysUserAdminDTO));
-    }
-
-    @HasPermission(
             summary = "内部接口 - 根据用户名获取用户信息",
             description = "通过用户名获取用户详细信息"
     )

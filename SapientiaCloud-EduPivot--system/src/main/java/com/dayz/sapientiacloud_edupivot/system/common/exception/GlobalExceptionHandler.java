@@ -3,7 +3,7 @@ package com.dayz.sapientiacloud_edupivot.system.common.exception;
 import com.dayz.sapientiacloud_edupivot.system.common.result.Result;
 import com.dayz.sapientiacloud_edupivot.system.common.result.ResultEnum;
 import com.dayz.sapientiacloud_edupivot.system.enums.SysUserEnum;
-import com.dayz.sapientiacloud_edupivot.system.security.utils.EnumLookupUtil;
+import com.dayz.sapientiacloud_edupivot.system.common.utils.EnumLookupUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;

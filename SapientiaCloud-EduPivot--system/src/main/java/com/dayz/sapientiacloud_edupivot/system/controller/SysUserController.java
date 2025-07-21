@@ -1,8 +1,10 @@
 package com.dayz.sapientiacloud_edupivot.system.controller;
 
+import com.dayz.sapientiacloud_edupivot.system.common.controller.BaseController;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.*;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysUserVO;
 import com.dayz.sapientiacloud_edupivot.system.common.result.Result;
+import com.dayz.sapientiacloud_edupivot.system.common.result.TableDataResult;
 import com.dayz.sapientiacloud_edupivot.system.security.annotation.HasPermission;
 import com.dayz.sapientiacloud_edupivot.system.security.constant.PermissionConstants;
 import com.dayz.sapientiacloud_edupivot.system.service.ISysUserService;
@@ -21,19 +23,20 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/user")
 @RequiredArgsConstructor
-public class SysUserController {
+public class SysUserController extends BaseController {
 
     private final ISysUserService sysUserService;
 
     @HasPermission(
-        summary = "分页查找用户", 
-        description = "根据传入的条件分页查询用户信息。支持根据用户名、昵称等字段进行模糊查询。", 
+        summary = "分页查找用户",
+        description = "根据传入的条件分页查询用户信息。支持根据用户名、昵称等字段进行模糊查询。",
         permission = PermissionConstants.USER_QUERY
     )
     @GetMapping("/list")
-    public Result<PageInfo<SysUserVO>> listSysUser(@ParameterObject SysUserQueryDTO sysUserQueryDTO) {
-        PageInfo<SysUserVO> list = sysUserService.listSysUser(sysUserQueryDTO);
-        return Result.success(list);
+    public TableDataResult sysUserList(@ParameterObject SysUserQueryDTO sysUserQueryDTO) {
+        startPage();
+        PageInfo<SysUserVO> pageInfo = sysUserService.listSysUserPage(sysUserQueryDTO);
+        return getDataTable(pageInfo.getList());
     }
 
     @HasPermission(
@@ -94,5 +97,16 @@ public class SysUserController {
             @Parameter(name = "roleIds", description = "角色ID列表", required = true) @RequestBody List<UUID> roleIds
     ) {
         return Result.success(sysUserService.assignRoles(userId, roleIds));
+    }
+
+    @HasPermission(
+            summary = "内部接口 - 管理员添加新用户",
+            description = "管理员添加系统用户",
+            permission = PermissionConstants.USER_ADD,
+            hidden = true
+    )
+    @PostMapping("/internal/add")
+    public Result<SysUserVO> addSysUser(@RequestBody SysUserAdminDTO sysUserAdminDTO) {
+        return Result.success(sysUserService.addUser(sysUserAdminDTO));
     }
 }

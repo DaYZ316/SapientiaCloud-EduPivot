@@ -1,4 +1,4 @@
-package com.dayz.sapientiacloud_edupivot.system.security.utils;
+package com.dayz.sapientiacloud_edupivot.system.common.utils;
 
 import java.util.HashMap;
 import java.util.Map;

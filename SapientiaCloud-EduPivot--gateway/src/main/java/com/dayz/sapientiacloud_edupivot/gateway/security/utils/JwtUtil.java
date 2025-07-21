@@ -1,4 +1,4 @@
-package com.dayz.sapientiacloud_edupivot.gateway.security.util;
+package com.dayz.sapientiacloud_edupivot.gateway.security.utils;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
@@ -13,7 +13,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.util.Date;
-import java.util.concurrent.TimeUnit;
 
 /**
  * JWT工具类

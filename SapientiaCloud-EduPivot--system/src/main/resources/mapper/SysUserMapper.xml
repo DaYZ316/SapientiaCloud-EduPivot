@@ -8,7 +8,7 @@
 
     <select id="listSysUser" resultType="com.dayz.sapientiacloud_edupivot.system.entity.vo.SysUserVO">
         select
-        id, username, nick_name, email, mobile, gender, avatar, status, create_time, update_time
+        id, username, nick_name, email, mobile, gender, avatar, status, create_time, update_time, last_login_time
         from
         sys_user
         <where>
@@ -39,8 +39,12 @@
             </if>
             and is_deleted = 0
         </where>
-        order by
-        create_time desc
+        <if test="orderByColumn != null and orderByColumn != ''">
+            order by ${orderByColumn} ${isAsc == 'asc' ? 'asc' : 'desc'}
+        </if>
+        <if test="orderByColumn == null or orderByColumn == ''">
+            order by create_time desc
+        </if>
     </select>
 
     <select id="selectByUsername" resultMap="SysUser">
