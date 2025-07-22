@@ -100,12 +100,11 @@ public class SysUserController extends BaseController {
     }
 
     @HasPermission(
-            summary = "内部接口 - 管理员添加新用户",
+            summary = "管理员添加新用户",
             description = "管理员添加系统用户",
-            permission = PermissionConstants.USER_ADD,
-            hidden = true
+            permission = PermissionConstants.USER_ADD
     )
-    @PostMapping("/internal/add")
+    @PostMapping("/add")
     public Result<SysUserVO> addSysUser(@RequestBody SysUserAdminDTO sysUserAdminDTO) {
         return Result.success(sysUserService.addUser(sysUserAdminDTO));
     }

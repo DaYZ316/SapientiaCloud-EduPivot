@@ -35,17 +35,5 @@ public class SysUserAdminDTO implements Serializable {
 
     @Schema(name = "status", description = "状态 (0=正常, 1=停用)")
     private Integer status;
-
-    @Schema(name = "createTime", description = "创建时间", accessMode = Schema.AccessMode.READ_ONLY)
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime createTime;
-
-    @Schema(name = "updateTime", description = "更新时间", accessMode = Schema.AccessMode.READ_ONLY)
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime updateTime;
-
-    @Schema(name = "lastLoginTime", description = "最后登录时间", accessMode = Schema.AccessMode.READ_ONLY)
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime lastLoginTime;
 }
 

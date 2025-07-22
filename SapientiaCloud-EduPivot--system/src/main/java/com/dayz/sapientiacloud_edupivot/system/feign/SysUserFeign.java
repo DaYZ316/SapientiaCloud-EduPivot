@@ -1,13 +1,11 @@
 package com.dayz.sapientiacloud_edupivot.system.feign;
 
 import com.dayz.sapientiacloud_edupivot.system.common.result.Result;
-import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserAdminDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysUserInternalVO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserRegisterDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysPermissionVO;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysRoleVO;
-import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysUserVO;
 import com.dayz.sapientiacloud_edupivot.system.security.annotation.HasPermission;
 import com.dayz.sapientiacloud_edupivot.system.service.impl.SysUserServiceImpl;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -72,7 +70,7 @@ public class SysUserFeign {
     }
 
     @HasPermission(
-            summary = "注册用户",
+            summary = "内部接口 - 注册用户",
             description = "用户UI端注册用户。"
     )
     @PostMapping("/internal/register")
