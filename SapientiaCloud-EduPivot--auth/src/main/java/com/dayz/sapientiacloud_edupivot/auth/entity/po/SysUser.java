@@ -32,7 +32,7 @@ public class SysUser extends BaseEntity implements Serializable {
     @Schema(name = "password", description = "密码", hidden = true)
     private String password;
 
-    @Schema(name = "nick_name", description = "用户昵称")
+    @Schema(name = "nickName", description = "用户昵称")
     private String nickName;
 
     @Schema(name = "email", description = "邮箱")
@@ -50,7 +50,7 @@ public class SysUser extends BaseEntity implements Serializable {
     @Schema(name = "status", description = "状态 (0=正常, 1=停用)")
     private Integer status;
 
-    @Schema(name = "last_login_time", description = "最后登录时间")
+    @Schema(name = "lastLoginTime", description = "最后登录时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime lastLoginTime;
 }

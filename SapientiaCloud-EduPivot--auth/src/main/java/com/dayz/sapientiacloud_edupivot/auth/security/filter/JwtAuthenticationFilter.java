@@ -1,7 +1,7 @@
 package com.dayz.sapientiacloud_edupivot.auth.security.filter;
 
 import com.dayz.sapientiacloud_edupivot.auth.client.SysUserClient;
-import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserInternalVO;
+import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysUserInternalVO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysRoleVO;
 import com.dayz.sapientiacloud_edupivot.auth.enums.SysUserEnum;
 import com.dayz.sapientiacloud_edupivot.auth.exception.BusinessException;

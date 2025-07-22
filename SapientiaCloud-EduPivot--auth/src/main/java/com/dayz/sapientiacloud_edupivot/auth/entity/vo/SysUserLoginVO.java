@@ -1,6 +1,5 @@
 package com.dayz.sapientiacloud_edupivot.auth.entity.vo;
 
-import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserInternalVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -16,6 +15,6 @@ public class SysUserLoginVO extends SysUserInternalVO implements Serializable {
     @Serial
     private static final long serialVersionUID = -3412795250372765420L;
 
-    @Schema(description = "访问令牌")
+    @Schema(name = "access_token", description = "访问令牌")
     private String accessToken;
 }

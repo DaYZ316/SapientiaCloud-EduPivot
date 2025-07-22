@@ -20,19 +20,19 @@ public class SysPermissionAddDTO implements Serializable {
     @Serial
     private static final long serialVersionUID = -526964902282253884L;
 
-    @Schema(description = "父级权限ID")
+    @Schema(name = "parentId", description = "父级权限ID")
     private UUID parentId;
 
-    @Schema(description = "权限名称")
+    @Schema(name = "permissionName", description = "权限名称")
     @NotBlank(message = "权限名称不能为空")
     @Size(max = 50, message = "权限名称长度不能超过50个字符")
     private String permissionName;
 
-    @Schema(description = "权限标识")
+    @Schema(name = "permissionKey", description = "权限标识")
     @NotBlank(message = "权限标识不能为空")
     @Size(max = 100, message = "权限标识长度不能超过100个字符")
     private String permissionKey;
 
-    @Schema(description = "排序")
+    @Schema(name = "sort", description = "排序")
     private Integer sort;
 }

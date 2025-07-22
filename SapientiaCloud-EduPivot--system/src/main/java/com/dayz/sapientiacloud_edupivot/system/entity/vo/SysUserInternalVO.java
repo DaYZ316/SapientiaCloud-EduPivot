@@ -17,9 +17,9 @@ public class SysUserInternalVO extends SysUser implements Serializable {
     @Serial
     private static final long serialVersionUID = -9073375615020477662L;
 
-    @Schema(description = "用户角色列表")
+    @Schema(name = "roles", description = "用户角色列表")
     private List<SysRoleVO> roles;
 
-    @Schema(description = "用户权限列表")
+    @Schema(name = "permissions", description = "用户权限列表")
     private List<SysPermissionVO> permissions;
 }

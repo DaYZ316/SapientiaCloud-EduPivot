@@ -21,11 +21,11 @@ public class SysUserRole implements Serializable {
     @Serial
     private static final long serialVersionUID = -7706602535145531648L;
 
-    @Schema(name = "user_id", description = "用户ID")
+    @Schema(name = "userId", description = "用户ID")
     @TableField("user_id")
     private UUID userId;
 
-    @Schema(name = "role_id", description = "角色ID")
+    @Schema(name = "roleId", description = "角色ID")
     @TableField("role_id")
     private UUID roleId;
 } 

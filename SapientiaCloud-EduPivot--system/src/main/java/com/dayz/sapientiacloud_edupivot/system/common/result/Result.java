@@ -13,16 +13,16 @@ public class Result<T> implements Serializable {
     @Serial
     private static final long serialVersionUID = 118904097912975986L;
 
-    @Schema(description = "请求是否成功", example = "true")
+    @Schema(name = "success", description = "请求是否成功", example = "true")
     private boolean success;
 
-    @Schema(description = "业务状态码 (200表示成功)", example = "200")
+    @Schema(name = "code", description = "业务状态码 (200表示成功)", example = "200")
     private int code;
 
-    @Schema(description = "响应消息", example = "操作成功")
+    @Schema(name = "message", description = "响应消息", example = "操作成功")
     private String message;
 
-    @Schema(description = "响应数据体 (泛型)")
+    @Schema(name = "data", description = "响应数据体 (泛型)")
     private T data;
 
     public static <T> Result<T> success() {
