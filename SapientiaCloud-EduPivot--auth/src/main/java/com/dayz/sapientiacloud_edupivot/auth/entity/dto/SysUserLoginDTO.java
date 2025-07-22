@@ -13,10 +13,10 @@ public class SysUserLoginDTO implements Serializable {
     @Serial
     private static final long serialVersionUID = 7940604844501036433L;
 
-    @Schema(description = "用户名")
+    @Schema(name = "username", description = "用户名")
     private String username;
 
-    @Schema(description = "密码")
+    @Schema(name = "password", description = "密码")
     private String password;
 
 }

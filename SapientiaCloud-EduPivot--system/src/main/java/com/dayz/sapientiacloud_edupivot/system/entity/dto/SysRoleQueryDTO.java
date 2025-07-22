@@ -20,12 +20,12 @@ public class SysRoleQueryDTO extends PageEntity implements Serializable {
     @Serial
     private static final long serialVersionUID = -6194177273518861829L;
 
-    @Schema(description = "角色名称")
+    @Schema(name = "startTime", description = "角色名称")
     private String roleName;
 
-    @Schema(description = "角色标识")
+    @Schema(name = "roleKey", description = "角色标识")
     private String roleKey;
 
-    @Schema(description = "状态 (0=正常, 1=停用)")
+    @Schema(name = "status", description = "状态 (0=正常, 1=停用)")
     private Integer status;
 } 

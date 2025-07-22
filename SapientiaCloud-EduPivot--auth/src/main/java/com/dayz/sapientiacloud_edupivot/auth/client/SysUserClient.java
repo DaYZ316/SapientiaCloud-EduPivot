@@ -2,7 +2,7 @@ package com.dayz.sapientiacloud_edupivot.auth.client;
 
 import com.dayz.sapientiacloud_edupivot.auth.config.FeignConfig;
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserDTO;
-import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserInternalVO;
+import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysUserInternalVO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserRegisterDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysRoleVO;
 import com.dayz.sapientiacloud_edupivot.auth.result.Result;

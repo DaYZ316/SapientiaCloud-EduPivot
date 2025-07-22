@@ -24,13 +24,13 @@ public class SysPermissionVO implements Serializable {
     @Schema(name = "id", description = "权限ID")
     private UUID id;
 
-    @Schema(name = "parent_id", description = "父级权限ID")
+    @Schema(name = "parentId", description = "父级权限ID")
     private UUID parentId;
 
-    @Schema(name = "permission_name", description = "权限名称")
+    @Schema(name = "permissionName", description = "权限名称")
     private String permissionName;
 
-    @Schema(name = "permission_key", description = "权限标识")
+    @Schema(name = "permissionKey", description = "权限标识")
     private String permissionKey;
 
     @Schema(name = "children", description = "子权限列表")
@@ -42,11 +42,11 @@ public class SysPermissionVO implements Serializable {
     @Schema(name = "status", description = "状态 (0=正常, 1=停用)")
     private Integer status;
 
-    @Schema(name = "create_time", description = "创建时间")
+    @Schema(name = "createTime", description = "创建时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createTime;
 
-    @Schema(name = "update_time", description = "更新时间")
+    @Schema(name = "updateTime", description = "更新时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updateTime;
 } 

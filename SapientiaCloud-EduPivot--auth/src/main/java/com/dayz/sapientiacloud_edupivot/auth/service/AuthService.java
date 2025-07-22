@@ -1,6 +1,6 @@
 package com.dayz.sapientiacloud_edupivot.auth.service;
 
-import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserInternalVO;
+import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysUserInternalVO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserLoginDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysUserLoginVO;
 import com.dayz.sapientiacloud_edupivot.auth.result.Result;
