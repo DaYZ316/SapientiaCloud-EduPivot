@@ -31,8 +31,10 @@ public class GlobalExceptionHandler {
         log.error("业务异常: {}", e.getMessage());
         if (e.getMessage().contains(USER)) {
             EnumLookupUtil.getByAttribute(SysUserEnum.class, e.getMessage(),SysUserEnum::getMessage);
+        } else if (e.getMessage().contains(ResultEnum.FORBIDDEN.getMessage())) {
+            return Result.fail(ResultEnum.FORBIDDEN);
         }
-        return Result.fail(ResultEnum.SYSTEM_ERROR.getCode(),  e.getMessage());
+        return Result.fail(ResultEnum.SYSTEM_ERROR);
     }
 
     @ExceptionHandler(Exception.class)
@@ -55,7 +57,7 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public Result<String> handleAccessDeniedException(AccessDeniedException e) {
         log.warn("权限异常: {}", e.getMessage());
-        return Result.fail("没有操作权限");
+        return Result.fail(ResultEnum.FORBIDDEN);
     }
 
     /**

@@ -1,6 +1,7 @@
 package com.dayz.sapientiacloud_edupivot.system.security.aspect;
 
 import com.dayz.sapientiacloud_edupivot.system.common.exception.BusinessException;
+import com.dayz.sapientiacloud_edupivot.system.common.result.ResultEnum;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysRoleVO;
 import com.dayz.sapientiacloud_edupivot.system.security.annotation.HasPermission;
 import lombok.RequiredArgsConstructor;
@@ -28,16 +29,13 @@ import java.util.Collection;
 @RequiredArgsConstructor
 public class HasPermissionAspect {
 
-    /**
-     * 拦截所有标有@HasPermission注解的方法
-     * @param joinPoint 切点
-     */
+
     @Before("@annotation(com.dayz.sapientiacloud_edupivot.system.security.annotation.HasPermission)")
     public void checkPermission(JoinPoint joinPoint) {
         // 获取当前认证信息
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null) {
-            throw new BusinessException("用户未认证");
+            throw new BusinessException(ResultEnum.UNAUTHORIZED);
         }
 
         // 获取方法上的注解
@@ -68,7 +66,7 @@ public class HasPermissionAspect {
         
         if (!hasRequiredPermission) {
             log.warn("用户没有所需权限: {}", requiredPermission);
-            throw new BusinessException("没有操作权限");
+            throw new BusinessException(ResultEnum.FORBIDDEN);
         }
         
         log.debug("用户通过权限检查: {}", requiredPermission);
