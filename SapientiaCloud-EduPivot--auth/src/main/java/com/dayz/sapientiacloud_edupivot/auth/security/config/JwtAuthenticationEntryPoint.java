@@ -14,6 +14,8 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import static com.dayz.sapientiacloud_edupivot.auth.result.ResultEnum.UNAUTHORIZED;
+
 /**
  * JWT认证入口点
  * 处理认证异常，返回401错误
@@ -33,7 +35,7 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
         response.setCharacterEncoding("UTF-8");
         
         // 创建错误响应
-        Result<Void> result = Result.fail(ResultEnum.UNAUTHORIZED);
+        Result<Void> result = Result.fail(UNAUTHORIZED);
         
         // 写入响应
         PrintWriter writer = response.getWriter();
