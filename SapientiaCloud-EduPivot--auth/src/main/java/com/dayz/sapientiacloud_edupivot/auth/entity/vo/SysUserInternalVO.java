@@ -1,8 +1,6 @@
-package com.dayz.sapientiacloud_edupivot.auth.entity.dto;
+package com.dayz.sapientiacloud_edupivot.auth.entity.vo;
 
 import com.dayz.sapientiacloud_edupivot.auth.entity.po.SysUser;
-import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysPermissionVO;
-import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysRoleVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

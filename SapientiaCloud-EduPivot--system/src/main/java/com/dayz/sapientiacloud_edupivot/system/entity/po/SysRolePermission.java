@@ -21,11 +21,11 @@ public class SysRolePermission implements Serializable {
     @Serial
     private static final long serialVersionUID = 5002629267574017459L;
 
-    @Schema(name = "role_id", description = "角色ID")
+    @Schema(name = "roleId", description = "角色ID")
     @TableField("role_id")
     private UUID roleId;
 
-    @Schema(name = "permission_id", description = "权限ID")
+    @Schema(name = "permissionId", description = "权限ID")
     @TableField("permission_id")
     private UUID permissionId;
 } 

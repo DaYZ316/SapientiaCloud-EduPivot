@@ -39,7 +39,7 @@ public class SysUser extends BaseEntity implements Serializable {
     @TableField("password")
     private String password;
 
-    @Schema(name = "nick_name", description = "用户昵称")
+    @Schema(name = "nickName", description = "用户昵称")
     @TableField("nick_name")
     private String nickName;
 

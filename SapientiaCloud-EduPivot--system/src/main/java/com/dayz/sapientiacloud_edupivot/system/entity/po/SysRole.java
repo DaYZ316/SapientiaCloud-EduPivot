@@ -31,11 +31,11 @@ public class SysRole extends BaseEntity implements Serializable {
     @TableId(value = "id")
     private UUID id;
 
-    @Schema(name = "role_name", description = "角色名称")
+    @Schema(name = "roleName", description = "角色名称")
     @TableField("role_name")
     private String roleName;
 
-    @Schema(name = "role_key", description = "角色标识")
+    @Schema(name = "roleKey", description = "角色标识")
     @TableField("role_key")
     private String roleKey;
 

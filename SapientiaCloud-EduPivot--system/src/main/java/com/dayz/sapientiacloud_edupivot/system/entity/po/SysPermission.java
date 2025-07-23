@@ -29,15 +29,15 @@ public class SysPermission extends BaseEntity implements Serializable {
     @TableId(value = "id")
     private UUID id;
 
-    @Schema(name = "parent_id", description = "父级权限ID")
+    @Schema(name = "parentId", description = "父级权限ID")
     @TableField("parent_id")
     private UUID parentId;
 
-    @Schema(name = "permission_name", description = "权限名称")
+    @Schema(name = "permissionName", description = "权限名称")
     @TableField("permission_name")
     private String permissionName;
 
-    @Schema(name = "permission_key", description = "权限标识")
+    @Schema(name = "permissionKey", description = "权限标识")
     @TableField("permission_key")
     private String permissionKey;
 

@@ -24,10 +24,10 @@ public class SysRoleVO implements Serializable {
     @Schema(name = "id", description = "角色ID")
     private UUID id;
 
-    @Schema(name = "role_name", description = "角色名称")
+    @Schema(name = "roleName", description = "角色名称")
     private String roleName;
 
-    @Schema(name = "role_key", description = "角色标识")
+    @Schema(name = "roleKey", description = "角色标识")
     private String roleKey;
 
     @Schema(name = "permissions", description = "权限列表")
@@ -42,11 +42,11 @@ public class SysRoleVO implements Serializable {
     @Schema(name = "description", description = "描述")
     private String description;
 
-    @Schema(name = "create_time", description = "创建时间")
+    @Schema(name = "createTime", description = "创建时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createTime;
 
-    @Schema(name = "update_time", description = "更新时间")
+    @Schema(name = "updateTime", description = "更新时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updateTime;
 } 

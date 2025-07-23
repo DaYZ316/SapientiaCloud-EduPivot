@@ -17,34 +17,34 @@ public class SysUserDTO implements Serializable {
     @Serial
     private static final long serialVersionUID = -2283034824406690559L;
 
-    @Schema(description = "用户ID，更新时必须提供")
+    @Schema(name = "id", description = "用户ID，更新时必须提供")
     @NotNull(message = "用户ID不能为空")
     private UUID id;
 
-    @Schema(description = "用户昵称")
+    @Schema(name = "nick_name", description = "用户昵称")
     @NotBlank(message = "用户昵称不能为空")
     @Size(max = 30, message = "用户昵称不能超过30个字符")
     private String nickName;
 
-    @Schema(description = "邮箱")
+    @Schema(name = "email", description = "邮箱")
     @NotBlank(message = "邮箱不能为空")
     @Email(message = "邮箱格式不正确")
     private String email;
 
-    @Schema(description = "手机号")
+    @Schema(name = "mobile", description = "手机号")
     @NotBlank(message = "手机号不能为空")
     @Pattern(regexp = "^(1[3-9]\\d{9})?$", message = "手机号码格式不正确")
     private String mobile;
 
-    @Schema(description = "性别 (0=未知, 1=男, 2=女)")
+    @Schema(name = "gender", description = "性别 (0=未知, 1=男, 2=女)")
     @Min(value = 0, message = "性别输入不正确")
     @Max(value = 2, message = "性别输入不正确")
     private Integer gender;
 
-    @Schema(description = "用户头像URL")
+    @Schema(name = "avatar", description = "用户头像URL")
     private String avatar;
 
-    @Schema(description = "状态 (0=正常, 1=停用)")
+    @Schema(name = "status", description = "状态 (0=正常, 1=停用)")
     @Min(value = 0, message = "状态输入不正确")
     @Max(value = 1, message = "状态输入不正确")
     private Integer status;

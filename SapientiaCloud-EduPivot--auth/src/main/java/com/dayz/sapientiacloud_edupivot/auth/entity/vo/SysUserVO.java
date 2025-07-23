@@ -17,42 +17,42 @@ public class SysUserVO implements Serializable {
     @Serial
     private static final long serialVersionUID = -8879095778150237770L;
 
-    @Schema(description = "用户ID")
+    @Schema(name = "id", description = "用户ID")
     private UUID id;
 
-    @Schema(description = "用户名")
+    @Schema(name = "username", description = "用户名")
     private String username;
 
-    @Schema(description = "用户昵称")
+    @Schema(name = "nickName", description = "用户昵称")
     private String nickName;
 
-    @Schema(description = "邮箱")
+    @Schema(name = "email", description = "邮箱")
     private String email;
 
-    @Schema(description = "手机号")
+    @Schema(name = "mobile", description = "手机号")
     private String mobile;
 
-    @Schema(description = "性别 (0=未知, 1=男, 2=女)")
+    @Schema(name = "gender", description = "性别 (0=未知, 1=男, 2=女)")
     private Integer gender;
 
-    @Schema(description = "用户头像URL")
+    @Schema(name = "avatar", description = "用户头像URL")
     private String avatar;
 
-    @Schema(description = "用户角色列表")
+    @Schema(name = "roles", description = "用户角色列表")
     private List<SysRoleVO> roles;
 
-    @Schema(description = "状态 (0=正常, 1=停用)")
+    @Schema(name = "status", description = "状态 (0=正常, 1=停用)")
     private Integer status;
 
-    @Schema(description = "创建时间")
+    @Schema(name = "createTime", description = "创建时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createTime;
 
-    @Schema(description = "更新时间")
+    @Schema(name = "updateTime", description = "更新时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updateTime;
 
-    @Schema(description = "最后登录时间")
+    @Schema(name = "lastLoginTime", description = "最后登录时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime lastLoginTime;
 }
