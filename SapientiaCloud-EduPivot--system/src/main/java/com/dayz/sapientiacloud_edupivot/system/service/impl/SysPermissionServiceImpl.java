@@ -34,6 +34,9 @@ public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, S
 
     @Override
     public PageInfo<SysPermissionVO> listSysPermission(SysPermissionQueryDTO sysPermissionQueryDTO) {
+        if (sysPermissionQueryDTO == null) {
+            throw new BusinessException(SysPermissionEnum.PERMISSION_NOT_FOUND.getMessage());
+        }
         return PageHelper.startPage(sysPermissionQueryDTO.getPageNum(), sysPermissionQueryDTO.getPageSize())
                 .doSelectPageInfo(() -> sysPermissionMapper.listSysPermission(sysPermissionQueryDTO));
     }

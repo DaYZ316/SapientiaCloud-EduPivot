@@ -58,6 +58,9 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
     @Override
     public PageInfo<SysUserVO> listSysUserPage(SysUserQueryDTO sysUserQueryDTO) {
+        if (sysUserQueryDTO == null) {
+            throw new BusinessException(SysUserEnum.USER_NOT_FOUND.getMessage());
+        }
         return PageHelper.startPage(sysUserQueryDTO.getPageNum(), sysUserQueryDTO.getPageSize())
                 .doSelectPageInfo(() -> sysUserMapper.listSysUser(sysUserQueryDTO));
     }
@@ -84,7 +87,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Boolean registerUser(SysUserRegisterDTO sysUserRegisterDTO) {
-        if (sysUserRegisterDTO == null) {
+        if (sysUserRegisterDTO == null || !StringUtils.hasText(sysUserRegisterDTO.getUsername())) {
             throw new BusinessException(SysUserEnum.USERNAME_CANNOT_BE_EMPTY.getMessage());
         }
         if (sysUserMapper.selectByUsername(sysUserRegisterDTO.getUsername()) != null) {
@@ -98,10 +101,15 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     }
 
     @Override
+    public Boolean updatePassword(SysUserPasswordDTO sysUserPasswordDTO) {
+        return null;
+    }
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
     @CacheEvict(value = "SysUser", key = "#p0.id", condition = "#p0.id != null")
     public Boolean updateUser(SysUserDTO sysUserDTO) {
-        if (sysUserDTO.getId() == null) {
+        if (sysUserDTO == null || sysUserDTO.getId() == null) {
             throw new BusinessException(SysUserEnum.USER_NOT_FOUND.getMessage());
         }
 
@@ -197,6 +205,14 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         BeanUtils.copyProperties(sysUser, sysUserVO);
 
         return sysUserVO;
+    }
+
+    @Override
+    public SysUserVO updateProfile(SysUserProfileDTO sysUserProfileDTO) {
+        if (sysUserProfileDTO == null || sysUserProfileDTO.getId() == null) {
+            throw new BusinessException(SysUserEnum.USER_NOT_FOUND.getMessage());
+        }
+        return null;
     }
 
     @Override

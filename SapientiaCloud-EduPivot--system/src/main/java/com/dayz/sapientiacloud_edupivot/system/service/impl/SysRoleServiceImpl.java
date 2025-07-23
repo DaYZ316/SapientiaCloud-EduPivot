@@ -38,6 +38,9 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
 
     @Override
     public PageInfo<SysRoleVO> listSysRole(SysRoleQueryDTO sysRoleQueryDTO) {
+        if (sysRoleQueryDTO == null) {
+            throw new BusinessException(SysRoleEnum.ROLE_NOT_FOUND.getMessage());
+        }
         return PageHelper.startPage(sysRoleQueryDTO.getPageNum(), sysRoleQueryDTO.getPageSize())
                 .doSelectPageInfo(() -> sysRoleMapper.listSysRole(sysRoleQueryDTO));
     }

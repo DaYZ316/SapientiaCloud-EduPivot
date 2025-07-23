@@ -108,4 +108,13 @@ public class SysUserController extends BaseController {
     public Result<SysUserVO> addSysUser(@RequestBody SysUserAdminDTO sysUserAdminDTO) {
         return Result.success(sysUserService.addUser(sysUserAdminDTO));
     }
+
+    @HasPermission(
+            summary = "修改个人信息",
+            description = "修改用户自己的个人信息"
+    )
+    @PutMapping("/profile")
+    public Result<SysUserVO> updateProfile(@Valid @RequestBody SysUserProfileDTO sysUserProfileDTO) {
+        return Result.success(sysUserService.updateProfile(sysUserProfileDTO));
+    }
 }
