@@ -28,9 +28,13 @@ public interface ISysUserService {
 
     SysUserVO addUser(SysUserAdminDTO sysUserAdminDTO);
 
+    SysUserVO updateProfile(SysUserProfileDTO sysUserProfileDTO);
+
     SysUserInternalVO selectUserByUsername(String username);
 
     List<SysPermissionVO> getUserPermissions(UUID userId);
 
     Boolean registerUser(SysUserRegisterDTO sysUserRegisterDTO);
+
+    Boolean updatePassword(SysUserPasswordDTO sysUserPasswordDTO);
 }

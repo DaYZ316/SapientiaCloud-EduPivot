@@ -2,6 +2,7 @@ package com.dayz.sapientiacloud_edupivot.system.feign;
 
 import com.dayz.sapientiacloud_edupivot.system.common.result.Result;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserDTO;
+import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserPasswordDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysUserInternalVO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserRegisterDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysPermissionVO;
@@ -76,5 +77,14 @@ public class SysUserFeign {
     @PostMapping("/internal/register")
     public Result<Boolean> registerUser(@Valid @RequestBody SysUserRegisterDTO sysUserRegisterDTO) {
         return Result.success(sysUserService.registerUser(sysUserRegisterDTO));
+    }
+
+    @HasPermission(
+            summary = "内部接口 - 修改用户密码",
+            description = "修改用户密码"
+    )
+    @PutMapping("/internal/password")
+    public Result<Boolean> updatePassword(@Valid @RequestBody SysUserPasswordDTO sysUserPasswordDTO) {
+        return Result.success(sysUserService.updatePassword(sysUserPasswordDTO));
     }
 }

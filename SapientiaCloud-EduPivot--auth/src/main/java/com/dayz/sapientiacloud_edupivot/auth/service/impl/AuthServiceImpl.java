@@ -34,6 +34,9 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public SysUserLoginVO login(SysUserLoginDTO sysUserLoginDTO) {
+        if (sysUserLoginDTO == null) {
+            throw new BusinessException(SysUserEnum.USER_NOT_FOUND.getMessage());
+        }
         if (!StringUtils.hasText(sysUserLoginDTO.getUsername())) {
             throw new BusinessException(SysUserEnum.USERNAME_CANNOT_BE_EMPTY.getMessage());
         }
@@ -81,6 +84,9 @@ public class AuthServiceImpl implements AuthService {
     
     @Override
     public boolean validateToken(String token) {
+        if (token == null || token.isEmpty()) {
+            return false;
+        }
         try {
             return !jwtUtil.isTokenExpired(token);
         } catch (Exception e) {
