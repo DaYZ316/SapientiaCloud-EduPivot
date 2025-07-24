@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  * JWT工具类
@@ -34,7 +35,7 @@ public class JwtUtil {
         }
 
         String actualToken = extractActualToken(token);
-        
+
         JWTVerifier verifier = JWT.require(Algorithm.HMAC256(jwtConfig.getSecret())).build();
         return verifier.verify(actualToken);
     }
@@ -45,6 +46,26 @@ public class JwtUtil {
             return jwt.getSubject();
         } catch (JWTVerificationException e) {
             log.error("无法从令牌中获取用户名", e);
+            return null;
+        }
+    }
+
+    public String getUserIdFromToken(String token) {
+        try {
+            DecodedJWT jwt = validateToken(token);
+            return jwt.getClaim("userId").asString();
+        } catch (JWTVerificationException e) {
+            log.error("无法从令牌中获取用户ID", e);
+            return null;
+        }
+    }
+
+    public List<String> getRoleKeysFromToken(String token) {
+        try {
+            DecodedJWT jwt = validateToken(token);
+            return jwt.getClaim("roleKeys").asList(String.class);
+        } catch (JWTVerificationException e) {
+            log.error("无法从令牌中获取用户角色", e);
             return null;
         }
     }
@@ -62,10 +83,10 @@ public class JwtUtil {
         if (!StringUtils.hasText(token)) {
             return false;
         }
-        
+
         // 提取实际的JWT令牌
         String actualToken = extractActualToken(token);
-        
+
         // 检查Redis黑名单
         String blacklistKey = TOKEN_BLACKLIST_PREFIX + actualToken;
         return Boolean.TRUE.equals(redisTemplate.hasKey(blacklistKey));

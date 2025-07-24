@@ -1,6 +1,6 @@
-package com.dayz.sapientiacloud_edupivot.system.security.config;
+package com.dayz.sapientiacloud_edupivot.system.common.security.config;
 
-import com.dayz.sapientiacloud_edupivot.system.security.filter.JwtAuthenticationFilter;
+import com.dayz.sapientiacloud_edupivot.system.common.security.filter.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

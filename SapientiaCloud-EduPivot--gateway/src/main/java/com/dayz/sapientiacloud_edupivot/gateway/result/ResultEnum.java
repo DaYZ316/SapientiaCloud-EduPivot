@@ -14,7 +14,10 @@ public enum ResultEnum {
     FORBIDDEN(403, "没有操作权限"),
     NOT_FOUND(404, "资源不存在"),
     METHOD_NOT_ALLOWED(405, "请求方法不支持"),
-    SERVICE_UNAVAILABLE(503, "服务不可用");
+    SERVICE_UNAVAILABLE(503, "服务不可用"),
+    TOKEN_NOT_FOUND(1001, "令牌不存在"),
+    TOKEN_EXPIRED(1002, "令牌已过期" ),
+    SYSTEM_ERROR(1003, "系统异常");
 
     private final int code;
 

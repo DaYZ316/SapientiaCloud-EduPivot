@@ -3,12 +3,6 @@ package com.dayz.sapientiacloud_edupivot.system.enums;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-/**
- * 系统用户相关业务异常枚举
- *
- * @author YourName
- * @date 2025-07-03
- */
 @Getter
 @AllArgsConstructor
 public enum SysUserEnum {
@@ -25,9 +19,18 @@ public enum SysUserEnum {
     USERNAME_CANNOT_BE_EMPTY(1104, "用户名不能为空"),
     PASSWORD_CANNOT_BE_EMPTY(1105, "密码不能为空"),
     INSUFFICIENT_PERMISSIONS(1201, "用户权限不足"),
-    ASSIGN_ROLE_FAILED(1202, "分配用户角色失败"),
-    USER_ROLE_DELETE_FAILED(1203, "删除用户角色失败"),
-    USER_SERVICE_ERROR(1204, "用户服务异常");
+    USER_LOGIN_FAILED(1202, "用户登录失败"),
+    USER_LOGOUT_FAILED(1203, "用户登出失败"),
+    ASSIGN_ROLE_FAILED(1204, "分配用户角色失败"),
+    USER_ROLE_DELETE_FAILED(1205, "删除用户角色失败"),
+    USER_SERVICE_ERROR(1206, "用户服务异常"),
+    NEW_AND_CONFIRM_PASSWORD_NOT_MATCH(1207, "密码和确认密码不匹配"),
+    NEW_PASSWORD_CANNOT_BE_EMPTY(1208, "新密码不能为空"),
+    NEW_PASSWORD_SAME_AS_CURRENT_PASSWORD(1209, "新密码不能与当前密码相同"),
+    CURRENT_PASSWORD_CANNOT_BE_EMPTY(1210, "当前密码不能为空"),
+    CURRENT_PASSWORD_NOT_MATCH(1211, "当前密码不匹配"),
+    PASSWORD_UPDATE_FAILED(1212, "密码更新失败"),
+    DATA_CANNOT_BE_EMPTY(1301, "数据不能为空");
 
     private final int code;
 

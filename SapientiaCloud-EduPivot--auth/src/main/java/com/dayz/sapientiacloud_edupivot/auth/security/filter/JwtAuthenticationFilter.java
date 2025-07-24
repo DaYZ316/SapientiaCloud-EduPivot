@@ -1,6 +1,7 @@
 package com.dayz.sapientiacloud_edupivot.auth.security.filter;
 
-import com.dayz.sapientiacloud_edupivot.auth.client.SysUserClient;
+import com.auth0.jwt.interfaces.DecodedJWT;
+import com.dayz.sapientiacloud_edupivot.auth.clients.SysUserClient;
 import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysUserInternalVO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysRoleVO;
 import com.dayz.sapientiacloud_edupivot.auth.enums.SysUserEnum;
@@ -22,7 +23,9 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 @Slf4j
@@ -33,9 +36,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
     private final JwtUtil jwtUtil;
     private final SysUserClient sysUserClient;
-    
+
     private static final String[] WHITELIST = {
-            "/login", 
+            "/login",
             "/validate",
             "/register",
             "/doc.html",
@@ -47,6 +50,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "/api/auth/register",
             "/api/auth/v3/api-docs",
     };
+    private static final String USERID_CLAIM = "userId";
+    private static final String USERNAME_CLAIM = "username";
     private static final String AUTHORIZATION_HEADER = "Authorization";
     private static final String BEARER_PREFIX = "Bearer ";
     private static final Integer TOKEN_PREFIX_LENGTH = BEARER_PREFIX.length();
@@ -55,9 +60,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        
+
         String requestURI = request.getRequestURI();
-        
+
         // 如果是白名单中的路径，直接放行
         if (isWhitelistPath(requestURI)) {
             filterChain.doFilter(request, response);
@@ -69,9 +74,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             try {
                 // 验证令牌，此方法会检查令牌是否在黑名单中
                 if (!jwtUtil.isTokenExpired(token)) {
-                    // 从令牌中获取用户名
-                    String username = jwtUtil.getUsernameFromToken(token);
-                    if (username != null) {
+                    DecodedJWT jwt = jwtUtil.validateToken(token);
+                    String username = jwt.getSubject();
+                    String userId = jwt.getClaim(USERID_CLAIM).asString();
+
+                    if (username != null && userId != null) {
                         Result<SysUserInternalVO> userResult = sysUserClient.getUserInfoByUsername(username);
                         if (userResult == null || !userResult.isSuccess()) {
                             throw new BusinessException(SysUserEnum.USER_NOT_FOUND.getMessage());
@@ -79,19 +86,25 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         SysUserInternalVO sysUserInternalVO = userResult.getData();
                         List<SysRoleVO> roles = sysUserClient.getUserRoles(sysUserInternalVO.getId()).getData();
 
+                        // 创建用户详情对象，存储用户名和用户ID
+                        Map<String, Object> userDetails = new HashMap<>();
+                        userDetails.put(USERNAME_CLAIM, username);
+                        userDetails.put(USERID_CLAIM, userId);
+
+                        // 创建认证对象，使用userDetails作为principal
                         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                                sysUserInternalVO.getUsername(),
-                                sysUserInternalVO.getPassword(),
+                                userDetails,
+                                null,
                                 roles.stream()
                                         .filter(Objects::nonNull)
                                         .map(role -> new SimpleGrantedAuthority(role.getRoleKey()))
                                         .toList()
                         );
-                        
+
                         // 设置认证信息到安全上下文
                         SecurityContextHolder.getContext().setAuthentication(authentication);
                         
-                        log.debug("用户 {} 已认证通过JWT令牌", username);
+                        log.debug("用户 {} (ID: {}) 已认证通过JWT令牌", username, userId);
                     }
                 }
             } catch (Exception e) {

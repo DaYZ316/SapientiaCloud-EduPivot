@@ -8,6 +8,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.util.Objects;
+
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -16,12 +18,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BusinessException.class)
     public Result<Void> handleBusinessException(BusinessException e) {
         log.error("业务异常: {}", e.getMessage());
-        if (e.getMessage().contains(USER)) {
-            EnumLookupUtil.getByAttribute(SysUserEnum.class, e.getMessage(),SysUserEnum::getMessage);
-        }else if (e.getMessage().contains(ResultEnum.FORBIDDEN.getMessage())) {
-            return Result.fail(ResultEnum.FORBIDDEN);
+        SysUserEnum sysUserEnum = EnumLookupUtil.getByAttribute(SysUserEnum.class, e.getMessage(), SysUserEnum::getMessage);
+        if (sysUserEnum != null) {
+            return Result.fail(sysUserEnum.getMessage());
         }
-        return Result.fail(ResultEnum.SYSTEM_ERROR);
+        ResultEnum resultEnum = EnumLookupUtil.getByAttribute(ResultEnum.class, e.getMessage(), ResultEnum::getMessage);
+        return Result.fail(Objects.requireNonNullElse(resultEnum, ResultEnum.SYSTEM_ERROR));
     }
 
     @ExceptionHandler(Exception.class)

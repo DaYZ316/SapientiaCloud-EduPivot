@@ -49,8 +49,8 @@ public class Knife4jConfig {
             }
             
             // 仅对logout和获取用户信息(getUserInfo)接口添加Authorization请求头要求
-            if ((methodName != null && (methodName.contains("logout") || methodName.contains("getUserInfo"))) || 
-                (operationId != null && (operationId.contains("logout") || operationId.contains("info")))) {
+            if ((methodName != null && (methodName.contains("logout") || methodName.contains("getUserInfo") || methodName.contains("updatePassword"))) ||
+                (operationId != null && (operationId.contains("logout") || operationId.contains("info")|| operationId.contains("password")))) {
                 operation.addSecurityItem(new SecurityRequirement().addList("Authorization"));
             }
             return operation;

@@ -1,5 +1,6 @@
 package com.dayz.sapientiacloud_edupivot.auth.service;
 
+import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserPasswordDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysUserInternalVO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserLoginDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysUserLoginVO;
@@ -18,4 +19,6 @@ public interface AuthService {
     boolean logout(HttpServletRequest request);
 
     Result<SysUserInternalVO> getUserInfo(HttpServletRequest httpServletRequest);
+
+    Boolean updatePassword(HttpServletRequest httpServletRequest, SysUserPasswordDTO sysUserPasswordDTO);
 }

@@ -1,6 +1,7 @@
 package com.dayz.sapientiacloud_edupivot.auth.controller;
 
-import com.dayz.sapientiacloud_edupivot.auth.client.SysUserClient;
+import com.dayz.sapientiacloud_edupivot.auth.clients.SysUserClient;
+import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserPasswordDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysUserInternalVO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserLoginDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserRegisterDTO;
@@ -57,5 +58,11 @@ public class AuthController {
     @Operation(summary = "获取用户信息", description = "获取当前登录用户的信息")
     public Result<SysUserInternalVO> getUserInfo(HttpServletRequest request) {
         return authService.getUserInfo(request);
+    }
+
+    @PutMapping("/internal/password")
+    @Operation(summary = "更新密码", description = "更新当前登录用户的密码")
+    public Result<Boolean> updatePassword(HttpServletRequest  request, @Valid @RequestBody SysUserPasswordDTO sysUserPasswordDTO) {
+        return Result.success(authService.updatePassword(request, sysUserPasswordDTO));
     }
 }

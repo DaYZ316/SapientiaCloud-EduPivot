@@ -1,4 +1,4 @@
-package com.dayz.sapientiacloud_edupivot.system.security.constant;
+package com.dayz.sapientiacloud_edupivot.system.common.security.constant;
 
 public class PermissionConstants {
 
