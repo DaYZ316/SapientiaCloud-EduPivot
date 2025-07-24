@@ -14,6 +14,12 @@ spring:
             - Path=/api/auth/**
           filters:
             - StripPrefix=2
+        - id: SapientiaCloud-EduPivot--minIO
+          uri: lb://SapientiaCloud-EduPivot--minIO
+          predicates:
+            - Path=/api/minIO/**
+          filters:
+            - StripPrefix=2
 
   data:
     redis:
@@ -43,7 +49,6 @@ cache:
 logging:
   level:
     org.springframework.cloud.gateway: DEBUG
-
 
 REDIS_HOST: 127.0.0.1
 REDIS_PORT: 6379

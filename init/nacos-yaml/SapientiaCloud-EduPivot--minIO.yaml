@@ -1,56 +1,26 @@
+minio:
+  config:
+    ip: ${MINIO_IP}
+    port: ${MINIO_PORT}
+    accessKey: ${MINIO_USERNAME}
+    secretKey: ${MINIO_PASSWORD}
+    bucketName: ${MINIO_BUCKET_NAME}
+
 spring:
-  cloud:
-    gateway:
-      routes:
-        - id: SapientiaCloud-EduPivot--system
-          uri: lb://SapientiaCloud-EduPivot--system
-          predicates:
-            - Path=/api/system/**
-          filters:
-            - StripPrefix=2
-        - id: SapientiaCloud-EduPivot--auth
-          uri: lb://SapientiaCloud-EduPivot--auth
-          predicates:
-            - Path=/api/auth/**
-          filters:
-            - StripPrefix=2
-        - id: SapientiaCloud-EduPivot--minIO
-          uri: lb://SapientiaCloud-EduPivot--minIO
-          predicates:
-            - Path=/api/minIO/**
-          filters:
-            - StripPrefix=2
-
-  data:
-    redis:
-      host: ${REDIS_HOST}
-      port: ${REDIS_PORT}
-      password: ${REDIS_PASSWORD}
-      timeout: 6000ms
-      lettuce:
-        pool:
-          max-active: 8
-          max-wait: -1ms
-          max-idle: 8
-          min-idle: 0
-
-knife4j:
-  gateway:
-    enabled: true
-    strategy: discover
-    discover:
+  servlet:
+    multipart:
       enabled: true
-      version: openapi3
-
-cache:
-  caffeine:
-    spec: maximumSize=500,expireAfterWrite=10m
+      max-file-size: 50MB
+      max-request-size: 100MB
+      file-size-threshold: 2MB
 
 logging:
   level:
-    org.springframework.cloud.gateway: DEBUG
+    com.dayz.sapientiacloud_edupivot.minio: DEBUG
 
-REDIS_HOST: 127.0.0.1
-REDIS_PORT: 6379
-REDIS_USERNAME:
-REDIS_PASSWORD: zhaosheng123
+
+MINIO_IP: 127.0.0.1
+MINIO_PORT: 31589
+MINIO_USERNAME: root
+MINIO_PASSWORD: zhaosheng123
+MINIO_BUCKET_NAME: sapientiacloud-edupivot
