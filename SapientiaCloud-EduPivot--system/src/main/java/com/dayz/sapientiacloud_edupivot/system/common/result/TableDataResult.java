@@ -23,8 +23,8 @@ public class TableDataResult implements Serializable {
     @Schema(name = "code", description = "消息状态码")
     private int code;
 
-    @Schema(name = "msg", description = "消息内容")
-    private String msg;
+    @Schema(name = "message", description = "消息内容")
+    private String message;
 
     public TableDataResult() {
     }
@@ -37,7 +37,7 @@ public class TableDataResult implements Serializable {
     public static TableDataResult build(List<?> list) {
         TableDataResult rspData = new TableDataResult();
         rspData.setCode(ResultEnum.SUCCESS.getCode());
-        rspData.setMsg("查询成功");
+        rspData.setMessage("查询成功");
         rspData.setData(list);
         rspData.setTotal(list.size());
         return rspData;
@@ -46,7 +46,7 @@ public class TableDataResult implements Serializable {
     public static TableDataResult build(List<?> list, long total) {
         TableDataResult rspData = new TableDataResult();
         rspData.setCode(ResultEnum.SUCCESS.getCode());
-        rspData.setMsg("查询成功");
+        rspData.setMessage("查询成功");
         rspData.setData(list);
         rspData.setTotal(total);
         return rspData;

@@ -58,7 +58,7 @@ public class PageUtil {
     public static TableDataResult getDataTable(List<?> list) {
         TableDataResult rspData = new TableDataResult();
         rspData.setCode(200);
-        rspData.setMsg("查询成功");
+        rspData.setMessage("查询成功");
         rspData.setData(list);
         rspData.setTotal(new PageInfo<>(list).getTotal());
         return rspData;

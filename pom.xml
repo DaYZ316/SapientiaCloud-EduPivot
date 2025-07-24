@@ -15,6 +15,7 @@
         <module>SapientiaCloud-EduPivot--auth</module>
         <module>SapientiaCloud-EduPivot--system</module>
         <module>SapientiaCloud-EduPivot--gateway</module>
+        <module>SapientiaCloud-EduPivot--minIO</module>
     </modules>
 
 </project>

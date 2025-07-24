@@ -1,11 +1,9 @@
-package com.dayz.sapientiacloud_edupivot.system.common.exception;
+package com.dayz.sapientiacloud_edupivot.minio.exception;
 
-import com.dayz.sapientiacloud_edupivot.system.common.result.Result;
-import com.dayz.sapientiacloud_edupivot.system.common.result.ResultEnum;
-import com.dayz.sapientiacloud_edupivot.system.enums.SysPermissionEnum;
-import com.dayz.sapientiacloud_edupivot.system.enums.SysRoleEnum;
-import com.dayz.sapientiacloud_edupivot.system.enums.SysUserEnum;
-import com.dayz.sapientiacloud_edupivot.system.common.utils.EnumLookupUtil;
+import com.dayz.sapientiacloud_edupivot.minio.enums.FileEnum;
+import com.dayz.sapientiacloud_edupivot.minio.result.Result;
+import com.dayz.sapientiacloud_edupivot.minio.result.ResultEnum;
+import com.dayz.sapientiacloud_edupivot.minio.utils.EnumLookupUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
@@ -29,22 +27,12 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    private static final String USER = "user";
-
     @ExceptionHandler(BusinessException.class)
     public Result<Void> handleBusinessException(BusinessException e) {
         log.error("业务异常: {}", e.getMessage());
-        SysUserEnum sysUserEnum = EnumLookupUtil.getByAttribute(SysUserEnum.class, e.getMessage(), SysUserEnum::getMessage);
-        if (sysUserEnum != null) {
-            return Result.fail(sysUserEnum.getMessage());
-        }
-        SysRoleEnum sysRoleEnum = EnumLookupUtil.getByAttribute(SysRoleEnum.class, e.getMessage(), SysRoleEnum::getMessage);
-        if (sysRoleEnum != null) {
-            return Result.fail(sysRoleEnum.getMessage());
-        }
-        SysPermissionEnum sysPermissionEnum = EnumLookupUtil.getByAttribute(SysPermissionEnum.class, e.getMessage(), SysPermissionEnum::getMessage);
-        if (sysPermissionEnum != null) {
-            return Result.fail(sysPermissionEnum.getMessage());
+        FileEnum fileEnum = EnumLookupUtil.getByAttribute(FileEnum.class, e.getMessage(), FileEnum::getMessage);
+        if (fileEnum != null) {
+            return Result.fail(fileEnum.getMessage());
         }
         ResultEnum resultEnum = EnumLookupUtil.getByAttribute(ResultEnum.class, e.getMessage(), ResultEnum::getMessage);
         return Result.fail(Objects.requireNonNullElse(resultEnum, ResultEnum.SYSTEM_ERROR));
@@ -53,13 +41,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public Result<Void> handleException(Exception e) {
         log.error("系统异常: {}", e.getMessage());
-        if (e.getMessage().contains(USER)) {
-            if (e.getMessage().contains(SysUserEnum.USER_NOT_FOUND.getMessage())) {
-                return Result.fail(SysUserEnum.USER_NOT_FOUND.getMessage());
-            } else {
-                return Result.fail(SysUserEnum.USER_SERVICE_ERROR.getMessage());
-            }
-        }
         return Result.fail(ResultEnum.SYSTEM_ERROR.getCode(), ResultEnum.SYSTEM_ERROR.getMessage() + ": " + e.getMessage());
     }
 
@@ -106,6 +87,26 @@ public class GlobalExceptionHandler {
                         (existing, replacement) -> existing + "; " + replacement
                 ));
         log.warn("参数绑定异常: {}", errors);
-        return Result.fail("参数绑定失败");
+        return Result.fail(FileEnum.FILE_BIND_FAILED.getMessage());
+    }
+
+    /**
+     * 处理文件上传大小超限异常
+     */
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Result<Void> handleMaxUploadSizeExceededException(MaxUploadSizeExceededException e) {
+        log.warn("文件上传大小超限: {}", e.getMessage());
+        return Result.fail(FileEnum.FILE_SIZE_LIMIT_EXCEEDED.getMessage());
+    }
+
+    /**
+     * 处理文件上传异常
+     */
+    @ExceptionHandler(MultipartException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Result<Void> handleMultipartException(MultipartException e) {
+        log.warn("文件上传异常: {}", e.getMessage());
+        return Result.fail(FileEnum.FILE_UPLOAD_FAILED.getMessage());
     }
 } 
