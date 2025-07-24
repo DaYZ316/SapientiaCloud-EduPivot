@@ -7,8 +7,8 @@ import org.springframework.context.annotation.Configuration;
 public class MybatisPlusConfig {
 
     @Bean
-    public UuidTypeHandler uuidTypeHandler() {
-        return new UuidTypeHandler();
+    public UuidTypeConfig uuidTypeConfig() {
+        return new UuidTypeConfig();
     }
      
      // TODO: 可以添加其他MyBatis-Plus配置
