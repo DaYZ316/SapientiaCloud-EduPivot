@@ -1,4 +1,4 @@
-package com.dayz.sapientiacloud_edupivot.system.knife4j;
+package com.dayz.sapientiacloud_edupivot.system.common.config;
 
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;

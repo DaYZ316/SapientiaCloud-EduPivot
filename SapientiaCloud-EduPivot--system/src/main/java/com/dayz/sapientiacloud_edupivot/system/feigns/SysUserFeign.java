@@ -1,4 +1,4 @@
-package com.dayz.sapientiacloud_edupivot.system.feign;
+package com.dayz.sapientiacloud_edupivot.system.feigns;
 
 import com.dayz.sapientiacloud_edupivot.system.common.result.Result;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserDTO;
@@ -7,12 +7,12 @@ import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysUserInternalVO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserRegisterDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysPermissionVO;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysRoleVO;
-import com.dayz.sapientiacloud_edupivot.system.security.annotation.HasPermission;
-import com.dayz.sapientiacloud_edupivot.system.service.impl.SysUserServiceImpl;
+import com.dayz.sapientiacloud_edupivot.system.common.security.annotation.HasPermission;
+import com.dayz.sapientiacloud_edupivot.system.service.ISysUserService;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,9 +22,10 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/user")
 @RequiredArgsConstructor
+@Slf4j
 public class SysUserFeign {
 
-    private final SysUserServiceImpl sysUserService;
+    private final ISysUserService sysUserService;
 
     @HasPermission(
             summary = "内部接口 - 获取用户角色列表",
@@ -75,16 +76,16 @@ public class SysUserFeign {
             description = "用户UI端注册用户。"
     )
     @PostMapping("/internal/register")
-    public Result<Boolean> registerUser(@Valid @RequestBody SysUserRegisterDTO sysUserRegisterDTO) {
+    public Result<Boolean> registerUser(@RequestBody SysUserRegisterDTO sysUserRegisterDTO) {
         return Result.success(sysUserService.registerUser(sysUserRegisterDTO));
     }
 
     @HasPermission(
-            summary = "内部接口 - 修改用户密码",
-            description = "修改用户密码"
+            summary = "内部接口 - 更新密码",
+            description = "更新用户密码"
     )
     @PutMapping("/internal/password")
-    public Result<Boolean> updatePassword(@Valid @RequestBody SysUserPasswordDTO sysUserPasswordDTO) {
+    public Result<Boolean> updatePassword(@RequestBody SysUserPasswordDTO sysUserPasswordDTO) {
         return Result.success(sysUserService.updatePassword(sysUserPasswordDTO));
     }
 }

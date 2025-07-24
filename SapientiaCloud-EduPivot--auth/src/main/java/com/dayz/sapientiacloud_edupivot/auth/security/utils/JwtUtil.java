@@ -18,6 +18,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -83,6 +84,16 @@ public class JwtUtil {
             return jwt.getClaim("userId").asString();
         } catch (JWTVerificationException e) {
             log.error("无法从令牌中获取用户ID", e);
+            return null;
+        }
+    }
+
+    public List<String> getRoleKeysFromToken(String token) {
+        try {
+            DecodedJWT jwt = validateToken(token);
+            return jwt.getClaim("roleKeys").asList(String.class);
+        } catch (JWTVerificationException e) {
+            log.error("无法从令牌中获取用户角色", e);
             return null;
         }
     }

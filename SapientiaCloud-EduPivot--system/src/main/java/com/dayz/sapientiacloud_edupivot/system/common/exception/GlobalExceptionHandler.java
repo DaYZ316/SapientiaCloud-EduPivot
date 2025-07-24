@@ -2,6 +2,8 @@ package com.dayz.sapientiacloud_edupivot.system.common.exception;
 
 import com.dayz.sapientiacloud_edupivot.system.common.result.Result;
 import com.dayz.sapientiacloud_edupivot.system.common.result.ResultEnum;
+import com.dayz.sapientiacloud_edupivot.system.enums.SysPermissionEnum;
+import com.dayz.sapientiacloud_edupivot.system.enums.SysRoleEnum;
 import com.dayz.sapientiacloud_edupivot.system.enums.SysUserEnum;
 import com.dayz.sapientiacloud_edupivot.system.common.utils.EnumLookupUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -29,12 +32,20 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BusinessException.class)
     public Result<Void> handleBusinessException(BusinessException e) {
         log.error("业务异常: {}", e.getMessage());
-        if (e.getMessage().contains(USER)) {
-            EnumLookupUtil.getByAttribute(SysUserEnum.class, e.getMessage(),SysUserEnum::getMessage);
-        } else if (e.getMessage().contains(ResultEnum.FORBIDDEN.getMessage())) {
-            return Result.fail(ResultEnum.FORBIDDEN);
+        SysUserEnum sysUserEnum = EnumLookupUtil.getByAttribute(SysUserEnum.class, e.getMessage(), SysUserEnum::getMessage);
+        if (sysUserEnum != null) {
+            return Result.fail(sysUserEnum.getMessage());
         }
-        return Result.fail(ResultEnum.SYSTEM_ERROR);
+        SysRoleEnum sysRoleEnum = EnumLookupUtil.getByAttribute(SysRoleEnum.class, e.getMessage(), SysRoleEnum::getMessage);
+        if (sysRoleEnum != null) {
+            return Result.fail(sysRoleEnum.getMessage());
+        }
+        SysPermissionEnum sysPermissionEnum = EnumLookupUtil.getByAttribute(SysPermissionEnum.class, e.getMessage(), SysPermissionEnum::getMessage);
+        if (sysPermissionEnum != null) {
+            return Result.fail(sysPermissionEnum.getMessage());
+        }
+        ResultEnum resultEnum = EnumLookupUtil.getByAttribute(ResultEnum.class, e.getMessage(), ResultEnum::getMessage);
+        return Result.fail(Objects.requireNonNullElse(resultEnum, ResultEnum.SYSTEM_ERROR));
     }
 
     @ExceptionHandler(Exception.class)

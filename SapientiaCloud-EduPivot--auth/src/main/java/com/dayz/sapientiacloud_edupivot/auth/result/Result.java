@@ -54,11 +54,11 @@ public class Result<T> implements Serializable {
         return result;
     }
 
-    public static <T> Result<T> fail(ResultEnum resultCode) {
+    public static <T> Result<T> fail(ResultEnum resultEnum) {
         Result<T> result = new Result<>();
         result.setSuccess(false);
-        result.setCode(resultCode.getCode());
-        result.setMessage(resultCode.getMessage());
+        result.setCode(resultEnum.getCode());
+        result.setMessage(resultEnum.getMessage());
         return result;
     }
 }

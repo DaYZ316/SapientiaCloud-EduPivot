@@ -37,20 +37,24 @@ public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, S
         if (sysPermissionQueryDTO == null) {
             throw new BusinessException(SysPermissionEnum.PERMISSION_NOT_FOUND.getMessage());
         }
+
         return PageHelper.startPage(sysPermissionQueryDTO.getPageNum(), sysPermissionQueryDTO.getPageSize())
                 .doSelectPageInfo(() -> sysPermissionMapper.listSysPermission(sysPermissionQueryDTO));
     }
 
     @Override
+    @Transactional(readOnly = true)
     @Cacheable(value = "SysPermission", key = "#p0", condition = "#p0 != null")
     public SysPermission getPermissionById(UUID id) {
         if (id == null) {
             throw new BusinessException(SysPermissionEnum.PERMISSION_NOT_FOUND.getMessage());
         }
+
         SysPermission sysPermission = this.getById(id);
         if (sysPermission == null) {
             throw new BusinessException(SysPermissionEnum.PERMISSION_NOT_FOUND.getMessage());
         }
+
         return sysPermission;
     }
 
@@ -85,6 +89,7 @@ public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, S
         if (sysPermissionDTO == null || sysPermissionDTO.getId() == null) {
             throw new BusinessException(SysPermissionEnum.PERMISSION_NOT_FOUND.getMessage());
         }
+
         SysPermission sysPermission = this.getById(sysPermissionDTO.getId());
         if (sysPermission == null) {
             throw new BusinessException(SysPermissionEnum.PERMISSION_NOT_FOUND.getMessage());
@@ -103,6 +108,7 @@ public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, S
         if (id == null) {
             throw new BusinessException(SysPermissionEnum.PERMISSION_NOT_FOUND.getMessage());
         }
+
         SysPermission sysPermission = this.getById(id);
         if (sysPermission == null) {
             throw new BusinessException(SysPermissionEnum.PERMISSION_NOT_FOUND.getMessage());

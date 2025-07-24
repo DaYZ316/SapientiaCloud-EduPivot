@@ -1,4 +1,4 @@
-package com.dayz.sapientiacloud_edupivot.system.entity.dto;
+package com.dayz.sapientiacloud_edupivot.auth.entity.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
@@ -7,7 +7,6 @@ import lombok.Data;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.UUID;
 
 @Data
 public class SysUserPasswordDTO implements Serializable {

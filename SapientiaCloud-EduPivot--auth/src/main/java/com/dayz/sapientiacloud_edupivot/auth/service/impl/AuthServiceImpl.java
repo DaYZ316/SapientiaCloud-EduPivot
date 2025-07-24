@@ -1,7 +1,8 @@
 package com.dayz.sapientiacloud_edupivot.auth.service.impl;
 
-import com.dayz.sapientiacloud_edupivot.auth.client.SysUserClient;
+import com.dayz.sapientiacloud_edupivot.auth.clients.SysUserClient;
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserDTO;
+import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserPasswordDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysUserInternalVO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserLoginDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysUserLoginVO;
@@ -9,6 +10,7 @@ import com.dayz.sapientiacloud_edupivot.auth.enums.SysUserEnum;
 import com.dayz.sapientiacloud_edupivot.auth.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.auth.result.Result;
 import com.dayz.sapientiacloud_edupivot.auth.result.ResultEnum;
+import com.dayz.sapientiacloud_edupivot.auth.security.utils.UserContextUtil;
 import com.dayz.sapientiacloud_edupivot.auth.service.AuthService;
 import com.dayz.sapientiacloud_edupivot.auth.security.utils.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
@@ -48,6 +50,7 @@ public class AuthServiceImpl implements AuthService {
         if (userResult == null || !userResult.isSuccess()) {
             throw new BusinessException(SysUserEnum.USER_NOT_FOUND.getMessage());
         }
+
         SysUserInternalVO sysUserInternalVO = userResult.getData();
         if (sysUserInternalVO == null) {
             log.error("用户登录失败: 用户不存在, 用户名: {}", sysUserLoginDTO.getUsername());
@@ -87,6 +90,7 @@ public class AuthServiceImpl implements AuthService {
         if (token == null || token.isEmpty()) {
             return false;
         }
+
         try {
             return !jwtUtil.isTokenExpired(token);
         } catch (Exception e) {
@@ -105,6 +109,24 @@ public class AuthServiceImpl implements AuthService {
     public Result<SysUserInternalVO> getUserInfo(HttpServletRequest request) {
         String token = jwtUtil.extractTokenFromRequest(request);
         return sysUserClient.getUserInfoByUsername(jwtUtil.getUsernameFromToken(token));
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Boolean updatePassword(HttpServletRequest request, SysUserPasswordDTO sysUserPasswordDTO) {
+        if (sysUserPasswordDTO == null) {
+            throw new BusinessException(SysUserEnum.DATA_CANNOT_BE_EMPTY.getMessage());
+        }
+
+        String username = UserContextUtil.getCurrentUsername();
+        log.info("用户 {} 正在修改密码", username);
+
+        Result<Boolean> result = sysUserClient.updatePassword(sysUserPasswordDTO);
+        if (result == null || !result.isSuccess()) {
+            throw new BusinessException(SysUserEnum.PASSWORD_UPDATE_FAILED.getMessage());
+        }
+
+        return this.logout(request);
     }
 
     private boolean processLogout(String token) {
@@ -135,7 +157,7 @@ public class AuthServiceImpl implements AuthService {
             throw e;
         } catch (Exception e) {
             log.error("登出过程发生错误", e);
-            throw new BusinessException("登出失败，请稍后再试");
+            throw new BusinessException(SysUserEnum.USER_LOGOUT_FAILED.getMessage());
         }
     }
 } 

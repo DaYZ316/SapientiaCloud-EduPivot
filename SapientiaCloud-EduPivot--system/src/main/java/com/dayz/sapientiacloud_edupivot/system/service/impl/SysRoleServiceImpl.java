@@ -41,16 +41,19 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
         if (sysRoleQueryDTO == null) {
             throw new BusinessException(SysRoleEnum.ROLE_NOT_FOUND.getMessage());
         }
+
         return PageHelper.startPage(sysRoleQueryDTO.getPageNum(), sysRoleQueryDTO.getPageSize())
                 .doSelectPageInfo(() -> sysRoleMapper.listSysRole(sysRoleQueryDTO));
     }
 
     @Override
+    @Transactional(readOnly = true)
     @Cacheable(value = "SysRole", key = "#p0", condition = "#p0 != null")
     public SysRoleVO getRoleById(UUID id) {
         if (id == null) {
             throw new BusinessException(SysRoleEnum.ROLE_NOT_FOUND.getMessage());
         }
+
         SysRole sysRole = this.getById(id);
         if (sysRole == null) {
             throw new BusinessException(SysRoleEnum.ROLE_NOT_FOUND.getMessage());
@@ -86,6 +89,7 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
         sysRole.setStatus(StatusEnum.NORMAL.getCode());
         sysRole.setCreateTime(LocalDateTime.now());
         sysRole.setUpdateTime(LocalDateTime.now());
+
         return this.save(sysRole);
     }
 
@@ -99,12 +103,15 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
         if (sysRoleDTO.isAdmin()) {
             throw new BusinessException(SysRoleEnum.ADMIN_OPERATION_FORBIDDEN.getMessage());
         }
+
         SysRole sysRole = this.getById(sysRoleDTO.getId());
         if (sysRole == null) {
             throw new BusinessException(SysRoleEnum.ROLE_NOT_FOUND.getMessage());
         }
+
         BeanUtils.copyProperties(sysRoleDTO, sysRole);
         sysRole.setUpdateTime(LocalDateTime.now());
+
         return this.updateById(sysRole);
     }
 
@@ -119,11 +126,13 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
         if (sysRole == null) {
             throw new BusinessException(SysRoleEnum.ROLE_NOT_FOUND.getMessage());
         }
+
         if (sysRole.isAdmin()) {
             throw new BusinessException(SysRoleEnum.ADMIN_OPERATION_FORBIDDEN.getMessage());
         }
 
         sysRolePermissionMapper.removePermissionsByRoleId(id);
+
         return this.removeById(id);
     }
 
@@ -146,10 +155,12 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
         });
 
         sysRolePermissionMapper.removePermissionsByRoleIds(ids);
+
         return this.removeByIds(ids) ? ids.size() : 0;
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     @CacheEvict(value = "SysRole", key = "#p0", condition = "#p0 != null")
     public Boolean assignRolePermissions(UUID roleId, List<UUID> newPermissionIds) {
         if (roleId == null || this.getById(roleId) == null) {

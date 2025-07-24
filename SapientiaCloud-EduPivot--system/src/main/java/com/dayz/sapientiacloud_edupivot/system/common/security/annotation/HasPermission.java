@@ -1,4 +1,4 @@
-package com.dayz.sapientiacloud_edupivot.system.security.annotation;
+package com.dayz.sapientiacloud_edupivot.system.common.security.annotation;
 
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.core.annotation.AliasFor;

@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dayz.sapientiacloud_edupivot.system.common.enums.DeletedEnum;
 import com.dayz.sapientiacloud_edupivot.system.common.enums.StatusEnum;
 import com.dayz.sapientiacloud_edupivot.system.common.exception.BusinessException;
+import com.dayz.sapientiacloud_edupivot.system.common.security.utils.UserContextUtil;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.*;
 import com.dayz.sapientiacloud_edupivot.system.entity.po.SysRole;
 import com.dayz.sapientiacloud_edupivot.system.entity.po.SysUser;
@@ -17,16 +18,17 @@ import com.dayz.sapientiacloud_edupivot.system.enums.SysUserEnum;
 import com.dayz.sapientiacloud_edupivot.system.mapper.SysUserMapper;
 import com.dayz.sapientiacloud_edupivot.system.mapper.SysUserPermissionMapper;
 import com.dayz.sapientiacloud_edupivot.system.mapper.SysUserRoleMapper;
+import com.dayz.sapientiacloud_edupivot.system.common.security.utils.JwtUtil;
 import com.dayz.sapientiacloud_edupivot.system.service.ISysUserService;
 import com.github.f4b6a3.uuid.UuidCreator;
 import com.github.javafaker.Faker;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
@@ -45,6 +47,7 @@ import java.util.Set;
 import java.util.UUID;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> implements ISysUserService, UserDetailsService {
 
@@ -55,26 +58,31 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     private final SysUserRoleMapper sysUserRoleMapper;
     private final PasswordEncoder passwordEncoder;
     private final SysUserPermissionMapper sysUserPermissionMapper;
+    private final JwtUtil jwtUtil;
 
     @Override
     public PageInfo<SysUserVO> listSysUserPage(SysUserQueryDTO sysUserQueryDTO) {
         if (sysUserQueryDTO == null) {
             throw new BusinessException(SysUserEnum.USER_NOT_FOUND.getMessage());
         }
+
         return PageHelper.startPage(sysUserQueryDTO.getPageNum(), sysUserQueryDTO.getPageSize())
                 .doSelectPageInfo(() -> sysUserMapper.listSysUser(sysUserQueryDTO));
     }
 
     @Override
+    @Transactional(readOnly = true)
     @Cacheable(value = "SysUser", key = "#p0", condition = "#p0 != null")
     public SysUserVO getUserById(UUID id) {
         if (id == null) {
             throw new BusinessException(SysUserEnum.USER_NOT_FOUND.getMessage());
         }
+
         SysUser sysUser = this.getById(id);
         if (sysUser == null) {
             throw new BusinessException(SysUserEnum.USER_NOT_FOUND.getMessage());
         }
+
         SysUserVO sysUserVO = new SysUserVO();
         BeanUtils.copyProperties(sysUser, sysUserVO);
 
@@ -102,7 +110,27 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
     @Override
     public Boolean updatePassword(SysUserPasswordDTO sysUserPasswordDTO) {
-        return null;
+        if (sysUserPasswordDTO == null) {
+            throw new BusinessException(SysUserEnum.DATA_CANNOT_BE_EMPTY.getMessage());
+        }
+
+        if (!sysUserPasswordDTO.getNewPassword().equals(sysUserPasswordDTO.getConfirmPassword())) {
+            throw new BusinessException(SysUserEnum.NEW_AND_CONFIRM_PASSWORD_NOT_MATCH.getMessage());
+        }
+        if (sysUserPasswordDTO.getCurrentPassword().equals(sysUserPasswordDTO.getNewPassword())) {
+            throw new BusinessException(SysUserEnum.NEW_PASSWORD_SAME_AS_CURRENT_PASSWORD.getMessage());
+        }
+
+        SysUserInternalVO currentUser = UserContextUtil.getCurrentUser();
+
+        if (!passwordEncoder.matches(sysUserPasswordDTO.getCurrentPassword(), currentUser.getPassword())) {
+            throw new BusinessException(SysUserEnum.CURRENT_PASSWORD_NOT_MATCH.getMessage());
+        }
+
+        currentUser.setPassword(passwordEncoder.encode(sysUserPasswordDTO.getNewPassword()));
+        currentUser.setUpdateTime(LocalDateTime.now());
+
+        return this.updateById(currentUser);
     }
 
     @Override
@@ -191,6 +219,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         }
 
         SysUser sysUser = checkSysUserInfo(sysUserAdminDTO);
+
         if (sysUser.getId() == null) {
             sysUser.setId(UuidCreator.getTimeOrderedEpoch());
         } else {
@@ -208,19 +237,33 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(value = "SysUser", key = "#result.id", condition = "#result != null")
     public SysUserVO updateProfile(SysUserProfileDTO sysUserProfileDTO) {
-        if (sysUserProfileDTO == null || sysUserProfileDTO.getId() == null) {
-            throw new BusinessException(SysUserEnum.USER_NOT_FOUND.getMessage());
+        if (sysUserProfileDTO == null) {
+            throw new BusinessException(SysUserEnum.DATA_CANNOT_BE_EMPTY.getMessage());
         }
-        return null;
+
+        SysUser currentUser = this.getById(UserContextUtil.getCurrentUserId());
+
+        BeanUtils.copyProperties(sysUserProfileDTO, currentUser);
+        currentUser.setUpdateTime(LocalDateTime.now());
+
+        this.updateById(currentUser);
+
+        SysUserVO sysUserVO = new SysUserVO();
+        BeanUtils.copyProperties(currentUser, sysUserVO);
+
+        return sysUserVO;
     }
 
     @Override
-    @CachePut(value = "SysUser", key = "#result.id", condition = "#result != null")
+    @Transactional(readOnly = true)
     public SysUserInternalVO selectUserByUsername(String username) {
         if (!StringUtils.hasText(username)) {
             throw new BusinessException(SysUserEnum.USERNAME_CANNOT_BE_EMPTY.getMessage());
         }
+
         SysUser sysUser = sysUserMapper.selectByUsername(username);
 
         if (sysUser == null) {
@@ -237,6 +280,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     @CacheEvict(value = "SysUser", key = "#p0", condition = "#p0 != null")
     public Boolean assignRoles(UUID userId, List<UUID> newRoleIds) {
         if (userId == null || this.getById(userId) == null) {
@@ -273,27 +317,33 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<SysRoleVO> getUserRoles(UUID userId) {
         if (userId == null || this.getById(userId) == null) {
             throw new BusinessException(SysUserEnum.USER_NOT_FOUND.getMessage());
         }
+
         return sysUserRoleMapper.getUserRoles(userId);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<SysPermissionVO> getUserPermissions(UUID userId) {
         if (userId == null || this.getById(userId) == null) {
             throw new BusinessException(SysUserEnum.USER_NOT_FOUND.getMessage());
         }
+
         return sysUserPermissionMapper.getUserPermissions(userId);
     }
 
 
     @Override
+    @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         if (!StringUtils.hasText(username)) {
             throw new UsernameNotFoundException(SysUserEnum.USERNAME_CANNOT_BE_EMPTY.getMessage());
         }
+
         SysUser sysUser = sysUserMapper.selectByUsername(username);
         if (sysUser == null) {
             throw new UsernameNotFoundException(SysUserEnum.USER_NOT_FOUND.getMessage());
@@ -326,6 +376,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         } else {
             sysUser.setPassword(passwordEncoder.encode(sysUser.getPassword()));
         }
+
         sysUser.setStatus(StatusEnum.NORMAL.getCode());
         sysUser.setCreateTime(LocalDateTime.now());
         sysUser.setUpdateTime(LocalDateTime.now());

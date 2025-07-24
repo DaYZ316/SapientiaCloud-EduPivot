@@ -13,9 +13,6 @@ public class SysUserProfileDTO implements Serializable {
     @Serial
     private static final long serialVersionUID = 8892775579047819754L;
 
-    @Schema(name = "id", description = "用户ID")
-    private UUID id;
-
     @Schema(name = "username", description = "用户名")
     @NotBlank(message = "用户名不能为空")
     @Size(min = 4, max = 20, message = "用户名长度必须在4到20个字符之间")
@@ -42,8 +39,6 @@ public class SysUserProfileDTO implements Serializable {
     @Max(value = 2, message = "性别输入不正确")
     private Integer gender;
 
-    @Schema(name = "status", description = "状态 (0=正常, 1=停用)")
-    @Min(value = 0, message = "性别输入不正确")
-    @Max(value = 1, message = "性别输入不正确")
+    @Schema(name = "avatar", description = "头像")
     private String avatar;
 }

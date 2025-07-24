@@ -1,6 +1,6 @@
-package com.dayz.sapientiacloud_edupivot.system.security.config;
+package com.dayz.sapientiacloud_edupivot.system.common.security.config;
 
-import com.dayz.sapientiacloud_edupivot.system.security.annotation.HasPermission;
+import com.dayz.sapientiacloud_edupivot.system.common.security.annotation.HasPermission;
 import io.swagger.v3.oas.models.Operation;
 import org.springdoc.core.customizers.OperationCustomizer;
 import org.springdoc.core.filters.OpenApiMethodFilter;

@@ -1,6 +1,6 @@
-package com.dayz.sapientiacloud_edupivot.auth.config;
+package com.dayz.sapientiacloud_edupivot.system.common.config;
 
-import com.dayz.sapientiacloud_edupivot.auth.security.utils.UserContextUtil;
+import com.dayz.sapientiacloud_edupivot.system.common.security.utils.UserContextUtil;
 import feign.RequestInterceptor;
 import feign.RequestTemplate;
 import lombok.extern.slf4j.Slf4j;
@@ -15,10 +15,10 @@ import java.util.UUID;
 @Slf4j
 @Configuration
 public class FeignConfig {
-    
+
     // Feign请求头标识
     private static final String FEIGN_REQUEST_HEADER = "X-Feign-Client";
-    
+
     // 用户信息请求头
     private static final String X_USER_ID = "X-User-Id";
     private static final String X_USER_NAME = "X-User-Name";
@@ -31,7 +31,7 @@ public class FeignConfig {
             public void apply(RequestTemplate requestTemplate) {
                 // 添加Feign标识头
                 requestTemplate.header(FEIGN_REQUEST_HEADER, "true");
-                
+
                 // 添加用户信息到请求头
                 try {
                     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -45,7 +45,7 @@ public class FeignConfig {
                         } catch (Exception e) {
                             log.debug("获取用户ID失败: {}", e.getMessage());
                         }
-                        
+
                         // 获取当前用户名
                         try {
                             String username = UserContextUtil.getCurrentUsername();
@@ -55,7 +55,7 @@ public class FeignConfig {
                         } catch (Exception e) {
                             log.debug("获取用户名失败: {}", e.getMessage());
                         }
-                        
+
                         // 获取当前用户角色
                         try {
                             List<String> roles = UserContextUtil.getCurrentUserRoles();
@@ -65,7 +65,7 @@ public class FeignConfig {
                         } catch (Exception e) {
                             log.debug("获取用户角色失败: {}", e.getMessage());
                         }
-                        
+
                         log.debug("Feign请求添加用户信息请求头成功");
                     }
                 } catch (Exception e) {
