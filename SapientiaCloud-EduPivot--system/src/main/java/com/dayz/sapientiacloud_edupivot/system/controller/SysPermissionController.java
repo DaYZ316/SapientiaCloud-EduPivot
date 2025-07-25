@@ -1,15 +1,15 @@
 package com.dayz.sapientiacloud_edupivot.system.controller;
 
 import com.dayz.sapientiacloud_edupivot.system.common.controller.BaseController;
+import com.dayz.sapientiacloud_edupivot.system.common.result.Result;
+import com.dayz.sapientiacloud_edupivot.system.common.result.TableDataResult;
+import com.dayz.sapientiacloud_edupivot.system.common.security.annotation.HasPermission;
+import com.dayz.sapientiacloud_edupivot.system.common.security.constant.PermissionConstants;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysPermissionAddDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysPermissionDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysPermissionQueryDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.po.SysPermission;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysPermissionVO;
-import com.dayz.sapientiacloud_edupivot.system.common.result.Result;
-import com.dayz.sapientiacloud_edupivot.system.common.result.TableDataResult;
-import com.dayz.sapientiacloud_edupivot.system.common.security.annotation.HasPermission;
-import com.dayz.sapientiacloud_edupivot.system.common.security.constant.PermissionConstants;
 import com.dayz.sapientiacloud_edupivot.system.service.ISysPermissionService;
 import com.github.pagehelper.PageInfo;
 import io.swagger.v3.oas.annotations.Parameter;

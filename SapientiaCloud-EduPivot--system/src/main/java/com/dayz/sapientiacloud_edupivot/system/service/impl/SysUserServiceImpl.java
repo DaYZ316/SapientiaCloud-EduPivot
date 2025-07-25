@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dayz.sapientiacloud_edupivot.system.common.enums.DeletedEnum;
 import com.dayz.sapientiacloud_edupivot.system.common.enums.StatusEnum;
 import com.dayz.sapientiacloud_edupivot.system.common.exception.BusinessException;
+import com.dayz.sapientiacloud_edupivot.system.common.security.utils.JwtUtil;
 import com.dayz.sapientiacloud_edupivot.system.common.security.utils.UserContextUtil;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.*;
 import com.dayz.sapientiacloud_edupivot.system.entity.po.SysRole;
@@ -15,10 +16,10 @@ import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysUserVO;
 import com.dayz.sapientiacloud_edupivot.system.enums.GenderEnum;
 import com.dayz.sapientiacloud_edupivot.system.enums.SysRoleEnum;
 import com.dayz.sapientiacloud_edupivot.system.enums.SysUserEnum;
+import com.dayz.sapientiacloud_edupivot.system.mapper.SysRoleMapper;
 import com.dayz.sapientiacloud_edupivot.system.mapper.SysUserMapper;
 import com.dayz.sapientiacloud_edupivot.system.mapper.SysUserPermissionMapper;
 import com.dayz.sapientiacloud_edupivot.system.mapper.SysUserRoleMapper;
-import com.dayz.sapientiacloud_edupivot.system.common.security.utils.JwtUtil;
 import com.dayz.sapientiacloud_edupivot.system.service.ISysUserService;
 import com.github.f4b6a3.uuid.UuidCreator;
 import com.github.javafaker.Faker;
@@ -59,6 +60,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     private final PasswordEncoder passwordEncoder;
     private final SysUserPermissionMapper sysUserPermissionMapper;
     private final JwtUtil jwtUtil;
+    private final SysRoleMapper sysRoleMapper;
 
     @Override
     public PageInfo<SysUserVO> listSysUserPage(SysUserQueryDTO sysUserQueryDTO) {
@@ -277,6 +279,11 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         }
 
         List<UUID> existingRoleIds = sysUserRoleMapper.getUserRoleIds(userId);
+
+        List<SysRoleVO> exitingRoles = sysRoleMapper.getRolesByIds(existingRoleIds);
+        if (exitingRoles.stream().anyMatch(SysRoleVO::isAdmin)) {
+            throw new BusinessException(SysRoleEnum.ADMIN_OPERATION_FORBIDDEN.getMessage());
+        }
 
         Set<UUID> newRoleSet = new HashSet<>(newRoleIds);
         Set<UUID> existingRoleSet = new HashSet<>(existingRoleIds);

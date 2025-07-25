@@ -2,10 +2,10 @@ package com.dayz.sapientiacloud_edupivot.system.common.exception;
 
 import com.dayz.sapientiacloud_edupivot.system.common.result.Result;
 import com.dayz.sapientiacloud_edupivot.system.common.result.ResultEnum;
+import com.dayz.sapientiacloud_edupivot.system.common.utils.EnumLookupUtil;
 import com.dayz.sapientiacloud_edupivot.system.enums.SysPermissionEnum;
 import com.dayz.sapientiacloud_edupivot.system.enums.SysRoleEnum;
 import com.dayz.sapientiacloud_edupivot.system.enums.SysUserEnum;
-import com.dayz.sapientiacloud_edupivot.system.common.utils.EnumLookupUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
@@ -15,8 +15,6 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.multipart.MaxUploadSizeExceededException;
-import org.springframework.web.multipart.MultipartException;
 
 import java.util.Map;
 import java.util.Objects;

@@ -232,7 +232,7 @@ public class MinIOUtil {
     public boolean removeObject(String objectName) {
         try {
             if (!doesObjectExist(objectName)) {
-                return true; // 文件不存在也视为删除成功
+                return true;
             }
             
             minioClient.removeObject(RemoveObjectArgs.builder()

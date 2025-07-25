@@ -1,13 +1,13 @@
 package com.dayz.sapientiacloud_edupivot.system.feigns;
 
 import com.dayz.sapientiacloud_edupivot.system.common.result.Result;
+import com.dayz.sapientiacloud_edupivot.system.common.security.annotation.HasPermission;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserPasswordDTO;
-import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysUserInternalVO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserRegisterDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysPermissionVO;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysRoleVO;
-import com.dayz.sapientiacloud_edupivot.system.common.security.annotation.HasPermission;
+import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysUserInternalVO;
 import com.dayz.sapientiacloud_edupivot.system.service.ISysUserService;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;

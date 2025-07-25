@@ -1,8 +1,8 @@
 package com.dayz.sapientiacloud_edupivot.auth.service;
 
+import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserLoginDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserPasswordDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysUserInternalVO;
-import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserLoginDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysUserLoginVO;
 import com.dayz.sapientiacloud_edupivot.auth.result.Result;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,5 +20,5 @@ public interface AuthService {
 
     Result<SysUserInternalVO> getUserInfo(HttpServletRequest httpServletRequest);
 
-    Boolean updatePassword(HttpServletRequest httpServletRequest, SysUserPasswordDTO sysUserPasswordDTO);
+    Boolean updatePassword(HttpServletRequest request, SysUserPasswordDTO sysUserPasswordDTO);
 }
