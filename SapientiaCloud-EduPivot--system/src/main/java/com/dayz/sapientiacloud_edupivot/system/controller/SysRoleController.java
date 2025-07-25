@@ -13,7 +13,6 @@ import com.dayz.sapientiacloud_edupivot.system.service.ISysRoleService;
 import com.github.pagehelper.PageInfo;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.web.bind.annotation.*;
@@ -30,9 +29,9 @@ public class SysRoleController extends BaseController {
     private final ISysRoleService sysRoleService;
 
     @HasPermission(
-            permission = PermissionConstants.ROLE_QUERY,
-            summary = "分页查找角色",
-            description = "根据传入的条件分页查询角色信息。支持根据角色名、角色描述等字段进行模糊查询。"
+            summary = "分页查询角色",
+            description = "根据传入的条件分页查询角色信息。支持根据角色名称、角色标识等字段进行模糊查询。",
+            permission = PermissionConstants.ROLE_QUERY
     )
     @GetMapping("/list")
     public TableDataResult sysRoleList(@ParameterObject SysRoleQueryDTO sysRoleQueryDTO) {
@@ -42,9 +41,9 @@ public class SysRoleController extends BaseController {
     }
 
     @HasPermission(
-            permission = PermissionConstants.ROLE_QUERY,
             summary = "根据ID获取角色",
-            description = "通过角色ID获取其详细信息和权限列表。"
+            description = "通过角色的唯一ID获取其详细信息。",
+            permission = PermissionConstants.ROLE_QUERY
     )
     @GetMapping("/{id}")
     public Result<SysRoleVO> getRoleById(
@@ -55,29 +54,29 @@ public class SysRoleController extends BaseController {
     }
 
     @HasPermission(
-            permission = PermissionConstants.ROLE_ADD,
             summary = "添加新角色",
-            description = "管理员向系统中添加一个新角色。"
+            description = "添加一个新的角色到系统中。",
+            permission = PermissionConstants.ROLE_ADD
     )
-    @PostMapping("/add")
-    public Result<Boolean> addRole(@Valid @RequestBody SysRoleAddDTO sysRoleDTO) {
+    @PostMapping
+    public Result<Boolean> addRole(@RequestBody SysRoleAddDTO sysRoleDTO) {
         return Result.success(sysRoleService.addRole(sysRoleDTO));
     }
 
     @HasPermission(
-            permission = PermissionConstants.ROLE_EDIT,
             summary = "更新现有角色",
-            description = "修改现有角色的信息。"
+            description = "修改现有角色的信息。",
+            permission = PermissionConstants.ROLE_EDIT
     )
     @PutMapping
-    public Result<Boolean> updateRole(@Valid @RequestBody SysRoleDTO sysRoleDTO) {
+    public Result<Boolean> updateRole(@RequestBody SysRoleDTO sysRoleDTO) {
         return Result.success(sysRoleService.updateRole(sysRoleDTO));
     }
 
     @HasPermission(
-            permission = PermissionConstants.ROLE_DELETE,
             summary = "删除角色",
-            description = "根据角色ID从系统中移除角色。"
+            description = "根据角色ID从系统中移除角色。",
+            permission = PermissionConstants.ROLE_DELETE
     )
     @DeleteMapping("/{id}")
     public Result<Boolean> removeRole(
@@ -87,9 +86,9 @@ public class SysRoleController extends BaseController {
     }
 
     @HasPermission(
-            permission = PermissionConstants.ROLE_DELETE,
             summary = "批量删除角色",
-            description = "根据角色ID列表批量删除角色。"
+            description = "根据角色ID列表批量删除角色。",
+            permission = PermissionConstants.ROLE_DELETE
     )
     @DeleteMapping
     public Result<Integer> removeRoles(
@@ -99,15 +98,15 @@ public class SysRoleController extends BaseController {
     }
 
     @HasPermission(
-            permission = PermissionConstants.ROLE_EDIT,
             summary = "分配角色权限",
-            description = "为指定角色分配权限。"
+            description = "为指定角色分配权限。",
+            permission = PermissionConstants.ROLE_EDIT
     )
-    @PostMapping("/{id}/permission")
+    @PostMapping("/{roleId}/permission")
     public Result<Boolean> assignRolePermissions(
-            @Parameter(name = "id", description = "角色ID", required = true) @PathVariable("id") UUID id,
+            @Parameter(name = "roleId", description = "角色ID", required = true) @PathVariable("roleId") UUID roleId,
             @Parameter(name = "permissionIds", description = "权限ID列表", required = true) @RequestBody List<UUID> permissionIds
     ) {
-        return Result.success(sysRoleService.assignRolePermissions(id, permissionIds));
+        return Result.success(sysRoleService.assignRolePermissions(roleId, permissionIds));
     }
 }
