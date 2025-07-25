@@ -25,7 +25,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/file/**").permitAll()
-                        .requestMatchers("/v3/api-docs/**", "/doc.html").permitAll()
+                        .requestMatchers("/v3/api-docs/**", "/webjars/**", "/doc.html").permitAll()
                         .anyRequest().authenticated()
                 )
                 .cors(cors -> cors.configurationSource(request -> {
