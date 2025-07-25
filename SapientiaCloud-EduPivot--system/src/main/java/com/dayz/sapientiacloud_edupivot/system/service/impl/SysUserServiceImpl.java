@@ -353,7 +353,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         return new User(sysUser.getUsername(), sysUser.getPassword(), authorities);
     }
 
-    public SysUser checkSysUserInfo (Object sysUserInfo) {
+    public SysUser checkSysUserInfo(Object sysUserInfo) {
         SysUser sysUser = new SysUser();
         BeanUtils.copyProperties(sysUserInfo, sysUser);
 

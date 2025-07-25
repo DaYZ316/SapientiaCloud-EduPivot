@@ -18,11 +18,9 @@ import java.util.UUID;
 @Schema(description = "系统角色视图对象 (VO)")
 public class SysRoleVO implements Serializable {
 
+    public static final String ADMIN_ROLE_KEY = "ADMIN";
     @Serial
     private static final long serialVersionUID = -5337978323517901756L;
-
-    public static final String ADMIN_ROLE_KEY = "ADMIN";
-
     @Schema(name = "id", description = "角色ID")
     private UUID id;
 

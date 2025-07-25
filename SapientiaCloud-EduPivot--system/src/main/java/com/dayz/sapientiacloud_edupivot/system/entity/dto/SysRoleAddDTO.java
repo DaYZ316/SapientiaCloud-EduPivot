@@ -37,7 +37,7 @@ public class SysRoleAddDTO implements Serializable {
     @Schema(name = "status", description = "状态 (0=正常, 1=停用)", example = "0")
     private Integer status;
 
-    @Schema(name = "description",description = "描述", example = "超级管理员角色")
+    @Schema(name = "description", description = "描述", example = "超级管理员角色")
     @Size(max = 500, message = "描述信息长度不能超过500个字符")
     private String description;
 }

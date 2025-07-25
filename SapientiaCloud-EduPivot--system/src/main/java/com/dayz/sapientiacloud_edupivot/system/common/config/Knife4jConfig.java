@@ -33,7 +33,7 @@ public class Knife4jConfig {
                 .components(new Components()
                         .addSecuritySchemes("Authorization", securityScheme));
     }
-    
+
     @Bean
     public GlobalOperationCustomizer operationCustomizer() {
         return (operation, method) -> {

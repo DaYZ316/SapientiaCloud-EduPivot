@@ -88,7 +88,7 @@ public class GlobalExceptionHandler {
         log.warn("参数验证异常: {}", errors);
         return Result.fail("参数验证失败");
     }
-    
+
     /**
      * 处理绑定异常
      */

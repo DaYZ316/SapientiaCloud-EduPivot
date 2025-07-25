@@ -22,11 +22,9 @@ import java.util.UUID;
 @Schema(description = "系统角色持久化对象 (PO)")
 public class SysRole extends BaseEntity implements Serializable {
 
+    public static final String ADMIN_ROLE_KEY = "ADMIN";
     @Serial
     private static final long serialVersionUID = -4759063611439691423L;
-
-    public static final String ADMIN_ROLE_KEY = "ADMIN";
-
     @Schema(name = "id", description = "角色ID")
     @TableId(value = "id")
     private UUID id;

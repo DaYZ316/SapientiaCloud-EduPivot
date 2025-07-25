@@ -30,9 +30,9 @@ public class SysRoleController extends BaseController {
     private final ISysRoleService sysRoleService;
 
     @HasPermission(
-        permission = PermissionConstants.ROLE_QUERY,
-        summary = "分页查找角色", 
-        description = "根据传入的条件分页查询角色信息。支持根据角色名、角色描述等字段进行模糊查询。"
+            permission = PermissionConstants.ROLE_QUERY,
+            summary = "分页查找角色",
+            description = "根据传入的条件分页查询角色信息。支持根据角色名、角色描述等字段进行模糊查询。"
     )
     @GetMapping("/list")
     public TableDataResult sysRoleList(@ParameterObject SysRoleQueryDTO sysRoleQueryDTO) {
@@ -42,9 +42,9 @@ public class SysRoleController extends BaseController {
     }
 
     @HasPermission(
-        permission = PermissionConstants.ROLE_QUERY,
-        summary = "根据ID获取角色", 
-        description = "通过角色ID获取其详细信息和权限列表。"
+            permission = PermissionConstants.ROLE_QUERY,
+            summary = "根据ID获取角色",
+            description = "通过角色ID获取其详细信息和权限列表。"
     )
     @GetMapping("/{id}")
     public Result<SysRoleVO> getRoleById(
@@ -55,9 +55,9 @@ public class SysRoleController extends BaseController {
     }
 
     @HasPermission(
-        permission = PermissionConstants.ROLE_ADD,
-        summary = "添加新角色", 
-        description = "管理员向系统中添加一个新角色。"
+            permission = PermissionConstants.ROLE_ADD,
+            summary = "添加新角色",
+            description = "管理员向系统中添加一个新角色。"
     )
     @PostMapping("/add")
     public Result<Boolean> addRole(@Valid @RequestBody SysRoleAddDTO sysRoleDTO) {
@@ -65,9 +65,9 @@ public class SysRoleController extends BaseController {
     }
 
     @HasPermission(
-        permission = PermissionConstants.ROLE_EDIT,
-        summary = "更新现有角色", 
-        description = "修改现有角色的信息。"
+            permission = PermissionConstants.ROLE_EDIT,
+            summary = "更新现有角色",
+            description = "修改现有角色的信息。"
     )
     @PutMapping
     public Result<Boolean> updateRole(@Valid @RequestBody SysRoleDTO sysRoleDTO) {
@@ -75,9 +75,9 @@ public class SysRoleController extends BaseController {
     }
 
     @HasPermission(
-        permission = PermissionConstants.ROLE_DELETE,
-        summary = "删除角色", 
-        description = "根据角色ID从系统中移除角色。"
+            permission = PermissionConstants.ROLE_DELETE,
+            summary = "删除角色",
+            description = "根据角色ID从系统中移除角色。"
     )
     @DeleteMapping("/{id}")
     public Result<Boolean> removeRole(
@@ -87,9 +87,9 @@ public class SysRoleController extends BaseController {
     }
 
     @HasPermission(
-        permission = PermissionConstants.ROLE_DELETE,
-        summary = "批量删除角色", 
-        description = "根据角色ID列表批量删除角色。"
+            permission = PermissionConstants.ROLE_DELETE,
+            summary = "批量删除角色",
+            description = "根据角色ID列表批量删除角色。"
     )
     @DeleteMapping
     public Result<Integer> removeRoles(
@@ -99,9 +99,9 @@ public class SysRoleController extends BaseController {
     }
 
     @HasPermission(
-        permission = PermissionConstants.ROLE_EDIT,
-        summary = "分配角色权限", 
-        description = "为指定角色分配权限。"
+            permission = PermissionConstants.ROLE_EDIT,
+            summary = "分配角色权限",
+            description = "为指定角色分配权限。"
     )
     @PostMapping("/{id}/permission")
     public Result<Boolean> assignRolePermissions(

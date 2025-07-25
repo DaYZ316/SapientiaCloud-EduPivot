@@ -22,6 +22,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * MinIO工具类，提供文件上传、下载、删除等操作
+ *
  * @author LANDH
  */
 @Component
@@ -78,6 +79,7 @@ public class MinIOUtil {
 
     /**
      * 获取所有存储桶
+     *
      * @return 存储桶列表
      */
     public List<Bucket> getAllBuckets() {
@@ -91,8 +93,9 @@ public class MinIOUtil {
 
     /**
      * 上传文件
-     * @param file 文件
-     * @param objectName 对象名，为空时使用文件原名
+     *
+     * @param file        文件
+     * @param objectName  对象名，为空时使用文件原名
      * @param contentType 内容类型，为空时自动检测
      * @return 文件访问URL
      */
@@ -101,13 +104,13 @@ public class MinIOUtil {
             if (file == null || file.isEmpty()) {
                 throw new BusinessException(FileEnum.FILE_CANNOT_BE_EMPTY.getMessage());
             }
-            
+
             // 生成文件名
             String fileName = objectName;
             if (fileName == null || fileName.isEmpty()) {
                 fileName = generateUniqueFileName(Objects.requireNonNull(file.getOriginalFilename()));
             }
-            
+
             // 检测内容类型
             String fileContentType = contentType;
             if (fileContentType == null || fileContentType.isEmpty()) {
@@ -121,7 +124,7 @@ public class MinIOUtil {
                     .stream(file.getInputStream(), file.getSize(), -1)
                     .contentType(fileContentType)
                     .build());
-            
+
             log.info("文件上传成功: {}", fileName);
             return fileName;
         } catch (BusinessException e) {
@@ -134,6 +137,7 @@ public class MinIOUtil {
 
     /**
      * 上传文件(简化版)
+     *
      * @param file 文件
      * @return 文件访问URL
      */
@@ -143,8 +147,9 @@ public class MinIOUtil {
 
     /**
      * 上传字节数组
-     * @param bytes 字节数组
-     * @param objectName 对象名
+     *
+     * @param bytes       字节数组
+     * @param objectName  对象名
      * @param contentType 内容类型
      * @return 文件访问URL
      */
@@ -167,6 +172,7 @@ public class MinIOUtil {
 
     /**
      * 下载文件
+     *
      * @param objectName 对象名称
      * @return 文件流
      */
@@ -175,7 +181,7 @@ public class MinIOUtil {
             if (!doesObjectExist(objectName)) {
                 throw new BusinessException(FileEnum.FILE_NOT_FOUND.getMessage());
             }
-            
+
             return minioClient.getObject(GetObjectArgs.builder()
                     .bucket(minioProperties.getBucketName())
                     .object(objectName)
@@ -190,8 +196,9 @@ public class MinIOUtil {
 
     /**
      * 获取文件外链
+     *
      * @param objectName 对象名称
-     * @param expiry 过期时间（以秒为单位），默认7天
+     * @param expiry     过期时间（以秒为单位），默认7天
      * @return 文件URL
      */
     public String getPresignedObjectUrl(String objectName, Integer expiry) {
@@ -199,7 +206,7 @@ public class MinIOUtil {
             if (!doesObjectExist(objectName)) {
                 throw new BusinessException(FileEnum.FILE_NOT_FOUND.getMessage());
             }
-            
+
             int expiryTime = expiry != null ? expiry : 7 * 24 * 3600;
             return minioClient.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
                     .bucket(minioProperties.getBucketName())
@@ -217,6 +224,7 @@ public class MinIOUtil {
 
     /**
      * 获取文件外链（默认过期时间）
+     *
      * @param objectName 对象名称
      * @return 文件URL
      */
@@ -226,6 +234,7 @@ public class MinIOUtil {
 
     /**
      * 删除文件
+     *
      * @param objectName 对象名称
      * @return 是否删除成功
      */
@@ -234,7 +243,7 @@ public class MinIOUtil {
             if (!doesObjectExist(objectName)) {
                 return true;
             }
-            
+
             minioClient.removeObject(RemoveObjectArgs.builder()
                     .bucket(minioProperties.getBucketName())
                     .object(objectName)
@@ -248,13 +257,14 @@ public class MinIOUtil {
 
     /**
      * 批量删除文件
+     *
      * @param objectNames 对象名称列表
      * @return 删除结果
      */
     public Map<String, String> removeObjects(List<String> objectNames) {
         Map<String, String> result = new HashMap<>(objectNames.size());
         List<DeleteObject> objects = new ArrayList<>(objectNames.size());
-        
+
         // 构建删除对象列表
         for (String objectName : objectNames) {
             objects.add(new DeleteObject(objectName));
@@ -276,12 +286,13 @@ public class MinIOUtil {
             log.error("批量删除文件失败: {}", e.getMessage());
             throw new BusinessException(FileEnum.BATCH_FILE_DELETE_FAILED.getMessage());
         }
-        
+
         return result;
     }
 
     /**
      * 检查文件是否存在
+     *
      * @param objectName 对象名称
      * @return 是否存在
      */
@@ -299,6 +310,7 @@ public class MinIOUtil {
 
     /**
      * 列出指定前缀的对象
+     *
      * @param prefix 前缀
      * @return 对象列表
      */
@@ -322,6 +334,7 @@ public class MinIOUtil {
 
     /**
      * 生成唯一文件名
+     *
      * @param originalFilename 原始文件名
      * @return 唯一文件名
      */
@@ -331,11 +344,11 @@ public class MinIOUtil {
         if (originalFilename.contains(".")) {
             suffix = originalFilename.substring(originalFilename.lastIndexOf("."));
         }
-        
+
         // 生成UUID作为文件名，并按日期分目录
         String uuid = UUID.randomUUID().toString().replace("-", "");
         String date = new java.text.SimpleDateFormat("yyyy/MM/dd").format(new Date());
-        
+
         return date + "/" + uuid + suffix;
     }
 } 

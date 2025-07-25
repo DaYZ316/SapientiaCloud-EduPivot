@@ -23,16 +23,16 @@ public class JwtAuthenticationEntryPoint implements ServerAuthenticationEntryPoi
     @Override
     public Mono<Void> commence(ServerWebExchange exchange, AuthenticationException e) {
         ServerHttpResponse response = exchange.getResponse();
-        
+
         // 设置响应状态码为401
         response.setStatusCode(HttpStatus.UNAUTHORIZED);
         // 设置内容类型
         response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
-        
+
         // 创建错误响应
         Result<Void> result = Result.fail(ResultEnum.UNAUTHORIZED);
         String body = JSON.toJSONString(result);
-        
+
         // 写入响应
         DataBuffer buffer = response.bufferFactory().wrap(body.getBytes(StandardCharsets.UTF_8));
         return response.writeWith(Mono.just(buffer));

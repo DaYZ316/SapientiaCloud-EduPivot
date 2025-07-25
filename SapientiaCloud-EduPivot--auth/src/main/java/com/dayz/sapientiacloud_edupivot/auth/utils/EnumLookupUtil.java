@@ -16,10 +16,10 @@ public class EnumLookupUtil {
     /**
      * 根据指定属性（例如message）查找枚举
      *
-     * @param enumClass 枚举的Class对象
-     * @param attributeValue 要查找的属性值
+     * @param enumClass       枚举的Class对象
+     * @param attributeValue  要查找的属性值
      * @param attributeGetter 获取枚举属性值的函数式接口
-     * @param <E> 枚举类型
+     * @param <E>             枚举类型
      * @return 匹配的枚举，如果未找到则返回null
      */
     @SuppressWarnings("unchecked")

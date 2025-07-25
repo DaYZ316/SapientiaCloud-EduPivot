@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * minio 配置类
+ *
  * @author LANDH
  */
 @Component

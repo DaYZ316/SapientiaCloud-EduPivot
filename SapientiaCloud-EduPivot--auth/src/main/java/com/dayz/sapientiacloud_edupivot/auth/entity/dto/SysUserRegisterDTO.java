@@ -32,7 +32,7 @@ public class SysUserRegisterDTO implements Serializable {
     @Schema(name = "avatar", description = "用户头像URL")
     private String avatar;
 
-    @Schema(name = "nickName",description = "用户昵称")
+    @Schema(name = "nickName", description = "用户昵称")
     @NotBlank(message = "用户昵称不能为空")
     @Size(max = 30, message = "用户昵称不能超过30个字符")
     private String nickName;

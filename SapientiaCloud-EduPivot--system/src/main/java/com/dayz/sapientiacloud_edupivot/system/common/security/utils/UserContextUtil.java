@@ -31,13 +31,9 @@ public class UserContextUtil {
 
     private static ISysUserService sysUserService;
 
-    @Autowired
-    public void setSysUserService(ISysUserService sysUserService) {
-        UserContextUtil.sysUserService = sysUserService;
-    }
-
     /**
      * 获取当前登录用户ID
+     *
      * @return 当前登录用户ID (UUID类型)
      */
     public static UUID getCurrentUserId() {
@@ -62,6 +58,7 @@ public class UserContextUtil {
 
     /**
      * 获取当前登录用户名
+     *
      * @return 当前登录用户名
      */
     public static String getCurrentUsername() {
@@ -82,9 +79,9 @@ public class UserContextUtil {
                 .orElseThrow(() -> new BusinessException(ResultEnum.UNAUTHORIZED));
     }
 
-
     /**
      * 获取当前登录用户的角色列表
+     *
      * @return 当前登录用户的角色列表
      */
     public static List<String> getCurrentUserRoles() {
@@ -98,6 +95,7 @@ public class UserContextUtil {
 
     /**
      * 获取当前登录用户信息
+     *
      * @return 当前登录用户信息
      */
     public static SysUserInternalVO getCurrentUser() {
@@ -116,6 +114,7 @@ public class UserContextUtil {
 
     /**
      * 判断当前用户是否已认证
+     *
      * @return 是否已认证
      */
     public static boolean isAuthenticated() {
@@ -125,6 +124,7 @@ public class UserContextUtil {
 
     /**
      * 判断当前用户是否拥有指定角色
+     *
      * @param roleKey 角色标识
      * @return 是否拥有该角色
      */
@@ -140,6 +140,7 @@ public class UserContextUtil {
 
     /**
      * 判断当前用户是否为管理员
+     *
      * @return 是否为管理员
      */
     public static boolean isAdmin() {
@@ -148,5 +149,10 @@ public class UserContextUtil {
 
     private static Authentication getAuthentication() {
         return SecurityContextHolder.getContext().getAuthentication();
+    }
+
+    @Autowired
+    public void setSysUserService(ISysUserService sysUserService) {
+        UserContextUtil.sysUserService = sysUserService;
     }
 }

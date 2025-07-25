@@ -38,6 +38,6 @@ public class SysPermissionDTO implements Serializable {
     @Size(max = 100, message = "权限标识长度不能超过100个字符")
     private String permissionKey;
 
-    @Schema(name = "sort",description = "排序")
+    @Schema(name = "sort", description = "排序")
     private Integer sort;
 } 

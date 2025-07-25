@@ -39,16 +39,16 @@ public class Knife4jConfig {
         return (operation, handlerMethod) -> {
             // 获取操作ID
             String operationId = operation.getOperationId();
-            
+
             // 获取方法名
             String methodName = null;
             if (handlerMethod != null) {
                 methodName = handlerMethod.getMethod().getName();
             }
-            
+
             // 仅对logout和获取用户信息(getUserInfo)接口添加Authorization请求头要求
             if ((methodName != null && (methodName.contains("logout") || methodName.contains("getUserInfo") || methodName.contains("updatePassword"))) ||
-                (operationId != null && (operationId.contains("logout") || operationId.contains("info")|| operationId.contains("password")))) {
+                    (operationId != null && (operationId.contains("logout") || operationId.contains("info") || operationId.contains("password")))) {
                 operation.addSecurityItem(new SecurityRequirement().addList("Authorization"));
             }
             return operation;

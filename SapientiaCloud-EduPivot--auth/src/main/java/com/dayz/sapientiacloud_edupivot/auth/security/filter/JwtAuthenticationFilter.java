@@ -33,10 +33,6 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private final AntPathMatcher pathMatcher = new AntPathMatcher();
-    private final JwtUtil jwtUtil;
-    private final SysUserClient sysUserClient;
-
     private static final String[] WHITELIST = {
             "/login",
             "/validate",
@@ -55,7 +51,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private static final String AUTHORIZATION_HEADER = "Authorization";
     private static final String BEARER_PREFIX = "Bearer ";
     private static final Integer TOKEN_PREFIX_LENGTH = BEARER_PREFIX.length();
-
+    private final AntPathMatcher pathMatcher = new AntPathMatcher();
+    private final JwtUtil jwtUtil;
+    private final SysUserClient sysUserClient;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -103,7 +101,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                         // 设置认证信息到安全上下文
                         SecurityContextHolder.getContext().setAuthentication(authentication);
-                        
+
                         log.debug("用户 {} (ID: {}) 已认证通过JWT令牌", username, userId);
                     }
                 }
@@ -115,7 +113,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             log.warn("请求未携带JWT令牌: {}", requestURI);
             SecurityContextHolder.clearContext();
         }
-        
+
         filterChain.doFilter(request, response);
     }
 

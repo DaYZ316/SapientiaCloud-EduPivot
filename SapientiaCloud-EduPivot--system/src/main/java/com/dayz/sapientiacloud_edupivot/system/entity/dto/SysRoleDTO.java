@@ -19,11 +19,9 @@ import java.util.UUID;
 @Schema(description = "系统角色数据传输对象 (DTO)")
 public class SysRoleDTO implements Serializable {
 
+    public static final String ADMIN_ROLE_KEY = "ADMIN";
     @Serial
     private static final long serialVersionUID = 9134795432837478770L;
-
-    public static final String ADMIN_ROLE_KEY = "ADMIN";
-
     @Schema(name = "id", description = "角色ID")
     @NotNull(message = "角色ID不能为空")
     private UUID id;
