@@ -21,6 +21,7 @@ import com.dayz.sapientiacloud_edupivot.system.mapper.SysUserMapper;
 import com.dayz.sapientiacloud_edupivot.system.mapper.SysUserPermissionMapper;
 import com.dayz.sapientiacloud_edupivot.system.mapper.SysUserRoleMapper;
 import com.dayz.sapientiacloud_edupivot.system.service.ISysUserService;
+import com.dayz.sapientiacloud_edupivot.system.common.security.service.PermissionService;
 import com.github.f4b6a3.uuid.UuidCreator;
 import com.github.javafaker.Faker;
 import com.github.pagehelper.PageHelper;
@@ -61,6 +62,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     private final SysUserPermissionMapper sysUserPermissionMapper;
     private final JwtUtil jwtUtil;
     private final SysRoleMapper sysRoleMapper;
+    private final PermissionService permissionService;
 
     @Override
     public PageInfo<SysUserVO> listSysUserPage(SysUserQueryDTO sysUserQueryDTO) {
@@ -308,6 +310,9 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
                 throw new BusinessException(SysUserEnum.ASSIGN_ROLE_FAILED.getMessage());
             }
         }
+
+        // 在角色分配完成后，清除该用户的权限缓存
+        permissionService.clearUserPermissionCache(userId);
 
         return true;
     }
