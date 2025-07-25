@@ -118,8 +118,18 @@ public class AuthServiceImpl implements AuthService {
             throw new BusinessException(SysUserEnum.DATA_CANNOT_BE_EMPTY.getMessage());
         }
 
-        String username = UserContextUtil.getCurrentUsername();
-        log.info("用户 {} 正在修改密码", username);
+        if (!sysUserPasswordDTO.getNewPassword().equals(sysUserPasswordDTO.getConfirmPassword())) {
+            throw new BusinessException(SysUserEnum.NEW_AND_CONFIRM_PASSWORD_NOT_MATCH.getMessage());
+        }
+        if (sysUserPasswordDTO.getCurrentPassword().equals(sysUserPasswordDTO.getNewPassword())) {
+            throw new BusinessException(SysUserEnum.NEW_PASSWORD_SAME_AS_CURRENT_PASSWORD.getMessage());
+        }
+
+        SysUserInternalVO currentUser = UserContextUtil.getCurrentUser();
+
+        if (!passwordEncoder.matches(sysUserPasswordDTO.getCurrentPassword(), currentUser.getPassword())) {
+            throw new BusinessException(SysUserEnum.CURRENT_PASSWORD_NOT_MATCH.getMessage());
+        }
 
         Result<Boolean> result = sysUserClient.updatePassword(sysUserPasswordDTO);
         if (result == null || !result.isSuccess()) {

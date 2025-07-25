@@ -114,18 +114,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             throw new BusinessException(SysUserEnum.DATA_CANNOT_BE_EMPTY.getMessage());
         }
 
-        if (!sysUserPasswordDTO.getNewPassword().equals(sysUserPasswordDTO.getConfirmPassword())) {
-            throw new BusinessException(SysUserEnum.NEW_AND_CONFIRM_PASSWORD_NOT_MATCH.getMessage());
-        }
-        if (sysUserPasswordDTO.getCurrentPassword().equals(sysUserPasswordDTO.getNewPassword())) {
-            throw new BusinessException(SysUserEnum.NEW_PASSWORD_SAME_AS_CURRENT_PASSWORD.getMessage());
-        }
-
         SysUserInternalVO currentUser = UserContextUtil.getCurrentUser();
-
-        if (!passwordEncoder.matches(sysUserPasswordDTO.getCurrentPassword(), currentUser.getPassword())) {
-            throw new BusinessException(SysUserEnum.CURRENT_PASSWORD_NOT_MATCH.getMessage());
-        }
 
         currentUser.setPassword(passwordEncoder.encode(sysUserPasswordDTO.getNewPassword()));
         currentUser.setUpdateTime(LocalDateTime.now());
