@@ -44,4 +44,17 @@
         </if>
     </select>
 
+    <select id="getRolesByIds" resultType="com.dayz.sapientiacloud_edupivot.system.entity.vo.SysRoleVO">
+        select
+        id, role_name, role_key, sort, status, description, create_time, update_time
+        from
+        sys_role
+        where
+        id in
+        <foreach item="item" index="index" collection="roleIds" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        and is_deleted = 0
+    </select>
+
 </mapper> 

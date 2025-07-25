@@ -30,7 +30,8 @@ public enum SysUserEnum {
     CURRENT_PASSWORD_CANNOT_BE_EMPTY(1210, "当前密码不能为空"),
     CURRENT_PASSWORD_NOT_MATCH(1211, "当前密码不匹配"),
     PASSWORD_UPDATE_FAILED(1212, "密码更新失败"),
-    DATA_CANNOT_BE_EMPTY(1301, "数据不能为空");
+    DATA_CANNOT_BE_EMPTY(1301, "数据不能为空"),
+    ADMIN_OPERATION_FORBIDDEN(1302, "超级管理员用户禁止操作");
 
     private final int code;
 

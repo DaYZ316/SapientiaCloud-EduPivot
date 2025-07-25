@@ -12,7 +12,7 @@ public enum SysRoleEnum {
     ROLE_ID_CANNOT_BE_EMPTY(2002, "角色ID不能为空"),
     ROLE_NAME_CANNOT_BE_EMPTY(2004, "角色名称不能为空"),
     ROLE_KEY_CANNOT_BE_EMPTY(2005, "角色标识不能为空"),
-    ADMIN_OPERATION_FORBIDDEN(2006, "管理员角色禁止操作"),
+    ADMIN_OPERATION_FORBIDDEN(2006, "超级管理员角色禁止操作"),
     ASSIGN_PERMISSION_FAILED(2007, "分配角色权限失败"),
     ROLE_PERMISSION_DELETE_FAILED(2008, "删除角色权限失败");
 
