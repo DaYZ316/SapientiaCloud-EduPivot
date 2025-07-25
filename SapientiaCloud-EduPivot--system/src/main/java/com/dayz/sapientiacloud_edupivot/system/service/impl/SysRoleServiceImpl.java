@@ -1,19 +1,17 @@
 package com.dayz.sapientiacloud_edupivot.system.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.dayz.sapientiacloud_edupivot.system.common.enums.DeletedEnum;
+import com.dayz.sapientiacloud_edupivot.system.common.enums.StatusEnum;
+import com.dayz.sapientiacloud_edupivot.system.common.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysRoleAddDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysRoleDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysRoleQueryDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.po.SysRole;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysPermissionVO;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysRoleVO;
-import com.dayz.sapientiacloud_edupivot.system.common.enums.StatusEnum;
 import com.dayz.sapientiacloud_edupivot.system.enums.SysRoleEnum;
-import com.dayz.sapientiacloud_edupivot.system.common.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.system.mapper.SysRoleMapper;
 import com.dayz.sapientiacloud_edupivot.system.mapper.SysRolePermissionMapper;
-import com.dayz.sapientiacloud_edupivot.system.mapper.SysUserRoleMapper;
 import com.dayz.sapientiacloud_edupivot.system.service.ISysRoleService;
 import com.github.f4b6a3.uuid.UuidCreator;
 import com.github.pagehelper.PageHelper;
@@ -27,7 +25,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor

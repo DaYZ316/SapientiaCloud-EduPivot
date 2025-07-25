@@ -33,7 +33,7 @@ public class EnumLookupUtil {
 
         // 如果缓存中没有，则构建并放入缓存
         if (attributeMap == null) {
-            attributeMap = new HashMap<>(); // 先构建一个普通的HashMap
+            attributeMap = new HashMap<>();
             for (E enumValue : enumClass.getEnumConstants()) {
                 attributeMap.put(attributeGetter.apply(enumValue), enumValue);
             }

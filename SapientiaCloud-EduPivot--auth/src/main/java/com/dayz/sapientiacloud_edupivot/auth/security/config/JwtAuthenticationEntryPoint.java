@@ -2,7 +2,6 @@ package com.dayz.sapientiacloud_edupivot.auth.security.config;
 
 import com.alibaba.fastjson2.JSON;
 import com.dayz.sapientiacloud_edupivot.auth.result.Result;
-import com.dayz.sapientiacloud_edupivot.auth.result.ResultEnum;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

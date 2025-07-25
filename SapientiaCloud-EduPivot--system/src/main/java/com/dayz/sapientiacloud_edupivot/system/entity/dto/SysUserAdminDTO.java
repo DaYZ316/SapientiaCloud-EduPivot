@@ -1,12 +1,10 @@
 package com.dayz.sapientiacloud_edupivot.system.entity.dto;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.time.LocalDateTime;
 
 @Data
 @Schema(description = "系统用户数据传输对象")

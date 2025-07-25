@@ -6,7 +6,6 @@ import lombok.Data;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.UUID;
 
 @Data
 public class SysUserProfileDTO implements Serializable {
