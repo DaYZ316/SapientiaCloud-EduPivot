@@ -282,7 +282,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
         List<SysRoleVO> exitingRoles = sysRoleMapper.getRolesByIds(existingRoleIds);
         if (exitingRoles.stream().anyMatch(SysRoleVO::isAdmin)) {
-            throw new BusinessException(SysRoleEnum.ADMIN_OPERATION_FORBIDDEN.getMessage());
+            throw new BusinessException(SysUserEnum.ADMIN_OPERATION_FORBIDDEN.getMessage());
         }
 
         Set<UUID> newRoleSet = new HashSet<>(newRoleIds);

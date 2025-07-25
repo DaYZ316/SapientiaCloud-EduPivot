@@ -61,7 +61,7 @@ public class SysUserController extends BaseController {
             permission = PermissionConstants.USER_EDIT
     )
     @PutMapping
-    public Result<Boolean> updateUser(@Valid @RequestBody SysUserDTO sysUserDTO) {
+    public Result<Boolean> updateUser(@RequestBody SysUserDTO sysUserDTO) {
         return Result.success(sysUserService.updateUser(sysUserDTO));
     }
 
