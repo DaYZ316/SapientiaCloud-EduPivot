@@ -80,11 +80,11 @@ public class AuthServiceImpl implements AuthService {
         SysUserLoginVO loginVO = new SysUserLoginVO();
         loginVO.setAccessToken(token);
         BeanUtils.copyProperties(sysUserInternalVO, loginVO);
-        
+
         log.info("用户登录成功: 用户名: {}", sysUserInternalVO.getUsername());
         return loginVO;
     }
-    
+
     @Override
     public boolean validateToken(String token) {
         if (token == null || token.isEmpty()) {

@@ -36,8 +36,9 @@ public class FeignRequestAspect {
      * 定义切点，匹配内部接口
      */
     @Pointcut("@annotation(com.dayz.sapientiacloud_edupivot.system.common.security.annotation.HasPermission) && " +
-              "execution(* com.dayz.sapientiacloud_edupivot.system.feigns.*.*(..))")
-    public void feignRequestPointcut() {}
+            "execution(* com.dayz.sapientiacloud_edupivot.system.feigns.*.*(..))")
+    public void feignRequestPointcut() {
+    }
 
     /**
      * 前置通知，处理Feign请求
@@ -48,9 +49,9 @@ public class FeignRequestAspect {
         if (attributes == null) {
             return;
         }
-        
+
         HttpServletRequest request = attributes.getRequest();
-        
+
         // 检查是否是Feign请求
         String feignHeader = request.getHeader(FEIGN_REQUEST_HEADER);
         if (StringUtils.hasText(feignHeader) && "true".equals(feignHeader)) {
@@ -58,21 +59,21 @@ public class FeignRequestAspect {
             String userId = request.getHeader(X_USER_ID);
             String username = request.getHeader(X_USER_NAME);
             String rolesStr = request.getHeader(X_USER_ROLES);
-            
+
             if (StringUtils.hasText(userId) && StringUtils.hasText(username)) {
                 log.debug("从Feign请求头中获取用户信息: userId={}, username={}", userId, username);
-                
+
                 // 解析角色信息
                 List<String> roleKeys = new ArrayList<>();
                 if (StringUtils.hasText(rolesStr)) {
                     roleKeys = Arrays.asList(rolesStr.split(","));
                 }
-                
+
                 // 创建用户详情对象
                 Map<String, Object> userDetails = new HashMap<>();
                 userDetails.put("username", username);
                 userDetails.put("userId", userId);
-                
+
                 // 创建认证对象
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                         userDetails,
@@ -81,10 +82,10 @@ public class FeignRequestAspect {
                                 .map(SimpleGrantedAuthority::new)
                                 .collect(Collectors.toList())
                 );
-                
+
                 // 设置认证信息到安全上下文
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-                
+
                 log.debug("已设置Feign请求的用户认证信息到SecurityContext");
             }
         }

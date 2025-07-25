@@ -27,29 +27,29 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            // 禁用基本配置
-            .csrf(AbstractHttpConfigurer::disable)
-            .formLogin(AbstractHttpConfigurer::disable)
-            .httpBasic(AbstractHttpConfigurer::disable)
-            .logout(AbstractHttpConfigurer::disable)
-            // 使用无状态会话
-            .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            )
-            // 配置请求授权
-            .authorizeHttpRequests(authorize -> authorize
-                // 公开接口
-                .requestMatchers("/login", "/validate", "/register").permitAll()
-                // Swagger文档
-                .requestMatchers("/v3/api-docs/**", "/doc.html", "/webjars/**").permitAll()
-                // 需要认证的请求
-                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .anyRequest().authenticated()
-            )
-            // 设置未授权处理
-            .exceptionHandling(exception -> exception
-                .authenticationEntryPoint(jwtAuthenticationEntryPoint)
-            );
+                // 禁用基本配置
+                .csrf(AbstractHttpConfigurer::disable)
+                .formLogin(AbstractHttpConfigurer::disable)
+                .httpBasic(AbstractHttpConfigurer::disable)
+                .logout(AbstractHttpConfigurer::disable)
+                // 使用无状态会话
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+                // 配置请求授权
+                .authorizeHttpRequests(authorize -> authorize
+                        // 公开接口
+                        .requestMatchers("/login", "/validate", "/register").permitAll()
+                        // Swagger文档
+                        .requestMatchers("/v3/api-docs/**", "/doc.html", "/webjars/**").permitAll()
+                        // 需要认证的请求
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .anyRequest().authenticated()
+                )
+                // 设置未授权处理
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                );
 
         // 添加JWT过滤器
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

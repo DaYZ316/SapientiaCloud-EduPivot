@@ -23,11 +23,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class JwtUtil {
 
-    private final JwtConfig jwtConfig;
-
-    private final RedisTemplate<String, Object> redisTemplate;
-
     private static final String TOKEN_BLACKLIST_PREFIX = "jwt:blacklist:";
+    private final JwtConfig jwtConfig;
+    private final RedisTemplate<String, Object> redisTemplate;
 
     public DecodedJWT validateToken(String token) throws JWTVerificationException {
         if (isTokenInBlacklist(token)) {

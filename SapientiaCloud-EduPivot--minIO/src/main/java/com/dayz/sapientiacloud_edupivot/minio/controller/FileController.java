@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 
 /**
  * 文件上传控制器
+ *
  * @author LANDH
  */
 @Tag(name = "文件操作", description = "文件上传下载接口")
@@ -40,6 +41,7 @@ public class FileController {
 
     /**
      * 获取所有存储桶
+     *
      * @return 存储桶列表
      */
     @Operation(summary = "获取所有存储桶", description = "获取所有存储桶接口")
@@ -54,7 +56,8 @@ public class FileController {
 
     /**
      * 上传文件
-     * @param file 文件
+     *
+     * @param file      文件
      * @param directory 目录（可选）
      * @return 文件信息
      */
@@ -68,20 +71,20 @@ public class FileController {
             if (file == null || file.isEmpty()) {
                 return Result.fail(FileEnum.FILE_CANNOT_BE_EMPTY.getMessage());
             }
-            
+
             String objectName = null;
             if (directory != null && !directory.isEmpty()) {
                 // 确保目录以/结尾
                 directory = directory.endsWith("/") ? directory : directory + "/";
                 objectName = directory + file.getOriginalFilename();
             }
-            
+
             // 上传文件并获取对象名
             String uploadedObjectName = minIOUtil.uploadFile(file, objectName, null);
-            
+
             // 获取访问URL
             String url = minIOUtil.getPresignedObjectUrl(uploadedObjectName);
-            
+
             // 构建返回结果
             Map<String, String> fileInfo = new HashMap<>();
             fileInfo.put("fileName", file.getOriginalFilename());
@@ -89,7 +92,7 @@ public class FileController {
             fileInfo.put("fileSize", String.valueOf(file.getSize()));
             fileInfo.put("contentType", file.getContentType());
             fileInfo.put("url", url);
-            
+
             return Result.success(fileInfo);
         } catch (Exception e) {
             log.error("文件上传失败: {}", e.getMessage(), e);
@@ -99,8 +102,9 @@ public class FileController {
 
     /**
      * 获取文件URL
+     *
      * @param objectName 文件名称
-     * @param expiry 过期时间（秒），可选
+     * @param expiry     过期时间（秒），可选
      * @return 文件URL
      */
     @Operation(summary = "获取文件URL", description = "获取文件URL接口")
@@ -120,8 +124,9 @@ public class FileController {
 
     /**
      * 下载文件
+     *
      * @param objectName 对象名称
-     * @param response HTTP响应
+     * @param response   HTTP响应
      */
     @Operation(summary = "下载文件", description = "下载文件接口")
     @GetMapping("/download")
@@ -135,12 +140,12 @@ public class FileController {
             if (objectName.contains("/")) {
                 filename = objectName.substring(objectName.lastIndexOf("/") + 1);
             }
-            
+
             // 设置响应头
             response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
-            response.setHeader(HttpHeaders.CONTENT_DISPOSITION, 
+            response.setHeader(HttpHeaders.CONTENT_DISPOSITION,
                     "attachment; filename=" + URLEncoder.encode(filename, StandardCharsets.UTF_8));
-            
+
             // 获取并写入文件内容
             try (InputStream inputStream = minIOUtil.downloadFile(objectName)) {
                 IOUtils.copy(inputStream, response.getOutputStream());
@@ -158,6 +163,7 @@ public class FileController {
 
     /**
      * 删除文件
+     *
      * @param objectName 对象名称
      * @return 删除结果
      */
@@ -176,6 +182,7 @@ public class FileController {
 
     /**
      * 批量删除文件
+     *
      * @param objectNames 对象名称列表
      * @return 删除结果
      */
@@ -190,6 +197,7 @@ public class FileController {
 
     /**
      * 列出指定前缀的文件
+     *
      * @param prefix 前缀
      * @return 文件列表
      */

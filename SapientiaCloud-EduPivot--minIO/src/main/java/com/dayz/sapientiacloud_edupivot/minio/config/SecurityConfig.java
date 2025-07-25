@@ -12,6 +12,7 @@ import org.springframework.web.filter.CorsFilter;
 
 /**
  * 安全配置
+ *
  * @author LANDH
  */
 @Configuration
@@ -36,7 +37,7 @@ public class SecurityConfig {
                 }));
         return http.build();
     }
-    
+
     @Bean
     public CorsFilter corsFilter() {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

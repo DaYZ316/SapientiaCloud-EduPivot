@@ -25,17 +25,17 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException)
             throws IOException, ServletException {
-        
+
         // 设置响应状态码为401
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         // 设置内容类型
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         // 设置字符编码
         response.setCharacterEncoding("UTF-8");
-        
+
         // 创建错误响应
         Result<Void> result = Result.fail(UNAUTHORIZED);
-        
+
         // 写入响应
         PrintWriter writer = response.getWriter();
         writer.write(JSON.toJSONString(result));

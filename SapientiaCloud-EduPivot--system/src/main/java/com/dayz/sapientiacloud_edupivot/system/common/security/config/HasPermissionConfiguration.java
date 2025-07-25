@@ -16,7 +16,7 @@ import java.lang.reflect.Method;
  */
 @Configuration
 public class HasPermissionConfiguration {
-    
+
     /**
      * 创建HasPermission操作自定义处理器
      * 用于处理HasPermission注解的Operation元数据
@@ -25,7 +25,7 @@ public class HasPermissionConfiguration {
     public OperationCustomizer hasPermissionOperationCustomizer() {
         return new HasPermissionOperationCustomizer();
     }
-    
+
     /**
      * 创建HasPermission隐藏操作过滤器
      * 用于处理@HasPermission注解中的hidden属性
@@ -34,7 +34,7 @@ public class HasPermissionConfiguration {
     public OpenApiMethodFilter hasPermissionHiddenOperationFilter() {
         return new HasPermissionHiddenOperationFilter();
     }
-    
+
     /**
      * HasPermission注解的Operation自定义处理器
      * 用于处理HasPermission注解的Operation元数据
@@ -52,16 +52,16 @@ public class HasPermissionConfiguration {
             if (!hasPermission.summary().isEmpty()) {
                 operation.setSummary(hasPermission.summary());
             }
-            
+
             // 设置接口描述
             if (!hasPermission.description().isEmpty()) {
                 operation.setDescription(hasPermission.description());
             }
-            
+
             return operation;
         }
     }
-    
+
     /**
      * HasPermission注解的隐藏操作过滤器
      * 用于处理@HasPermission注解中的hidden属性

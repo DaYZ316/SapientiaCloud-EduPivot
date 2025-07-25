@@ -33,14 +33,14 @@ public class AuthController {
         SysUserLoginVO loginVO = authService.login(sysUserLoginDTO);
         return Result.success(loginVO);
     }
-    
+
     @GetMapping("/validate")
     @Operation(summary = "验证令牌", description = "验证JWT令牌是否有效")
     public Result<Boolean> validateToken(@RequestParam("token") String token) {
         boolean isValid = authService.validateToken(token);
         return Result.success(isValid);
     }
-    
+
     @PostMapping("/logout")
     @Operation(summary = "用户登出", description = "使当前JWT令牌失效")
     public Result<Boolean> logout(HttpServletRequest request) {

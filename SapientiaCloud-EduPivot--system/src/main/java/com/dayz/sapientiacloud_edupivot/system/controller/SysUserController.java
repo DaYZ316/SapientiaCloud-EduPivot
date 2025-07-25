@@ -31,9 +31,9 @@ public class SysUserController extends BaseController {
     private final ISysUserService sysUserService;
 
     @HasPermission(
-        summary = "分页查找用户",
-        description = "根据传入的条件分页查询用户信息。支持根据用户名、昵称等字段进行模糊查询。",
-        permission = PermissionConstants.USER_QUERY
+            summary = "分页查找用户",
+            description = "根据传入的条件分页查询用户信息。支持根据用户名、昵称等字段进行模糊查询。",
+            permission = PermissionConstants.USER_QUERY
     )
     @GetMapping("/list")
     public TableDataResult sysUserList(@ParameterObject SysUserQueryDTO sysUserQueryDTO) {
@@ -43,9 +43,9 @@ public class SysUserController extends BaseController {
     }
 
     @HasPermission(
-        summary = "根据ID获取用户", 
-        description = "通过用户的唯一ID获取其详细信息。", 
-        permission = PermissionConstants.USER_QUERY
+            summary = "根据ID获取用户",
+            description = "通过用户的唯一ID获取其详细信息。",
+            permission = PermissionConstants.USER_QUERY
     )
     @GetMapping("/{id}")
     public Result<SysUserVO> getUserById(
@@ -56,9 +56,9 @@ public class SysUserController extends BaseController {
     }
 
     @HasPermission(
-        summary = "更新现有用户", 
-        description = "修改现有用户的信息。", 
-        permission = PermissionConstants.USER_EDIT
+            summary = "更新现有用户",
+            description = "修改现有用户的信息。",
+            permission = PermissionConstants.USER_EDIT
     )
     @PutMapping
     public Result<Boolean> updateUser(@Valid @RequestBody SysUserDTO sysUserDTO) {
@@ -66,9 +66,9 @@ public class SysUserController extends BaseController {
     }
 
     @HasPermission(
-        summary = "删除用户", 
-        description = "根据用户ID从系统中移除用户。", 
-        permission = PermissionConstants.USER_DELETE
+            summary = "删除用户",
+            description = "根据用户ID从系统中移除用户。",
+            permission = PermissionConstants.USER_DELETE
     )
     @DeleteMapping("/{id}")
     public Result<Boolean> removeUser(
@@ -78,9 +78,9 @@ public class SysUserController extends BaseController {
     }
 
     @HasPermission(
-        summary = "批量删除用户", 
-        description = "根据用户ID列表批量删除用户。", 
-        permission = PermissionConstants.USER_DELETE
+            summary = "批量删除用户",
+            description = "根据用户ID列表批量删除用户。",
+            permission = PermissionConstants.USER_DELETE
     )
     @DeleteMapping
     public Result<Integer> removeUsers(
@@ -90,9 +90,9 @@ public class SysUserController extends BaseController {
     }
 
     @HasPermission(
-        summary = "分配用户角色", 
-        description = "为指定用户分配角色。", 
-        permission = PermissionConstants.USER_EDIT
+            summary = "分配用户角色",
+            description = "为指定用户分配角色。",
+            permission = PermissionConstants.USER_EDIT
     )
     @PostMapping("/{userId}/role")
     public Result<Boolean> assignRoles(

@@ -24,11 +24,9 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class JwtUtil {
 
-    private final JwtConfig jwtConfig;
-
-    private final RedisTemplate<String, Object> redisTemplate;
-
     private static final String TOKEN_BLACKLIST_PREFIX = "jwt:blacklist:";
+    private final JwtConfig jwtConfig;
+    private final RedisTemplate<String, Object> redisTemplate;
 
     public DecodedJWT validateToken(String token) throws JWTVerificationException {
         if (isTokenInBlacklist(token)) {
@@ -36,7 +34,7 @@ public class JwtUtil {
         }
 
         String actualToken = extractActualToken(token);
-        
+
         JWTVerifier verifier = JWT.require(Algorithm.HMAC256(jwtConfig.getSecret())).build();
         return verifier.verify(actualToken);
     }
@@ -84,7 +82,7 @@ public class JwtUtil {
         if (!StringUtils.hasText(token)) {
             return false;
         }
-        
+
         try {
             String actualToken = extractActualToken(token);
 
@@ -95,7 +93,7 @@ public class JwtUtil {
             String blacklistKey = TOKEN_BLACKLIST_PREFIX + actualToken;
             redisTemplate.opsForValue().set(blacklistKey, "invalidated", ttl, TimeUnit.MILLISECONDS);
             log.info("令牌已添加到Redis黑名单, 剩余有效期: {}ms", ttl);
-            
+
             return true;
         } catch (Exception e) {
             log.error("无法销毁令牌", e);
@@ -107,10 +105,10 @@ public class JwtUtil {
         if (!StringUtils.hasText(token)) {
             return false;
         }
-        
+
         // 提取实际的JWT令牌
         String actualToken = extractActualToken(token);
-        
+
         // 检查Redis黑名单
         String blacklistKey = TOKEN_BLACKLIST_PREFIX + actualToken;
         return Boolean.TRUE.equals(redisTemplate.hasKey(blacklistKey));

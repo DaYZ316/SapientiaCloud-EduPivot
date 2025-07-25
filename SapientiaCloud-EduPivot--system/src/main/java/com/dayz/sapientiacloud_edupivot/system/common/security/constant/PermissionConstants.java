@@ -21,7 +21,7 @@ public class PermissionConstants {
     public static final String PERMISSION_ADD = "system:permission:add";
     public static final String PERMISSION_EDIT = "system:permission:edit";
     public static final String PERMISSION_DELETE = "system:permission:delete";
-    
+
     private PermissionConstants() {
         // 禁止实例化
     }

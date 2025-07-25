@@ -25,9 +25,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private final AntPathMatcher pathMatcher = new AntPathMatcher();
-    private final JwtUtil jwtUtil;
-
     private static final String[] WHITELIST = {
             "/v3/api-docs/**",
             "/doc.html",
@@ -43,11 +40,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private static final String AUTHORIZATION_HEADER = "Authorization";
     private static final String BEARER_PREFIX = "Bearer ";
     private static final Integer TOKEN_PREFIX_LENGTH = BEARER_PREFIX.length();
-    
     // 网关传递的自定义请求头
     private static final String X_USER_ID = "X-User-Id";
     private static final String X_USER_NAME = "X-User-Name";
     private static final String X_USER_ROLES = "X-User-Roles";
+    private final AntPathMatcher pathMatcher = new AntPathMatcher();
+    private final JwtUtil jwtUtil;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -65,22 +63,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String userId = request.getHeader(X_USER_ID);
         String username = request.getHeader(X_USER_NAME);
         String rolesStr = request.getHeader(X_USER_ROLES);
-        
+
         if (StringUtils.hasText(userId) && StringUtils.hasText(username)) {
             // 从请求头中获取到用户信息，直接使用
             log.debug("从网关传递的自定义请求头中获取用户信息成功");
-            
+
             // 解析角色信息
             List<String> roleKeys = new ArrayList<>();
             if (StringUtils.hasText(rolesStr)) {
                 roleKeys = Arrays.asList(rolesStr.split(","));
             }
-            
+
             // 创建用户详情对象
             Map<String, Object> userDetails = new HashMap<>();
             userDetails.put(USERNAME_CLAIM, username);
             userDetails.put(USERID_CLAIM, userId);
-            
+
             // 创建认证对象
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                     userDetails,
@@ -89,10 +87,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                             .map(SimpleGrantedAuthority::new)
                             .collect(Collectors.toList())
             );
-            
+
             // 设置认证信息到安全上下文
             SecurityContextHolder.getContext().setAuthentication(authentication);
-            
+
             filterChain.doFilter(request, response);
             return;
         }
@@ -127,7 +125,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                         // 设置认证信息到安全上下文
                         SecurityContextHolder.getContext().setAuthentication(authentication);
-                        
+
                         log.debug("用户 {} (ID: {}) 已认证通过JWT令牌", username, userId);
                     }
                 }
@@ -139,7 +137,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             log.debug("请求未携带JWT令牌或自定义请求头: {}", requestURI);
             SecurityContextHolder.clearContext();
         }
-        
+
         filterChain.doFilter(request, response);
     }
 

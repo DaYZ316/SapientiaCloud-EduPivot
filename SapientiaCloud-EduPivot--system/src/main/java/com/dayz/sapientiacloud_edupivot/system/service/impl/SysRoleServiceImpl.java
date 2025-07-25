@@ -59,13 +59,13 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
         if (sysRole == null) {
             throw new BusinessException(SysRoleEnum.ROLE_NOT_FOUND.getMessage());
         }
-        
+
         SysRoleVO sysRoleVO = new SysRoleVO();
         BeanUtils.copyProperties(sysRole, sysRoleVO);
 
         List<SysPermissionVO> permissions = sysRolePermissionMapper.getRolePermissions(id);
         sysRoleVO.setPermissions(permissions);
-        
+
         return sysRoleVO;
     }
 

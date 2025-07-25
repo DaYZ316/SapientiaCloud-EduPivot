@@ -29,9 +29,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter implements WebFilter {
 
-    private final AntPathMatcher pathMatcher = new AntPathMatcher();
-    private final JwtUtil jwtUtil;
-
     private static final String[] WHITELIST = {
             "/api/auth/login",
             "/api/auth/validate",
@@ -41,23 +38,23 @@ public class JwtAuthenticationFilter implements WebFilter {
             "/doc.html",
             "/webjars/**"
     };
-    
     private static final String USERID_CLAIM = "userId";
     private static final String USERNAME_CLAIM = "username";
     private static final String ROLEKEYS_CLAIM = "roleKeys";
     private static final String AUTHORIZATION_HEADER = "Authorization";
     private static final String BEARER_PREFIX = "Bearer ";
-    
     // 自定义请求头
     private static final String X_USER_ID = "X-User-Id";
     private static final String X_USER_NAME = "X-User-Name";
     private static final String X_USER_ROLES = "X-User-Roles";
+    private final AntPathMatcher pathMatcher = new AntPathMatcher();
+    private final JwtUtil jwtUtil;
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
         String requestPath = request.getURI().getPath();
-        
+
         // 如果是白名单中的路径，直接放行
         if (isWhitelistPath(requestPath)) {
             return chain.filter(exchange);
@@ -82,10 +79,10 @@ public class JwtAuthenticationFilter implements WebFilter {
                         Map<String, Object> userDetails = new HashMap<>();
                         userDetails.put(USERNAME_CLAIM, username);
                         userDetails.put(USERID_CLAIM, userId);
-                        
+
                         // 获取原始的授权头
                         String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
-                        
+
                         // 添加用户信息到请求头，传递给下游服务
                         ServerHttpRequest mutatedRequest = request.mutate()
                                 .header(AUTHORIZATION_HEADER, authHeader)
@@ -93,12 +90,12 @@ public class JwtAuthenticationFilter implements WebFilter {
                                 .header(X_USER_NAME, username)
                                 .header(X_USER_ROLES, String.join(",", roleKeys))
                                 .build();
-                        
+
                         log.info("传递授权头到下游服务");
                         log.info("X_USER_ID: {}", userId);
                         log.info("X_USER_NAME: {}", username);
                         log.info("X_USER_ROLES: {}", String.join(",", roleKeys));
-                        
+
                         exchange = exchange.mutate().request(mutatedRequest).build();
 
                         // 创建认证对象并设置到上下文
