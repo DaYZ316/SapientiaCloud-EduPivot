@@ -14,6 +14,8 @@ public interface ISysUserService {
 
     PageInfo<SysUserVO> listSysUserPage(SysUserQueryDTO sysUserQueryDTO);
 
+    List<SysUserVO> listAllSysUser();
+
     SysUserVO getUserById(UUID id);
 
     Boolean updateUser(SysUserDTO sysUserDTO);

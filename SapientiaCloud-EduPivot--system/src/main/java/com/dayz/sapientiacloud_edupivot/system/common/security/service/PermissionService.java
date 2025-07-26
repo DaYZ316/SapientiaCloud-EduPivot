@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 public class PermissionService {
 
     private final SysUserPermissionMapper sysUserPermissionMapper;
-    
+
     /**
      * 用户权限缓存
      * key: 用户ID, value: 权限标识列表
@@ -30,6 +30,7 @@ public class PermissionService {
 
     /**
      * 验证用户是否有指定权限
+     *
      * @param permission 权限标识
      * @return 是否有权限
      */
@@ -38,19 +39,20 @@ public class PermissionService {
         if (UserContextUtil.isAdmin()) {
             return true;
         }
-        
+
         // 获取当前用户ID
         UUID userId = UserContextUtil.getCurrentUserId();
-        
+
         // 从缓存获取用户权限
         List<String> permissions = getUserPermissions(userId);
-        
+
         // 验证用户是否有指定权限
         return permissions.contains(permission);
     }
 
     /**
      * 验证用户是否有任一指定权限
+     *
      * @param permissions 权限标识列表
      * @return 是否有任一权限
      */
@@ -59,25 +61,26 @@ public class PermissionService {
         if (UserContextUtil.isAdmin()) {
             return true;
         }
-        
+
         // 获取当前用户ID
         UUID userId = UserContextUtil.getCurrentUserId();
-        
+
         // 从缓存获取用户权限
         List<String> userPermissions = getUserPermissions(userId);
-        
+
         // 验证用户是否有任一指定权限
         for (String permission : permissions) {
             if (userPermissions.contains(permission)) {
                 return true;
             }
         }
-        
+
         return false;
     }
-    
+
     /**
      * 验证用户是否有所有指定权限
+     *
      * @param permissions 权限标识列表
      * @return 是否有所有权限
      */
@@ -86,26 +89,27 @@ public class PermissionService {
         if (UserContextUtil.isAdmin()) {
             return true;
         }
-        
+
         // 获取当前用户ID
         UUID userId = UserContextUtil.getCurrentUserId();
-        
+
         // 从缓存获取用户权限
         List<String> userPermissions = getUserPermissions(userId);
-        
+
         // 验证用户是否有所有指定权限
         for (String permission : permissions) {
             if (!userPermissions.contains(permission)) {
                 return false;
             }
         }
-        
+
         return true;
     }
 
     /**
      * 获取用户权限列表
      * 首先尝试从缓存中获取，如果没有则从数据库获取并缓存
+     *
      * @param userId 用户ID
      * @return 权限标识列表
      */
@@ -115,33 +119,34 @@ public class PermissionService {
         if (permissions != null) {
             return permissions;
         }
-        
+
         // 从数据库获取用户权限
         List<SysPermissionVO> permissionVOS = sysUserPermissionMapper.getUserPermissions(userId);
         if (CollectionUtils.isEmpty(permissionVOS)) {
             return Collections.emptyList();
         }
-        
+
         // 提取权限标识
         permissions = permissionVOS.stream()
                 .map(SysPermissionVO::getPermissionKey)
                 .collect(Collectors.toList());
-        
+
         // 缓存用户权限
         userPermissionCache.put(userId, permissions);
-        
+
         return permissions;
     }
-    
+
     /**
      * 清除用户权限缓存
      * 当用户权限发生变更时，需要调用此方法清除缓存
+     *
      * @param userId 用户ID
      */
     public void clearUserPermissionCache(UUID userId) {
         userPermissionCache.remove(userId);
     }
-    
+
     /**
      * 清除所有用户权限缓存
      * 当权限体系发生变更时，需要调用此方法清除所有缓存

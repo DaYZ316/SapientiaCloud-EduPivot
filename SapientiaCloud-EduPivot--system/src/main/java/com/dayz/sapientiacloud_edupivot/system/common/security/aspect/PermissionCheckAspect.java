@@ -54,7 +54,7 @@ public class PermissionCheckAspect {
 
         // 获取当前用户ID
         UUID userId = UserContextUtil.getCurrentUserId();
-        
+
         // 获取用户所有权限
         List<SysPermissionVO> permissions = sysUserPermissionMapper.getUserPermissions(userId);
         List<String> permissionKeys = permissions.stream()

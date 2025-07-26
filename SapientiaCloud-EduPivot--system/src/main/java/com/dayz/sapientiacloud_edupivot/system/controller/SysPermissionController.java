@@ -34,10 +34,20 @@ public class SysPermissionController extends BaseController {
             permission = PermissionConstants.PERMISSION_QUERY
     )
     @GetMapping("/list")
-    public TableDataResult sysPermissionList(@ParameterObject SysPermissionQueryDTO sysPermissionQueryDTO) {
+    public TableDataResult listSysPermission(@ParameterObject SysPermissionQueryDTO sysPermissionQueryDTO) {
         startPage();
         PageInfo<SysPermissionVO> pageInfo = sysPermissionService.listSysPermission(sysPermissionQueryDTO);
         return getDataTable(pageInfo.getList());
+    }
+
+    @HasPermission(
+            summary = "查询权限树",
+            description = "查询权限树结构。",
+            permission = PermissionConstants.PERMISSION_QUERY
+    )
+    @GetMapping("/tree")
+    public Result<List<SysPermissionVO>> listSysPermissionTree() {
+        return Result.success(sysPermissionService.listSysPermissionTree());
     }
 
     @HasPermission(

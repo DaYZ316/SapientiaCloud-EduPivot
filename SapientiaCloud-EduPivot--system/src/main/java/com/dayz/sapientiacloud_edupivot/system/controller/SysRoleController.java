@@ -34,10 +34,21 @@ public class SysRoleController extends BaseController {
             permission = PermissionConstants.ROLE_QUERY
     )
     @GetMapping("/list")
-    public TableDataResult sysRoleList(@ParameterObject SysRoleQueryDTO sysRoleQueryDTO) {
+    public TableDataResult listSysRole(@ParameterObject SysRoleQueryDTO sysRoleQueryDTO) {
         startPage();
         PageInfo<SysRoleVO> pageInfo = sysRoleService.listSysRole(sysRoleQueryDTO);
         return getDataTable(pageInfo.getList());
+    }
+
+    @HasPermission(
+            summary = "获取所有角色",
+            description = "获取系统中所有的角色信息。",
+            permission = PermissionConstants.ROLE_QUERY
+    )
+    @GetMapping("/all")
+    public Result<List<SysRoleVO>> listAllSysRole() {
+        List<SysRoleVO> sysRoleVOList = sysRoleService.listAllSysRole();
+        return Result.success(sysRoleVOList);
     }
 
     @HasPermission(

@@ -36,10 +36,21 @@ public class SysUserController extends BaseController {
             permission = PermissionConstants.USER_QUERY
     )
     @GetMapping("/list")
-    public TableDataResult sysUserList(@ParameterObject SysUserQueryDTO sysUserQueryDTO) {
+    public TableDataResult listSysUser(@ParameterObject SysUserQueryDTO sysUserQueryDTO) {
         startPage();
         PageInfo<SysUserVO> pageInfo = sysUserService.listSysUserPage(sysUserQueryDTO);
         return getDataTable(pageInfo.getList());
+    }
+
+    @HasPermission(
+            summary = "获取所有用户",
+            description = "获取所有用户列表。",
+            permission = PermissionConstants.USER_QUERY
+    )
+    @GetMapping("/all")
+    public Result<List<SysUserVO>> listAllSysUser() {
+        List<SysUserVO> sysUserVOList = sysUserService.listAllSysUser();
+        return Result.success(sysUserVOList);
     }
 
     @HasPermission(

@@ -15,6 +15,8 @@ public interface ISysPermissionService extends IService<SysPermission> {
 
     PageInfo<SysPermissionVO> listSysPermission(SysPermissionQueryDTO sysPermissionQueryDTO);
 
+    List<SysPermissionVO> listSysPermissionTree();
+
     SysPermission getPermissionById(UUID id);
 
     Boolean addPermission(SysPermissionAddDTO sysPermissionDTO);
@@ -24,4 +26,4 @@ public interface ISysPermissionService extends IService<SysPermission> {
     Boolean removePermissionById(UUID id);
 
     Integer removePermissionByIds(List<UUID> ids);
-} 
+}

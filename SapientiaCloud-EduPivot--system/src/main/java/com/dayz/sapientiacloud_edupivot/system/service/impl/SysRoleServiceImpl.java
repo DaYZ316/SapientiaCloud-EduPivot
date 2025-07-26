@@ -1,5 +1,6 @@
 package com.dayz.sapientiacloud_edupivot.system.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dayz.sapientiacloud_edupivot.system.common.enums.StatusEnum;
 import com.dayz.sapientiacloud_edupivot.system.common.exception.BusinessException;
@@ -47,6 +48,21 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
 
         return PageHelper.startPage(sysRoleQueryDTO.getPageNum(), sysRoleQueryDTO.getPageSize())
                 .doSelectPageInfo(() -> sysRoleMapper.listSysRole(sysRoleQueryDTO));
+    }
+
+    @Override
+    public List<SysRoleVO> listAllSysRole() {
+        LambdaQueryWrapper<SysRole> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.orderByAsc(SysRole::getSort);
+
+        List<SysRole> sysRoleList = this.list(queryWrapper);
+
+        return sysRoleList.stream().map(sysRole -> {
+            SysRoleVO sysRoleVO = new SysRoleVO();
+            BeanUtils.copyProperties(sysRole, sysRoleVO);
+
+            return sysRoleVO;
+        }).toList();
     }
 
     @Override

@@ -1,13 +1,14 @@
 package com.dayz.sapientiacloud_edupivot.system.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.dayz.sapientiacloud_edupivot.system.common.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysPermissionAddDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysPermissionDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysPermissionQueryDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.po.SysPermission;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysPermissionVO;
 import com.dayz.sapientiacloud_edupivot.system.enums.SysPermissionEnum;
-import com.dayz.sapientiacloud_edupivot.system.common.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.system.mapper.SysPermissionMapper;
 import com.dayz.sapientiacloud_edupivot.system.service.ISysPermissionService;
 import com.github.f4b6a3.uuid.UuidCreator;
@@ -22,8 +23,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -39,6 +43,23 @@ public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, S
 
         return PageHelper.startPage(sysPermissionQueryDTO.getPageNum(), sysPermissionQueryDTO.getPageSize())
                 .doSelectPageInfo(() -> sysPermissionMapper.listSysPermission(sysPermissionQueryDTO));
+    }
+
+    @Override
+    public List<SysPermissionVO> listSysPermissionTree() {
+        LambdaQueryWrapper<SysPermission> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.orderByAsc(SysPermission::getSort);
+
+        List<SysPermission> sysPermissionList = this.list(queryWrapper);
+
+        List<SysPermissionVO> sysPermissionVOList = sysPermissionList.stream().map(sysPermission -> {
+            SysPermissionVO sysPermissionVO = new SysPermissionVO();
+            BeanUtils.copyProperties(sysPermission, sysPermissionVO);
+
+            return sysPermissionVO;
+        }).toList();
+
+        return buildPermissionTree(sysPermissionVOList);
     }
 
     @Override
@@ -131,5 +152,28 @@ public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, S
         });
 
         return this.removeByIds(ids) ? ids.size() : 0;
+    }
+
+    private List<SysPermissionVO> buildPermissionTree(List<SysPermissionVO> sysPermissionVOList) {
+        List<SysPermissionVO> rootNodes = new ArrayList<>();
+
+        Map<UUID, SysPermissionVO> permissionMap = sysPermissionVOList.stream()
+                .collect(Collectors.toMap(SysPermissionVO::getId, sysPermissionVO -> sysPermissionVO));
+
+        for (SysPermissionVO sysPermissionVO : sysPermissionVOList) {
+            if (sysPermissionVO.getParentId() == null || !permissionMap.containsKey(sysPermissionVO.getParentId())) {
+                rootNodes.add(sysPermissionVO);
+            } else {
+                SysPermissionVO parent = permissionMap.get(sysPermissionVO.getParentId());
+                if (parent != null) {
+                    if (parent.getChildren() == null) {
+                        parent.setChildren(new ArrayList<>());
+                    }
+
+                    parent.getChildren().add(sysPermissionVO);
+                }
+            }
+        }
+        return rootNodes;
     }
 } 

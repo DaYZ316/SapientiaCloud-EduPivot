@@ -15,6 +15,8 @@ public interface ISysRoleService extends IService<SysRole> {
 
     PageInfo<SysRoleVO> listSysRole(SysRoleQueryDTO sysRoleQueryDTO);
 
+    List<SysRoleVO> listAllSysRole();
+
     SysRoleVO getRoleById(UUID id);
 
     Boolean addRole(SysRoleAddDTO sysRole);
