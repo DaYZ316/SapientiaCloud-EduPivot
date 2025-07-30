@@ -29,11 +29,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "/v3/api-docs/**",
             "/doc.html",
             "/webjars/**",
-            // 常见的通过网关转发后可能的路径形式
-            "/api/system/v3/api-docs/**",
-            // 内部接口白名单
-            "/user/internal/**"
-            // 测试端点已移除，让过滤器处理它们
     };
     private static final String USERID_CLAIM = "userId";
     private static final String USERNAME_CLAIM = "username";

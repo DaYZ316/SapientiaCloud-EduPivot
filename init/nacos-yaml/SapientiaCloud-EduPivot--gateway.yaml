@@ -20,6 +20,12 @@ spring:
             - Path=/api/minIO/**
           filters:
             - StripPrefix=2
+        - id: SapientiaCloud-EduPivot--course
+          uri: lb://SapientiaCloud-EduPivot--course
+          predicates:
+            - Path=/api/course/**
+          filters:
+            - StripPrefix=2
 
   data:
     redis:

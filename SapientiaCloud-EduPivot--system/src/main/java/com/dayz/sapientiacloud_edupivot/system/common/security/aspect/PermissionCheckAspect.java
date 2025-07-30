@@ -3,9 +3,9 @@ package com.dayz.sapientiacloud_edupivot.system.common.security.aspect;
 import com.dayz.sapientiacloud_edupivot.system.common.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.system.common.result.ResultEnum;
 import com.dayz.sapientiacloud_edupivot.system.common.security.annotation.HasPermission;
+import com.dayz.sapientiacloud_edupivot.system.common.security.mapper.SysUserPermissionMapper;
 import com.dayz.sapientiacloud_edupivot.system.common.security.utils.UserContextUtil;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysPermissionVO;
-import com.dayz.sapientiacloud_edupivot.system.mapper.SysUserPermissionMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
@@ -18,7 +18,6 @@ import org.springframework.util.StringUtils;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 /**
  * 权限检查切面
@@ -59,7 +58,7 @@ public class PermissionCheckAspect {
         List<SysPermissionVO> permissions = sysUserPermissionMapper.getUserPermissions(userId);
         List<String> permissionKeys = permissions.stream()
                 .map(SysPermissionVO::getPermissionKey)
-                .collect(Collectors.toList());
+                .toList();
 
         // 检查是否有所需权限
         if (!permissionKeys.contains(hasPermission.permission())) {

@@ -5,7 +5,7 @@ pagehelper:
   params: count=countSql
 
 mybatis-plus:
-  type-aliases-package: com.dayz.sapientiacloudedupivot.system.entity
+  type-aliases-package: com.dayz.sapientiacloud_edupivot.system.entity
   mapper-locations: classpath:mapper/**/*.xml
   configuration:
     cache-enabled: false
