@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dayz.sapientiacloud_edupivot.system.common.enums.StatusEnum;
 import com.dayz.sapientiacloud_edupivot.system.common.exception.BusinessException;
-import com.dayz.sapientiacloud_edupivot.system.common.security.service.PermissionService;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysRoleAddDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysRoleDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysRoleQueryDTO;
@@ -14,6 +13,7 @@ import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysRoleVO;
 import com.dayz.sapientiacloud_edupivot.system.enums.SysRoleEnum;
 import com.dayz.sapientiacloud_edupivot.system.mapper.SysRoleMapper;
 import com.dayz.sapientiacloud_edupivot.system.mapper.SysRolePermissionMapper;
+import com.dayz.sapientiacloud_edupivot.system.mapper.SysUserRoleMapper;
 import com.dayz.sapientiacloud_edupivot.system.service.ISysRoleService;
 import com.github.f4b6a3.uuid.UuidCreator;
 import com.github.pagehelper.PageHelper;
@@ -22,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -38,7 +39,7 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
 
     private final SysRoleMapper sysRoleMapper;
     private final SysRolePermissionMapper sysRolePermissionMapper;
-    private final PermissionService permissionService;
+    private final SysUserRoleMapper sysUserRoleMapper;
 
     @Override
     public PageInfo<SysRoleVO> listSysRole(SysRoleQueryDTO sysRoleQueryDTO) {
@@ -114,7 +115,10 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    @CacheEvict(value = "SysRole", key = "#p0.id", condition = "#p0.id != null")
+    @Caching(evict = {
+            @CacheEvict(value = "SysRole", key = "#p0.id", condition = "#p0.id != null"),
+            @CacheEvict(value = "SysUser", allEntries = true)
+    })
     public Boolean updateRole(SysRoleDTO sysRoleDTO) {
         if (sysRoleDTO == null || sysRoleDTO.getId() == null) {
             throw new BusinessException(SysRoleEnum.ROLE_NOT_FOUND.getMessage());
@@ -136,7 +140,11 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    @CacheEvict(value = "SysRole", key = "#p0", condition = "#p0 != null")
+    @Caching(evict = {
+            @CacheEvict(value = "SysRole", key = "#p0", condition = "#p0 != null"),
+            @CacheEvict(value = "SysUser", allEntries = true)
+    })
+
     public Boolean removeRoleById(UUID id) {
         if (id == null) {
             throw new BusinessException(SysRoleEnum.ROLE_NOT_FOUND.getMessage());
@@ -150,14 +158,21 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
             throw new BusinessException(SysRoleEnum.ADMIN_OPERATION_FORBIDDEN.getMessage());
         }
 
-        sysRolePermissionMapper.removePermissionsByRoleId(id);
+        boolean removed = this.removeById(id);
+        if (Boolean.TRUE.equals(removed)) {
+            sysUserRoleMapper.removeUserRolesByRoleId(id);
+            sysRolePermissionMapper.removePermissionsByRoleId(id);
+        }
 
-        return this.removeById(id);
+        return removed;
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    @CacheEvict(value = "SysRole", allEntries = true)
+    @Caching(evict = {
+            @CacheEvict(value = "SysRole", allEntries = true),
+            @CacheEvict(value = "SysUser", allEntries = true)
+    })
     public Integer removeRoleByIds(List<UUID> ids) {
         if (ids == null || ids.isEmpty()) {
             throw new BusinessException(SysRoleEnum.ROLE_NOT_FOUND.getMessage());
@@ -173,14 +188,21 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
             }
         });
 
-        sysRolePermissionMapper.removePermissionsByRoleIds(ids);
+        int count = this.removeByIds(ids) ? ids.size() : 0;
+        if (count > 0) {
+            sysUserRoleMapper.removeRolesByRoleIds(ids);
+            sysRolePermissionMapper.removePermissionsByRoleIds(ids);
+        }
 
-        return this.removeByIds(ids) ? ids.size() : 0;
+        return count;
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    @CacheEvict(value = "SysRole", key = "#p0", condition = "#p0 != null")
+    @Caching(evict = {
+            @CacheEvict(value = "SysRole", key = "#p0", condition = "#p0 != null"),
+            @CacheEvict(value = "SysUser", allEntries = true)
+    })
     public Boolean assignRolePermissions(UUID roleId, List<UUID> newPermissionIds) {
         if (roleId == null || this.getById(roleId) == null) {
             throw new BusinessException(SysRoleEnum.ROLE_NOT_FOUND.getMessage());
@@ -211,9 +233,6 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
                 throw new BusinessException(SysRoleEnum.ASSIGN_PERMISSION_FAILED.getMessage());
             }
         }
-
-        // 清除所有权限缓存，因为角色权限变更会影响所有拥有该角色的用户的权限
-        permissionService.clearAllPermissionCache();
 
         return true;
     }

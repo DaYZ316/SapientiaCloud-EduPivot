@@ -36,4 +36,11 @@
         </foreach>
     </delete>
 
+    <delete id="removePermissionsByIds">
+        delete from sys_role_permission where permission_id in
+        <foreach item="permissionId" collection="ids" separator="," open="(" close=")">
+            #{permissionId}
+        </foreach>
+    </delete>
+
 </mapper>

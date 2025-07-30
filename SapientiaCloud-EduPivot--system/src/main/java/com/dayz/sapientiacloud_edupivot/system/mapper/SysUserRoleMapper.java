@@ -28,4 +28,9 @@ public interface SysUserRoleMapper {
     boolean removeRolesByUserIds(@Param("userIds") List<UUID> userIds);
 
     List<SysRole> getRolesByUserIds(@Param("userIds") List<UUID> userIds);
+
+    @Delete("DELETE FROM sys_user_role WHERE role_id = #{id}")
+    int removeUserRolesByRoleId(UUID id);
+
+    int removeRolesByRoleIds(List<UUID> ids);
 }

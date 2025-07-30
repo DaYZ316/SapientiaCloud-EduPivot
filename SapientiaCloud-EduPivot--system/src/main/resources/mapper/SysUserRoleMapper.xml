@@ -48,4 +48,11 @@
         </foreach>
     </select>
 
+    <delete id="removeRolesByRoleIds">
+        delete from sys_user_role where role_id in
+        <foreach item="roleId" collection="roleIds" separator="," open="(" close=")">
+            #{roleId}
+        </foreach>
+    </delete>
+
 </mapper>

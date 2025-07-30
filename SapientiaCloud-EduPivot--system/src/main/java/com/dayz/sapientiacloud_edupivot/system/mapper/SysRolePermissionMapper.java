@@ -25,4 +25,9 @@ public interface SysRolePermissionMapper {
     boolean removePermissionsByRoleId(UUID id);
 
     boolean removePermissionsByRoleIds(@Param("roleIds") List<UUID> roleIds);
+
+    @Delete("DELETE FROM sys_role_permission WHERE permission_id = #{id}")
+    int removePermissionsById(UUID id);
+
+    int removePermissionsByIds(List<UUID> ids);
 }

@@ -10,6 +10,7 @@ import com.dayz.sapientiacloud_edupivot.system.entity.po.SysPermission;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysPermissionVO;
 import com.dayz.sapientiacloud_edupivot.system.enums.SysPermissionEnum;
 import com.dayz.sapientiacloud_edupivot.system.mapper.SysPermissionMapper;
+import com.dayz.sapientiacloud_edupivot.system.mapper.SysRolePermissionMapper;
 import com.dayz.sapientiacloud_edupivot.system.service.ISysPermissionService;
 import com.github.f4b6a3.uuid.UuidCreator;
 import com.github.pagehelper.PageHelper;
@@ -18,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -34,6 +36,7 @@ import java.util.stream.Collectors;
 public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, SysPermission> implements ISysPermissionService {
 
     private final SysPermissionMapper sysPermissionMapper;
+    private final SysRolePermissionMapper sysRolePermissionMapper;
 
     @Override
     public PageInfo<SysPermissionVO> listSysPermission(SysPermissionQueryDTO sysPermissionQueryDTO) {
@@ -123,7 +126,10 @@ public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, S
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    @CacheEvict(value = "SysPermission", key = "#p0", condition = "#p0 != null")
+    @Caching(evict = {
+            @CacheEvict(value = "SysPermission", key = "#p0", condition = "#p0 != null"),
+            @CacheEvict(value = "SysRole", allEntries = true)
+    })
     public Boolean removePermissionById(UUID id) {
         if (id == null) {
             throw new BusinessException(SysPermissionEnum.PERMISSION_NOT_FOUND.getMessage());
@@ -133,12 +139,20 @@ public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, S
         if (sysPermission == null) {
             throw new BusinessException(SysPermissionEnum.PERMISSION_NOT_FOUND.getMessage());
         }
-        return this.removeById(id);
+
+        boolean removed = this.removeById(id);
+        if (Boolean.TRUE.equals(removed)) {
+            sysRolePermissionMapper.removePermissionsById(id);
+        }
+        return removed;
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    @CacheEvict(value = "SysPermission", allEntries = true)
+    @Caching(evict = {
+            @CacheEvict(value = "SysPermission", allEntries = true),
+            @CacheEvict(value = "SysRole", allEntries = true)
+    })
     public Integer removePermissionByIds(List<UUID> ids) {
         if (ids == null || ids.isEmpty()) {
             throw new BusinessException(SysPermissionEnum.PERMISSION_NOT_FOUND.getMessage());
@@ -151,7 +165,12 @@ public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, S
             }
         });
 
-        return this.removeByIds(ids) ? ids.size() : 0;
+        int count = this.removeByIds(ids) ? ids.size() : 0;
+        if (count > 0) {
+            sysRolePermissionMapper.removePermissionsByIds(ids);
+        }
+
+        return count;
     }
 
     private List<SysPermissionVO> buildPermissionTree(List<SysPermissionVO> sysPermissionVOList) {
