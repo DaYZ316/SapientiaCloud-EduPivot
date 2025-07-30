@@ -1,4 +1,4 @@
-package com.dayz.sapientiacloud_edupivot.system.common.security.mapper;
+package com.dayz.sapientiacloud_edupivot.system.mapper;
 
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysPermissionVO;
 import org.apache.ibatis.annotations.Mapper;

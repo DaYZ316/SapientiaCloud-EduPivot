@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dayz.sapientiacloud_edupivot.system.common.enums.DeletedEnum;
 import com.dayz.sapientiacloud_edupivot.system.common.enums.StatusEnum;
 import com.dayz.sapientiacloud_edupivot.system.common.exception.BusinessException;
-import com.dayz.sapientiacloud_edupivot.system.common.security.mapper.SysUserPermissionMapper;
+import com.dayz.sapientiacloud_edupivot.system.mapper.SysUserPermissionMapper;
 import com.dayz.sapientiacloud_edupivot.system.common.security.service.PermissionService;
 import com.dayz.sapientiacloud_edupivot.system.common.security.utils.JwtUtil;
 import com.dayz.sapientiacloud_edupivot.system.common.security.utils.UserContextUtil;

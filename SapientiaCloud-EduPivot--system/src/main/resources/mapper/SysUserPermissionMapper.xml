@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.dayz.sapientiacloud_edupivot.course.common.security.mapper.SysUserPermissionMapper">
+<mapper namespace="com.dayz.sapientiacloud_edupivot.system.mapper.SysUserPermissionMapper">
 
     <select id="getUserPermissions"
             resultType="com.dayz.sapientiacloud_edupivot.system.entity.vo.SysPermissionVO">

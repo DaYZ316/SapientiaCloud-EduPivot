@@ -1,6 +1,6 @@
 package com.dayz.sapientiacloud_edupivot.system.common.security.service;
 
-import com.dayz.sapientiacloud_edupivot.system.common.security.mapper.SysUserPermissionMapper;
+import com.dayz.sapientiacloud_edupivot.system.mapper.SysUserPermissionMapper;
 import com.dayz.sapientiacloud_edupivot.system.common.security.utils.UserContextUtil;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysPermissionVO;
 import lombok.RequiredArgsConstructor;
