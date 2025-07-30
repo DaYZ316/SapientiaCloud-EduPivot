@@ -44,4 +44,46 @@
         </if>
     </select>
 
+    <update id="removeChildrenById" parameterType="java.util.UUID">
+        WITH RECURSIVE permission_children AS (
+            SELECT id, parent_id, permission_name, permission_key
+            FROM sys_permission
+            WHERE parent_id = #{id} AND is_deleted = 0
+
+            UNION ALL
+
+            SELECT p.id, p.parent_id, p.permission_name, p.permission_key
+            FROM sys_permission p
+                     INNER JOIN permission_children pc ON p.parent_id = pc.id
+            WHERE p.is_deleted = 0
+        )
+        UPDATE sys_permission
+        SET is_deleted = 1,
+            update_time = CURRENT_TIMESTAMP
+        WHERE id IN (SELECT id FROM permission_children)
+    </update>
+
+    <update id="removeChildrenByIds" parameterType="java.util.List">
+        WITH RECURSIVE permission_children AS (
+        SELECT id, parent_id, permission_name, permission_key
+        FROM sys_permission
+        WHERE parent_id IN
+        <foreach collection="list" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+        AND is_deleted = 0
+
+        UNION ALL
+
+        SELECT p.id, p.parent_id, p.permission_name, p.permission_key
+        FROM sys_permission p
+        INNER JOIN permission_children pc ON p.parent_id = pc.id
+        WHERE p.is_deleted = 0
+        )
+        UPDATE sys_permission
+        SET is_deleted = 1,
+        update_time = CURRENT_TIMESTAMP
+        WHERE id IN (SELECT id FROM permission_children)
+    </update>
+
 </mapper> 

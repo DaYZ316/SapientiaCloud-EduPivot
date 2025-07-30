@@ -143,6 +143,7 @@ public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, S
         boolean removed = this.removeById(id);
         if (Boolean.TRUE.equals(removed)) {
             sysRolePermissionMapper.removePermissionsById(id);
+            sysPermissionMapper.removeChildrenById(id);
         }
         return removed;
     }
@@ -168,6 +169,7 @@ public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, S
         int count = this.removeByIds(ids) ? ids.size() : 0;
         if (count > 0) {
             sysRolePermissionMapper.removePermissionsByIds(ids);
+            sysPermissionMapper.removeChildrenByIds(ids);
         }
 
         return count;

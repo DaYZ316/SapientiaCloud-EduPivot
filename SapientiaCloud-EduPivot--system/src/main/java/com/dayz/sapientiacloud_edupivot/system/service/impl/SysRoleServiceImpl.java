@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dayz.sapientiacloud_edupivot.system.common.enums.StatusEnum;
 import com.dayz.sapientiacloud_edupivot.system.common.exception.BusinessException;
+import com.dayz.sapientiacloud_edupivot.system.common.security.service.PermissionService;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysRoleAddDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysRoleDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysRoleQueryDTO;
@@ -40,6 +41,7 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
     private final SysRoleMapper sysRoleMapper;
     private final SysRolePermissionMapper sysRolePermissionMapper;
     private final SysUserRoleMapper sysUserRoleMapper;
+    private final PermissionService permissionService;
 
     @Override
     public PageInfo<SysRoleVO> listSysRole(SysRoleQueryDTO sysRoleQueryDTO) {
@@ -233,6 +235,9 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
                 throw new BusinessException(SysRoleEnum.ASSIGN_PERMISSION_FAILED.getMessage());
             }
         }
+
+        // 清除所有权限缓存，因为角色权限变更会影响所有拥有该角色的用户的权限
+        permissionService.clearAllPermissionCache();
 
         return true;
     }

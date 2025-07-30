@@ -7,9 +7,14 @@ import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysPermissionVO;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
+import java.util.UUID;
 
 @Mapper
 public interface SysPermissionMapper extends BaseMapper<SysPermission> {
 
     List<SysPermissionVO> listSysPermission(SysPermissionQueryDTO sysPermissionQueryDTO);
-} 
+
+    int removeChildrenById(UUID id);
+
+    int removeChildrenByIds(List<UUID> ids);
+}

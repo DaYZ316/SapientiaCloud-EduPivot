@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dayz.sapientiacloud_edupivot.system.common.enums.DeletedEnum;
 import com.dayz.sapientiacloud_edupivot.system.common.enums.StatusEnum;
 import com.dayz.sapientiacloud_edupivot.system.common.exception.BusinessException;
+import com.dayz.sapientiacloud_edupivot.system.common.security.service.PermissionService;
 import com.dayz.sapientiacloud_edupivot.system.common.security.utils.JwtUtil;
 import com.dayz.sapientiacloud_edupivot.system.common.security.utils.UserContextUtil;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.*;
@@ -61,6 +62,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     private final SysUserPermissionMapper sysUserPermissionMapper;
     private final JwtUtil jwtUtil;
     private final SysRoleMapper sysRoleMapper;
+    private final PermissionService permissionService;
 
     @Override
     public PageInfo<SysUserVO> listSysUserPage(SysUserQueryDTO sysUserQueryDTO) {
@@ -180,8 +182,12 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             }
         });
 
-        sysUserRoleMapper.removeRolesByUserId(id);
-        return this.removeById(id);
+        boolean removed = this.removeById(id);
+        if (Boolean.TRUE.equals(removed)) {
+            sysUserRoleMapper.removeRolesByUserId(id);
+        }
+
+        return removed;
     }
 
     @Override
@@ -206,8 +212,12 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             }
         });
 
-        sysUserRoleMapper.removeRolesByUserIds(ids);
-        return this.removeByIds(ids) ? ids.size() : 0;
+        int count = this.removeByIds(ids) ? ids.size() : 0;
+        if (count > 0) {
+            sysUserRoleMapper.removeRolesByUserIds(ids);
+        }
+
+        return count;
     }
 
     @Override
@@ -322,6 +332,9 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
                 throw new BusinessException(SysUserEnum.ASSIGN_ROLE_FAILED.getMessage());
             }
         }
+
+        // 在角色分配完成后，清除该用户的权限缓存
+        permissionService.clearUserPermissionCache(userId);
 
         return true;
     }
