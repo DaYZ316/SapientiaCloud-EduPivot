@@ -16,6 +16,8 @@
         <module>SapientiaCloud-EduPivot--system</module>
         <module>SapientiaCloud-EduPivot--gateway</module>
         <module>SapientiaCloud-EduPivot--minIO</module>
+        <module>SapientiaCloud-EduPivot--teacher</module>
+        <module>SapientiaCloud-EduPivot--student</module>
         <module>SapientiaCloud-EduPivot--course</module>
     </modules>
 

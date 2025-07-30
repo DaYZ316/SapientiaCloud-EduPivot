@@ -1,10 +1,10 @@
 package com.dayz.sapientiacloud_edupivot.system.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dayz.sapientiacloud_edupivot.system.common.enums.DeletedEnum;
 import com.dayz.sapientiacloud_edupivot.system.common.enums.StatusEnum;
 import com.dayz.sapientiacloud_edupivot.system.common.exception.BusinessException;
-import com.dayz.sapientiacloud_edupivot.system.mapper.SysUserPermissionMapper;
 import com.dayz.sapientiacloud_edupivot.system.common.security.service.PermissionService;
 import com.dayz.sapientiacloud_edupivot.system.common.security.utils.JwtUtil;
 import com.dayz.sapientiacloud_edupivot.system.common.security.utils.UserContextUtil;
@@ -20,6 +20,7 @@ import com.dayz.sapientiacloud_edupivot.system.enums.SysRoleEnum;
 import com.dayz.sapientiacloud_edupivot.system.enums.SysUserEnum;
 import com.dayz.sapientiacloud_edupivot.system.mapper.SysRoleMapper;
 import com.dayz.sapientiacloud_edupivot.system.mapper.SysUserMapper;
+import com.dayz.sapientiacloud_edupivot.system.mapper.SysUserPermissionMapper;
 import com.dayz.sapientiacloud_edupivot.system.mapper.SysUserRoleMapper;
 import com.dayz.sapientiacloud_edupivot.system.service.ISysUserService;
 import com.github.f4b6a3.uuid.UuidCreator;
@@ -76,7 +77,10 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
     @Override
     public List<SysUserVO> listAllSysUser() {
-        List<SysUser> sysUserList = this.list();
+        LambdaQueryWrapper<SysUser> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.orderByDesc(SysUser::getCreateTime);
+
+        List<SysUser> sysUserList = this.list(queryWrapper);
 
         return sysUserList.stream().map(sysUser -> {
             SysUserVO sysUserVO = new SysUserVO();
@@ -120,6 +124,10 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
         SysUser sysUser = checkSysUserInfo(sysUserRegisterDTO);
         sysUser.setId(UuidCreator.getTimeOrderedEpoch());
+
+        if (!StringUtils.hasText(sysUserRegisterDTO.getNickName())) {
+            sysUser.setNickName(sysUser.getId().toString());
+        }
 
         return this.save(sysUser);
     }
