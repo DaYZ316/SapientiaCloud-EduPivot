@@ -48,7 +48,10 @@
     </select>
 
     <select id="selectByUsername" resultMap="SysUser">
-        select * from sys_user where username = #{username} and is_deleted = 0
+        select *
+        from sys_user
+        where username = #{username}
+          and is_deleted = 0
     </select>
 
 </mapper>

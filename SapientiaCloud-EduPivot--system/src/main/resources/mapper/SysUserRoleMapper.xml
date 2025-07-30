@@ -3,14 +3,18 @@
 <mapper namespace="com.dayz.sapientiacloud_edupivot.system.mapper.SysUserRoleMapper">
 
     <select id="getUserRoles" resultType="com.dayz.sapientiacloud_edupivot.system.entity.vo.SysRoleVO">
-        select
-            r.id, r.role_name, r.role_key, r.sort, r.status, r.description, r.create_time, r.update_time
-        from
-            sys_role r
-                join
-            sys_user_role ur on r.id = ur.role_id
-        where
-            ur.user_id = #{userId}
+        select r.id,
+               r.role_name,
+               r.role_key,
+               r.sort,
+               r.status,
+               r.description,
+               r.create_time,
+               r.update_time
+        from sys_role r
+                 join
+             sys_user_role ur on r.id = ur.role_id
+        where ur.user_id = #{userId}
     </select>
 
     <insert id="addUserRoles">
@@ -36,13 +40,13 @@
 
     <select id="getRolesByUserIds" resultType="com.dayz.sapientiacloud_edupivot.system.entity.po.SysRole">
         select
-            r.id, r.role_name, r.role_key, r.sort, r.status, r.description, r.create_time, r.update_time
+        r.id, r.role_name, r.role_key, r.sort, r.status, r.description, r.create_time, r.update_time
         from
-            sys_role r
-                join
-            sys_user_role ur on r.id = ur.role_id
+        sys_role r
+        join
+        sys_user_role ur on r.id = ur.role_id
         where
-            ur.user_id in
+        ur.user_id in
         <foreach item="userId" collection="userIds" separator="," open="(" close=")">
             #{userId}
         </foreach>

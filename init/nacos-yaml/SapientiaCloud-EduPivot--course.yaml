@@ -1,0 +1,36 @@
+pagehelper:
+  helper-dialect: mysql
+  reasonable: true
+  support-methods-arguments: true
+  params: count=countSql
+
+mybatis-plus:
+  type-aliases-package: com.dayz.sapientiacloud_edupivot.course.entity
+  mapper-locations: classpath:mapper/**/*.xml
+  configuration:
+    cache-enabled: false
+    map-underscore-to-camel-case: true
+  global-config:
+    db-config:
+      id-type: assign_id
+      update-strategy: not_null
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 5000
+        readTimeout: 5000
+        loggerLevel: full
+  httpclient:
+    enabled: true
+
+spring:
+  jpa:
+    open-in-view: false
+    show-sql: true
+    hibernate:
+      ddl-auto: update

@@ -158,7 +158,7 @@ public class UserContextUtil {
     }
 
     @Autowired
-    public void setSysUserService(SysUserClient sysUserService) {
-        UserContextUtil.sysUserClient = sysUserService;
+    public void setSysUserService(SysUserClient sysUserClient) {
+        UserContextUtil.sysUserClient = sysUserClient;
     }
 }

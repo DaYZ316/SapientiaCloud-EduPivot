@@ -40,11 +40,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "/doc.html",
             "/webjars/**",
             "/v3/api-docs",
-            // 常见的通过网关转发后可能的路径形式
-            "/api/auth/login",
-            "/api/auth/validate",
-            "/api/auth/register",
-            "/api/auth/v3/api-docs",
     };
     private static final String USERID_CLAIM = "userId";
     private static final String USERNAME_CLAIM = "username";
