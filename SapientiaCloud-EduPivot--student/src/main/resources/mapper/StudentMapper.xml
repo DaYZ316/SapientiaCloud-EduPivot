@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dayz.sapientiacloud_edupivot.student.mapper.StudentMapper">
+
+    <resultMap id="Student" type="com.dayz.sapientiacloud_edupivot.student.entity.po.Student">
+        <id column="id" property="id"/>
+    </resultMap>
+
+    <select id="listStudent" resultType="com.dayz.sapientiacloud_edupivot.student.entity.vo.StudentVO">
+        select
+        id, student_code, real_name, birth_date, admission_year, major,
+        academic_status, status, description, sys_user_id, create_time, update_time
+        from
+        student
+        <where>
+            <if test="studentCode != null and studentCode != ''">
+                and student_code like concat('%', #{studentCode}, '%')
+            </if>
+            <if test="realName != null and realName != ''">
+                and real_name like concat('%', #{realName}, '%')
+            </if>
+            <if test="admissionYear != null">
+                and admission_year = #{admissionYear}
+            </if>
+            <if test="major != null and major != ''">
+                and major like concat('%', #{major}, '%')
+            </if>
+            <if test="academicStatus != null">
+                and academic_status = #{academicStatus}
+            </if>
+            <if test="status != null">
+                and status = #{status}
+            </if>
+            <if test="startTime != null or endTime != null">
+                <choose>
+                    <when test="startTime != null and endTime == null">
+                        AND create_time &gt;= #{startTime}
+                    </when>
+                    <when test="startTime == null and endTime != null">
+                        AND create_time &lt;= #{endTime}
+                    </when>
+                    <otherwise>
+                        AND create_time BETWEEN #{startTime} AND #{endTime}
+                    </otherwise>
+                </choose>
+            </if>
+            and is_deleted = 0
+        </where>
+        <if test="orderByColumn != null and orderByColumn != ''">
+            order by ${orderByColumn} ${isAsc == 'asc' ? 'asc' : 'desc'}
+        </if>
+        <if test="orderByColumn == null or orderByColumn == ''">
+            order by create_time desc
+        </if>
+    </select>
+
+    <select id="selectByStudentCode" resultType="com.dayz.sapientiacloud_edupivot.student.common.entity.po.Student">
+        select *
+        from student
+        where student_code = #{studentCode}
+          and is_deleted = 0
+    </select>
+
+    <select id="selectBySysUserId" resultType="com.dayz.sapientiacloud_edupivot.student.common.entity.po.Student">
+        select *
+        from student
+        where sys_user_id = #{sysUserId}
+          and is_deleted = 0
+    </select>
+</mapper>
