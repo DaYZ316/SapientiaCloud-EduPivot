@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0.31
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: zhaosheng123
+      MYSQL_DATABASE: nacos
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  redis:
+    image: redis:5.0.14
+    container_name: redis
+    command: redis-server --requirepass zhaosheng123
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  nacos:
+    image: nacos/nacos-server:v2.1.1
+    container_name: nacos
+    environment:
+      MODE: standalone
+      SPRING_DATASOURCE_PLATFORM: mysql
+      MYSQL_SERVICE_HOST: mysql
+      MYSQL_SERVICE_PORT: 3306
+      MYSQL_SERVICE_DB_NAME: nacos
+      MYSQL_SERVICE_USER: root
+      MYSQL_SERVICE_PASSWORD: zhaosheng123
+    ports:
+      - "8848:8848"
+      - "9848:9848"
+    depends_on:
+      - mysql
+
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    environment:
+      MINIO_ROOT_USER: root
+      MINIO_ROOT_PASSWORD: zhaosheng123
+    ports:
+      - "31589:31589"
+      - "31590:31590"
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":31590" --address ":31589"
+
+volumes:
+  mysql_data:
+  redis_data:
+  minio_data:
