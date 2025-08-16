@@ -11,7 +11,7 @@ create table sys_permission
     sort            int      default 0                 null,
     create_time     datetime default CURRENT_TIMESTAMP null,
     update_time     datetime default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
-    is_deleted      int      default 0                 null
+    is_deleted      tinyint(1)      default 0          null
 );
 
 -- ===============================================================
@@ -24,11 +24,11 @@ create table sys_role
     role_name   varchar(30)                        not null,
     role_key    varchar(100)                       not null,
     sort        int      default 0                 null,
-    status      int      default 0                 null,
+    status      tinyint(1)      default 0          null,
     description varchar(500)                       null,
     create_time datetime default CURRENT_TIMESTAMP null,
     update_time datetime default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
-    is_deleted  int      default 0                 null
+    is_deleted  tinyint(1)      default 0          null
 );
 
 -- ===============================================================
@@ -43,13 +43,13 @@ create table sys_user
     nick_name       varchar(255)                       null,
     email           varchar(255)                       null,
     mobile          varchar(255)                       null,
-    gender          int                                null,
+    gender          tinyint(1)                         null,
     avatar          varchar(255)                       null,
-    status          int      default 0                 null,
+    status          tinyint(1)      default 0          null,
     last_login_time datetime                           null,
     create_time     datetime default CURRENT_TIMESTAMP null,
     update_time     datetime default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
-    is_deleted      int      default 0                 null
+    is_deleted      tinyint(1)      default 0          null
 );
 
 -- ===============================================================

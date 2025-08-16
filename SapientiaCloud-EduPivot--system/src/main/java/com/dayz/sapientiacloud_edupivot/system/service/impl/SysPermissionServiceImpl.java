@@ -172,7 +172,7 @@ public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, S
             sysPermissionMapper.removeChildrenByIds(ids);
         }
 
-        return count;
+        return Math.toIntExact(count);
     }
 
     private List<SysPermissionVO> buildPermissionTree(List<SysPermissionVO> sysPermissionVOList) {

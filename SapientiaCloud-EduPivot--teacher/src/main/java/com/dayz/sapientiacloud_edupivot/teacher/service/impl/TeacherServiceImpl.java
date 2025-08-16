@@ -87,7 +87,7 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
     @Transactional
     public Boolean addTeacher(TeacherDTO teacherDTO) {
         if (teacherDTO == null) {
-            throw new BusinessException("教师信息不能为空");
+            throw new BusinessException(TeacherEnum.TEACHER_NOT_FOUND.getMessage());
         }
 
         if (checkTeacherCodeExists(teacherDTO.getTeacherCode(), null)) {
@@ -112,7 +112,7 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
     @Transactional
     public Boolean updateTeacher(TeacherDTO teacherDTO) {
         if (teacherDTO == null || teacherDTO.getId() == null) {
-            throw new BusinessException("教师ID不能为空");
+            throw new BusinessException(TeacherEnum.TEACHER_ID_REQUIRED.getMessage());
         }
 
         Teacher existingTeacher = this.getById(teacherDTO.getId());

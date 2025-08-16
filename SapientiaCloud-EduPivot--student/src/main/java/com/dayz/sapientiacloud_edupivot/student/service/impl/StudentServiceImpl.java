@@ -87,15 +87,13 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
     @Transactional
     public Boolean addStudent(StudentDTO studentDTO) {
         if (studentDTO == null) {
-            throw new BusinessException("学生信息不能为空");
+            throw new BusinessException(StudentEnum.STUDENT_NOT_FOUND.getMessage());
         }
 
-        // 检查学号是否已存在
         if (checkStudentCodeExists(studentDTO.getStudentCode(), null)) {
             throw new BusinessException(StudentEnum.STUDENT_CODE_EXISTS.getMessage());
         }
 
-        // 检查系统用户是否已绑定其他学生
         if (studentDTO.getSysUserId() != null) {
             Student existingStudent = getStudentBySysUserId(studentDTO.getSysUserId());
             if (existingStudent != null) {
@@ -114,7 +112,7 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
     @Transactional
     public Boolean updateStudent(StudentDTO studentDTO) {
         if (studentDTO == null || studentDTO.getId() == null) {
-            throw new BusinessException("学生ID不能为空");
+            throw new BusinessException(StudentEnum.STUDENT_ID_REQUIRED.getMessage());
         }
 
         Student existingStudent = this.getById(studentDTO.getId());
@@ -122,12 +120,10 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
             throw new BusinessException(StudentEnum.STUDENT_NOT_FOUND.getMessage());
         }
 
-        // 检查学号是否已存在（排除当前学生）
         if (checkStudentCodeExists(studentDTO.getStudentCode(), studentDTO.getId())) {
             throw new BusinessException(StudentEnum.STUDENT_CODE_EXISTS.getMessage());
         }
 
-        // 检查系统用户是否已绑定其他学生
         if (studentDTO.getSysUserId() != null && !studentDTO.getSysUserId().equals(existingStudent.getSysUserId())) {
             Student boundStudent = getStudentBySysUserId(studentDTO.getSysUserId());
             if (boundStudent != null && !boundStudent.getId().equals(studentDTO.getId())) {

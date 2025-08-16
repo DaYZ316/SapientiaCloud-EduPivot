@@ -225,7 +225,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             sysUserRoleMapper.removeRolesByUserIds(ids);
         }
 
-        return count;
+        return Math.toIntExact(count);
     }
 
     @Override

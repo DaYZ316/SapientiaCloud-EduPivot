@@ -196,7 +196,7 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
             sysRolePermissionMapper.removePermissionsByRoleIds(ids);
         }
 
-        return count;
+        return Math.toIntExact(count);
     }
 
     @Override
@@ -236,7 +236,6 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
             }
         }
 
-        // 清除所有权限缓存，因为角色权限变更会影响所有拥有该角色的用户的权限
         permissionService.clearAllPermissionCache();
 
         return true;

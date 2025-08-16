@@ -14,7 +14,8 @@ public enum TeacherEnum {
     TEACHER_STATUS_INVALID(50005, "教师状态无效"),
     EDUCATION_INVALID(50006, "学历状态无效"),
     SYS_USER_NOT_BOUND(50007, "教师未绑定系统用户"),
-    SYS_USER_ALREADY_BOUND(50008, "系统用户已绑定其他教师");
+    SYS_USER_ALREADY_BOUND(50008, "系统用户已绑定其他教师"),
+    TEACHER_ID_REQUIRED(50009, "教师ID不能为空");
 
     private final Integer code;
     private final String message;
