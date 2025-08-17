@@ -1,4 +1,4 @@
-CREATE TABLE `teacher`
+CREATE TABLE `mg_teacher`
 (
     `id`             binary(16)  NOT NULL COMMENT '教师ID',
     `teacher_code`   varchar(20) NOT NULL COMMENT '教师工号',
@@ -7,7 +7,6 @@ CREATE TABLE `teacher`
     `department`     varchar(100) DEFAULT NULL COMMENT '所属部门/学院',
     `education`      tinyint(1)   DEFAULT 1 COMMENT '学历 (0=专科, 1=本科, 2=硕士, 3=博士)',
     `specialization` varchar(200) DEFAULT NULL COMMENT '专业特长/研究方向',
-    `status`         tinyint(1)   DEFAULT 0 COMMENT '账号状态 (0=正常, 1=停用)',
     `description`    text         DEFAULT NULL COMMENT '自我描述',
     `sys_user_id`    binary(16)   DEFAULT NULL COMMENT '系统用户ID',
     `create_time`    datetime     DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',

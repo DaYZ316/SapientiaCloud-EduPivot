@@ -14,19 +14,11 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 @Data
-@Schema(description = "教师信息数据传输对象")
-public class TeacherDTO implements Serializable {
+@Schema(description = "教师添加信息数据传输对象")
+public class TeacherAddDTO implements Serializable {
 
     @Serial
-    private static final long serialVersionUID = -2981841374381337323L;
-
-    @Schema(name = "id", description = "教师ID，更新时必须提供")
-    private UUID id;
-
-    @Schema(name = "teacherCode", description = "教师工号")
-    @NotBlank(message = "教师工号不能为空")
-    @Size(max = 20, message = "教师工号不能超过20个字符")
-    private String teacherCode;
+    private static final long serialVersionUID = 3404135532734984151L;
 
     @Schema(name = "realName", description = "教师真实姓名")
     @NotBlank(message = "真实姓名不能为空")

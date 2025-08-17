@@ -41,9 +41,6 @@ public class TeacherDetailVO implements Serializable {
     @Schema(name = "education", description = "学历 (0=专科, 1=本科, 2=硕士, 3=博士)")
     private Integer education;
 
-    @Schema(name = "status", description = "账号状态 (0=正常, 1=停用)")
-    private Integer status;
-
     @Schema(name = "description", description = "自我描述")
     private String description;
 

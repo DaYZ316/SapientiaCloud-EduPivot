@@ -14,7 +14,7 @@ import java.io.Serializable;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Schema(description = "系统角色数据传输对象 (DTO)")
+@Schema(description = "系统角色添加数据传输对象 (DTO)")
 public class SysRoleAddDTO implements Serializable {
 
     @Serial

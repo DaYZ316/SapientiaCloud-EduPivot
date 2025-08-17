@@ -29,7 +29,4 @@ public class TeacherQueryDTO extends PageEntity {
 
     @Schema(name = "specialization", description = "专业特长/研究方向")
     private String specialization;
-
-    @Schema(name = "status", description = "账号状态 (0=正常, 1=停用)")
-    private Integer status;
 }

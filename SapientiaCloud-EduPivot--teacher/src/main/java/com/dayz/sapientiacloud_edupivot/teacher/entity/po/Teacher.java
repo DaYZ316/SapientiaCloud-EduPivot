@@ -19,7 +19,7 @@ import java.util.UUID;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@TableName("teacher")
+@TableName("mg_teacher")
 @EqualsAndHashCode(callSuper = true)
 @Schema(description = "教师信息持久化对象 (PO)")
 public class Teacher extends BaseEntity implements Serializable {
@@ -55,10 +55,6 @@ public class Teacher extends BaseEntity implements Serializable {
     @Schema(name = "specialization", description = "专业特长/研究方向")
     @TableField("specialization")
     private String specialization;
-
-    @Schema(name = "status", description = "账号状态 (0=正常, 1=停用)")
-    @TableField("status")
-    private Integer status;
 
     @Schema(name = "description", description = "自我描述")
     @TableField("description")

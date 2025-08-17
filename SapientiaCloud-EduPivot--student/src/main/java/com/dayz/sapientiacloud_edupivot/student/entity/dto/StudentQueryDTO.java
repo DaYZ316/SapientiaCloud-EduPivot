@@ -29,7 +29,4 @@ public class StudentQueryDTO extends PageEntity {
 
     @Schema(name = "academicStatus", description = "学籍状态 (0=在读, 1=休学, 2=退学, 3=毕业)")
     private Integer academicStatus;
-
-    @Schema(name = "status", description = "账号状态 (0=正常, 1=停用)")
-    private Integer status;
 }

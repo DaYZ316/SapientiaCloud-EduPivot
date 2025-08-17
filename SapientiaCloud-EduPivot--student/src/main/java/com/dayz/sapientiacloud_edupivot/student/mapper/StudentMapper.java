@@ -12,18 +12,9 @@ import java.util.UUID;
 @Mapper
 public interface StudentMapper extends BaseMapper<Student> {
 
-    /**
-     * 分页查询学生列表
-     */
     List<StudentVO> listStudent(StudentQueryDTO studentQueryDTO);
 
-    /**
-     * 根据学号查询学生
-     */
     Student selectByStudentCode(String studentCode);
 
-    /**
-     * 根据系统用户ID查询学生
-     */
     Student selectBySysUserId(UUID sysUserId);
 }

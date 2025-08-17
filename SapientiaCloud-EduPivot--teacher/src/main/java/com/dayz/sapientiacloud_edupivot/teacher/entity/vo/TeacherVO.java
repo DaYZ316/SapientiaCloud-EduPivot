@@ -39,9 +39,6 @@ public class TeacherVO implements Serializable {
     @Schema(name = "specialization", description = "专业特长/研究方向")
     private String specialization;
 
-    @Schema(name = "status", description = "账号状态 (0=正常, 1=停用)")
-    private Integer status;
-
     @Schema(name = "description", description = "自我描述")
     private String description;
 

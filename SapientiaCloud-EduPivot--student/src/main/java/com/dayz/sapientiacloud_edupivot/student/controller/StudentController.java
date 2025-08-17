@@ -3,6 +3,7 @@ package com.dayz.sapientiacloud_edupivot.student.controller;
 import com.dayz.sapientiacloud_edupivot.student.common.controller.BaseController;
 import com.dayz.sapientiacloud_edupivot.student.common.result.Result;
 import com.dayz.sapientiacloud_edupivot.student.common.result.TableDataResult;
+import com.dayz.sapientiacloud_edupivot.student.entity.dto.StudentAddDTO;
 import com.dayz.sapientiacloud_edupivot.student.entity.dto.StudentDTO;
 import com.dayz.sapientiacloud_edupivot.student.entity.dto.StudentQueryDTO;
 import com.dayz.sapientiacloud_edupivot.student.entity.vo.StudentVO;
@@ -67,9 +68,9 @@ public class StudentController extends BaseController {
     @Operation(summary = "添加新学生", description = "向系统中添加一个新的学生。")
     @PostMapping
     public Result<Boolean> addStudent(
-            @RequestBody @Valid StudentDTO studentDTO
+            @RequestBody @Valid StudentAddDTO studentAddDTO
     ) {
-        Boolean result = studentService.addStudent(studentDTO);
+        Boolean result = studentService.addStudent(studentAddDTO);
         return Result.success(result);
     }
 

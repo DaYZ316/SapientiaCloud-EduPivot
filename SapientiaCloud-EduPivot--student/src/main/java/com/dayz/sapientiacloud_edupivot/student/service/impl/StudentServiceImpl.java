@@ -2,7 +2,9 @@ package com.dayz.sapientiacloud_edupivot.student.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.dayz.sapientiacloud_edupivot.student.common.enums.StatusEnum;
 import com.dayz.sapientiacloud_edupivot.student.common.exception.BusinessException;
+import com.dayz.sapientiacloud_edupivot.student.entity.dto.StudentAddDTO;
 import com.dayz.sapientiacloud_edupivot.student.entity.dto.StudentDTO;
 import com.dayz.sapientiacloud_edupivot.student.entity.dto.StudentQueryDTO;
 import com.dayz.sapientiacloud_edupivot.student.entity.po.Student;
@@ -18,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -85,25 +88,24 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
 
     @Override
     @Transactional
-    public Boolean addStudent(StudentDTO studentDTO) {
-        if (studentDTO == null) {
+    public Boolean addStudent(StudentAddDTO studentAddDTO) {
+        if (studentAddDTO == null) {
             throw new BusinessException(StudentEnum.STUDENT_NOT_FOUND.getMessage());
         }
 
-        if (checkStudentCodeExists(studentDTO.getStudentCode(), null)) {
-            throw new BusinessException(StudentEnum.STUDENT_CODE_EXISTS.getMessage());
-        }
-
-        if (studentDTO.getSysUserId() != null) {
-            Student existingStudent = getStudentBySysUserId(studentDTO.getSysUserId());
+        if (studentAddDTO.getSysUserId() != null) {
+            Student existingStudent = getStudentBySysUserId(studentAddDTO.getSysUserId());
             if (existingStudent != null) {
                 throw new BusinessException(StudentEnum.SYS_USER_ALREADY_BOUND.getMessage());
             }
         }
 
         Student student = new Student();
-        BeanUtils.copyProperties(studentDTO, student);
+        BeanUtils.copyProperties(studentAddDTO, student);
         student.setId(UUID.randomUUID());
+        // TODO 学生工号生成逻辑
+        student.setCreateTime(LocalDateTime.now());
+        student.setUpdateTime(LocalDateTime.now());
 
         return this.save(student);
     }
@@ -133,6 +135,7 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
 
         Student student = new Student();
         BeanUtils.copyProperties(studentDTO, student);
+        student.setUpdateTime(LocalDateTime.now());
 
         return this.updateById(student);
     }

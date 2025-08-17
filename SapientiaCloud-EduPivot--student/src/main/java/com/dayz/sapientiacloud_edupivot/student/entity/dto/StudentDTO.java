@@ -51,11 +51,6 @@ public class StudentDTO implements Serializable {
     @Max(value = 3, message = "学籍状态输入不正确")
     private Integer academicStatus;
 
-    @Schema(name = "status", description = "账号状态 (0=正常, 1=停用)")
-    @Min(value = 0, message = "状态输入不正确")
-    @Max(value = 1, message = "状态输入不正确")
-    private Integer status;
-
     @Schema(name = "description", description = "自我描述")
     private String description;
 

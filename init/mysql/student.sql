@@ -1,4 +1,4 @@
-CREATE TABLE `student`
+CREATE TABLE `mg_student`
 (
     `id`              binary(16)  NOT NULL COMMENT '学生ID',
     `student_code`    varchar(20) NOT NULL COMMENT '学号',
@@ -7,7 +7,6 @@ CREATE TABLE `student`
     `admission_year`  int(4)       DEFAULT NULL COMMENT '入学年份',
     `major`           varchar(100) DEFAULT NULL COMMENT '专业',
     `academic_status` tinyint(1)   DEFAULT 0 COMMENT '学籍状态 (0=在读, 1=休学, 2=退学, 3=毕业)',
-    `status`          tinyint(1)   DEFAULT 0 COMMENT '账号状态 (0=正常, 1=停用)',
     `description`     text         DEFAULT NULL COMMENT '自我描述',
     `sys_user_id`     binary(16)   DEFAULT NULL COMMENT '系统用户ID',
     `create_time`     datetime     DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',

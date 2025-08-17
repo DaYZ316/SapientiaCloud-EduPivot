@@ -9,9 +9,9 @@
     <select id="listTeacher" resultType="com.dayz.sapientiacloud_edupivot.teacher.entity.vo.TeacherVO">
         select
         id, teacher_code, real_name, birth_date, department, education,
-        specialization, status, description, sys_user_id, create_time, update_time
+        specialization, description, sys_user_id, create_time, update_time
         from
-        teacher
+        mg_teacher
         <where>
             <if test="teacherCode != null and teacherCode != ''">
                 and teacher_code like concat('%', #{teacherCode}, '%')
@@ -27,9 +27,6 @@
             </if>
             <if test="specialization != null and specialization != ''">
                 and specialization like concat('%', #{specialization}, '%')
-            </if>
-            <if test="status != null">
-                and status = #{status}
             </if>
             <if test="startTime != null or endTime != null">
                 <choose>
@@ -56,14 +53,14 @@
 
     <select id="selectByTeacherCode" resultType="com.dayz.sapientiacloud_edupivot.teacher.entity.po.Teacher">
         select *
-        from teacher
+        from mg_teacher
         where teacher_code = #{teacherCode}
           and is_deleted = 0
     </select>
 
     <select id="selectBySysUserId" resultType="com.dayz.sapientiacloud_edupivot.teacher.entity.po.Teacher">
         select *
-        from teacher
+        from mg_teacher
         where sys_user_id = #{sysUserId}
           and is_deleted = 0
     </select>

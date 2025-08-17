@@ -14,7 +14,7 @@ import java.util.UUID;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Schema(description = "系统权限数据传输对象 (DTO)")
+@Schema(description = "系统权限添加数据传输对象 (DTO)")
 public class SysPermissionAddDTO implements Serializable {
 
     @Serial

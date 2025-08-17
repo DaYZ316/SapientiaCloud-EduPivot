@@ -3,6 +3,7 @@ package com.dayz.sapientiacloud_edupivot.teacher.controller;
 import com.dayz.sapientiacloud_edupivot.teacher.common.controller.BaseController;
 import com.dayz.sapientiacloud_edupivot.teacher.common.result.Result;
 import com.dayz.sapientiacloud_edupivot.teacher.common.result.TableDataResult;
+import com.dayz.sapientiacloud_edupivot.teacher.entity.dto.TeacherAddDTO;
 import com.dayz.sapientiacloud_edupivot.teacher.entity.dto.TeacherDTO;
 import com.dayz.sapientiacloud_edupivot.teacher.entity.dto.TeacherQueryDTO;
 import com.dayz.sapientiacloud_edupivot.teacher.entity.vo.TeacherVO;
@@ -67,9 +68,9 @@ public class TeacherController extends BaseController {
     @Operation(summary = "添加新教师", description = "向系统中添加一个新的教师。")
     @PostMapping
     public Result<Boolean> addTeacher(
-            @RequestBody @Valid TeacherDTO teacherDTO
+            @RequestBody @Valid TeacherAddDTO teacherAddDTO
     ) {
-        Boolean result = teacherService.addTeacher(teacherDTO);
+        Boolean result = teacherService.addTeacher(teacherAddDTO);
         return Result.success(result);
     }
 

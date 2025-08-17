@@ -1,6 +1,7 @@
 package com.dayz.sapientiacloud_edupivot.teacher.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.dayz.sapientiacloud_edupivot.teacher.entity.dto.TeacherAddDTO;
 import com.dayz.sapientiacloud_edupivot.teacher.entity.dto.TeacherDTO;
 import com.dayz.sapientiacloud_edupivot.teacher.entity.dto.TeacherQueryDTO;
 import com.dayz.sapientiacloud_edupivot.teacher.entity.po.Teacher;
@@ -22,7 +23,7 @@ public interface ITeacherService extends IService<Teacher> {
 
     Teacher getTeacherBySysUserId(UUID sysUserId);
 
-    Boolean addTeacher(TeacherDTO teacherDTO);
+    Boolean addTeacher(TeacherAddDTO teacherAddDTO);
 
     Boolean updateTeacher(TeacherDTO teacherDTO);
 

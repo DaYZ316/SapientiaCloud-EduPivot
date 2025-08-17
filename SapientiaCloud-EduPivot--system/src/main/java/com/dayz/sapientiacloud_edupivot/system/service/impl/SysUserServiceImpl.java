@@ -6,7 +6,6 @@ import com.dayz.sapientiacloud_edupivot.system.common.enums.DeletedEnum;
 import com.dayz.sapientiacloud_edupivot.system.common.enums.StatusEnum;
 import com.dayz.sapientiacloud_edupivot.system.common.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.system.common.security.service.PermissionService;
-import com.dayz.sapientiacloud_edupivot.system.common.security.utils.JwtUtil;
 import com.dayz.sapientiacloud_edupivot.system.common.security.utils.UserContextUtil;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.*;
 import com.dayz.sapientiacloud_edupivot.system.entity.po.SysRole;
@@ -61,7 +60,6 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     private final SysUserRoleMapper sysUserRoleMapper;
     private final PasswordEncoder passwordEncoder;
     private final SysUserPermissionMapper sysUserPermissionMapper;
-    private final JwtUtil jwtUtil;
     private final SysRoleMapper sysRoleMapper;
     private final PermissionService permissionService;
 

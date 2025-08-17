@@ -2,7 +2,9 @@ package com.dayz.sapientiacloud_edupivot.teacher.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.dayz.sapientiacloud_edupivot.teacher.common.enums.StatusEnum;
 import com.dayz.sapientiacloud_edupivot.teacher.common.exception.BusinessException;
+import com.dayz.sapientiacloud_edupivot.teacher.entity.dto.TeacherAddDTO;
 import com.dayz.sapientiacloud_edupivot.teacher.entity.dto.TeacherDTO;
 import com.dayz.sapientiacloud_edupivot.teacher.entity.dto.TeacherQueryDTO;
 import com.dayz.sapientiacloud_edupivot.teacher.entity.po.Teacher;
@@ -18,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -85,25 +88,24 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
 
     @Override
     @Transactional
-    public Boolean addTeacher(TeacherDTO teacherDTO) {
-        if (teacherDTO == null) {
+    public Boolean addTeacher(TeacherAddDTO teacherAddDTO) {
+        if (teacherAddDTO == null) {
             throw new BusinessException(TeacherEnum.TEACHER_NOT_FOUND.getMessage());
         }
 
-        if (checkTeacherCodeExists(teacherDTO.getTeacherCode(), null)) {
-            throw new BusinessException(TeacherEnum.TEACHER_CODE_EXISTS.getMessage());
-        }
-
-        if (teacherDTO.getSysUserId() != null) {
-            Teacher existingTeacher = getTeacherBySysUserId(teacherDTO.getSysUserId());
+        if (teacherAddDTO.getSysUserId() != null) {
+            Teacher existingTeacher = getTeacherBySysUserId(teacherAddDTO.getSysUserId());
             if (existingTeacher != null) {
                 throw new BusinessException(TeacherEnum.SYS_USER_ALREADY_BOUND.getMessage());
             }
         }
 
         Teacher teacher = new Teacher();
-        BeanUtils.copyProperties(teacherDTO, teacher);
+        BeanUtils.copyProperties(teacherAddDTO, teacher);
         teacher.setId(UUID.randomUUID());
+        // TODO 教师工号生成逻辑
+        teacher.setCreateTime(LocalDateTime.now());
+        teacher.setUpdateTime(LocalDateTime.now());
 
         return this.save(teacher);
     }
@@ -133,6 +135,7 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
 
         Teacher teacher = new Teacher();
         BeanUtils.copyProperties(teacherDTO, teacher);
+        teacher.setUpdateTime(LocalDateTime.now());
 
         return this.updateById(teacher);
     }
