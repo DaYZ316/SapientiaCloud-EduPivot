@@ -19,8 +19,6 @@ public interface IStudentService extends IService<Student> {
 
     StudentVO getStudentById(UUID id);
 
-    Student getStudentByCode(String studentCode);
-
     Student getStudentBySysUserId(UUID sysUserId);
 
     Boolean addStudent(StudentAddDTO studentAddDTO);
@@ -30,6 +28,4 @@ public interface IStudentService extends IService<Student> {
     Boolean removeStudentById(UUID id);
 
     Integer removeStudentByIds(List<UUID> ids);
-
-    Boolean checkStudentCodeExists(String studentCode, UUID excludeId);
 }

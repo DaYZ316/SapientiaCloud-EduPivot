@@ -19,8 +19,6 @@ public interface ITeacherService extends IService<Teacher> {
 
     TeacherVO getTeacherById(UUID id);
 
-    Teacher getTeacherByCode(String teacherCode);
-
     Teacher getTeacherBySysUserId(UUID sysUserId);
 
     Boolean addTeacher(TeacherAddDTO teacherAddDTO);
@@ -30,6 +28,4 @@ public interface ITeacherService extends IService<Teacher> {
     Boolean removeTeacherById(UUID id);
 
     Integer removeTeacherByIds(List<UUID> ids);
-
-    Boolean checkTeacherCodeExists(String teacherCode, UUID excludeId);
 }

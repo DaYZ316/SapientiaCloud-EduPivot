@@ -52,19 +52,6 @@ public class TeacherController extends BaseController {
         return Result.success(teacherVO);
     }
 
-    @Operation(summary = "根据教师工号查询教师", description = "通过教师工号查询教师信息。")
-    @GetMapping("/code/{teacherCode}")
-    public Result<TeacherVO> getTeacherByCode(
-            @Parameter(name = "teacherCode", description = "教师工号", required = true) @PathVariable("teacherCode") String teacherCode
-    ) {
-        var teacher = teacherService.getTeacherByCode(teacherCode);
-        if (teacher != null) {
-            TeacherVO teacherVO = teacherService.getTeacherById(teacher.getId());
-            return Result.success(teacherVO);
-        }
-        return Result.success(null);
-    }
-
     @Operation(summary = "添加新教师", description = "向系统中添加一个新的教师。")
     @PostMapping
     public Result<Boolean> addTeacher(
@@ -99,15 +86,5 @@ public class TeacherController extends BaseController {
     ) {
         Integer result = teacherService.removeTeacherByIds(ids);
         return Result.success(result);
-    }
-
-    @Operation(summary = "检查教师工号是否存在", description = "检查教师工号是否已经存在于系统中。")
-    @GetMapping("/check-code")
-    public Result<Boolean> checkTeacherCodeExists(
-            @Parameter(name = "teacherCode", description = "教师工号", required = true) @RequestParam("teacherCode") String teacherCode,
-            @Parameter(name = "excludeId", description = "排除的教师ID（用于更新时检查）") @RequestParam(value = "excludeId", required = false) UUID excludeId
-    ) {
-        Boolean exists = teacherService.checkTeacherCodeExists(teacherCode, excludeId);
-        return Result.success(exists);
     }
 }

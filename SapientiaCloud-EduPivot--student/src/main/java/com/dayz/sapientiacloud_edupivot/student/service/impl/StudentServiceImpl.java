@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dayz.sapientiacloud_edupivot.student.common.enums.StatusEnum;
 import com.dayz.sapientiacloud_edupivot.student.common.exception.BusinessException;
+import com.dayz.sapientiacloud_edupivot.student.common.security.utils.UserContextUtil;
 import com.dayz.sapientiacloud_edupivot.student.entity.dto.StudentAddDTO;
 import com.dayz.sapientiacloud_edupivot.student.entity.dto.StudentDTO;
 import com.dayz.sapientiacloud_edupivot.student.entity.dto.StudentQueryDTO;
@@ -72,16 +73,6 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
 
     @Override
     @Transactional(readOnly = true)
-    public Student getStudentByCode(String studentCode) {
-        if (!StringUtils.hasText(studentCode)) {
-            throw new BusinessException(StudentEnum.STUDENT_CODE_REQUIRED.getMessage());
-        }
-
-        return studentMapper.selectByStudentCode(studentCode);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
     public Student getStudentBySysUserId(UUID sysUserId) {
         return studentMapper.selectBySysUserId(sysUserId);
     }
@@ -103,7 +94,7 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
         Student student = new Student();
         BeanUtils.copyProperties(studentAddDTO, student);
         student.setId(UUID.randomUUID());
-        // TODO 学生工号生成逻辑
+        student.setSysUserId(UserContextUtil.getCurrentUserId());
         student.setCreateTime(LocalDateTime.now());
         student.setUpdateTime(LocalDateTime.now());
 
@@ -120,10 +111,6 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
         Student existingStudent = this.getById(studentDTO.getId());
         if (existingStudent == null) {
             throw new BusinessException(StudentEnum.STUDENT_NOT_FOUND.getMessage());
-        }
-
-        if (checkStudentCodeExists(studentDTO.getStudentCode(), studentDTO.getId())) {
-            throw new BusinessException(StudentEnum.STUDENT_CODE_EXISTS.getMessage());
         }
 
         if (studentDTO.getSysUserId() != null && !studentDTO.getSysUserId().equals(existingStudent.getSysUserId())) {
@@ -159,21 +146,5 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
         }
 
         return Math.toIntExact(this.removeBatchByIds(ids) ? ids.size() : 0);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public Boolean checkStudentCodeExists(String studentCode, UUID excludeId) {
-        if (!StringUtils.hasText(studentCode)) {
-            return false;
-        }
-
-        LambdaQueryWrapper<Student> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(Student::getStudentCode, studentCode);
-        if (excludeId != null) {
-            queryWrapper.ne(Student::getId, excludeId);
-        }
-
-        return this.count(queryWrapper) > 0;
     }
 }

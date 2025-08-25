@@ -20,6 +20,11 @@ public class StudentAddDTO implements Serializable {
     @Serial
     private static final long serialVersionUID = -4047395622425340959L;
 
+    @Schema(name = "studentCode", description = "学号")
+    @NotBlank(message = "学号不能为空")
+    @Size(max = 20, message = "学号不能超过20个字符")
+    private String studentCode;
+
     @Schema(name = "realName", description = "学生真实姓名")
     @NotBlank(message = "真实姓名不能为空")
     @Size(max = 50, message = "真实姓名不能超过50个字符")

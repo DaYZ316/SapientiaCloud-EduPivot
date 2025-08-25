@@ -52,19 +52,6 @@ public class StudentController extends BaseController {
         return Result.success(studentVO);
     }
 
-    @Operation(summary = "根据学号查询学生", description = "通过学号查询学生信息。")
-    @GetMapping("/code/{studentCode}")
-    public Result<StudentVO> getStudentByCode(
-            @Parameter(name = "studentCode", description = "学号", required = true) @PathVariable("studentCode") String studentCode
-    ) {
-        var student = studentService.getStudentByCode(studentCode);
-        if (student != null) {
-            StudentVO studentVO = studentService.getStudentById(student.getId());
-            return Result.success(studentVO);
-        }
-        return Result.success(null);
-    }
-
     @Operation(summary = "添加新学生", description = "向系统中添加一个新的学生。")
     @PostMapping
     public Result<Boolean> addStudent(
@@ -99,15 +86,5 @@ public class StudentController extends BaseController {
     ) {
         Integer result = studentService.removeStudentByIds(ids);
         return Result.success(result);
-    }
-
-    @Operation(summary = "检查学号是否存在", description = "检查学号是否已经存在于系统中。")
-    @GetMapping("/check-code")
-    public Result<Boolean> checkStudentCodeExists(
-            @Parameter(name = "studentCode", description = "学号", required = true) @RequestParam("studentCode") String studentCode,
-            @Parameter(name = "excludeId", description = "排除的学生ID（用于更新时检查）") @RequestParam(value = "excludeId", required = false) UUID excludeId
-    ) {
-        Boolean exists = studentService.checkStudentCodeExists(studentCode, excludeId);
-        return Result.success(exists);
     }
 }

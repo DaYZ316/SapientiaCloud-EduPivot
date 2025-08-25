@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dayz.sapientiacloud_edupivot.teacher.common.enums.StatusEnum;
 import com.dayz.sapientiacloud_edupivot.teacher.common.exception.BusinessException;
+import com.dayz.sapientiacloud_edupivot.teacher.common.security.utils.UserContextUtil;
 import com.dayz.sapientiacloud_edupivot.teacher.entity.dto.TeacherAddDTO;
 import com.dayz.sapientiacloud_edupivot.teacher.entity.dto.TeacherDTO;
 import com.dayz.sapientiacloud_edupivot.teacher.entity.dto.TeacherQueryDTO;
@@ -72,16 +73,6 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
 
     @Override
     @Transactional(readOnly = true)
-    public Teacher getTeacherByCode(String teacherCode) {
-        if (!StringUtils.hasText(teacherCode)) {
-            throw new BusinessException(TeacherEnum.TEACHER_CODE_REQUIRED.getMessage());
-        }
-
-        return teacherMapper.selectByTeacherCode(teacherCode);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
     public Teacher getTeacherBySysUserId(UUID sysUserId) {
         return teacherMapper.selectBySysUserId(sysUserId);
     }
@@ -103,7 +94,7 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
         Teacher teacher = new Teacher();
         BeanUtils.copyProperties(teacherAddDTO, teacher);
         teacher.setId(UUID.randomUUID());
-        // TODO 教师工号生成逻辑
+        teacher.setSysUserId(UserContextUtil.getCurrentUserId());
         teacher.setCreateTime(LocalDateTime.now());
         teacher.setUpdateTime(LocalDateTime.now());
 
@@ -120,10 +111,6 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
         Teacher existingTeacher = this.getById(teacherDTO.getId());
         if (existingTeacher == null) {
             throw new BusinessException(TeacherEnum.TEACHER_NOT_FOUND.getMessage());
-        }
-
-        if (checkTeacherCodeExists(teacherDTO.getTeacherCode(), teacherDTO.getId())) {
-            throw new BusinessException(TeacherEnum.TEACHER_CODE_EXISTS.getMessage());
         }
 
         if (teacherDTO.getSysUserId() != null && !teacherDTO.getSysUserId().equals(existingTeacher.getSysUserId())) {
@@ -159,21 +146,5 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
         }
 
         return Math.toIntExact(this.removeBatchByIds(ids) ? ids.size() : 0);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public Boolean checkTeacherCodeExists(String teacherCode, UUID excludeId) {
-        if (!StringUtils.hasText(teacherCode)) {
-            return false;
-        }
-
-        LambdaQueryWrapper<Teacher> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(Teacher::getTeacherCode, teacherCode);
-        if (excludeId != null) {
-            queryWrapper.ne(Teacher::getId, excludeId);
-        }
-
-        return this.count(queryWrapper) > 0;
     }
 }
