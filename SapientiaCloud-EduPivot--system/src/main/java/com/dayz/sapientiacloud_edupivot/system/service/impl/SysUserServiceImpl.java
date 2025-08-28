@@ -120,11 +120,19 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             throw new BusinessException(SysUserEnum.USERNAME_ALREADY_EXISTS);
         }
 
+        if (!StringUtils.hasText(sysUserRegisterDTO.getMobile())) {
+            throw new BusinessException(SysUserEnum.MOBILE_CANNOT_BE_EMPTY);
+        }
+
         SysUser sysUser = checkSysUserInfo(sysUserRegisterDTO);
         sysUser.setId(UuidCreator.getTimeOrderedEpoch());
 
         if (!StringUtils.hasText(sysUserRegisterDTO.getNickName())) {
             sysUser.setNickName(sysUser.getId().toString());
+        }
+
+        if (!sysUserRegisterDTO.getVerificationCode().equals("123456")) {
+            throw new BusinessException(SysUserEnum.VERIFICATION_CODE_ERROR);
         }
 
         return this.save(sysUser);
