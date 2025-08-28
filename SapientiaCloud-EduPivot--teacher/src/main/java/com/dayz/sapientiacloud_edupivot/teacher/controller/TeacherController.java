@@ -52,6 +52,15 @@ public class TeacherController extends BaseController {
         return Result.success(teacherVO);
     }
 
+    @Operation(summary = "根据用户ID获取教师信息", description = "通过用户的唯一ID获取其关联的教师信息。")
+    @GetMapping("/user/{id}")
+    public Result<TeacherVO> getTeacherByUserId(
+            @Parameter(name = "id", description = "用户ID", required = true) @PathVariable("id") UUID id
+    ) {
+        TeacherVO teacherVO = teacherService.getTeacherBySysUserId(id);
+        return Result.success(teacherVO);
+    }
+
     @Operation(summary = "添加新教师", description = "向系统中添加一个新的教师。")
     @PostMapping
     public Result<Boolean> addTeacher(

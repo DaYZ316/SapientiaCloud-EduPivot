@@ -1,11 +1,11 @@
-package com.dayz.sapientiacloud_edupivot.student.common.result;
+package com.dayz.sapientiacloud_edupivot.system.common.enums;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public enum ResultEnum {
+public enum ResultEnum implements BaseEnum {
 
     SUCCESS(200, "操作成功"),
     FAIL(500, "操作失败"),

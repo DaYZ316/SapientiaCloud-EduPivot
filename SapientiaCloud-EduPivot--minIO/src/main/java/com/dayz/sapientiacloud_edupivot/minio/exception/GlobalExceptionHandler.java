@@ -2,8 +2,8 @@ package com.dayz.sapientiacloud_edupivot.minio.exception;
 
 import com.dayz.sapientiacloud_edupivot.minio.enums.FileEnum;
 import com.dayz.sapientiacloud_edupivot.minio.result.Result;
-import com.dayz.sapientiacloud_edupivot.minio.result.ResultEnum;
-import com.dayz.sapientiacloud_edupivot.minio.utils.EnumLookupUtil;
+import com.dayz.sapientiacloud_edupivot.minio.enums.ResultEnum;
+import com.dayz.sapientiacloud_edupivot.minio.utils.EnumUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
@@ -30,11 +30,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BusinessException.class)
     public Result<Void> handleBusinessException(BusinessException e) {
         log.error("业务异常: {}", e.getMessage());
-        FileEnum fileEnum = EnumLookupUtil.getByAttribute(FileEnum.class, e.getMessage(), FileEnum::getMessage);
+        FileEnum fileEnum = EnumUtil.getByAttribute(FileEnum.class, e.getMessage(), FileEnum::getMessage);
         if (fileEnum != null) {
             return Result.fail(fileEnum.getMessage());
         }
-        ResultEnum resultEnum = EnumLookupUtil.getByAttribute(ResultEnum.class, e.getMessage(), ResultEnum::getMessage);
+        ResultEnum resultEnum = EnumUtil.getByAttribute(ResultEnum.class, e.getMessage(), ResultEnum::getMessage);
         return Result.fail(Objects.requireNonNullElse(resultEnum, ResultEnum.SYSTEM_ERROR));
     }
 

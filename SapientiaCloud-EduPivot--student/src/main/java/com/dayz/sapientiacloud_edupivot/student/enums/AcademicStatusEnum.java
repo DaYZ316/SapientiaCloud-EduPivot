@@ -1,11 +1,12 @@
 package com.dayz.sapientiacloud_edupivot.student.enums;
 
+import com.dayz.sapientiacloud_edupivot.student.common.enums.BaseEnum;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public enum AcademicStatusEnum {
+public enum AcademicStatusEnum implements BaseEnum {
 
     STUDYING(0, "在读"),
     SUSPENSION(1, "休学"),
@@ -13,7 +14,7 @@ public enum AcademicStatusEnum {
     GRADUATED(3, "毕业");
 
     private final Integer code;
-    private final String desc;
+    private final String message;
 
     public static AcademicStatusEnum getByCode(Integer code) {
         for (AcademicStatusEnum status : values()) {

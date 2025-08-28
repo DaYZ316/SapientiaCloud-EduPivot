@@ -19,7 +19,7 @@ public interface ITeacherService extends IService<Teacher> {
 
     TeacherVO getTeacherById(UUID id);
 
-    Teacher getTeacherBySysUserId(UUID sysUserId);
+    TeacherVO getTeacherBySysUserId(UUID sysUserId);
 
     Boolean addTeacher(TeacherAddDTO teacherAddDTO);
 

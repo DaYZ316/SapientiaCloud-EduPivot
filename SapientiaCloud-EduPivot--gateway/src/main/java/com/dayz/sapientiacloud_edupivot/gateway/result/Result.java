@@ -1,5 +1,6 @@
 package com.dayz.sapientiacloud_edupivot.gateway.result;
 
+import com.dayz.sapientiacloud_edupivot.gateway.enums.ResultEnum;
 import lombok.Data;
 
 import java.io.Serial;

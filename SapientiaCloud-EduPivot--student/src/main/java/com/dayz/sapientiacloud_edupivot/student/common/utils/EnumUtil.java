@@ -1,4 +1,4 @@
-package com.dayz.sapientiacloud_edupivot.teacher.common.utils;
+package com.dayz.sapientiacloud_edupivot.student.common.utils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -8,7 +8,7 @@ import java.util.function.Function;
 /**
  * 通用枚举查找工具类
  */
-public class EnumLookupUtil {
+public class EnumUtil {
 
     // 使用ConcurrentHashMap来存储不同枚举类型的映射，确保线程安全
     private static final Map<Class<? extends Enum<?>>, Map<String, ? extends Enum<?>>> ENUM_CACHE = new ConcurrentHashMap<>();

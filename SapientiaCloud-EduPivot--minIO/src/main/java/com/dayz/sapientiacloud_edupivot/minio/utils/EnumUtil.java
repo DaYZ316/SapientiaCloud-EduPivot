@@ -5,7 +5,7 @@ import java.util.function.Function;
 /**
  * 枚举工具类，用于根据枚举属性查找枚举值
  */
-public class EnumLookupUtil {
+public class EnumUtil {
 
     /**
      * 通过枚举的属性值获取枚举

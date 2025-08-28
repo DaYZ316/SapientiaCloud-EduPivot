@@ -41,7 +41,7 @@ public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, S
     @Override
     public PageInfo<SysPermissionVO> listSysPermission(SysPermissionQueryDTO sysPermissionQueryDTO) {
         if (sysPermissionQueryDTO == null) {
-            throw new BusinessException(SysPermissionEnum.PERMISSION_NOT_FOUND.getMessage());
+            throw new BusinessException(SysPermissionEnum.PERMISSION_NOT_FOUND);
         }
 
         return PageHelper.startPage(sysPermissionQueryDTO.getPageNum(), sysPermissionQueryDTO.getPageSize())
@@ -70,12 +70,12 @@ public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, S
     @Cacheable(value = "SysPermission", key = "#p0", condition = "#p0 != null")
     public SysPermission getPermissionById(UUID id) {
         if (id == null) {
-            throw new BusinessException(SysPermissionEnum.PERMISSION_NOT_FOUND.getMessage());
+            throw new BusinessException(SysPermissionEnum.PERMISSION_NOT_FOUND);
         }
 
         SysPermission sysPermission = this.getById(id);
         if (sysPermission == null) {
-            throw new BusinessException(SysPermissionEnum.PERMISSION_NOT_FOUND.getMessage());
+            throw new BusinessException(SysPermissionEnum.PERMISSION_NOT_FOUND);
         }
 
         return sysPermission;
@@ -85,14 +85,14 @@ public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, S
     @Transactional(rollbackFor = Exception.class)
     public Boolean addPermission(SysPermissionAddDTO sysPermissionDTO) {
         if (sysPermissionDTO == null || !StringUtils.hasText(sysPermissionDTO.getPermissionName())) {
-            throw new BusinessException(SysPermissionEnum.PERMISSION_NAME_CANNOT_BE_EMPTY.getMessage());
+            throw new BusinessException(SysPermissionEnum.PERMISSION_NAME_CANNOT_BE_EMPTY);
         }
         if (!StringUtils.hasText(sysPermissionDTO.getPermissionKey())) {
-            throw new BusinessException(SysPermissionEnum.PERMISSION_KEY_CANNOT_BE_EMPTY.getMessage());
+            throw new BusinessException(SysPermissionEnum.PERMISSION_KEY_CANNOT_BE_EMPTY);
         }
         List<SysPermission> exist = this.lambdaQuery().eq(SysPermission::getPermissionKey, sysPermissionDTO.getPermissionKey()).list();
         if (!exist.isEmpty()) {
-            throw new BusinessException(SysPermissionEnum.PERMISSION_ALREADY_EXISTS.getMessage());
+            throw new BusinessException(SysPermissionEnum.PERMISSION_ALREADY_EXISTS);
         }
 
         SysPermission sysPermission = new SysPermission();
@@ -110,12 +110,12 @@ public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, S
     @CacheEvict(value = "SysPermission", key = "#p0.id", condition = "#p0.id != null")
     public Boolean updatePermission(SysPermissionDTO sysPermissionDTO) {
         if (sysPermissionDTO == null || sysPermissionDTO.getId() == null) {
-            throw new BusinessException(SysPermissionEnum.PERMISSION_NOT_FOUND.getMessage());
+            throw new BusinessException(SysPermissionEnum.PERMISSION_NOT_FOUND);
         }
 
         SysPermission sysPermission = this.getById(sysPermissionDTO.getId());
         if (sysPermission == null) {
-            throw new BusinessException(SysPermissionEnum.PERMISSION_NOT_FOUND.getMessage());
+            throw new BusinessException(SysPermissionEnum.PERMISSION_NOT_FOUND);
         }
 
         BeanUtils.copyProperties(sysPermissionDTO, sysPermission);
@@ -132,12 +132,12 @@ public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, S
     })
     public Boolean removePermissionById(UUID id) {
         if (id == null) {
-            throw new BusinessException(SysPermissionEnum.PERMISSION_NOT_FOUND.getMessage());
+            throw new BusinessException(SysPermissionEnum.PERMISSION_NOT_FOUND);
         }
 
         SysPermission sysPermission = this.getById(id);
         if (sysPermission == null) {
-            throw new BusinessException(SysPermissionEnum.PERMISSION_NOT_FOUND.getMessage());
+            throw new BusinessException(SysPermissionEnum.PERMISSION_NOT_FOUND);
         }
 
         boolean removed = this.removeById(id);
@@ -156,13 +156,13 @@ public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, S
     })
     public Integer removePermissionByIds(List<UUID> ids) {
         if (ids == null || ids.isEmpty()) {
-            throw new BusinessException(SysPermissionEnum.PERMISSION_NOT_FOUND.getMessage());
+            throw new BusinessException(SysPermissionEnum.PERMISSION_NOT_FOUND);
         }
 
         List<SysPermission> sysPermissions = this.listByIds(ids);
         ids.forEach(id -> {
             if (sysPermissions.stream().noneMatch(permission -> permission.getId().equals(id))) {
-                throw new BusinessException(SysPermissionEnum.PERMISSION_NOT_FOUND.getMessage());
+                throw new BusinessException(SysPermissionEnum.PERMISSION_NOT_FOUND);
             }
         });
 

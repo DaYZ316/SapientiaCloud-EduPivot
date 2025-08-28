@@ -1,8 +1,8 @@
 package com.dayz.sapientiacloud_edupivot.system.common.exception;
 
 import com.dayz.sapientiacloud_edupivot.system.common.result.Result;
-import com.dayz.sapientiacloud_edupivot.system.common.result.ResultEnum;
-import com.dayz.sapientiacloud_edupivot.system.common.utils.EnumLookupUtil;
+import com.dayz.sapientiacloud_edupivot.system.common.enums.ResultEnum;
+import com.dayz.sapientiacloud_edupivot.system.common.utils.EnumUtil;
 import com.dayz.sapientiacloud_edupivot.system.enums.SysPermissionEnum;
 import com.dayz.sapientiacloud_edupivot.system.enums.SysRoleEnum;
 import com.dayz.sapientiacloud_edupivot.system.enums.SysUserEnum;
@@ -32,19 +32,19 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BusinessException.class)
     public Result<Void> handleBusinessException(BusinessException e) {
         log.error("业务异常: {}", e.getMessage());
-        SysUserEnum sysUserEnum = EnumLookupUtil.getByAttribute(SysUserEnum.class, e.getMessage(), SysUserEnum::getMessage);
+        SysUserEnum sysUserEnum = EnumUtil.getByAttribute(SysUserEnum.class, e.getMessage(), SysUserEnum::getMessage);
         if (sysUserEnum != null) {
             return Result.fail(sysUserEnum.getMessage());
         }
-        SysRoleEnum sysRoleEnum = EnumLookupUtil.getByAttribute(SysRoleEnum.class, e.getMessage(), SysRoleEnum::getMessage);
+        SysRoleEnum sysRoleEnum = EnumUtil.getByAttribute(SysRoleEnum.class, e.getMessage(), SysRoleEnum::getMessage);
         if (sysRoleEnum != null) {
             return Result.fail(sysRoleEnum.getMessage());
         }
-        SysPermissionEnum sysPermissionEnum = EnumLookupUtil.getByAttribute(SysPermissionEnum.class, e.getMessage(), SysPermissionEnum::getMessage);
+        SysPermissionEnum sysPermissionEnum = EnumUtil.getByAttribute(SysPermissionEnum.class, e.getMessage(), SysPermissionEnum::getMessage);
         if (sysPermissionEnum != null) {
             return Result.fail(sysPermissionEnum.getMessage());
         }
-        ResultEnum resultEnum = EnumLookupUtil.getByAttribute(ResultEnum.class, e.getMessage(), ResultEnum::getMessage);
+        ResultEnum resultEnum = EnumUtil.getByAttribute(ResultEnum.class, e.getMessage(), ResultEnum::getMessage);
         return Result.fail(Objects.requireNonNullElse(resultEnum, ResultEnum.SYSTEM_ERROR));
     }
 

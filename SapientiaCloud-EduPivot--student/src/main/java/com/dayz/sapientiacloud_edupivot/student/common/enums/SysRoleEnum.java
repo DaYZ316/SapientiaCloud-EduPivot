@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public enum SysRoleEnum {
+public enum SysRoleEnum implements BaseEnum {
 
     ROLE_NOT_FOUND(2001, "角色不存在"),
     ROLE_ALREADY_EXISTS(2002, "角色已存在"),

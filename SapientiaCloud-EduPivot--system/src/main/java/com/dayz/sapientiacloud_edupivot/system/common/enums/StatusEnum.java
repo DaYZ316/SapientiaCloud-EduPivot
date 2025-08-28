@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public enum StatusEnum {
+public enum StatusEnum implements BaseEnum {
 
     NORMAL(0, "正常"),
     DISABLED(1, "禁用");

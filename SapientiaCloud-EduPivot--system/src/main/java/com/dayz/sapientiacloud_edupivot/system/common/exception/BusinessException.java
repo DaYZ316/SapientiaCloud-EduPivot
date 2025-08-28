@@ -1,6 +1,7 @@
 package com.dayz.sapientiacloud_edupivot.system.common.exception;
 
-import com.dayz.sapientiacloud_edupivot.system.common.result.ResultEnum;
+import com.dayz.sapientiacloud_edupivot.system.common.enums.BaseEnum;
+import com.dayz.sapientiacloud_edupivot.system.common.enums.ResultEnum;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -29,9 +30,9 @@ public class BusinessException extends RuntimeException {
         this.message = message;
     }
 
-    public BusinessException(ResultEnum resultCode) {
-        super(resultCode.getMessage());
-        this.code = resultCode.getCode();
-        this.message = resultCode.getMessage();
+    public <E extends Enum<E> & BaseEnum> BusinessException(E baseEnum) {
+        super(baseEnum.getMessage());
+        this.code = baseEnum.getCode();
+        this.message = baseEnum.getMessage();
     }
 } 

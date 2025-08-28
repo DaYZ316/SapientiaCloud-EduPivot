@@ -52,6 +52,15 @@ public class StudentController extends BaseController {
         return Result.success(studentVO);
     }
 
+    @Operation(summary = "根据用户ID获取学生信息", description = "通过学生的用户ID获取其详细信息。")
+    @GetMapping("/user/{id}")
+    public Result<StudentVO> getStudentBySysUserId(
+            @Parameter(name = "id", description = "用户ID", required = true) @PathVariable("id") UUID id
+    ) {
+        StudentVO studentVO = studentService.getStudentBySysUserId(id);
+        return Result.success(studentVO);
+    }
+
     @Operation(summary = "添加新学生", description = "向系统中添加一个新的学生。")
     @PostMapping
     public Result<Boolean> addStudent(

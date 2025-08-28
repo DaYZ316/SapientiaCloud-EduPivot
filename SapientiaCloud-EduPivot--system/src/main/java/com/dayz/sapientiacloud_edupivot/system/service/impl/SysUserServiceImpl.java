@@ -66,7 +66,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     @Override
     public PageInfo<SysUserVO> listSysUserPage(SysUserQueryDTO sysUserQueryDTO) {
         if (sysUserQueryDTO == null) {
-            throw new BusinessException(SysUserEnum.USER_NOT_FOUND.getMessage());
+            throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
         }
 
         return PageHelper.startPage(sysUserQueryDTO.getPageNum(), sysUserQueryDTO.getPageSize())
@@ -93,12 +93,12 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     @Cacheable(value = "SysUser", key = "#p0", condition = "#p0 != null")
     public SysUserVO getUserById(UUID id) {
         if (id == null) {
-            throw new BusinessException(SysUserEnum.USER_NOT_FOUND.getMessage());
+            throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
         }
 
         SysUser sysUser = this.getById(id);
         if (sysUser == null) {
-            throw new BusinessException(SysUserEnum.USER_NOT_FOUND.getMessage());
+            throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
         }
 
         SysUserVO sysUserVO = new SysUserVO();
@@ -114,10 +114,10 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     @Transactional(rollbackFor = Exception.class)
     public Boolean registerUser(SysUserRegisterDTO sysUserRegisterDTO) {
         if (sysUserRegisterDTO == null || !StringUtils.hasText(sysUserRegisterDTO.getUsername())) {
-            throw new BusinessException(SysUserEnum.USERNAME_CANNOT_BE_EMPTY.getMessage());
+            throw new BusinessException(SysUserEnum.USERNAME_CANNOT_BE_EMPTY);
         }
         if (sysUserMapper.selectByUsername(sysUserRegisterDTO.getUsername()) != null) {
-            throw new BusinessException(SysUserEnum.USERNAME_ALREADY_EXISTS.getMessage());
+            throw new BusinessException(SysUserEnum.USERNAME_ALREADY_EXISTS);
         }
 
         SysUser sysUser = checkSysUserInfo(sysUserRegisterDTO);
@@ -133,7 +133,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     @Override
     public Boolean updatePassword(SysUserPasswordDTO sysUserPasswordDTO) {
         if (sysUserPasswordDTO == null) {
-            throw new BusinessException(SysUserEnum.DATA_CANNOT_BE_EMPTY.getMessage());
+            throw new BusinessException(SysUserEnum.DATA_CANNOT_BE_EMPTY);
         }
 
         SysUserInternalVO currentUser = UserContextUtil.getCurrentUser();
@@ -149,12 +149,12 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     @CacheEvict(value = "SysUser", key = "#p0.id", condition = "#p0.id != null")
     public Boolean updateUser(SysUserDTO sysUserDTO) {
         if (sysUserDTO == null || sysUserDTO.getId() == null) {
-            throw new BusinessException(SysUserEnum.USER_NOT_FOUND.getMessage());
+            throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
         }
 
         SysUser sysUser = this.getById(sysUserDTO.getId());
         if (sysUser == null) {
-            throw new BusinessException(SysUserEnum.USER_NOT_FOUND.getMessage());
+            throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
         }
 
         BeanUtils.copyProperties(sysUserDTO, sysUser);
@@ -173,18 +173,18 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     @CacheEvict(value = "SysUser", key = "#p0", condition = "#p0 != null")
     public Boolean removeUserById(UUID id) {
         if (id == null) {
-            throw new BusinessException(SysUserEnum.USER_NOT_FOUND.getMessage());
+            throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
         }
 
         SysUser sysUser = this.getById(id);
         if (sysUser == null) {
-            throw new BusinessException(SysUserEnum.USER_NOT_FOUND.getMessage());
+            throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
         }
 
         List<SysRoleVO> roles = sysUserRoleMapper.getUserRoles(id);
         roles.forEach(role -> {
             if (role.isAdmin()) {
-                throw new BusinessException(SysRoleEnum.ADMIN_OPERATION_FORBIDDEN.getMessage());
+                throw new BusinessException(SysRoleEnum.ADMIN_OPERATION_FORBIDDEN);
             }
         });
 
@@ -201,20 +201,20 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     @CacheEvict(value = "SysUser", allEntries = true)
     public Integer removeUserByIds(List<UUID> ids) {
         if (ids == null || ids.isEmpty()) {
-            throw new BusinessException(SysUserEnum.USER_NOT_FOUND.getMessage());
+            throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
         }
 
         List<SysUser> sysUsers = this.listByIds(ids);
         ids.forEach(id -> {
             if (sysUsers.stream().noneMatch(user -> user.getId().equals(id))) {
-                throw new BusinessException(SysUserEnum.USER_NOT_FOUND.getMessage());
+                throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
             }
         });
 
         List<SysRole> roles = sysUserRoleMapper.getRolesByUserIds(ids);
         roles.forEach(role -> {
             if (role.isAdmin()) {
-                throw new BusinessException(SysRoleEnum.ADMIN_OPERATION_FORBIDDEN.getMessage());
+                throw new BusinessException(SysRoleEnum.ADMIN_OPERATION_FORBIDDEN);
             }
         });
 
@@ -231,10 +231,10 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     @CacheEvict(value = "SysUser", key = "#result.id", condition = "#result != null")
     public SysUserVO addUser(SysUserAdminDTO sysUserAdminDTO) {
         if (sysUserAdminDTO == null) {
-            throw new BusinessException(SysUserEnum.USERNAME_CANNOT_BE_EMPTY.getMessage());
+            throw new BusinessException(SysUserEnum.USERNAME_CANNOT_BE_EMPTY);
         }
         if (sysUserMapper.selectByUsername(sysUserAdminDTO.getUsername()) != null) {
-            throw new BusinessException(SysUserEnum.USERNAME_ALREADY_EXISTS.getMessage());
+            throw new BusinessException(SysUserEnum.USERNAME_ALREADY_EXISTS);
         }
 
         SysUser sysUser = checkSysUserInfo(sysUserAdminDTO);
@@ -244,7 +244,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         } else {
             int result = sysUserMapper.deleteById(sysUser.getId());
             if (result <= 0) {
-                throw new BusinessException(SysUserEnum.USER_NOT_FOUND.getMessage());
+                throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
             }
         }
         this.save(sysUser);
@@ -260,7 +260,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     @CacheEvict(value = "SysUser", key = "#result.id", condition = "#result != null")
     public SysUserVO updateProfile(SysUserProfileDTO sysUserProfileDTO) {
         if (sysUserProfileDTO == null) {
-            throw new BusinessException(SysUserEnum.DATA_CANNOT_BE_EMPTY.getMessage());
+            throw new BusinessException(SysUserEnum.DATA_CANNOT_BE_EMPTY);
         }
 
         SysUser currentUser = this.getById(UserContextUtil.getCurrentUserId());
@@ -280,13 +280,13 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     @Transactional(readOnly = true)
     public SysUserInternalVO selectUserByUsername(String username) {
         if (!StringUtils.hasText(username)) {
-            throw new BusinessException(SysUserEnum.USERNAME_CANNOT_BE_EMPTY.getMessage());
+            throw new BusinessException(SysUserEnum.USERNAME_CANNOT_BE_EMPTY);
         }
 
         SysUser sysUser = sysUserMapper.selectByUsername(username);
 
         if (sysUser == null) {
-            throw new BusinessException(SysUserEnum.USER_NOT_FOUND.getMessage());
+            throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
         }
 
         SysUserInternalVO sysUserInternalVO = new SysUserInternalVO();
@@ -303,7 +303,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     @CacheEvict(value = "SysUser", key = "#p0", condition = "#p0 != null")
     public Boolean assignRoles(UUID userId, List<UUID> newRoleIds) {
         if (userId == null || this.getById(userId) == null) {
-            throw new BusinessException(SysUserEnum.USER_NOT_FOUND.getMessage());
+            throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
         }
 
         List<UUID> existingRoleIds = sysUserRoleMapper.getUserRoleIds(userId);
@@ -311,7 +311,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         if (!existingRoleIds.isEmpty()) {
             List<SysRoleVO> exitingRoles = sysRoleMapper.getRolesByIds(existingRoleIds);
             if (exitingRoles.stream().anyMatch(SysRoleVO::isAdmin)) {
-                throw new BusinessException(SysUserEnum.ADMIN_OPERATION_FORBIDDEN.getMessage());
+                throw new BusinessException(SysUserEnum.ADMIN_OPERATION_FORBIDDEN);
             }
         }
 
@@ -329,13 +329,13 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         if (!rolesToAdd.isEmpty()) {
             int result = sysUserRoleMapper.addUserRoles(userId, rolesToAdd);
             if (result <= 0) {
-                throw new BusinessException(SysUserEnum.ASSIGN_ROLE_FAILED.getMessage());
+                throw new BusinessException(SysUserEnum.ASSIGN_ROLE_FAILED);
             }
         }
         if (!rolesToRemove.isEmpty()) {
             int result = sysUserRoleMapper.removeUserRoles(userId, rolesToRemove);
             if (result <= 0) {
-                throw new BusinessException(SysUserEnum.ASSIGN_ROLE_FAILED.getMessage());
+                throw new BusinessException(SysUserEnum.ASSIGN_ROLE_FAILED);
             }
         }
 
@@ -349,7 +349,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     @Transactional(readOnly = true)
     public List<SysRoleVO> getUserRoles(UUID userId) {
         if (userId == null || this.getById(userId) == null) {
-            throw new BusinessException(SysUserEnum.USER_NOT_FOUND.getMessage());
+            throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
         }
 
         return sysUserRoleMapper.getUserRoles(userId);
@@ -359,7 +359,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     @Transactional(readOnly = true)
     public List<SysPermissionVO> getUserPermissions(UUID userId) {
         if (userId == null || this.getById(userId) == null) {
-            throw new BusinessException(SysUserEnum.USER_NOT_FOUND.getMessage());
+            throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
         }
 
         return sysUserPermissionMapper.getUserPermissions(userId);

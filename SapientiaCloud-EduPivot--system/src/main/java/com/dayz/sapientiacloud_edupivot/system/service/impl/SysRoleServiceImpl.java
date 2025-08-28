@@ -46,7 +46,7 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
     @Override
     public PageInfo<SysRoleVO> listSysRole(SysRoleQueryDTO sysRoleQueryDTO) {
         if (sysRoleQueryDTO == null) {
-            throw new BusinessException(SysRoleEnum.ROLE_NOT_FOUND.getMessage());
+            throw new BusinessException(SysRoleEnum.ROLE_NOT_FOUND);
         }
 
         return PageHelper.startPage(sysRoleQueryDTO.getPageNum(), sysRoleQueryDTO.getPageSize())
@@ -73,12 +73,12 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
     @Cacheable(value = "SysRole", key = "#p0", condition = "#p0 != null")
     public SysRoleVO getRoleById(UUID id) {
         if (id == null) {
-            throw new BusinessException(SysRoleEnum.ROLE_NOT_FOUND.getMessage());
+            throw new BusinessException(SysRoleEnum.ROLE_NOT_FOUND);
         }
 
         SysRole sysRole = this.getById(id);
         if (sysRole == null) {
-            throw new BusinessException(SysRoleEnum.ROLE_NOT_FOUND.getMessage());
+            throw new BusinessException(SysRoleEnum.ROLE_NOT_FOUND);
         }
 
         SysRoleVO sysRoleVO = new SysRoleVO();
@@ -94,14 +94,14 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
     @Transactional(rollbackFor = Exception.class)
     public Boolean addRole(SysRoleAddDTO sysRoleDTO) {
         if (sysRoleDTO == null || !StringUtils.hasText(sysRoleDTO.getRoleName())) {
-            throw new BusinessException(SysRoleEnum.ROLE_NAME_CANNOT_BE_EMPTY.getMessage());
+            throw new BusinessException(SysRoleEnum.ROLE_NAME_CANNOT_BE_EMPTY);
         }
         if (!StringUtils.hasText(sysRoleDTO.getRoleKey())) {
-            throw new BusinessException(SysRoleEnum.ROLE_KEY_CANNOT_BE_EMPTY.getMessage());
+            throw new BusinessException(SysRoleEnum.ROLE_KEY_CANNOT_BE_EMPTY);
         }
         List<SysRole> exist = this.lambdaQuery().eq(SysRole::getRoleKey, sysRoleDTO.getRoleKey()).list();
         if (!exist.isEmpty()) {
-            throw new BusinessException(SysRoleEnum.ROLE_ALREADY_EXISTS.getMessage());
+            throw new BusinessException(SysRoleEnum.ROLE_ALREADY_EXISTS);
         }
 
         SysRole sysRole = new SysRole();
@@ -123,15 +123,15 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
     })
     public Boolean updateRole(SysRoleDTO sysRoleDTO) {
         if (sysRoleDTO == null || sysRoleDTO.getId() == null) {
-            throw new BusinessException(SysRoleEnum.ROLE_NOT_FOUND.getMessage());
+            throw new BusinessException(SysRoleEnum.ROLE_NOT_FOUND);
         }
         if (sysRoleDTO.isAdmin()) {
-            throw new BusinessException(SysRoleEnum.ADMIN_OPERATION_FORBIDDEN.getMessage());
+            throw new BusinessException(SysRoleEnum.ADMIN_OPERATION_FORBIDDEN);
         }
 
         SysRole sysRole = this.getById(sysRoleDTO.getId());
         if (sysRole == null) {
-            throw new BusinessException(SysRoleEnum.ROLE_NOT_FOUND.getMessage());
+            throw new BusinessException(SysRoleEnum.ROLE_NOT_FOUND);
         }
 
         BeanUtils.copyProperties(sysRoleDTO, sysRole);
@@ -149,15 +149,15 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
 
     public Boolean removeRoleById(UUID id) {
         if (id == null) {
-            throw new BusinessException(SysRoleEnum.ROLE_NOT_FOUND.getMessage());
+            throw new BusinessException(SysRoleEnum.ROLE_NOT_FOUND);
         }
         SysRole sysRole = this.getById(id);
         if (sysRole == null) {
-            throw new BusinessException(SysRoleEnum.ROLE_NOT_FOUND.getMessage());
+            throw new BusinessException(SysRoleEnum.ROLE_NOT_FOUND);
         }
 
         if (sysRole.isAdmin()) {
-            throw new BusinessException(SysRoleEnum.ADMIN_OPERATION_FORBIDDEN.getMessage());
+            throw new BusinessException(SysRoleEnum.ADMIN_OPERATION_FORBIDDEN);
         }
 
         boolean removed = this.removeById(id);
@@ -177,16 +177,16 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
     })
     public Integer removeRoleByIds(List<UUID> ids) {
         if (ids == null || ids.isEmpty()) {
-            throw new BusinessException(SysRoleEnum.ROLE_NOT_FOUND.getMessage());
+            throw new BusinessException(SysRoleEnum.ROLE_NOT_FOUND);
         }
 
         List<SysRole> sysRoles = this.listByIds(ids);
         ids.forEach(id -> {
             if (sysRoles.stream().noneMatch(role -> role.getId().equals(id))) {
-                throw new BusinessException(SysRoleEnum.ROLE_NOT_FOUND.getMessage());
+                throw new BusinessException(SysRoleEnum.ROLE_NOT_FOUND);
             }
             if (sysRoles.stream().anyMatch(SysRole::isAdmin)) {
-                throw new BusinessException(SysRoleEnum.ADMIN_OPERATION_FORBIDDEN.getMessage());
+                throw new BusinessException(SysRoleEnum.ADMIN_OPERATION_FORBIDDEN);
             }
         });
 
@@ -207,7 +207,7 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
     })
     public Boolean assignRolePermissions(UUID roleId, List<UUID> newPermissionIds) {
         if (roleId == null || this.getById(roleId) == null) {
-            throw new BusinessException(SysRoleEnum.ROLE_NOT_FOUND.getMessage());
+            throw new BusinessException(SysRoleEnum.ROLE_NOT_FOUND);
         }
 
         List<UUID> existingPermissionIds = sysRolePermissionMapper.getRolePermissionIds(roleId);
@@ -226,13 +226,13 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
         if (!permissionsToAdd.isEmpty()) {
             int result = sysRolePermissionMapper.addRolePermissions(roleId, permissionsToAdd);
             if (result <= 0) {
-                throw new BusinessException(SysRoleEnum.ASSIGN_PERMISSION_FAILED.getMessage());
+                throw new BusinessException(SysRoleEnum.ASSIGN_PERMISSION_FAILED);
             }
         }
         if (!permissionsToRemove.isEmpty()) {
             int result = sysRolePermissionMapper.removeRolePermissions(roleId, permissionsToRemove);
             if (result <= 0) {
-                throw new BusinessException(SysRoleEnum.ASSIGN_PERMISSION_FAILED.getMessage());
+                throw new BusinessException(SysRoleEnum.ASSIGN_PERMISSION_FAILED);
             }
         }
 

@@ -10,7 +10,7 @@ import lombok.Getter;
  */
 @Getter
 @AllArgsConstructor
-public enum FileEnum {
+public enum FileEnum implements BaseEnum {
 
     // MinIO客户端相关
     MINIO_CLIENT_INIT_FAILED(2001, "MinIO客户端初始化失败"),

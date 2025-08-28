@@ -19,7 +19,7 @@ public interface IStudentService extends IService<Student> {
 
     StudentVO getStudentById(UUID id);
 
-    Student getStudentBySysUserId(UUID sysUserId);
+    StudentVO getStudentBySysUserId(UUID sysUserId);
 
     Boolean addStudent(StudentAddDTO studentAddDTO);
 

@@ -1,5 +1,6 @@
 package com.dayz.sapientiacloud_edupivot.auth.result;
 
+import com.dayz.sapientiacloud_edupivot.auth.enums.ResultEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 

@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import static com.dayz.sapientiacloud_edupivot.auth.result.ResultEnum.UNAUTHORIZED;
+import static com.dayz.sapientiacloud_edupivot.auth.enums.ResultEnum.UNAUTHORIZED;
 
 /**
  * JWT认证入口点

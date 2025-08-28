@@ -1,11 +1,12 @@
 package com.dayz.sapientiacloud_edupivot.teacher.enums;
 
+import com.dayz.sapientiacloud_edupivot.teacher.common.enums.BaseEnum;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public enum TeacherEnum {
+public enum TeacherEnum implements BaseEnum {
 
     TEACHER_NOT_FOUND(50001, "教师信息不存在"),
     TEACHER_CODE_EXISTS(50002, "教师工号已存在"),

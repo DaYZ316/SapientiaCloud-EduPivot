@@ -9,7 +9,7 @@ import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysUserLoginVO;
 import com.dayz.sapientiacloud_edupivot.auth.enums.SysUserEnum;
 import com.dayz.sapientiacloud_edupivot.auth.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.auth.result.Result;
-import com.dayz.sapientiacloud_edupivot.auth.result.ResultEnum;
+import com.dayz.sapientiacloud_edupivot.auth.enums.ResultEnum;
 import com.dayz.sapientiacloud_edupivot.auth.security.utils.JwtUtil;
 import com.dayz.sapientiacloud_edupivot.auth.security.utils.UserContextUtil;
 import com.dayz.sapientiacloud_edupivot.auth.service.AuthService;
@@ -37,32 +37,32 @@ public class AuthServiceImpl implements AuthService {
     @Transactional(rollbackFor = Exception.class)
     public SysUserLoginVO login(SysUserLoginDTO sysUserLoginDTO) {
         if (sysUserLoginDTO == null) {
-            throw new BusinessException(SysUserEnum.USER_NOT_FOUND.getMessage());
+            throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
         }
         if (!StringUtils.hasText(sysUserLoginDTO.getUsername())) {
-            throw new BusinessException(SysUserEnum.USERNAME_CANNOT_BE_EMPTY.getMessage());
+            throw new BusinessException(SysUserEnum.USERNAME_CANNOT_BE_EMPTY);
         }
         if (!StringUtils.hasText(sysUserLoginDTO.getPassword())) {
-            throw new BusinessException(SysUserEnum.PASSWORD_CANNOT_BE_EMPTY.getMessage());
+            throw new BusinessException(SysUserEnum.PASSWORD_CANNOT_BE_EMPTY);
         }
 
         Result<SysUserInternalVO> userResult = sysUserClient.getUserInfoByUsername(sysUserLoginDTO.getUsername());
         if (userResult == null || !userResult.isSuccess()) {
-            throw new BusinessException(SysUserEnum.USER_NOT_FOUND.getMessage());
+            throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
         }
 
         SysUserInternalVO sysUserInternalVO = userResult.getData();
         if (sysUserInternalVO == null) {
             log.error("用户登录失败: 用户不存在, 用户名: {}", sysUserLoginDTO.getUsername());
-            throw new BusinessException(SysUserEnum.USERNAME_OR_PASSWORD_ERROR.getMessage());
+            throw new BusinessException(SysUserEnum.USERNAME_OR_PASSWORD_ERROR);
         }
         if (sysUserInternalVO.getStatus() != null && sysUserInternalVO.getStatus() == 1) {
             log.error("用户登录失败: 用户已被禁用, 用户名: {}", sysUserLoginDTO.getUsername());
-            throw new BusinessException(SysUserEnum.USER_ACCOUNT_DISABLED.getMessage());
+            throw new BusinessException(SysUserEnum.USER_ACCOUNT_DISABLED);
         }
         if (!passwordEncoder.matches(sysUserLoginDTO.getPassword(), sysUserInternalVO.getPassword())) {
             log.error("用户登录失败: 密码错误, 用户名: {}", sysUserLoginDTO.getUsername());
-            throw new BusinessException(SysUserEnum.USERNAME_OR_PASSWORD_ERROR.getMessage());
+            throw new BusinessException(SysUserEnum.USERNAME_OR_PASSWORD_ERROR);
         }
 
         sysUserInternalVO.setLastLoginTime(LocalDateTime.now());
@@ -72,7 +72,7 @@ public class AuthServiceImpl implements AuthService {
         Result<Boolean> booleanResult = sysUserClient.updateUserInternal(sysUserDTO);
         if (!booleanResult.isSuccess()) {
             log.error("用户登录失败: 更新用户信息失败, 用户名: {}", sysUserLoginDTO.getUsername());
-            throw new BusinessException(SysUserEnum.USER_LOGIN_FAILED.getMessage());
+            throw new BusinessException(SysUserEnum.USER_LOGIN_FAILED);
         }
 
         String token = jwtUtil.generateToken(sysUserInternalVO);
@@ -115,25 +115,25 @@ public class AuthServiceImpl implements AuthService {
     @Transactional(rollbackFor = Exception.class)
     public Boolean updatePassword(HttpServletRequest request, SysUserPasswordDTO sysUserPasswordDTO) {
         if (sysUserPasswordDTO == null) {
-            throw new BusinessException(SysUserEnum.DATA_CANNOT_BE_EMPTY.getMessage());
+            throw new BusinessException(SysUserEnum.DATA_CANNOT_BE_EMPTY);
         }
 
         if (!sysUserPasswordDTO.getNewPassword().equals(sysUserPasswordDTO.getConfirmPassword())) {
-            throw new BusinessException(SysUserEnum.NEW_AND_CONFIRM_PASSWORD_NOT_MATCH.getMessage());
+            throw new BusinessException(SysUserEnum.NEW_AND_CONFIRM_PASSWORD_NOT_MATCH);
         }
         if (sysUserPasswordDTO.getCurrentPassword().equals(sysUserPasswordDTO.getNewPassword())) {
-            throw new BusinessException(SysUserEnum.NEW_PASSWORD_SAME_AS_CURRENT_PASSWORD.getMessage());
+            throw new BusinessException(SysUserEnum.NEW_PASSWORD_SAME_AS_CURRENT_PASSWORD);
         }
 
         SysUserInternalVO currentUser = UserContextUtil.getCurrentUser();
 
         if (!passwordEncoder.matches(sysUserPasswordDTO.getCurrentPassword(), currentUser.getPassword())) {
-            throw new BusinessException(SysUserEnum.CURRENT_PASSWORD_NOT_MATCH.getMessage());
+            throw new BusinessException(SysUserEnum.CURRENT_PASSWORD_NOT_MATCH);
         }
 
         Result<Boolean> result = sysUserClient.updatePassword(sysUserPasswordDTO);
         if (result == null || !result.isSuccess()) {
-            throw new BusinessException(SysUserEnum.PASSWORD_UPDATE_FAILED.getMessage());
+            throw new BusinessException(SysUserEnum.PASSWORD_UPDATE_FAILED);
         }
 
         return this.logout(request);
@@ -141,12 +141,12 @@ public class AuthServiceImpl implements AuthService {
 
     private boolean processLogout(String token) {
         if (!StringUtils.hasText(token)) {
-            throw new BusinessException(ResultEnum.TOKEN_NOT_FOUND.getMessage());
+            throw new BusinessException(ResultEnum.TOKEN_NOT_FOUND);
         }
 
         try {
             if (jwtUtil.isTokenExpired(token)) {
-                throw new BusinessException(ResultEnum.TOKEN_EXPIRED.getMessage());
+                throw new BusinessException(ResultEnum.TOKEN_EXPIRED);
             }
 
             String username = jwtUtil.getUsernameFromToken(token);
@@ -167,7 +167,7 @@ public class AuthServiceImpl implements AuthService {
             throw e;
         } catch (Exception e) {
             log.error("登出过程发生错误", e);
-            throw new BusinessException(SysUserEnum.USER_LOGOUT_FAILED.getMessage());
+            throw new BusinessException(SysUserEnum.USER_LOGOUT_FAILED);
         }
     }
 } 

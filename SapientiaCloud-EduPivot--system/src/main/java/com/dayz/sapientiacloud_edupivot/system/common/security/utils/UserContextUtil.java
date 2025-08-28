@@ -1,7 +1,7 @@
 package com.dayz.sapientiacloud_edupivot.system.common.security.utils;
 
 import com.dayz.sapientiacloud_edupivot.system.common.exception.BusinessException;
-import com.dayz.sapientiacloud_edupivot.system.common.result.ResultEnum;
+import com.dayz.sapientiacloud_edupivot.system.common.enums.ResultEnum;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysUserInternalVO;
 import com.dayz.sapientiacloud_edupivot.system.enums.SysUserEnum;
 import com.dayz.sapientiacloud_edupivot.system.service.ISysUserService;
@@ -90,7 +90,7 @@ public class UserContextUtil {
                 .map(authorities -> authorities.stream()
                         .map(GrantedAuthority::getAuthority)
                         .collect(Collectors.toList()))
-                .orElseThrow(() -> new BusinessException(ResultEnum.UNAUTHORIZED.getMessage()));
+                .orElseThrow(() -> new BusinessException(ResultEnum.UNAUTHORIZED));
     }
 
     /**
@@ -101,12 +101,12 @@ public class UserContextUtil {
     public static SysUserInternalVO getCurrentUser() {
         String username = getCurrentUsername();
         if (username == null) {
-            throw new BusinessException(SysUserEnum.USERNAME_CANNOT_BE_EMPTY.getMessage());
+            throw new BusinessException(SysUserEnum.USERNAME_CANNOT_BE_EMPTY);
         }
 
         SysUserInternalVO sysUserInternalVO = sysUserService.selectUserByUsername(username);
         if (sysUserInternalVO == null) {
-            throw new BusinessException(SysUserEnum.USER_NOT_FOUND.getMessage());
+            throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
         }
 
         return sysUserInternalVO;

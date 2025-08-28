@@ -2,7 +2,7 @@ package com.dayz.sapientiacloud_edupivot.student.common.security.aspect;
 
 import com.dayz.sapientiacloud_edupivot.student.common.clients.SysPermissionClient;
 import com.dayz.sapientiacloud_edupivot.student.common.exception.BusinessException;
-import com.dayz.sapientiacloud_edupivot.student.common.result.ResultEnum;
+import com.dayz.sapientiacloud_edupivot.student.common.enums.ResultEnum;
 import com.dayz.sapientiacloud_edupivot.student.common.security.annotation.HasPermission;
 import com.dayz.sapientiacloud_edupivot.student.common.security.utils.UserContextUtil;
 import lombok.RequiredArgsConstructor;

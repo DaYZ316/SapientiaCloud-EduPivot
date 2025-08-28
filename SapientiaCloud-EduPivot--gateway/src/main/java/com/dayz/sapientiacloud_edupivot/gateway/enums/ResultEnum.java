@@ -1,11 +1,11 @@
-package com.dayz.sapientiacloud_edupivot.system.common.result;
+package com.dayz.sapientiacloud_edupivot.gateway.enums;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public enum ResultEnum {
+public enum ResultEnum implements BaseEnum {
 
     SUCCESS(200, "操作成功"),
     FAIL(500, "操作失败"),
@@ -15,6 +15,8 @@ public enum ResultEnum {
     NOT_FOUND(404, "资源不存在"),
     METHOD_NOT_ALLOWED(405, "请求方法不支持"),
     SERVICE_UNAVAILABLE(503, "服务不可用"),
+    TOKEN_NOT_FOUND(1001, "令牌不存在"),
+    TOKEN_EXPIRED(1002, "令牌已过期"),
     SYSTEM_ERROR(1003, "系统异常");
 
     private final int code;

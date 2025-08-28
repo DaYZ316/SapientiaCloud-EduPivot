@@ -1,11 +1,12 @@
 package com.dayz.sapientiacloud_edupivot.student.enums;
 
+import com.dayz.sapientiacloud_edupivot.student.common.enums.BaseEnum;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public enum StudentEnum {
+public enum StudentEnum implements BaseEnum {
 
     STUDENT_NOT_FOUND(40001, "学生信息不存在"),
     STUDENT_CODE_EXISTS(40002, "学号已存在"),

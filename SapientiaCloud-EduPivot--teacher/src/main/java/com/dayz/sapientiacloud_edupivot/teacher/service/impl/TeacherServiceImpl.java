@@ -2,7 +2,6 @@ package com.dayz.sapientiacloud_edupivot.teacher.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.dayz.sapientiacloud_edupivot.teacher.common.enums.StatusEnum;
 import com.dayz.sapientiacloud_edupivot.teacher.common.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.teacher.common.security.utils.UserContextUtil;
 import com.dayz.sapientiacloud_edupivot.teacher.entity.dto.TeacherAddDTO;
@@ -19,7 +18,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -34,7 +32,7 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
     @Override
     public PageInfo<TeacherVO> listTeacherPage(TeacherQueryDTO teacherQueryDTO) {
         if (teacherQueryDTO == null) {
-            throw new BusinessException(TeacherEnum.TEACHER_NOT_FOUND.getMessage());
+            throw new BusinessException(TeacherEnum.TEACHER_NOT_FOUND);
         }
 
         PageInfo<TeacherVO> pageInfo = PageHelper.startPage(teacherQueryDTO.getPageNum(), teacherQueryDTO.getPageSize())
@@ -62,7 +60,7 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
     public TeacherVO getTeacherById(UUID id) {
         Teacher teacher = this.getById(id);
         if (teacher == null) {
-            throw new BusinessException(TeacherEnum.TEACHER_NOT_FOUND.getMessage());
+            throw new BusinessException(TeacherEnum.TEACHER_NOT_FOUND);
         }
 
         TeacherVO teacherVO = new TeacherVO();
@@ -73,21 +71,29 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
 
     @Override
     @Transactional(readOnly = true)
-    public Teacher getTeacherBySysUserId(UUID sysUserId) {
-        return teacherMapper.selectBySysUserId(sysUserId);
+    public TeacherVO getTeacherBySysUserId(UUID sysUserId) {
+        Teacher teacher = teacherMapper.selectBySysUserId(sysUserId);
+        if (teacher == null) {
+            return null;
+        }
+
+        TeacherVO teacherVO = new TeacherVO();
+        BeanUtils.copyProperties(teacher, teacherVO);
+
+        return teacherVO;
     }
 
     @Override
     @Transactional
     public Boolean addTeacher(TeacherAddDTO teacherAddDTO) {
         if (teacherAddDTO == null) {
-            throw new BusinessException(TeacherEnum.TEACHER_NOT_FOUND.getMessage());
+            throw new BusinessException(TeacherEnum.TEACHER_NOT_FOUND);
         }
 
         if (teacherAddDTO.getSysUserId() != null) {
-            Teacher existingTeacher = getTeacherBySysUserId(teacherAddDTO.getSysUserId());
+            TeacherVO existingTeacher = getTeacherBySysUserId(teacherAddDTO.getSysUserId());
             if (existingTeacher != null) {
-                throw new BusinessException(TeacherEnum.SYS_USER_ALREADY_BOUND.getMessage());
+                throw new BusinessException(TeacherEnum.SYS_USER_ALREADY_BOUND);
             }
         }
 
@@ -105,18 +111,18 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
     @Transactional
     public Boolean updateTeacher(TeacherDTO teacherDTO) {
         if (teacherDTO == null || teacherDTO.getId() == null) {
-            throw new BusinessException(TeacherEnum.TEACHER_ID_REQUIRED.getMessage());
+            throw new BusinessException(TeacherEnum.TEACHER_ID_REQUIRED);
         }
 
         Teacher existingTeacher = this.getById(teacherDTO.getId());
         if (existingTeacher == null) {
-            throw new BusinessException(TeacherEnum.TEACHER_NOT_FOUND.getMessage());
+            throw new BusinessException(TeacherEnum.TEACHER_NOT_FOUND);
         }
 
         if (teacherDTO.getSysUserId() != null && !teacherDTO.getSysUserId().equals(existingTeacher.getSysUserId())) {
-            Teacher boundTeacher = getTeacherBySysUserId(teacherDTO.getSysUserId());
+            TeacherVO boundTeacher = getTeacherBySysUserId(teacherDTO.getSysUserId());
             if (boundTeacher != null && !boundTeacher.getId().equals(teacherDTO.getId())) {
-                throw new BusinessException(TeacherEnum.SYS_USER_ALREADY_BOUND.getMessage());
+                throw new BusinessException(TeacherEnum.SYS_USER_ALREADY_BOUND);
             }
         }
 
@@ -132,7 +138,7 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
     public Boolean removeTeacherById(UUID id) {
         Teacher teacher = this.getById(id);
         if (teacher == null) {
-            throw new BusinessException(TeacherEnum.TEACHER_NOT_FOUND.getMessage());
+            throw new BusinessException(TeacherEnum.TEACHER_NOT_FOUND);
         }
 
         return this.removeById(id);

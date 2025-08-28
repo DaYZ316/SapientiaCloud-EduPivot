@@ -1,11 +1,12 @@
 package com.dayz.sapientiacloud_edupivot.teacher.enums;
 
+import com.dayz.sapientiacloud_edupivot.teacher.common.enums.BaseEnum;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public enum EducationEnum {
+public enum EducationEnum implements BaseEnum {
 
     COLLEGE(0, "专科"),
     BACHELOR(1, "本科"),
@@ -13,7 +14,7 @@ public enum EducationEnum {
     DOCTOR(3, "博士");
 
     private final Integer code;
-    private final String desc;
+    private final String message;
 
     public static EducationEnum getByCode(Integer code) {
         for (EducationEnum education : values()) {

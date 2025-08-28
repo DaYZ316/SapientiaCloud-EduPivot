@@ -1,8 +1,8 @@
 package com.dayz.sapientiacloud_edupivot.gateway.exception;
 
 import com.dayz.sapientiacloud_edupivot.gateway.result.Result;
-import com.dayz.sapientiacloud_edupivot.gateway.result.ResultEnum;
-import com.dayz.sapientiacloud_edupivot.gateway.utils.EnumLookupUtil;
+import com.dayz.sapientiacloud_edupivot.gateway.enums.ResultEnum;
+import com.dayz.sapientiacloud_edupivot.gateway.utils.EnumUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -17,7 +17,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BusinessException.class)
     public Result<Void> handleBusinessException(BusinessException e) {
         log.error("业务异常: {}", e.getMessage());
-        ResultEnum resultEnum = EnumLookupUtil.getByAttribute(ResultEnum.class, e.getMessage(), ResultEnum::getMessage);
+        ResultEnum resultEnum = EnumUtil.getByAttribute(ResultEnum.class, e.getMessage(), ResultEnum::getMessage);
         return Result.fail(Objects.requireNonNullElse(resultEnum, ResultEnum.SYSTEM_ERROR));
     }
 

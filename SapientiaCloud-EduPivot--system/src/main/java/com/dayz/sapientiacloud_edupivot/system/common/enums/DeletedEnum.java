@@ -7,7 +7,7 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public enum DeletedEnum {
+public enum DeletedEnum implements BaseEnum {
 
     NOT_DELETED(0, "未删除"),
     DELETED(1, "已删除");
@@ -16,5 +16,5 @@ public enum DeletedEnum {
     private final Integer code;
 
     @JsonValue
-    private final String description;
+    private final String message;
 }

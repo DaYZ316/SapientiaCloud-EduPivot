@@ -2,8 +2,8 @@ package com.dayz.sapientiacloud_edupivot.auth.exception;
 
 import com.dayz.sapientiacloud_edupivot.auth.enums.SysUserEnum;
 import com.dayz.sapientiacloud_edupivot.auth.result.Result;
-import com.dayz.sapientiacloud_edupivot.auth.result.ResultEnum;
-import com.dayz.sapientiacloud_edupivot.auth.utils.EnumLookupUtil;
+import com.dayz.sapientiacloud_edupivot.auth.enums.ResultEnum;
+import com.dayz.sapientiacloud_edupivot.auth.utils.EnumUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -18,11 +18,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BusinessException.class)
     public Result<Void> handleBusinessException(BusinessException e) {
         log.error("业务异常: {}", e.getMessage());
-        SysUserEnum sysUserEnum = EnumLookupUtil.getByAttribute(SysUserEnum.class, e.getMessage(), SysUserEnum::getMessage);
+        SysUserEnum sysUserEnum = EnumUtil.getByAttribute(SysUserEnum.class, e.getMessage(), SysUserEnum::getMessage);
         if (sysUserEnum != null) {
             return Result.fail(sysUserEnum.getMessage());
         }
-        ResultEnum resultEnum = EnumLookupUtil.getByAttribute(ResultEnum.class, e.getMessage(), ResultEnum::getMessage);
+        ResultEnum resultEnum = EnumUtil.getByAttribute(ResultEnum.class, e.getMessage(), ResultEnum::getMessage);
         return Result.fail(Objects.requireNonNullElse(resultEnum, ResultEnum.SYSTEM_ERROR));
     }
 

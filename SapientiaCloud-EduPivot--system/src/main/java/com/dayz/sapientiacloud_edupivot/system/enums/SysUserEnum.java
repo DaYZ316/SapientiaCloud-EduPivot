@@ -1,11 +1,12 @@
 package com.dayz.sapientiacloud_edupivot.system.enums;
 
+import com.dayz.sapientiacloud_edupivot.system.common.enums.BaseEnum;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public enum SysUserEnum {
+public enum SysUserEnum implements BaseEnum {
 
     USER_NOT_FOUND(1001, "用户不存在"),
     USERNAME_OR_PASSWORD_ERROR(1002, "用户名或密码错误"),
