@@ -2,6 +2,7 @@ package com.dayz.sapientiacloud_edupivot.student.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.dayz.sapientiacloud_edupivot.student.common.clients.SysRoleClient;
 import com.dayz.sapientiacloud_edupivot.student.common.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.student.common.security.utils.UserContextUtil;
 import com.dayz.sapientiacloud_edupivot.student.entity.dto.StudentAddDTO;
@@ -27,7 +28,10 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> implements IStudentService {
 
+    private static final String STUDENT = "STUDENT";
+
     private final StudentMapper studentMapper;
+    private final SysRoleClient sysRoleClient;
 
     @Override
     public PageInfo<StudentVO> listStudentPage(StudentQueryDTO studentQueryDTO) {
@@ -84,7 +88,7 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public Boolean addStudent(StudentAddDTO studentAddDTO) {
         if (studentAddDTO == null) {
             throw new BusinessException(StudentEnum.STUDENT_NOT_FOUND);
@@ -101,6 +105,10 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
         BeanUtils.copyProperties(studentAddDTO, student);
         student.setId(UUID.randomUUID());
         student.setSysUserId(UserContextUtil.getCurrentUserId());
+        if (sysRoleClient.getRoleByKey(STUDENT).getData() != null) {
+            sysRoleClient.addRoleToUser(student.getSysUserId(), STUDENT);
+        }
+
         student.setCreateTime(LocalDateTime.now());
         student.setUpdateTime(LocalDateTime.now());
 
@@ -108,7 +116,7 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public Boolean updateStudent(StudentDTO studentDTO) {
         if (studentDTO == null || studentDTO.getId() == null) {
             throw new BusinessException(StudentEnum.STUDENT_ID_REQUIRED);
@@ -134,23 +142,42 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public Boolean removeStudentById(UUID id) {
         Student student = this.getById(id);
         if (student == null) {
             throw new BusinessException(StudentEnum.STUDENT_NOT_FOUND);
         }
 
-        return this.removeById(id);
+        // 删除学生记录
+        boolean removeResult = this.removeById(id);
+        if (removeResult) {
+            // 同步删除用户的学生角色绑定
+            sysRoleClient.removeRoleFromUser(student.getSysUserId(), STUDENT);
+        }
+
+        return removeResult;
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public Integer removeStudentByIds(List<UUID> ids) {
         if (ids == null || ids.isEmpty()) {
             return 0;
         }
 
-        return Math.toIntExact(this.removeBatchByIds(ids) ? ids.size() : 0);
+        // 获取要删除的学生信息，用于后续删除角色绑定
+        List<Student> students = this.listByIds(ids);
+        
+        // 批量删除学生记录
+        boolean removeResult = this.removeBatchByIds(ids);
+        if (removeResult) {
+            // 同步删除用户的学生角色绑定
+            for (Student student : students) {
+                sysRoleClient.removeRoleFromUser(student.getSysUserId(), STUDENT);
+            }
+        }
+
+        return Math.toIntExact(removeResult ? ids.size() : 0);
     }
 }

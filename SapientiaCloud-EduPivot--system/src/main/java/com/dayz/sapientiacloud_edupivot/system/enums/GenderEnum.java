@@ -15,7 +15,7 @@ public enum GenderEnum implements BaseEnum {
     FEMALE(2, "女性");
 
     @EnumValue
-    private final Integer code;
+    private final int code;
 
     @JsonValue
     private final String message;

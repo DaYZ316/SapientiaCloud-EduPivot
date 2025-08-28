@@ -13,12 +13,12 @@ public enum AcademicStatusEnum implements BaseEnum {
     WITHDRAWAL(2, "退学"),
     GRADUATED(3, "毕业");
 
-    private final Integer code;
+    private final int code;
     private final String message;
 
     public static AcademicStatusEnum getByCode(Integer code) {
         for (AcademicStatusEnum status : values()) {
-            if (status.getCode().equals(code)) {
+            if (status.getCode()== code) {
                 return status;
             }
         }

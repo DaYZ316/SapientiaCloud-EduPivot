@@ -18,6 +18,6 @@ public enum StudentEnum implements BaseEnum {
     SYS_USER_ALREADY_BOUND(40008, "系统用户已绑定其他学生"),
     STUDENT_ID_REQUIRED(40009, "学生ID不能为空");
 
-    private final Integer code;
+    private final int code;
     private final String message;
 }

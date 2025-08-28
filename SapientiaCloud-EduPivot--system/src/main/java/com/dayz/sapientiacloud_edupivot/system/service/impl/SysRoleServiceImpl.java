@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dayz.sapientiacloud_edupivot.system.common.enums.StatusEnum;
 import com.dayz.sapientiacloud_edupivot.system.common.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.system.common.security.service.PermissionService;
+import com.dayz.sapientiacloud_edupivot.system.enums.SysUserEnum;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysRoleAddDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysRoleDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysRoleQueryDTO;
@@ -200,6 +201,33 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
     }
 
     @Override
+    @Transactional(readOnly = true)
+    @Cacheable(value = "SysRole", key = "'roleKey:' + #p0", condition = "#p0 != null")
+    public SysRoleVO getRoleByKey(String roleKey) {
+        if (!StringUtils.hasText(roleKey)) {
+            throw new BusinessException(SysRoleEnum.ROLE_KEY_CANNOT_BE_EMPTY);
+        }
+
+        LambdaQueryWrapper<SysRole> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(SysRole::getRoleKey, roleKey)
+                   .eq(SysRole::getStatus, StatusEnum.NORMAL.getCode());
+
+        SysRole sysRole = this.getOne(queryWrapper);
+        if (sysRole == null) {
+            throw new BusinessException(SysRoleEnum.ROLE_NOT_FOUND);
+        }
+
+        SysRoleVO sysRoleVO = new SysRoleVO();
+        BeanUtils.copyProperties(sysRole, sysRoleVO);
+
+        // 获取角色权限信息
+        List<SysPermissionVO> permissions = sysRolePermissionMapper.getRolePermissions(sysRole.getId());
+        sysRoleVO.setPermissions(permissions);
+
+        return sysRoleVO;
+    }
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
     @Caching(evict = {
             @CacheEvict(value = "SysRole", key = "#p0", condition = "#p0 != null"),
@@ -237,6 +265,86 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
         }
 
         permissionService.clearAllPermissionCache();
+
+        return true;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    @Caching(evict = {
+            @CacheEvict(value = "SysRole", allEntries = true),
+            @CacheEvict(value = "SysUser", allEntries = true)
+    })
+    public Boolean addRoleToUser(UUID userId, String roleKey) {
+        if (userId == null) {
+            throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
+        }
+        if (!StringUtils.hasText(roleKey)) {
+            throw new BusinessException(SysRoleEnum.ROLE_KEY_CANNOT_BE_EMPTY);
+        }
+
+        // 根据角色标识获取角色信息
+        LambdaQueryWrapper<SysRole> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(SysRole::getRoleKey, roleKey)
+                   .eq(SysRole::getStatus, StatusEnum.NORMAL.getCode());
+
+        SysRole sysRole = this.getOne(queryWrapper);
+        if (sysRole == null) {
+            throw new BusinessException(SysRoleEnum.ROLE_NOT_FOUND);
+        }
+
+        // 检查用户是否已经拥有该角色
+        List<UUID> existingRoleIds = sysUserRoleMapper.getUserRoleIds(userId);
+        if (existingRoleIds.contains(sysRole.getId())) {
+            return true; // 用户已经拥有该角色，直接返回成功
+        }
+
+        // 为用户添加角色
+        List<UUID> roleIds = List.of(sysRole.getId());
+        int result = sysUserRoleMapper.addUserRoles(userId, roleIds);
+        if (result <= 0) {
+            throw new BusinessException(SysUserEnum.ASSIGN_ROLE_FAILED);
+        }
+
+        return true;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    @Caching(evict = {
+            @CacheEvict(value = "SysRole", allEntries = true),
+            @CacheEvict(value = "SysUser", allEntries = true)
+    })
+    public Boolean removeRoleFromUser(UUID userId, String roleKey) {
+        if (userId == null) {
+            throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
+        }
+        if (!StringUtils.hasText(roleKey)) {
+            throw new BusinessException(SysRoleEnum.ROLE_KEY_CANNOT_BE_EMPTY);
+        }
+
+        // 根据角色标识获取角色信息
+        LambdaQueryWrapper<SysRole> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(SysRole::getRoleKey, roleKey)
+                   .eq(SysRole::getStatus, StatusEnum.NORMAL.getCode());
+
+        SysRole sysRole = this.getOne(queryWrapper);
+        if (sysRole == null) {
+            throw new BusinessException(SysRoleEnum.ROLE_NOT_FOUND);
+        }
+
+        // 检查用户是否拥有该角色
+        List<UUID> existingRoleIds = sysUserRoleMapper.getUserRoleIds(userId);
+        if (!existingRoleIds.contains(sysRole.getId())) {
+            return true; // 用户没有该角色，直接返回成功
+        }
+
+        // 从用户中移除角色
+        List<UUID> roleIds = List.of(sysRole.getId());
+        int result = sysUserRoleMapper.removeUserRoles(userId, roleIds);
+        if (result <= 0) {
+            throw new BusinessException(SysUserEnum.USER_ROLE_DELETE_FAILED);
+        }
 
         return true;
     }

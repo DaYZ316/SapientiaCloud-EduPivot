@@ -13,12 +13,12 @@ public enum EducationEnum implements BaseEnum {
     MASTER(2, "硕士"),
     DOCTOR(3, "博士");
 
-    private final Integer code;
+    private final int code;
     private final String message;
 
     public static EducationEnum getByCode(Integer code) {
         for (EducationEnum education : values()) {
-            if (education.getCode().equals(code)) {
+            if (education.getCode() == code) {
                 return education;
             }
         }

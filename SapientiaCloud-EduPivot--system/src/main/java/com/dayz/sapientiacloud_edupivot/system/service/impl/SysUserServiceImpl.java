@@ -55,6 +55,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
     private final static int DEFAULT_USERNAME_LENGTH = 8;
     private final static String INIT_PASSWORD = "123456";
+    private final static String INIT_VERIFICATION_CODE = "123456";
 
     private final SysUserMapper sysUserMapper;
     private final SysUserRoleMapper sysUserRoleMapper;
@@ -131,7 +132,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             sysUser.setNickName(sysUser.getId().toString());
         }
 
-        if (!sysUserRegisterDTO.getVerificationCode().equals("123456")) {
+        if (!sysUserRegisterDTO.getVerificationCode().equals(INIT_VERIFICATION_CODE)) {
             throw new BusinessException(SysUserEnum.VERIFICATION_CODE_ERROR);
         }
 

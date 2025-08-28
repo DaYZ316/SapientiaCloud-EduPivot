@@ -18,6 +18,6 @@ public enum TeacherEnum implements BaseEnum {
     SYS_USER_ALREADY_BOUND(50008, "系统用户已绑定其他教师"),
     TEACHER_ID_REQUIRED(50009, "教师ID不能为空");
 
-    private final Integer code;
+    private final int code;
     private final String message;
 }

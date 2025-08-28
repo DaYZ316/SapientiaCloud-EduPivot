@@ -28,4 +28,10 @@ public interface ISysRoleService extends IService<SysRole> {
     Integer removeRoleByIds(List<UUID> ids);
 
     Boolean assignRolePermissions(UUID id, List<UUID> permissionIds);
+
+    SysRoleVO getRoleByKey(String roleKey);
+
+    Boolean addRoleToUser(UUID userId, String roleKey);
+
+    Boolean removeRoleFromUser(UUID userId, String roleKey);
 }
