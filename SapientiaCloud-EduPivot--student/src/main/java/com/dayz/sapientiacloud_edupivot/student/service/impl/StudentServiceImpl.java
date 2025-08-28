@@ -168,7 +168,7 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
 
         // 获取要删除的学生信息，用于后续删除角色绑定
         List<Student> students = this.listByIds(ids);
-        
+
         // 批量删除学生记录
         boolean removeResult = this.removeBatchByIds(ids);
         if (removeResult) {

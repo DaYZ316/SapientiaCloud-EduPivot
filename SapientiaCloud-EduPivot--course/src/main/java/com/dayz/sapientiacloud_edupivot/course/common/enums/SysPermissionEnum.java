@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public enum SysPermissionEnum {
+public enum SysPermissionEnum implements BaseEnum {
 
     PERMISSION_NOT_FOUND(3001, "权限不存在"),
     PERMISSION_ALREADY_EXISTS(3002, "权限已存在"),

@@ -5,10 +5,8 @@ import com.dayz.sapientiacloud_edupivot.system.common.result.Result;
 import com.dayz.sapientiacloud_edupivot.system.common.result.TableDataResult;
 import com.dayz.sapientiacloud_edupivot.system.common.security.annotation.HasPermission;
 import com.dayz.sapientiacloud_edupivot.system.common.security.constant.PermissionConstants;
-import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserAdminDTO;
-import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserDTO;
-import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserProfileDTO;
-import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserQueryDTO;
+import com.dayz.sapientiacloud_edupivot.system.entity.dto.*;
+import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysUserInternalVO;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysUserVO;
 import com.dayz.sapientiacloud_edupivot.system.service.ISysUserService;
 import com.github.pagehelper.PageInfo;
@@ -130,5 +128,14 @@ public class SysUserController extends BaseController {
     @PutMapping("/profile")
     public Result<SysUserVO> updateProfile(@Valid @RequestBody SysUserProfileDTO sysUserProfileDTO) {
         return Result.success(sysUserService.updateProfile(sysUserProfileDTO));
+    }
+
+    @HasPermission(
+            summary = "手机验证码登录",
+            description = "通过手机号码和验证码进行登录验证"
+    )
+    @PostMapping("/mobile-login")
+    public Result<SysUserInternalVO> mobileLogin(@Valid @RequestBody SysUserMobileLoginDTO mobileLoginDTO) {
+        return Result.success(sysUserService.mobileLogin(mobileLoginDTO));
     }
 }

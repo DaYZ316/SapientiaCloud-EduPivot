@@ -5,7 +5,6 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dayz.sapientiacloud_edupivot.system.common.enums.StatusEnum;
 import com.dayz.sapientiacloud_edupivot.system.common.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.system.common.security.service.PermissionService;
-import com.dayz.sapientiacloud_edupivot.system.enums.SysUserEnum;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysRoleAddDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysRoleDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysRoleQueryDTO;
@@ -13,6 +12,7 @@ import com.dayz.sapientiacloud_edupivot.system.entity.po.SysRole;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysPermissionVO;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysRoleVO;
 import com.dayz.sapientiacloud_edupivot.system.enums.SysRoleEnum;
+import com.dayz.sapientiacloud_edupivot.system.enums.SysUserEnum;
 import com.dayz.sapientiacloud_edupivot.system.mapper.SysRoleMapper;
 import com.dayz.sapientiacloud_edupivot.system.mapper.SysRolePermissionMapper;
 import com.dayz.sapientiacloud_edupivot.system.mapper.SysUserRoleMapper;
@@ -210,7 +210,7 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
 
         LambdaQueryWrapper<SysRole> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(SysRole::getRoleKey, roleKey)
-                   .eq(SysRole::getStatus, StatusEnum.NORMAL.getCode());
+                .eq(SysRole::getStatus, StatusEnum.NORMAL.getCode());
 
         SysRole sysRole = this.getOne(queryWrapper);
         if (sysRole == null) {
@@ -286,7 +286,7 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
         // 根据角色标识获取角色信息
         LambdaQueryWrapper<SysRole> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(SysRole::getRoleKey, roleKey)
-                   .eq(SysRole::getStatus, StatusEnum.NORMAL.getCode());
+                .eq(SysRole::getStatus, StatusEnum.NORMAL.getCode());
 
         SysRole sysRole = this.getOne(queryWrapper);
         if (sysRole == null) {
@@ -326,7 +326,7 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
         // 根据角色标识获取角色信息
         LambdaQueryWrapper<SysRole> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(SysRole::getRoleKey, roleKey)
-                   .eq(SysRole::getStatus, StatusEnum.NORMAL.getCode());
+                .eq(SysRole::getStatus, StatusEnum.NORMAL.getCode());
 
         SysRole sysRole = this.getOne(queryWrapper);
         if (sysRole == null) {

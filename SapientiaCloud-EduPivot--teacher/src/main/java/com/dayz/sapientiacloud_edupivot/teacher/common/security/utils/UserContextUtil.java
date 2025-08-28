@@ -2,10 +2,10 @@ package com.dayz.sapientiacloud_edupivot.teacher.common.security.utils;
 
 import com.dayz.sapientiacloud_edupivot.teacher.common.clients.SysUserClient;
 import com.dayz.sapientiacloud_edupivot.teacher.common.entity.vo.SysUserInternalVO;
+import com.dayz.sapientiacloud_edupivot.teacher.common.enums.ResultEnum;
 import com.dayz.sapientiacloud_edupivot.teacher.common.enums.SysUserEnum;
 import com.dayz.sapientiacloud_edupivot.teacher.common.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.teacher.common.result.Result;
-import com.dayz.sapientiacloud_edupivot.teacher.common.enums.ResultEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;

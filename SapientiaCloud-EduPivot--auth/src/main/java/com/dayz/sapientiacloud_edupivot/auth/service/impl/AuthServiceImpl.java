@@ -3,13 +3,15 @@ package com.dayz.sapientiacloud_edupivot.auth.service.impl;
 import com.dayz.sapientiacloud_edupivot.auth.clients.SysUserClient;
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserLoginDTO;
+import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserMobileLoginDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserPasswordDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysUserInternalVO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysUserLoginVO;
+import com.dayz.sapientiacloud_edupivot.auth.enums.ResultEnum;
+import com.dayz.sapientiacloud_edupivot.auth.enums.StatusEnum;
 import com.dayz.sapientiacloud_edupivot.auth.enums.SysUserEnum;
 import com.dayz.sapientiacloud_edupivot.auth.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.auth.result.Result;
-import com.dayz.sapientiacloud_edupivot.auth.enums.ResultEnum;
 import com.dayz.sapientiacloud_edupivot.auth.security.utils.JwtUtil;
 import com.dayz.sapientiacloud_edupivot.auth.security.utils.UserContextUtil;
 import com.dayz.sapientiacloud_edupivot.auth.service.AuthService;
@@ -28,6 +30,8 @@ import java.time.LocalDateTime;
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
+
+    private final static String INIT_VERIFICATION_CODE = "123456";
 
     private final SysUserClient sysUserClient;
     private final PasswordEncoder passwordEncoder;
@@ -56,7 +60,7 @@ public class AuthServiceImpl implements AuthService {
             log.error("用户登录失败: 用户不存在, 用户名: {}", sysUserLoginDTO.getUsername());
             throw new BusinessException(SysUserEnum.USERNAME_OR_PASSWORD_ERROR);
         }
-        if (sysUserInternalVO.getStatus() != null && sysUserInternalVO.getStatus() == 1) {
+        if (sysUserInternalVO.getStatus() != null && sysUserInternalVO.getStatus() == StatusEnum.DISABLED.getCode()) {
             log.error("用户登录失败: 用户已被禁用, 用户名: {}", sysUserLoginDTO.getUsername());
             throw new BusinessException(SysUserEnum.USER_ACCOUNT_DISABLED);
         }
@@ -119,6 +123,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         if (!sysUserPasswordDTO.getNewPassword().equals(sysUserPasswordDTO.getConfirmPassword())) {
+
             throw new BusinessException(SysUserEnum.NEW_AND_CONFIRM_PASSWORD_NOT_MATCH);
         }
         if (sysUserPasswordDTO.getCurrentPassword().equals(sysUserPasswordDTO.getNewPassword())) {
@@ -137,6 +142,50 @@ public class AuthServiceImpl implements AuthService {
         }
 
         return this.logout(request);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public SysUserLoginVO mobileLogin(SysUserMobileLoginDTO sysUserMobileLoginDTO) {
+        if (sysUserMobileLoginDTO == null) {
+            throw new BusinessException(SysUserEnum.DATA_CANNOT_BE_EMPTY);
+        }
+        if (!StringUtils.hasText(sysUserMobileLoginDTO.getMobile())) {
+            throw new BusinessException(SysUserEnum.PHONE_NUMBER_CANNOT_BE_EMPTY);
+        }
+        if (!StringUtils.hasText(sysUserMobileLoginDTO.getVerificationCode())) {
+            throw new BusinessException(SysUserEnum.VERIFICATION_CODE_CANNOT_BE_EMPTY);
+        }
+
+        // 调用system模块的手机验证码登录接口
+        Result<SysUserInternalVO> userResult = sysUserClient.mobileLogin(sysUserMobileLoginDTO);
+        if (userResult == null || !userResult.isSuccess()) {
+            throw new BusinessException(SysUserEnum.USER_LOGIN_FAILED);
+        }
+
+        SysUserInternalVO sysUserInternalVO = userResult.getData();
+        if (sysUserInternalVO == null) {
+            log.error("手机验证码登录失败: 用户不存在, 手机号: {}", sysUserMobileLoginDTO.getMobile());
+            throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
+        }
+        if (sysUserInternalVO.getStatus() != null && sysUserInternalVO.getStatus() == StatusEnum.DISABLED.getCode()) {
+            log.error("手机验证码登录失败: 用户已被禁用, 手机号: {}", sysUserMobileLoginDTO.getMobile());
+            throw new BusinessException(SysUserEnum.USER_ACCOUNT_DISABLED);
+        }
+
+        if (!sysUserMobileLoginDTO.getVerificationCode().equals(INIT_VERIFICATION_CODE)) {
+            throw new BusinessException(SysUserEnum.VERIFICATION_CODE_ERROR);
+        }
+
+        // 生成JWT令牌
+        String token = jwtUtil.generateToken(sysUserInternalVO);
+
+        SysUserLoginVO loginVO = new SysUserLoginVO();
+        loginVO.setAccessToken(token);
+        BeanUtils.copyProperties(sysUserInternalVO, loginVO);
+
+        log.info("手机验证码登录成功: 手机号: {}", sysUserMobileLoginDTO.getMobile());
+        return loginVO;
     }
 
     private boolean processLogout(String token) {
@@ -170,4 +219,4 @@ public class AuthServiceImpl implements AuthService {
             throw new BusinessException(SysUserEnum.USER_LOGOUT_FAILED);
         }
     }
-} 
+}

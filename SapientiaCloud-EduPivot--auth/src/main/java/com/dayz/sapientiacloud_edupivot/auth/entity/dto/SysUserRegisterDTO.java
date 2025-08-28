@@ -37,12 +37,12 @@ public class SysUserRegisterDTO implements Serializable {
     @Size(max = 30, message = "用户昵称不能超过30个字符")
     private String nickName;
 
-    @Schema(name = "mobile",description = "手机号码，用于接收短信验证码", example = "13812345678")
+    @Schema(name = "mobile", description = "手机号码，用于接收短信验证码", example = "13812345678")
     @NotBlank(message = "验证码不能为空")
     @Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号码格式不正确")
     private String mobile;
 
-    @Schema(name = "verificationCode",description = "注册验证码（短信或邮件验证码）", example = "123456", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(name = "verificationCode", description = "注册验证码（短信或邮件验证码）", example = "123456", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank(message = "验证码不能为空")
     @Size(min = 6, max = 6, message = "验证码必须为6位")
     private String verificationCode;

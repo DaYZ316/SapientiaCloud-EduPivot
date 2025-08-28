@@ -3,15 +3,15 @@
 -- ===============================================================
 create table sys_permission
 (
-    id              binary(16)                         not null
+    id              binary(16)                           not null
         primary key,
-    parent_id       binary(16)                         null,
-    permission_name varchar(50)                        not null,
-    permission_key  varchar(100)                       not null,
-    sort            int      default 0                 null,
-    create_time     datetime default CURRENT_TIMESTAMP null,
-    update_time     datetime default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
-    is_deleted      tinyint(1)      default 0          null
+    parent_id       binary(16)                           null,
+    permission_name varchar(50)                          not null,
+    permission_key  varchar(100)                         not null,
+    sort            int        default 0                 null,
+    create_time     datetime   default CURRENT_TIMESTAMP null,
+    update_time     datetime   default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
+    is_deleted      tinyint(1) default 0                 null
 );
 
 -- ===============================================================
@@ -19,16 +19,16 @@ create table sys_permission
 -- ===============================================================
 create table sys_role
 (
-    id          binary(16)                         not null
+    id          binary(16)                           not null
         primary key,
-    role_name   varchar(30)                        not null,
-    role_key    varchar(100)                       not null,
-    sort        int      default 0                 null,
-    status      tinyint(1)      default 0          null,
-    description varchar(500)                       null,
-    create_time datetime default CURRENT_TIMESTAMP null,
-    update_time datetime default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
-    is_deleted  tinyint(1)      default 0          null
+    role_name   varchar(30)                          not null,
+    role_key    varchar(100)                         not null,
+    sort        int        default 0                 null,
+    status      tinyint(1) default 0                 null,
+    description varchar(500)                         null,
+    create_time datetime   default CURRENT_TIMESTAMP null,
+    update_time datetime   default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
+    is_deleted  tinyint(1) default 0                 null
 );
 
 -- ===============================================================
@@ -36,20 +36,20 @@ create table sys_role
 -- ===============================================================
 create table sys_user
 (
-    id              binary(16)                         not null
+    id              binary(16)                           not null
         primary key,
-    username        varchar(255)                       null,
-    password        varchar(255)                       null,
-    nick_name       varchar(255)                       null,
-    email           varchar(255)                       null,
-    mobile          varchar(255)                       null,
-    gender          tinyint(1)                         null,
-    avatar          varchar(255)                       null,
-    status          tinyint(1)      default 0          null,
-    last_login_time datetime                           null,
-    create_time     datetime default CURRENT_TIMESTAMP null,
-    update_time     datetime default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
-    is_deleted      tinyint(1)      default 0          null
+    username        varchar(255)                         null,
+    password        varchar(255)                         null,
+    nick_name       varchar(255)                         null,
+    email           varchar(255)                         null,
+    mobile          varchar(255)                         null,
+    gender          tinyint(1)                           null,
+    avatar          varchar(255)                         null,
+    status          tinyint(1) default 0                 null,
+    last_login_time datetime                             null,
+    create_time     datetime   default CURRENT_TIMESTAMP null,
+    update_time     datetime   default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
+    is_deleted      tinyint(1) default 0                 null
 );
 
 -- ===============================================================

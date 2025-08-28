@@ -1,7 +1,7 @@
 package com.dayz.sapientiacloud_edupivot.system.common.exception;
 
-import com.dayz.sapientiacloud_edupivot.system.common.result.Result;
 import com.dayz.sapientiacloud_edupivot.system.common.enums.ResultEnum;
+import com.dayz.sapientiacloud_edupivot.system.common.result.Result;
 import com.dayz.sapientiacloud_edupivot.system.common.utils.EnumUtil;
 import com.dayz.sapientiacloud_edupivot.system.enums.SysPermissionEnum;
 import com.dayz.sapientiacloud_edupivot.system.enums.SysRoleEnum;

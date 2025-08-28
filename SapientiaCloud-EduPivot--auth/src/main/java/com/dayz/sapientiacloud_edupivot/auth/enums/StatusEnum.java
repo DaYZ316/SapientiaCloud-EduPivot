@@ -1,4 +1,4 @@
-package com.dayz.sapientiacloud_edupivot.course.common.enums;
+package com.dayz.sapientiacloud_edupivot.auth.enums;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

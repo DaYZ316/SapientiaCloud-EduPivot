@@ -24,8 +24,8 @@ public class Knife4jConfig {
                 .description("输入JWT Token，无需添加Bearer前缀");
 
         return new OpenAPI()
-                .info(new Info().title("SapientiaCloud-EduPivot--course API")
-                        .description("智语·云枢：课程服务 API文档")
+                .info(new Info().title("SapientiaCloud-EduPivot--teacher API")
+                        .description("智语·云枢：教师服务 API文档")
                         .version("1.0.0")
                         .contact(new Contact()
                                 .name("DaYZ")

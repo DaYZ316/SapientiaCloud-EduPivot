@@ -34,7 +34,8 @@ public enum SysUserEnum implements BaseEnum {
     PASSWORD_UPDATE_FAILED(1212, "密码更新失败"),
     DATA_CANNOT_BE_EMPTY(1301, "数据不能为空"),
     ADMIN_OPERATION_FORBIDDEN(1302, "超级管理员用户禁止操作"),
-    VERIFICATION_CODE_ERROR(1303, "验证码错误");
+    VERIFICATION_CODE_ERROR(1303, "验证码错误"),
+    VERIFICATION_CODE_CANNOT_BE_EMPTY(1304, "验证码不能为空");
 
     private final int code;
 

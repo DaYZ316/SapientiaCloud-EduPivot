@@ -1,8 +1,8 @@
 package com.dayz.sapientiacloud_edupivot.gateway.security.config;
 
 import com.alibaba.fastjson2.JSON;
-import com.dayz.sapientiacloud_edupivot.gateway.result.Result;
 import com.dayz.sapientiacloud_edupivot.gateway.enums.ResultEnum;
+import com.dayz.sapientiacloud_edupivot.gateway.result.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpStatus;

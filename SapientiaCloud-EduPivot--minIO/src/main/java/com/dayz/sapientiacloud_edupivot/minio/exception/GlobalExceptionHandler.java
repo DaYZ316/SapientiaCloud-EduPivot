@@ -1,8 +1,8 @@
 package com.dayz.sapientiacloud_edupivot.minio.exception;
 
 import com.dayz.sapientiacloud_edupivot.minio.enums.FileEnum;
-import com.dayz.sapientiacloud_edupivot.minio.result.Result;
 import com.dayz.sapientiacloud_edupivot.minio.enums.ResultEnum;
+import com.dayz.sapientiacloud_edupivot.minio.result.Result;
 import com.dayz.sapientiacloud_edupivot.minio.utils.EnumUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;

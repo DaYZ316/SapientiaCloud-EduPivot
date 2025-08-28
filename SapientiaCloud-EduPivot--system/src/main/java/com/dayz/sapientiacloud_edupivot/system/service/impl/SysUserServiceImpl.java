@@ -125,6 +125,14 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             throw new BusinessException(SysUserEnum.MOBILE_CANNOT_BE_EMPTY);
         }
 
+        if (isMobileExists(sysUserRegisterDTO.getMobile())) {
+            throw new BusinessException(SysUserEnum.PHONE_NUMBER_ALREADY_EXISTS);
+        }
+
+        if (!StringUtils.hasText(sysUserRegisterDTO.getVerificationCode())) {
+            throw new BusinessException(SysUserEnum.VERIFICATION_CODE_CANNOT_BE_EMPTY);
+        }
+
         SysUser sysUser = checkSysUserInfo(sysUserRegisterDTO);
         sysUser.setId(UuidCreator.getTimeOrderedEpoch());
 
@@ -420,5 +428,57 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         sysUser.setUpdateTime(LocalDateTime.now());
         sysUser.setStatus(DeletedEnum.NOT_DELETED.getCode());
         return sysUser;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Boolean isMobileExists(String mobile) {
+        if (!StringUtils.hasText(mobile)) {
+            return false;
+        }
+
+        LambdaQueryWrapper<SysUser> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(SysUser::getMobile, mobile)
+                .eq(SysUser::getDeleted, DeletedEnum.NOT_DELETED.getCode());
+
+        return sysUserMapper.selectCount(queryWrapper) > 0;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public SysUserInternalVO mobileLogin(SysUserMobileLoginDTO mobileLoginDTO) {
+        if (mobileLoginDTO == null || !StringUtils.hasText(mobileLoginDTO.getMobile())) {
+            throw new BusinessException(SysUserEnum.MOBILE_CANNOT_BE_EMPTY);
+        }
+
+        if (!StringUtils.hasText(mobileLoginDTO.getVerificationCode())) {
+            throw new BusinessException(SysUserEnum.VERIFICATION_CODE_ERROR);
+        }
+
+        // 验证验证码（这里使用固定验证码，实际项目中应该从缓存或数据库中验证）
+        if (!INIT_VERIFICATION_CODE.equals(mobileLoginDTO.getVerificationCode())) {
+            throw new BusinessException(SysUserEnum.VERIFICATION_CODE_ERROR);
+        }
+
+        // 根据手机号查找用户
+        LambdaQueryWrapper<SysUser> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(SysUser::getMobile, mobileLoginDTO.getMobile())
+                .eq(SysUser::getDeleted, DeletedEnum.NOT_DELETED.getCode())
+                .eq(SysUser::getStatus, StatusEnum.NORMAL.getCode());
+
+        SysUser sysUser = sysUserMapper.selectOne(queryWrapper);
+        if (sysUser == null) {
+            throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
+        }
+
+        // 更新最后登录时间
+        sysUser.setLastLoginTime(LocalDateTime.now());
+        sysUserMapper.updateById(sysUser);
+
+        // 转换为内部VO
+        SysUserInternalVO sysUserInternalVO = new SysUserInternalVO();
+        BeanUtils.copyProperties(sysUser, sysUserInternalVO);
+
+        return sysUserInternalVO;
     }
 }

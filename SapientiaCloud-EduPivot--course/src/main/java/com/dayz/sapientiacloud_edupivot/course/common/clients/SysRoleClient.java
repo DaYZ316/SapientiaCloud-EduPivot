@@ -1,8 +1,8 @@
-package com.dayz.sapientiacloud_edupivot.teacher.common.clients;
+package com.dayz.sapientiacloud_edupivot.course.common.clients;
 
-import com.dayz.sapientiacloud_edupivot.teacher.common.config.FeignConfig;
-import com.dayz.sapientiacloud_edupivot.teacher.common.entity.vo.SysRoleVO;
-import com.dayz.sapientiacloud_edupivot.teacher.common.result.Result;
+import com.dayz.sapientiacloud_edupivot.course.common.config.FeignConfig;
+import com.dayz.sapientiacloud_edupivot.course.common.entity.vo.SysRoleVO;
+import com.dayz.sapientiacloud_edupivot.course.common.result.Result;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
 

@@ -29,6 +29,7 @@ import java.util.UUID;
 public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> implements ITeacherService {
 
     private static final String TEACHER = "TEACHER";
+
     private final TeacherMapper teacherMapper;
     private final SysRoleClient sysRoleClient;
 
@@ -167,7 +168,7 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
 
         // 获取要删除的教师信息，用于后续删除角色绑定
         List<Teacher> teachers = this.listByIds(ids);
-        
+
         // 批量删除教师记录
         boolean removeResult = this.removeBatchByIds(ids);
         if (removeResult) {

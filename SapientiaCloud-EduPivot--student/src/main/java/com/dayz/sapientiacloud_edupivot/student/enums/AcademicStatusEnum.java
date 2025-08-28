@@ -18,7 +18,7 @@ public enum AcademicStatusEnum implements BaseEnum {
 
     public static AcademicStatusEnum getByCode(Integer code) {
         for (AcademicStatusEnum status : values()) {
-            if (status.getCode()== code) {
+            if (status.getCode() == code) {
                 return status;
             }
         }

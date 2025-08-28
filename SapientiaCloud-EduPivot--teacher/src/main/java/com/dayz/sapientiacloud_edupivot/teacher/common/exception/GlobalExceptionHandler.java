@@ -1,10 +1,10 @@
 package com.dayz.sapientiacloud_edupivot.teacher.common.exception;
 
+import com.dayz.sapientiacloud_edupivot.teacher.common.enums.ResultEnum;
 import com.dayz.sapientiacloud_edupivot.teacher.common.enums.SysPermissionEnum;
 import com.dayz.sapientiacloud_edupivot.teacher.common.enums.SysRoleEnum;
 import com.dayz.sapientiacloud_edupivot.teacher.common.enums.SysUserEnum;
 import com.dayz.sapientiacloud_edupivot.teacher.common.result.Result;
-import com.dayz.sapientiacloud_edupivot.teacher.common.enums.ResultEnum;
 import com.dayz.sapientiacloud_edupivot.teacher.common.utils.EnumUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;

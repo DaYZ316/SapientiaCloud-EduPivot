@@ -2,6 +2,7 @@ package com.dayz.sapientiacloud_edupivot.auth.clients;
 
 import com.dayz.sapientiacloud_edupivot.auth.config.FeignConfig;
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserDTO;
+import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserMobileLoginDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserPasswordDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserRegisterDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysRoleVO;
@@ -30,4 +31,7 @@ public interface SysUserClient {
 
     @PutMapping("/internal/password")
     Result<Boolean> updatePassword(@RequestBody SysUserPasswordDTO sysUserPasswordDTO);
+
+    @PostMapping("/mobile-login")
+    Result<SysUserInternalVO> mobileLogin(@RequestBody SysUserMobileLoginDTO mobileLoginDTO);
 }

@@ -35,14 +35,14 @@ public class SysRoleFeign {
     public Result<SysRoleVO> getRoleByKey(
             @Parameter(name = "roleKey", description = "角色标识", required = true) @PathVariable("roleKey") String roleKey
     ) {
-            SysRoleVO sysRoleVO = sysRoleService.getRoleByKey(roleKey);
-            return Result.success(sysRoleVO);
+        SysRoleVO sysRoleVO = sysRoleService.getRoleByKey(roleKey);
+        return Result.success(sysRoleVO);
     }
 
     /**
      * 为指定用户添加指定角色
      *
-     * @param userId 用户ID
+     * @param userId  用户ID
      * @param roleKey 角色标识
      * @return 操作结果
      */
@@ -55,14 +55,14 @@ public class SysRoleFeign {
             @Parameter(name = "userId", description = "用户ID", required = true) @PathVariable("userId") UUID userId,
             @Parameter(name = "roleKey", description = "角色标识", required = true) @RequestParam("roleKey") String roleKey
     ) {
-            Boolean result = sysRoleService.addRoleToUser(userId, roleKey);
-            return Result.success(result);
+        Boolean result = sysRoleService.addRoleToUser(userId, roleKey);
+        return Result.success(result);
     }
 
     /**
      * 从指定用户中删除指定角色
      *
-     * @param userId 用户ID
+     * @param userId  用户ID
      * @param roleKey 角色标识
      * @return 操作结果
      */
@@ -75,7 +75,7 @@ public class SysRoleFeign {
             @Parameter(name = "userId", description = "用户ID", required = true) @PathVariable("userId") UUID userId,
             @Parameter(name = "roleKey", description = "角色标识", required = true) @RequestParam("roleKey") String roleKey
     ) {
-            Boolean result = sysRoleService.removeRoleFromUser(userId, roleKey);
-            return Result.success(result);
+        Boolean result = sysRoleService.removeRoleFromUser(userId, roleKey);
+        return Result.success(result);
     }
 }

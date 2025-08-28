@@ -1,8 +1,8 @@
 package com.dayz.sapientiacloud_edupivot.teacher.common.security.config;
 
 import com.alibaba.fastjson2.JSON;
-import com.dayz.sapientiacloud_edupivot.teacher.common.result.Result;
 import com.dayz.sapientiacloud_edupivot.teacher.common.enums.ResultEnum;
+import com.dayz.sapientiacloud_edupivot.teacher.common.result.Result;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

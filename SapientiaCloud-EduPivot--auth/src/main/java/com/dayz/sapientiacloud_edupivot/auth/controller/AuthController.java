@@ -2,6 +2,7 @@ package com.dayz.sapientiacloud_edupivot.auth.controller;
 
 import com.dayz.sapientiacloud_edupivot.auth.clients.SysUserClient;
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserLoginDTO;
+import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserMobileLoginDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserPasswordDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserRegisterDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysUserInternalVO;
@@ -31,6 +32,14 @@ public class AuthController {
     public Result<SysUserLoginVO> login(@RequestBody SysUserLoginDTO sysUserLoginDTO) {
         log.info("用户登录请求: 用户名: {}", sysUserLoginDTO.getUsername());
         SysUserLoginVO loginVO = authService.login(sysUserLoginDTO);
+        return Result.success(loginVO);
+    }
+
+    @PostMapping("/mobile-login")
+    @Operation(summary = "手机验证码登录", description = "通过手机号和验证码登录系统")
+    public Result<SysUserLoginVO> mobileLogin(@Valid @RequestBody SysUserMobileLoginDTO sysUserMobileLoginDTO) {
+        log.info("手机验证码登录请求: 手机号: {}", sysUserMobileLoginDTO.getMobile());
+        SysUserLoginVO loginVO = authService.mobileLogin(sysUserMobileLoginDTO);
         return Result.success(loginVO);
     }
 

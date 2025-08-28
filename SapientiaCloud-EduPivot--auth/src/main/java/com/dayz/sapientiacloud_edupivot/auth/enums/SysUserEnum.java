@@ -31,7 +31,10 @@ public enum SysUserEnum implements BaseEnum {
     CURRENT_PASSWORD_NOT_MATCH(1211, "当前密码不匹配"),
     PASSWORD_UPDATE_FAILED(1212, "密码更新失败"),
     DATA_CANNOT_BE_EMPTY(1301, "数据不能为空"),
-    ADMIN_OPERATION_FORBIDDEN(1302, "超级管理员用户禁止操作");
+    ADMIN_OPERATION_FORBIDDEN(1302, "超级管理员用户禁止操作"),
+    PHONE_NUMBER_CANNOT_BE_EMPTY(1303, "手机号码不能为空"),
+    VERIFICATION_CODE_CANNOT_BE_EMPTY(1304, "验证码不能为空"),
+    VERIFICATION_CODE_ERROR(1305, "验证码错误");
 
     private final int code;
 
