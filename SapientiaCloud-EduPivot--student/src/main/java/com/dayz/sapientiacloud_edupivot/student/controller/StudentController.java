@@ -22,7 +22,7 @@ import java.util.UUID;
 
 @Tag(name = "学生管理", description = "用于管理学生信息的API")
 @RestController
-@RequestMapping("/student")
+@RequestMapping
 @RequiredArgsConstructor
 public class StudentController extends BaseController {
 
