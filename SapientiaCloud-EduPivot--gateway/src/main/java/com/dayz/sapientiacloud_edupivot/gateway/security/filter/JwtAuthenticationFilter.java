@@ -31,6 +31,7 @@ public class JwtAuthenticationFilter implements WebFilter {
 
     private static final String[] WHITELIST = {
             "/api/auth/login",
+            "/api/auth/mobile-login",
             "/api/auth/validate",
             "/api/auth/register",
             "/api/*/v3/api-docs/**",

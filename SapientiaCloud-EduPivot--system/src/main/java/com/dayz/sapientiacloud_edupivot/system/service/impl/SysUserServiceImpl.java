@@ -445,7 +445,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = false)
     public SysUserInternalVO mobileLogin(SysUserMobileLoginDTO mobileLoginDTO) {
         if (mobileLoginDTO == null || !StringUtils.hasText(mobileLoginDTO.getMobile())) {
             throw new BusinessException(SysUserEnum.MOBILE_CANNOT_BE_EMPTY);
@@ -455,7 +455,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             throw new BusinessException(SysUserEnum.VERIFICATION_CODE_ERROR);
         }
 
-        // 验证验证码（这里使用固定验证码，实际项目中应该从缓存或数据库中验证）
+        // TODO 验证验证码（这里使用固定验证码，实际项目中应该从缓存或数据库中验证）
         if (!INIT_VERIFICATION_CODE.equals(mobileLoginDTO.getVerificationCode())) {
             throw new BusinessException(SysUserEnum.VERIFICATION_CODE_ERROR);
         }
@@ -478,6 +478,9 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         // 转换为内部VO
         SysUserInternalVO sysUserInternalVO = new SysUserInternalVO();
         BeanUtils.copyProperties(sysUser, sysUserInternalVO);
+
+        sysUserInternalVO.setRoles(sysUserRoleMapper.getUserRoles(sysUser.getId()));
+        sysUserInternalVO.setPermissions(sysUserPermissionMapper.getUserPermissions(sysUser.getId()));
 
         return sysUserInternalVO;
     }
