@@ -11,6 +11,11 @@ public class MybatisPlusConfig {
         return new UuidTypeConfig();
     }
 
+    @Bean
+    public UuidListTypeHandler uuidListTypeHandler() {
+        return new UuidListTypeHandler();
+    }
+
     // TODO: 可以添加其他MyBatis-Plus配置
     // 例如：
     // - 自定义主键生成器

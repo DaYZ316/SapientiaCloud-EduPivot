@@ -9,6 +9,7 @@ CREATE TABLE `mg_course`
     `semester`     varchar(20)           DEFAULT NULL COMMENT '开设学期 (例如: 2025秋季)',
     `location`     varchar(100)          DEFAULT NULL COMMENT '上课地点',
     `course_type`  tinyint(1)            DEFAULT 0 COMMENT '课程类型 (0=必修, 1=选修)',
+    `status`       tinyint(1)            DEFAULT 0 COMMENT '课程状态 (0=正常, 1=停课)',
     `create_time`  datetime              DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `update_time`  datetime              DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     `is_deleted`   tinyint(1)            DEFAULT 0 COMMENT '逻辑删除标记 (0=未删除, 1=已删除)',

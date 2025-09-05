@@ -296,7 +296,7 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
         // 检查用户是否已经拥有该角色
         List<UUID> existingRoleIds = sysUserRoleMapper.getUserRoleIds(userId);
         if (existingRoleIds.contains(sysRole.getId())) {
-            return true; // 用户已经拥有该角色，直接返回成功
+            return true;
         }
 
         // 为用户添加角色
@@ -336,7 +336,7 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
         // 检查用户是否拥有该角色
         List<UUID> existingRoleIds = sysUserRoleMapper.getUserRoleIds(userId);
         if (!existingRoleIds.contains(sysRole.getId())) {
-            return true; // 用户没有该角色，直接返回成功
+            return true;
         }
 
         // 从用户中移除角色

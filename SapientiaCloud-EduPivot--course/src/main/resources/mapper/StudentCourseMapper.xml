@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dayz.sapientiacloud_edupivot.course.mapper.StudentCourseMapper">
+
+    <resultMap id="StudentCourseDetailVOMap" type="com.dayz.sapientiacloud_edupivot.course.entity.vo.StudentCourseDetailVO">
+        <result column="student_id" property="studentId"/>
+        <result column="student_name" property="studentName"/>
+        <result column="student_number" property="studentNumber"/>
+        <result column="course_id" property="courseId"/>
+        <result column="course_name" property="courseName"/>
+        <result column="grade" property="grade"/>
+        <result column="enrollment_date" property="enrollmentDate"/>
+        <result column="status" property="status"/>
+        <result column="teacher_id" property="teacherId"/>
+        <result column="teacher_name" property="teacherName"/>
+        <result column="semester" property="semester"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <select id="listStudentCourseByStudentId" resultMap="StudentCourseDetailVOMap">
+        SELECT 
+            sc.student_id,
+            s.real_name as student_name,
+            s.student_code as student_number,
+            sc.course_id,
+            c.course_name,
+            sc.grade,
+            sc.enrollment_date,
+            sc.status,
+            c.teacher_id,
+            t.real_name as teacher_name,
+            c.semester,
+            sc.create_time,
+            sc.update_time
+        FROM mg_student_course sc
+        LEFT JOIN mg_course c ON sc.course_id = c.id
+        LEFT JOIN mg_student s ON sc.student_id = s.id
+        LEFT JOIN mg_teacher t ON c.teacher_id = t.id
+        WHERE sc.student_id = #{studentId} AND s.is_deleted = 0 AND c.is_deleted = 0 AND t.is_deleted = 0
+        ORDER BY sc.create_time DESC
+    </select>
+
+    <select id="listStudentCourseByCourseId" resultMap="StudentCourseDetailVOMap">
+        SELECT 
+            sc.student_id,
+            s.real_name as student_name,
+            s.student_code as student_number,
+            sc.course_id,
+            c.course_name,
+            sc.grade,
+            sc.enrollment_date,
+            sc.status,
+            c.teacher_id,
+            t.real_name as teacher_name,
+            c.semester,
+            sc.create_time,
+            sc.update_time
+        FROM mg_student_course sc
+        LEFT JOIN mg_course c ON sc.course_id = c.id
+        LEFT JOIN mg_student s ON sc.student_id = s.id
+        LEFT JOIN mg_teacher t ON c.teacher_id = t.id
+        WHERE sc.course_id = #{courseId} AND s.is_deleted = 0 AND c.is_deleted = 0 AND t.is_deleted = 0
+        ORDER BY sc.create_time DESC
+    </select>
+
+    <!-- 根据学生ID和课程ID获取选课记录 -->
+    <select id="getStudentCourseByStudentAndCourse" resultMap="StudentCourseDetailVOMap">
+        SELECT 
+            sc.student_id,
+            s.real_name as student_name,
+            s.student_code as student_number,
+            sc.course_id,
+            c.course_name,
+            sc.grade,
+            sc.enrollment_date,
+            sc.status,
+            c.teacher_id,
+            t.real_name as teacher_name,
+            c.semester,
+            sc.create_time,
+            sc.update_time
+        FROM mg_student_course sc
+        LEFT JOIN mg_course c ON sc.course_id = c.id
+        LEFT JOIN mg_student s ON sc.student_id = s.id
+        LEFT JOIN mg_teacher t ON c.teacher_id = t.id
+        WHERE sc.student_id = #{studentId} AND sc.course_id = #{courseId} AND s.is_deleted = 0 AND c.is_deleted = 0 AND t.is_deleted = 0
+    </select>
+
+    <!-- 检查学生是否已选某门课程 -->
+    <select id="countByStudentAndCourse" resultType="int">
+        SELECT COUNT(*)
+        FROM mg_student_course
+        WHERE student_id = #{studentId} AND course_id = #{courseId}
+    </select>
+
+    <!-- 根据课程ID统计选课人数 -->
+    <select id="countByCourseId" resultType="int">
+        SELECT COUNT(*)
+        FROM mg_student_course
+        WHERE course_id = #{courseId} AND status = 0
+    </select>
+
+</mapper>
