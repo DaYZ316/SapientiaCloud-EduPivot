@@ -13,13 +13,13 @@ import java.util.UUID;
 
 public interface IStudentService extends IService<Student> {
 
-    PageInfo<StudentVO> listStudentPage(StudentQueryDTO studentQueryDTO);
+    PageInfo<StudentVO> listStudent(StudentQueryDTO studentQueryDTO);
 
     List<StudentVO> listAllStudent();
 
     StudentVO getStudentById(UUID id);
 
-    StudentVO getStudentBySysUserId(UUID sysUserId);
+    StudentVO getStudentByUserId(UUID sysUserId);
 
     Boolean addStudent(StudentAddDTO studentAddDTO);
 

@@ -65,7 +65,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     private final PermissionService permissionService;
 
     @Override
-    public PageInfo<SysUserVO> listSysUserPage(SysUserQueryDTO sysUserQueryDTO) {
+    public PageInfo<SysUserVO> listSysUser(SysUserQueryDTO sysUserQueryDTO) {
         if (sysUserQueryDTO == null) {
             throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
         }

@@ -90,7 +90,7 @@ public class SysPermissionController extends BaseController {
             permission = PermissionConstants.PERMISSION_DELETE
     )
     @DeleteMapping("/{id}")
-    public Result<Boolean> removePermission(
+    public Result<Boolean> removePermissionById(
             @Parameter(name = "id", description = "权限ID", required = true) @PathVariable("id") UUID id
     ) {
         return Result.success(sysPermissionService.removePermissionById(id));
@@ -102,7 +102,7 @@ public class SysPermissionController extends BaseController {
             permission = PermissionConstants.PERMISSION_DELETE
     )
     @DeleteMapping
-    public Result<Integer> removePermissions(
+    public Result<Integer> removePermissionByIds(
             @Parameter(name = "ids", description = "权限ID列表", required = true) @RequestBody List<UUID> ids
     ) {
         return Result.success(sysPermissionService.removePermissionByIds(ids));

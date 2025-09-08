@@ -58,7 +58,7 @@
           and is_deleted = 0
     </select>
 
-    <select id="selectBySysUserId" resultType="com.dayz.sapientiacloud_edupivot.teacher.entity.po.Teacher">
+    <select id="selectByUserId" resultType="com.dayz.sapientiacloud_edupivot.teacher.entity.po.Teacher">
         select *
         from mg_teacher
         where sys_user_id = #{sysUserId}

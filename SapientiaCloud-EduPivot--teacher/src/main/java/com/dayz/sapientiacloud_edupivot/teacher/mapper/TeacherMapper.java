@@ -18,5 +18,5 @@ public interface TeacherMapper extends BaseMapper<Teacher> {
 
     Teacher selectByTeacherCode(String teacherCode);
 
-    Teacher selectBySysUserId(UUID sysUserId);
+    Teacher selectByUserId(UUID sysUserId);
 }

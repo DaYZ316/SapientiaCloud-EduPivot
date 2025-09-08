@@ -36,7 +36,7 @@ public class SysUserController extends BaseController {
     @GetMapping("/list")
     public TableDataResult listSysUser(@ParameterObject SysUserQueryDTO sysUserQueryDTO) {
         startPage();
-        PageInfo<SysUserVO> pageInfo = sysUserService.listSysUserPage(sysUserQueryDTO);
+        PageInfo<SysUserVO> pageInfo = sysUserService.listSysUser(sysUserQueryDTO);
         return getDataTable(pageInfo.getList());
     }
 
@@ -80,7 +80,7 @@ public class SysUserController extends BaseController {
             permission = PermissionConstants.USER_DELETE
     )
     @DeleteMapping("/{id}")
-    public Result<Boolean> removeUser(
+    public Result<Boolean> removeUserById(
             @Parameter(name = "id", description = "用户ID", required = true) @PathVariable("id") UUID id
     ) {
         return Result.success(sysUserService.removeUserById(id));
@@ -92,7 +92,7 @@ public class SysUserController extends BaseController {
             permission = PermissionConstants.USER_DELETE
     )
     @DeleteMapping
-    public Result<Integer> removeUsers(
+    public Result<Integer> removeUserByIds(
             @Parameter(name = "ids", description = "用户ID列表", required = true) @RequestBody List<UUID> ids
     ) {
         return Result.success(sysUserService.removeUserByIds(ids));

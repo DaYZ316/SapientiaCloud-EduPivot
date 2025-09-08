@@ -90,7 +90,7 @@ public class SysRoleController extends BaseController {
             permission = PermissionConstants.ROLE_DELETE
     )
     @DeleteMapping("/{id}")
-    public Result<Boolean> removeRole(
+    public Result<Boolean> removeRoleById(
             @Parameter(name = "id", description = "角色ID", required = true) @PathVariable("id") UUID id
     ) {
         return Result.success(sysRoleService.removeRoleById(id));
@@ -102,7 +102,7 @@ public class SysRoleController extends BaseController {
             permission = PermissionConstants.ROLE_DELETE
     )
     @DeleteMapping
-    public Result<Integer> removeRoles(
+    public Result<Integer> removeRoleByIds(
             @Parameter(name = "ids", description = "角色ID列表", required = true) @RequestBody List<UUID> ids
     ) {
         return Result.success(sysRoleService.removeRoleByIds(ids));

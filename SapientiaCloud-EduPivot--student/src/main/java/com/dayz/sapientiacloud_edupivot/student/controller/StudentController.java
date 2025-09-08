@@ -32,7 +32,7 @@ public class StudentController extends BaseController {
     @GetMapping("/list")
     public TableDataResult listStudent(@ParameterObject StudentQueryDTO studentQueryDTO) {
         startPage();
-        PageInfo<StudentVO> pageInfo = studentService.listStudentPage(studentQueryDTO);
+        PageInfo<StudentVO> pageInfo = studentService.listStudent(studentQueryDTO);
         return getDataTable(pageInfo.getList());
     }
 
@@ -54,10 +54,10 @@ public class StudentController extends BaseController {
 
     @Operation(summary = "根据用户ID获取学生信息", description = "通过学生的用户ID获取其详细信息。")
     @GetMapping("/user/{id}")
-    public Result<StudentVO> getStudentBySysUserId(
+    public Result<StudentVO> getStudentByUserId(
             @Parameter(name = "id", description = "用户ID", required = true) @PathVariable("id") UUID id
     ) {
-        StudentVO studentVO = studentService.getStudentBySysUserId(id);
+        StudentVO studentVO = studentService.getStudentByUserId(id);
         return Result.success(studentVO);
     }
 

@@ -23,7 +23,7 @@ import java.util.UUID;
 public class CourseTeacher extends BaseEntity implements Serializable {
 
     @Serial
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1593084056949994885L;
 
     @Schema(name = "courseId", description = "课程ID")
     @TableId(value = "course_id")

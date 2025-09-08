@@ -18,5 +18,5 @@ public interface StudentMapper extends BaseMapper<Student> {
 
     Student selectByStudentCode(String studentCode);
 
-    Student selectBySysUserId(UUID sysUserId);
+    Student selectByUserId(UUID sysUserId);
 }

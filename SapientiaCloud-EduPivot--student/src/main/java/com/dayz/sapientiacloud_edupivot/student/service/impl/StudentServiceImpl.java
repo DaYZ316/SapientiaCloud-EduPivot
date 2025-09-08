@@ -39,7 +39,7 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
     private final SysUserClient sysUserClient;
 
     @Override
-    public PageInfo<StudentVO> listStudentPage(StudentQueryDTO studentQueryDTO) {
+    public PageInfo<StudentVO> listStudent(StudentQueryDTO studentQueryDTO) {
         if (studentQueryDTO == null) {
             throw new BusinessException(StudentEnum.STUDENT_NOT_FOUND);
         }
@@ -90,8 +90,8 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
 
     @Override
     @Transactional(readOnly = true)
-    public StudentVO getStudentBySysUserId(UUID sysUserId) {
-        Student student = studentMapper.selectBySysUserId(sysUserId);
+    public StudentVO getStudentByUserId(UUID sysUserId) {
+        Student student = studentMapper.selectByUserId(sysUserId);
         if (student == null) {
             return null;
         }
@@ -110,7 +110,7 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
         }
 
         if (studentAddDTO.getSysUserId() != null) {
-            StudentVO existingStudent = getStudentBySysUserId(studentAddDTO.getSysUserId());
+            StudentVO existingStudent = getStudentByUserId(studentAddDTO.getSysUserId());
             if (existingStudent != null) {
                 throw new BusinessException(StudentEnum.SYS_USER_ALREADY_BOUND);
             }
@@ -143,7 +143,7 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
         }
 
         if (studentDTO.getSysUserId() != null && !studentDTO.getSysUserId().equals(existingStudent.getSysUserId())) {
-            StudentVO boundStudent = getStudentBySysUserId(studentDTO.getSysUserId());
+            StudentVO boundStudent = getStudentByUserId(studentDTO.getSysUserId());
             if (boundStudent != null && !boundStudent.getId().equals(studentDTO.getId())) {
                 throw new BusinessException(StudentEnum.SYS_USER_ALREADY_BOUND);
             }

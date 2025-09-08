@@ -13,13 +13,13 @@ import java.util.UUID;
 
 public interface ITeacherService extends IService<Teacher> {
 
-    PageInfo<TeacherVO> listTeacherPage(TeacherQueryDTO teacherQueryDTO);
+    PageInfo<TeacherVO> listTeacher(TeacherQueryDTO teacherQueryDTO);
 
     List<TeacherVO> listAllTeacher();
 
     TeacherVO getTeacherById(UUID id);
 
-    TeacherVO getTeacherBySysUserId(UUID sysUserId);
+    TeacherVO getTeacherByUserId(UUID sysUserId);
 
     Boolean addTeacher(TeacherAddDTO teacherAddDTO);
 

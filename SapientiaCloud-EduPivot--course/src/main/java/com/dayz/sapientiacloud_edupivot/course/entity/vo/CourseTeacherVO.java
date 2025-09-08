@@ -14,7 +14,7 @@ import java.util.UUID;
 public class CourseTeacherVO implements Serializable {
 
     @Serial
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 3855290559752284192L;
 
     @Schema(name = "courseId", description = "课程ID")
     private UUID courseId;

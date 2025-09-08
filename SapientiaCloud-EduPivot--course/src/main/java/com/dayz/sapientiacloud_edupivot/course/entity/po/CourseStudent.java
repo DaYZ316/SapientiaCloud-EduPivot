@@ -25,7 +25,7 @@ import java.util.UUID;
 public class CourseStudent extends BaseEntity implements Serializable {
 
     @Serial
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = -1741156418695257626L;
 
     @Schema(name = "studentId", description = "学生ID")
     @TableField(value = "student_id")

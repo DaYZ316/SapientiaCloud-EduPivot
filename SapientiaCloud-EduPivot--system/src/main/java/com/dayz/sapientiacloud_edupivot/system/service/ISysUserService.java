@@ -12,7 +12,7 @@ import java.util.UUID;
 
 public interface ISysUserService {
 
-    PageInfo<SysUserVO> listSysUserPage(SysUserQueryDTO sysUserQueryDTO);
+    PageInfo<SysUserVO> listSysUser(SysUserQueryDTO sysUserQueryDTO);
 
     List<SysUserVO> listAllSysUser();
 

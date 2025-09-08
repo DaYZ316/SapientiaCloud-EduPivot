@@ -32,7 +32,7 @@ public class TeacherController extends BaseController {
     @GetMapping("/list")
     public TableDataResult listTeacher(@ParameterObject TeacherQueryDTO teacherQueryDTO) {
         startPage();
-        PageInfo<TeacherVO> pageInfo = teacherService.listTeacherPage(teacherQueryDTO);
+        PageInfo<TeacherVO> pageInfo = teacherService.listTeacher(teacherQueryDTO);
         return getDataTable(pageInfo.getList());
     }
 
@@ -57,7 +57,7 @@ public class TeacherController extends BaseController {
     public Result<TeacherVO> getTeacherByUserId(
             @Parameter(name = "id", description = "用户ID", required = true) @PathVariable("id") UUID id
     ) {
-        TeacherVO teacherVO = teacherService.getTeacherBySysUserId(id);
+        TeacherVO teacherVO = teacherService.getTeacherByUserId(id);
         return Result.success(teacherVO);
     }
 

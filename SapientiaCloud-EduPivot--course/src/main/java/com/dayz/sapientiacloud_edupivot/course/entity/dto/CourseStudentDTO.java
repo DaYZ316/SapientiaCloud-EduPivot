@@ -17,7 +17,7 @@ import java.util.UUID;
 public class CourseStudentDTO implements Serializable {
 
     @Serial
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = -7954598919661579768L;
 
     @Schema(name = "studentId", description = "学生ID")
     @NotNull(message = "学生ID不能为空")

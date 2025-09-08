@@ -39,7 +39,7 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
     private final SysUserClient sysUserClient;
 
     @Override
-    public PageInfo<TeacherVO> listTeacherPage(TeacherQueryDTO teacherQueryDTO) {
+    public PageInfo<TeacherVO> listTeacher(TeacherQueryDTO teacherQueryDTO) {
         if (teacherQueryDTO == null) {
             throw new BusinessException(TeacherEnum.TEACHER_NOT_FOUND);
         }
@@ -85,8 +85,8 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
 
     @Override
     @Transactional(readOnly = true)
-    public TeacherVO getTeacherBySysUserId(UUID sysUserId) {
-        Teacher teacher = teacherMapper.selectBySysUserId(sysUserId);
+    public TeacherVO getTeacherByUserId(UUID sysUserId) {
+        Teacher teacher = teacherMapper.selectByUserId(sysUserId);
         if (teacher == null) {
             return null;
         }
@@ -105,7 +105,7 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
         }
 
         if (teacherAddDTO.getSysUserId() != null) {
-            TeacherVO existingTeacher = getTeacherBySysUserId(teacherAddDTO.getSysUserId());
+            TeacherVO existingTeacher = getTeacherByUserId(teacherAddDTO.getSysUserId());
             if (existingTeacher != null) {
                 throw new BusinessException(TeacherEnum.SYS_USER_ALREADY_BOUND);
             }
@@ -138,7 +138,7 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
         }
 
         if (teacherDTO.getSysUserId() != null && !teacherDTO.getSysUserId().equals(existingTeacher.getSysUserId())) {
-            TeacherVO boundTeacher = getTeacherBySysUserId(teacherDTO.getSysUserId());
+            TeacherVO boundTeacher = getTeacherByUserId(teacherDTO.getSysUserId());
             if (boundTeacher != null && !boundTeacher.getId().equals(teacherDTO.getId())) {
                 throw new BusinessException(TeacherEnum.SYS_USER_ALREADY_BOUND);
             }

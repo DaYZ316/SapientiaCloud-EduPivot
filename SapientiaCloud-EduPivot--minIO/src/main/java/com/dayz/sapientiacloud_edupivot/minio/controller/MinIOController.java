@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/file")
 @RequiredArgsConstructor
 @Slf4j
-public class FileController {
+public class MinIOController {
 
     private final MinIOUtil minIOUtil;
 
