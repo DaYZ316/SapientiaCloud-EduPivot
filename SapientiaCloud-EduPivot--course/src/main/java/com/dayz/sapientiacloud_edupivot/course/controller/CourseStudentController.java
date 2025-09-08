@@ -5,27 +5,29 @@ import com.dayz.sapientiacloud_edupivot.course.common.result.Result;
 import com.dayz.sapientiacloud_edupivot.course.common.result.TableDataResult;
 import com.dayz.sapientiacloud_edupivot.course.common.security.annotation.HasPermission;
 import com.dayz.sapientiacloud_edupivot.course.constant.PermissionConstants;
-import com.dayz.sapientiacloud_edupivot.course.entity.dto.StudentCourseDTO;
-import com.dayz.sapientiacloud_edupivot.course.entity.vo.StudentCourseVO;
-import com.dayz.sapientiacloud_edupivot.course.service.IStudentCourseService;
+import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseStudentDTO;
+import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseStudentQueryDTO;
+import com.dayz.sapientiacloud_edupivot.course.entity.vo.CourseStudentVO;
+import com.dayz.sapientiacloud_edupivot.course.service.ICourseStudentService;
 import com.github.pagehelper.PageInfo;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
-@Tag(name = "学生课程管理", description = "用于管理学生选课、退课、成绩等信息的API")
+@Tag(name = "课程学生管理", description = "用于管理课程学生选课、退课、成绩等信息的API")
 @RestController
-@RequestMapping("/student-course")
+@RequestMapping("/course-student")
 @RequiredArgsConstructor
-public class StudentCourseController extends BaseController {
+public class CourseStudentController extends BaseController {
 
-    private final IStudentCourseService studentCourseService;
+    private final ICourseStudentService courseStudentService;
 
     @HasPermission(
             summary = "学生选课",
@@ -33,8 +35,8 @@ public class StudentCourseController extends BaseController {
             permission = PermissionConstants.COURSE_QUERY
     )
     @PostMapping("/enroll")
-    public Result<Boolean> enrollCourse(@Valid @RequestBody StudentCourseDTO studentCourseDTO) {
-        return Result.success(studentCourseService.enrollCourse(studentCourseDTO));
+    public Result<Boolean> enrollCourse(@Valid @RequestBody CourseStudentDTO courseStudentDTO) {
+        return Result.success(courseStudentService.enrollCourse(courseStudentDTO));
     }
 
     @HasPermission(
@@ -47,7 +49,7 @@ public class StudentCourseController extends BaseController {
             @Parameter(name = "studentId", description = "学生ID", required = true) @RequestParam("studentId") UUID studentId,
             @Parameter(name = "courseId", description = "课程ID", required = true) @RequestParam("courseId") UUID courseId
     ) {
-        return Result.success(studentCourseService.dropCourse(studentId, courseId));
+        return Result.success(courseStudentService.dropCourse(studentId, courseId));
     }
 
     @HasPermission(
@@ -61,7 +63,7 @@ public class StudentCourseController extends BaseController {
             @Parameter(name = "courseId", description = "课程ID", required = true) @RequestParam("courseId") UUID courseId,
             @Parameter(name = "grade", description = "成绩", required = true) @RequestParam("grade") BigDecimal grade
     ) {
-        return Result.success(studentCourseService.updateGrade(studentId, courseId, grade));
+        return Result.success(courseStudentService.updateGrade(studentId, courseId, grade));
     }
 
     @HasPermission(
@@ -71,9 +73,9 @@ public class StudentCourseController extends BaseController {
     )
     @PutMapping("/grade/batch")
     public Result<Integer> batchUpdateGrade(
-            @Parameter(name = "studentCourseDTOList", description = "学生课程信息列表", required = true) @RequestBody List<StudentCourseDTO> studentCourseDTOList
+            @Parameter(name = "courseStudentDTOList", description = "课程学生信息列表", required = true) @RequestBody List<CourseStudentDTO> courseStudentDTOList
     ) {
-        return Result.success(studentCourseService.batchUpdateGrade(studentCourseDTOList));
+        return Result.success(courseStudentService.batchUpdateGrade(courseStudentDTOList));
     }
 
     @HasPermission(
@@ -81,14 +83,10 @@ public class StudentCourseController extends BaseController {
             description = "根据学生ID分页查询选课记录。",
             permission = PermissionConstants.COURSE_QUERY
     )
-    @GetMapping("/student/{studentId}")
-    public TableDataResult listStudentCourseByStudentId(
-            @Parameter(name = "studentId", description = "学生ID", required = true) @PathVariable("studentId") UUID studentId,
-            @Parameter(name = "pageNum", description = "页码", required = true) @RequestParam("pageNum") Integer pageNum,
-            @Parameter(name = "pageSize", description = "页大小", required = true) @RequestParam("pageSize") Integer pageSize
-    ) {
+    @GetMapping("/student/page")
+    public TableDataResult listCourseStudentByStudentId(@ParameterObject CourseStudentQueryDTO courseStudentQueryDTO) {
         startPage();
-        PageInfo<StudentCourseVO> pageInfo = studentCourseService.listStudentCoursePageByStudentId(studentId, pageNum, pageSize);
+        PageInfo<CourseStudentVO> pageInfo = courseStudentService.listCourseStudentByStudentId(courseStudentQueryDTO);
         return getDataTable(pageInfo.getList());
     }
 
@@ -97,14 +95,10 @@ public class StudentCourseController extends BaseController {
             description = "根据课程ID分页查询选课学生。",
             permission = PermissionConstants.COURSE_QUERY
     )
-    @GetMapping("/course/{courseId}")
-    public TableDataResult listStudentCourseByCourseId(
-            @Parameter(name = "courseId", description = "课程ID", required = true) @PathVariable("courseId") UUID courseId,
-            @Parameter(name = "pageNum", description = "页码", required = true) @RequestParam("pageNum") Integer pageNum,
-            @Parameter(name = "pageSize", description = "页大小", required = true) @RequestParam("pageSize") Integer pageSize
-    ) {
+    @GetMapping("/course/page")
+    public TableDataResult listCourseStudentByCourseId(@ParameterObject CourseStudentQueryDTO courseStudentQueryDTO) {
         startPage();
-        PageInfo<StudentCourseVO> pageInfo = studentCourseService.listStudentCoursePageByCourseId(courseId, pageNum, pageSize);
+        PageInfo<CourseStudentVO> pageInfo = courseStudentService.listCourseStudentByCourseId(courseStudentQueryDTO);
         return getDataTable(pageInfo.getList());
     }
 
@@ -114,11 +108,11 @@ public class StudentCourseController extends BaseController {
             permission = PermissionConstants.COURSE_QUERY
     )
     @GetMapping("/student/{studentId}/all")
-    public Result<List<StudentCourseVO>> listStudentCourseByStudentId(
+    public Result<List<CourseStudentVO>> listCourseStudentByStudentId(
             @Parameter(name = "studentId", description = "学生ID", required = true) @PathVariable("studentId") UUID studentId
     ) {
-        List<StudentCourseVO> studentCourseVOList = studentCourseService.listStudentCourseByStudentId(studentId);
-        return Result.success(studentCourseVOList);
+        List<CourseStudentVO> courseStudentVOList = courseStudentService.listAllCourseStudentByStudentId(studentId);
+        return Result.success(courseStudentVOList);
     }
 
     @HasPermission(
@@ -127,11 +121,11 @@ public class StudentCourseController extends BaseController {
             permission = PermissionConstants.COURSE_QUERY
     )
     @GetMapping("/course/{courseId}/all")
-    public Result<List<StudentCourseVO>> listStudentCourseByCourseId(
+    public Result<List<CourseStudentVO>> listAllCourseStudentByCourseId(
             @Parameter(name = "courseId", description = "课程ID", required = true) @PathVariable("courseId") UUID courseId
     ) {
-        List<StudentCourseVO> studentCourseVOList = studentCourseService.listStudentCourseByCourseId(courseId);
-        return Result.success(studentCourseVOList);
+        List<CourseStudentVO> courseStudentVOList = courseStudentService.listAllCourseStudentByCourseId(courseId);
+        return Result.success(courseStudentVOList);
     }
 
     @HasPermission(
@@ -144,7 +138,7 @@ public class StudentCourseController extends BaseController {
             @Parameter(name = "studentId", description = "学生ID", required = true) @RequestParam("studentId") UUID studentId,
             @Parameter(name = "courseId", description = "课程ID", required = true) @RequestParam("courseId") UUID courseId
     ) {
-        return Result.success(studentCourseService.isEnrolled(studentId, courseId));
+        return Result.success(courseStudentService.isEnrolled(studentId, courseId));
     }
 
     @HasPermission(
@@ -157,6 +151,6 @@ public class StudentCourseController extends BaseController {
             @Parameter(name = "studentId", description = "学生ID", required = true) @RequestParam("studentId") UUID studentId,
             @Parameter(name = "courseId", description = "课程ID", required = true) @RequestParam("courseId") UUID courseId
     ) {
-        return Result.success(studentCourseService.getStudentGrade(studentId, courseId));
+        return Result.success(courseStudentService.getStudentGrade(studentId, courseId));
     }
 }

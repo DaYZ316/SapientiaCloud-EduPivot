@@ -7,8 +7,10 @@ import com.dayz.sapientiacloud_edupivot.course.common.enums.StatusEnum;
 import com.dayz.sapientiacloud_edupivot.course.common.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseQueryDTO;
-import com.dayz.sapientiacloud_edupivot.course.entity.vo.CourseVO;
+import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseStudentQueryDTO;
+import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseTeacherQueryDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.po.Course;
+import com.dayz.sapientiacloud_edupivot.course.entity.vo.CourseVO;
 import com.dayz.sapientiacloud_edupivot.course.enums.CourseEnum;
 import com.dayz.sapientiacloud_edupivot.course.mapper.CourseMapper;
 import com.dayz.sapientiacloud_edupivot.course.service.ICourseService;
@@ -105,11 +107,11 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
         }
 
         // 检查课程名称是否重复（排除自身）
-        if (StringUtils.hasText(courseDTO.getCourseName()) && 
-            !courseDTO.getCourseName().equals(existingCourse.getCourseName())) {
+        if (StringUtils.hasText(courseDTO.getCourseName()) &&
+                !courseDTO.getCourseName().equals(existingCourse.getCourseName())) {
             LambdaQueryWrapper<Course> queryWrapper = new LambdaQueryWrapper<>();
             queryWrapper.eq(Course::getCourseName, courseDTO.getCourseName())
-                       .ne(Course::getId, courseDTO.getId());
+                    .ne(Course::getId, courseDTO.getId());
             if (this.count(queryWrapper) > 0) {
                 throw new BusinessException(CourseEnum.COURSE_NAME_EXISTS);
             }
@@ -124,7 +126,7 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
 
     @Override
     @Transactional
-    public Boolean removeCourse(UUID courseId) {
+    public Boolean removeCourseById(UUID courseId) {
         if (courseId == null) {
             throw new BusinessException(CourseEnum.COURSE_ID_REQUIRED);
         }
@@ -142,7 +144,7 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
 
     @Override
     @Transactional
-    public Integer removeCourses(List<UUID> courseIds) {
+    public Integer removeCourseByIds(List<UUID> courseIds) {
         if (courseIds == null || courseIds.isEmpty()) {
             throw new BusinessException(CourseEnum.COURSE_ID_LIST_REQUIRED);
         }
@@ -164,47 +166,6 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public List<CourseVO> listCourseByTeacherId(UUID teacherId) {
-        if (teacherId == null) {
-            throw new BusinessException(CourseEnum.TEACHER_ID_REQUIRED);
-        }
-
-        return courseMapper.listCourseByTeacherId(teacherId);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<CourseVO> listAvailableCourseByStudentId(UUID studentId) {
-        if (studentId == null) {
-            throw new BusinessException(CourseEnum.STUDENT_ID_REQUIRED);
-        }
-
-        return courseMapper.listCourseByStudentId(studentId);
-    }
-
-    @Override
-    @Transactional
-    public Boolean updateCourseStatus(UUID courseId, Integer status) {
-        if (courseId == null) {
-            throw new BusinessException(CourseEnum.COURSE_ID_REQUIRED);
-        }
-        if (status == null || status < 0 || status > 1) {
-            throw new BusinessException(CourseEnum.COURSE_STATUS_INVALID);
-        }
-
-        Course course = this.getById(courseId);
-        if (course == null) {
-            throw new BusinessException(CourseEnum.COURSE_NOT_EXISTS);
-        }
-
-        course.setStatus(status);
-        course.setUpdateTime(LocalDateTime.now());
-
-        return this.updateById(course);
-    }
-
-    @Override
     @Transactional
     public Boolean assignTeacher(UUID courseId, UUID teacherId) {
         if (courseId == null) {
@@ -223,5 +184,116 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
         course.setUpdateTime(LocalDateTime.now());
 
         return this.updateById(course);
+    }
+
+    @Override
+    @Transactional
+    public Boolean enrollStudentToCourse(UUID courseId, UUID studentId) {
+        if (courseId == null) {
+            throw new BusinessException(CourseEnum.COURSE_ID_REQUIRED);
+        }
+        if (studentId == null) {
+            throw new BusinessException(CourseEnum.STUDENT_ID_REQUIRED);
+        }
+
+        // 检查课程是否存在
+        Course course = this.getById(courseId);
+        if (course == null) {
+            throw new BusinessException(CourseEnum.COURSE_NOT_EXISTS);
+        }
+
+        // 检查课程状态
+        if (course.getStatus() != StatusEnum.NORMAL.getCode()) {
+            throw new BusinessException(CourseEnum.COURSE_STATUS_INVALID);
+        }
+
+        // 调用学生课程服务进行选课
+        return courseMapper.enrollStudentToCourse(courseId, studentId);
+    }
+
+    @Override
+    @Transactional
+    public Boolean assignCourseTeacherTeam(UUID courseId, List<UUID> teacherIds) {
+        if (courseId == null) {
+            throw new BusinessException(CourseEnum.COURSE_ID_REQUIRED);
+        }
+        if (teacherIds == null || teacherIds.isEmpty()) {
+            throw new BusinessException(CourseEnum.TEACHER_ID_LIST_REQUIRED);
+        }
+
+        // 检查课程是否存在
+        Course course = this.getById(courseId);
+        if (course == null) {
+            throw new BusinessException(CourseEnum.COURSE_NOT_EXISTS);
+        }
+
+        // 更新课程的辅助教师列表
+        course.setAssistantTeacherIds(teacherIds);
+        course.setUpdateTime(LocalDateTime.now());
+
+        return this.updateById(course);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<CourseVO> listAllCourseByStudentId(UUID studentId) {
+        if (studentId == null) {
+            throw new BusinessException(CourseEnum.STUDENT_ID_REQUIRED);
+        }
+
+        return courseMapper.listAllCourseByStudentId(studentId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<CourseVO> listAllCourseByTeacherId(UUID teacherId) {
+        if (teacherId == null) {
+            throw new BusinessException(CourseEnum.TEACHER_ID_REQUIRED);
+        }
+
+        return courseMapper.listAllCourseByTeacherId(teacherId);
+    }
+
+    @Override
+    @Transactional
+    public Boolean assignCourseTeachers(UUID courseId, List<UUID> teacherIds) {
+        if (courseId == null) {
+            throw new BusinessException(CourseEnum.COURSE_ID_REQUIRED);
+        }
+        if (teacherIds == null) {
+            throw new BusinessException(CourseEnum.TEACHER_ID_LIST_REQUIRED);
+        }
+
+        Course course = this.getById(courseId);
+        if (course == null) {
+            throw new BusinessException(CourseEnum.COURSE_NOT_EXISTS);
+        }
+
+        course.setAssistantTeacherIds(teacherIds);
+        course.setUpdateTime(LocalDateTime.now());
+
+        return this.updateById(course);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageInfo<CourseVO> listCourseByTeacherId(CourseTeacherQueryDTO courseTeacherQueryDTO) {
+        if (courseTeacherQueryDTO == null || courseTeacherQueryDTO.getTeacherId() == null) {
+            throw new BusinessException(CourseEnum.TEACHER_ID_REQUIRED);
+        }
+
+        return PageHelper.startPage(courseTeacherQueryDTO.getPageNum(), courseTeacherQueryDTO.getPageSize())
+                .doSelectPageInfo(() -> courseMapper.listCourseByTeacherId(courseTeacherQueryDTO));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageInfo<CourseVO> listCourseByStudentId(CourseStudentQueryDTO courseStudentQueryDTO) {
+        if (courseStudentQueryDTO == null || courseStudentQueryDTO.getStudentId() == null) {
+            throw new BusinessException(CourseEnum.STUDENT_ID_REQUIRED);
+        }
+
+        return PageHelper.startPage(courseStudentQueryDTO.getPageNum(), courseStudentQueryDTO.getPageSize())
+                .doSelectPageInfo(() -> courseMapper.listCourseByStudentId(courseStudentQueryDTO));
     }
 }

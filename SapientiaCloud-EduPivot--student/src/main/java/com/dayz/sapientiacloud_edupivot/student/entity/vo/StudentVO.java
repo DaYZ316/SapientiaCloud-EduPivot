@@ -45,6 +45,27 @@ public class StudentVO implements Serializable {
     @Schema(name = "sysUserId", description = "系统用户ID")
     private UUID sysUserId;
 
+    @Schema(name = "avatar", description = "用户头像URL")
+    private String avatar;
+
+    @Schema(name = "username", description = "用户名")
+    private String username;
+
+    @Schema(name = "nickName", description = "用户昵称")
+    private String nickName;
+
+    @Schema(name = "email", description = "邮箱")
+    private String email;
+
+    @Schema(name = "mobile", description = "手机号")
+    private String mobile;
+
+    @Schema(name = "gender", description = "性别 (0=未知, 1=男, 2=女)")
+    private Integer gender;
+
+    @Schema(name = "status", description = "状态 (0=正常, 1=停用)")
+    private Integer status;
+
     @Schema(name = "createTime", description = "创建时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createTime;

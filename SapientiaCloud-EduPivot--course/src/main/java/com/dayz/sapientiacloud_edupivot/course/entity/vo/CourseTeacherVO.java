@@ -6,33 +6,33 @@ import lombok.Data;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
-@Schema(description = "学生课程视图对象 (VO)")
-public class StudentCourseVO implements Serializable {
+@Schema(description = "课程教师团队关联信息视图对象 (VO)")
+public class CourseTeacherVO implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;
 
-    @Schema(name = "studentId", description = "学生ID")
-    private UUID studentId;
-
     @Schema(name = "courseId", description = "课程ID")
     private UUID courseId;
 
-    @Schema(name = "grade", description = "成绩")
-    private BigDecimal grade;
+    @Schema(name = "courseName", description = "课程名称")
+    private String courseName;
 
-    @Schema(name = "enrollmentDate", description = "选课日期")
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    private LocalDate enrollmentDate;
+    @Schema(name = "teacherId", description = "教师ID")
+    private UUID teacherId;
 
-    @Schema(name = "status", description = "选课状态 (0=在读, 1=已退课, 2=已完成)", example = "0")
-    private Integer status;
+    @Schema(name = "teacherName", description = "教师姓名")
+    private String teacherName;
+
+    @Schema(name = "roleType", description = "角色类型 (0=负责人, 1=教学团队成员)")
+    private Integer roleType;
+
+    @Schema(name = "roleTypeName", description = "角色类型名称")
+    private String roleTypeName;
 
     @Schema(name = "createTime", description = "创建时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")

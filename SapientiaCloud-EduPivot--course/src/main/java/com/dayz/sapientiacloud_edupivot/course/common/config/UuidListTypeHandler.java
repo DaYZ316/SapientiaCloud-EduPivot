@@ -59,7 +59,8 @@ public class UuidListTypeHandler extends BaseTypeHandler<List<UUID>> {
             return null;
         }
         try {
-            return JSON.parseObject(jsonString, new TypeReference<List<UUID>>() {});
+            return JSON.parseObject(jsonString, new TypeReference<List<UUID>>() {
+            });
         } catch (Exception e) {
             // 如果解析失败，返回 null
             return null;

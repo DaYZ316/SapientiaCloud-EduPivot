@@ -14,6 +14,8 @@ public interface StudentMapper extends BaseMapper<Student> {
 
     List<StudentVO> listStudent(StudentQueryDTO studentQueryDTO);
 
+    List<StudentVO> listAllStudentWithUserInfo();
+
     Student selectByStudentCode(String studentCode);
 
     Student selectBySysUserId(UUID sysUserId);

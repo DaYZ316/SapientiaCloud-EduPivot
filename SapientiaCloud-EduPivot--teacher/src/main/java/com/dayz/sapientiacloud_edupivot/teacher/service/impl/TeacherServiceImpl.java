@@ -1,9 +1,11 @@
 package com.dayz.sapientiacloud_edupivot.teacher.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dayz.sapientiacloud_edupivot.teacher.common.clients.SysRoleClient;
+import com.dayz.sapientiacloud_edupivot.teacher.common.clients.SysUserClient;
+import com.dayz.sapientiacloud_edupivot.teacher.common.entity.vo.SysUserInternalVO;
 import com.dayz.sapientiacloud_edupivot.teacher.common.exception.BusinessException;
+import com.dayz.sapientiacloud_edupivot.teacher.common.result.Result;
 import com.dayz.sapientiacloud_edupivot.teacher.common.security.utils.UserContextUtil;
 import com.dayz.sapientiacloud_edupivot.teacher.entity.dto.TeacherAddDTO;
 import com.dayz.sapientiacloud_edupivot.teacher.entity.dto.TeacherDTO;
@@ -16,6 +18,7 @@ import com.dayz.sapientiacloud_edupivot.teacher.service.ITeacherService;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +28,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> implements ITeacherService {
 
@@ -32,6 +36,7 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
 
     private final TeacherMapper teacherMapper;
     private final SysRoleClient sysRoleClient;
+    private final SysUserClient sysUserClient;
 
     @Override
     public PageInfo<TeacherVO> listTeacherPage(TeacherQueryDTO teacherQueryDTO) {
@@ -47,16 +52,7 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
 
     @Override
     public List<TeacherVO> listAllTeacher() {
-        LambdaQueryWrapper<Teacher> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.orderByDesc(Teacher::getCreateTime);
-
-        List<Teacher> teacherList = this.list(queryWrapper);
-
-        return teacherList.stream().map(teacher -> {
-            TeacherVO teacherVO = new TeacherVO();
-            BeanUtils.copyProperties(teacher, teacherVO);
-            return teacherVO;
-        }).toList();
+        return teacherMapper.listAllTeacherWithUserInfo();
     }
 
     @Override
@@ -69,6 +65,20 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
 
         TeacherVO teacherVO = new TeacherVO();
         BeanUtils.copyProperties(teacher, teacherVO);
+
+        if (teacher.getSysUserId() != null) {
+            Result<SysUserInternalVO> userResult = sysUserClient.getUserInfoById(teacher.getSysUserId());
+            if (userResult.isSuccess() && userResult.getData() != null) {
+                SysUserInternalVO userInfo = userResult.getData();
+                teacherVO.setAvatar(userInfo.getAvatar());
+                teacherVO.setUsername(userInfo.getUsername());
+                teacherVO.setNickName(userInfo.getNickName());
+                teacherVO.setEmail(userInfo.getEmail());
+                teacherVO.setMobile(userInfo.getMobile());
+                teacherVO.setGender(userInfo.getGender());
+                teacherVO.setStatus(userInfo.getStatus());
+            }
+        }
 
         return teacherVO;
     }

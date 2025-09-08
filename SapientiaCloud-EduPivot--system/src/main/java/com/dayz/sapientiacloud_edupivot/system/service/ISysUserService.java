@@ -34,25 +34,15 @@ public interface ISysUserService {
 
     SysUserInternalVO selectUserByUsername(String username);
 
+    SysUserInternalVO getUserInfoById(UUID userId);
+
     List<SysPermissionVO> getUserPermissions(UUID userId);
 
     Boolean registerUser(SysUserRegisterDTO sysUserRegisterDTO);
 
     Boolean updatePassword(SysUserPasswordDTO sysUserPasswordDTO);
 
-    /**
-     * 验证手机号码是否已存在
-     *
-     * @param mobile 手机号码
-     * @return true-已存在，false-不存在
-     */
     Boolean isMobileExists(String mobile);
 
-    /**
-     * 手机验证码登录
-     *
-     * @param mobileLoginDTO 手机验证码登录请求
-     * @return 用户信息
-     */
     SysUserInternalVO mobileLogin(SysUserMobileLoginDTO mobileLoginDTO);
 }

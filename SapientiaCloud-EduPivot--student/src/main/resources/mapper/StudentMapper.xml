@@ -64,4 +64,29 @@
         where sys_user_id = #{sysUserId}
           and is_deleted = 0
     </select>
+
+    <select id="listAllStudentWithUserInfo" resultType="com.dayz.sapientiacloud_edupivot.student.entity.vo.StudentVO">
+        SELECT s.id,
+               s.student_code,
+               s.real_name,
+               s.birth_date,
+               s.admission_year,
+               s.major,
+               s.academic_status,
+               s.description,
+               s.sys_user_id,
+               s.create_time,
+               s.update_time,
+               u.avatar,
+               u.username,
+               u.nick_name,
+               u.email,
+               u.mobile,
+               u.gender,
+               u.status
+        FROM mg_student s
+                 LEFT JOIN sys_user u ON s.sys_user_id = u.id AND u.is_deleted = 0
+        WHERE s.is_deleted = 0
+        ORDER BY s.create_time DESC
+    </select>
 </mapper>

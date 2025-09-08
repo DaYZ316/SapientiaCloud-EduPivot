@@ -11,140 +11,276 @@
         <result column="location" property="location"/>
         <result column="teacher_id" property="teacherId"/>
         <result column="teacher_name" property="teacherName"/>
-        <result column="assistant_teacher_ids" property="assistantTeacherIds" typeHandler="com.dayz.sapientiacloud_edupivot.course.common.config.UuidListTypeHandler"/>
+        <result column="assistant_teacher_ids" property="assistantTeacherIds"
+                typeHandler="com.dayz.sapientiacloud_edupivot.course.common.config.UuidListTypeHandler"/>
         <result column="cover_image_url" property="coverImageUrl"/>
         <result column="status" property="status"/>
         <result column="create_time" property="createTime"/>
         <result column="update_time" property="updateTime"/>
     </resultMap>
 
-    <select id="listCourse" resultMap="CourseVOMap" parameterType="com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseQueryDTO">
-        SELECT 
-            c.id,
-            c.course_name,
-            c.description,
-            c.course_type,
-            c.semester,
-            c.location,
-            c.teacher_id,
-            t.real_name as teacher_name,
-            c.assistant_teacher_ids,
-            c.cover_image_url,
-            c.status,
-            c.create_time,
-            c.update_time
+    <select id="listCourse" resultMap="CourseVOMap"
+            parameterType="com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseQueryDTO">
+        SELECT
+        c.id,
+        c.course_name,
+        c.description,
+        c.course_type,
+        c.semester,
+        c.location,
+        c.teacher_id,
+        t.real_name as teacher_name,
+        c.assistant_teacher_ids,
+        c.cover_image_url,
+        c.status,
+        c.create_time,
+        c.update_time
         FROM mg_course c
         LEFT JOIN mg_teacher t ON c.teacher_id = t.id
-        WHERE c.is_deleted = 0 AND t.is_deleted = 0
-        <if test="courseName != null and courseName != ''">
-            AND c.course_name LIKE CONCAT('%', #{courseName}, '%')
+        <where>
+            c.is_deleted = 0 AND t.is_deleted = 0
+            <if test="courseName != null and courseName != ''">
+                AND c.course_name LIKE CONCAT('%', #{courseName}, '%')
+            </if>
+            <if test="courseType != null">
+                AND c.course_type = #{courseType}
+            </if>
+            <if test="semester != null and semester != ''">
+                AND c.semester = #{semester}
+            </if>
+            <if test="teacherId != null">
+                AND c.teacher_id = #{teacherId}
+            </if>
+            <if test="status != null">
+                AND c.status = #{status}
+            </if>
+            <if test="startTime != null or endTime != null">
+                <choose>
+                    <when test="startTime != null and endTime == null">
+                        AND c.create_time &gt;= #{startTime}
+                    </when>
+                    <when test="startTime == null and endTime != null">
+                        AND c.create_time &lt;= #{endTime}
+                    </when>
+                    <otherwise>
+                        AND c.create_time BETWEEN #{startTime} AND #{endTime}
+                    </otherwise>
+                </choose>
+            </if>
+        </where>
+        <if test="orderByColumn != null and orderByColumn != ''">
+            ORDER BY ${orderByColumn} ${isAsc == 'asc' ? 'asc' : 'desc'}
         </if>
-        <if test="courseType != null">
-            AND c.course_type = #{courseType}
+        <if test="orderByColumn == null or orderByColumn == ''">
+            ORDER BY c.create_time DESC
         </if>
-        <if test="semester != null and semester != ''">
-            AND c.semester = #{semester}
-        </if>
-        <if test="teacherId != null">
-            AND c.teacher_id = #{teacherId}
-        </if>
-        <if test="status != null">
-            AND c.status = #{status}
-        </if>
-        ORDER BY c.create_time DESC
     </select>
 
-    <select id="listCourseByTeacherId" resultMap="CourseVOMap">
-        SELECT 
-            c.id,
-            c.course_name,
-            c.description,
-            c.course_type,
-            c.semester,
-            c.location,
-            c.teacher_id,
-            t.real_name as teacher_name,
-            c.assistant_teacher_ids,
-            c.cover_image_url,
-            c.status,
-            c.create_time,
-            c.update_time
+    <select id="listCourseByTeacherId" resultMap="CourseVOMap"
+            parameterType="com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseTeacherQueryDTO">
+        SELECT
+        c.id,
+        c.course_name,
+        c.description,
+        c.course_type,
+        c.semester,
+        c.location,
+        c.teacher_id,
+        t.real_name as teacher_name,
+        c.assistant_teacher_ids,
+        c.cover_image_url,
+        c.status,
+        c.create_time,
+        c.update_time
         FROM mg_course c
         LEFT JOIN mg_teacher t ON c.teacher_id = t.id
-        WHERE c.teacher_id = #{teacherId} AND c.is_deleted = 0 AND t.is_deleted = 0
-        ORDER BY c.create_time DESC
+        <where>
+            c.is_deleted = 0 AND t.is_deleted = 0
+            <if test="teacherId != null">
+                AND c.teacher_id = #{teacherId}
+            </if>
+            <if test="courseName != null and courseName != ''">
+                AND c.course_name LIKE CONCAT('%', #{courseName}, '%')
+            </if>
+            <if test="courseType != null">
+                AND c.course_type = #{courseType}
+            </if>
+            <if test="semester != null and semester != ''">
+                AND c.semester = #{semester}
+            </if>
+            <if test="status != null">
+                AND c.status = #{status}
+            </if>
+        </where>
+        <if test="orderByColumn != null and orderByColumn != ''">
+            ORDER BY ${orderByColumn} ${isAsc == 'asc' ? 'asc' : 'desc'}
+        </if>
+        <if test="orderByColumn == null or orderByColumn == ''">
+            ORDER BY c.create_time DESC
+        </if>
     </select>
 
-    <select id="listCourseByStudentId" resultMap="CourseVOMap">
-        SELECT 
-            c.id,
-            c.course_name,
-            c.description,
-            c.course_type,
-            c.semester,
-            c.location,
-            c.teacher_id,
-            t.real_name as teacher_name,
-            c.assistant_teacher_ids,
-            c.cover_image_url,
-            c.status,
-            c.create_time,
-            c.update_time
+    <select id="listCourseByStudentId" resultMap="CourseVOMap"
+            parameterType="com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseTeacherQueryDTO">
+        SELECT
+        c.id,
+        c.course_name,
+        c.description,
+        c.course_type,
+        c.semester,
+        c.location,
+        c.teacher_id,
+        t.real_name as teacher_name,
+        c.assistant_teacher_ids,
+        c.cover_image_url,
+        c.status,
+        c.create_time,
+        c.update_time
         FROM mg_course c
         LEFT JOIN mg_teacher t ON c.teacher_id = t.id
-        WHERE c.is_deleted = 0 AND t.is_deleted = 0
-          AND c.id NOT IN (
-              SELECT course_id 
-              FROM mg_student_course 
-              WHERE student_id = #{studentId} AND status = 0
-          )
-        ORDER BY c.create_time DESC
+        <where>
+            c.is_deleted = 0 AND t.is_deleted = 0
+            <if test="studentId != null">
+                AND c.id NOT IN (
+                SELECT course_id
+                FROM mg_course_student
+                WHERE student_id = #{studentId} AND status = 0
+                )
+            </if>
+            <if test="courseName != null and courseName != ''">
+                AND c.course_name LIKE CONCAT('%', #{courseName}, '%')
+            </if>
+            <if test="courseType != null">
+                AND c.course_type = #{courseType}
+            </if>
+            <if test="semester != null and semester != ''">
+                AND c.semester = #{semester}
+            </if>
+            <if test="teacherId != null">
+                AND c.teacher_id = #{teacherId}
+            </if>
+            <if test="status != null">
+                AND c.status = #{status}
+            </if>
+        </where>
+        <if test="orderByColumn != null and orderByColumn != ''">
+            ORDER BY ${orderByColumn} ${isAsc == 'asc' ? 'asc' : 'desc'}
+        </if>
+        <if test="orderByColumn == null or orderByColumn == ''">
+            ORDER BY c.create_time DESC
+        </if>
     </select>
 
     <select id="getCourseById" resultMap="CourseVOMap">
-        SELECT 
-            c.id,
-            c.course_name,
-            c.description,
-            c.course_type,
-            c.semester,
-            c.location,
-            c.teacher_id,
-            t.real_name as teacher_name,
-            c.assistant_teacher_ids,
-            c.cover_image_url,
-            c.status,
-            c.create_time,
-            c.update_time
+        SELECT
+        c.id,
+        c.course_name,
+        c.description,
+        c.course_type,
+        c.semester,
+        c.location,
+        c.teacher_id,
+        t.real_name as teacher_name,
+        c.assistant_teacher_ids,
+        c.cover_image_url,
+        c.status,
+        c.create_time,
+        c.update_time
         FROM mg_course c
         LEFT JOIN mg_teacher t ON c.teacher_id = t.id
-        WHERE c.id = #{courseId} AND c.is_deleted = 0 AND t.is_deleted = 0
+        <where>
+            c.id = #{courseId} AND c.is_deleted = 0 AND t.is_deleted = 0
+        </where>
     </select>
 
     <update id="updateEnrolledCount">
-        UPDATE mg_course 
+        UPDATE mg_course
         SET update_time = NOW()
-        WHERE id = #{courseId} AND is_deleted = 0
+        <where>
+            id = #{courseId} AND is_deleted = 0
+        </where>
     </update>
 
     <select id="listAllCourse" resultMap="CourseVOMap">
-        SELECT 
-            c.id,
-            c.course_name,
-            c.description,
-            c.course_type,
-            c.semester,
-            c.location,
-            c.teacher_id,
-            t.real_name as teacher_name,
-            c.assistant_teacher_ids,
-            c.cover_image_url,
-            c.status,
-            c.create_time,
-            c.update_time
+        SELECT
+        c.id,
+        c.course_name,
+        c.description,
+        c.course_type,
+        c.semester,
+        c.location,
+        c.teacher_id,
+        t.real_name as teacher_name,
+        c.assistant_teacher_ids,
+        c.cover_image_url,
+        c.status,
+        c.create_time,
+        c.update_time
         FROM mg_course c
         LEFT JOIN mg_teacher t ON c.teacher_id = t.id
-        WHERE c.is_deleted = 0 AND t.is_deleted = 0
+        <where>
+            c.is_deleted = 0 AND t.is_deleted = 0
+        </where>
+        ORDER BY c.create_time DESC
+    </select>
+
+    <insert id="enrollStudentToCourse">
+        INSERT INTO mg_course_student (student_id, course_id, enrollment_date, status, create_time, update_time)
+        VALUES (#{studentId}, #{courseId}, CURDATE(), 0, NOW(), NOW())
+    </insert>
+
+    <select id="listAllCourseByStudentId" resultMap="CourseVOMap">
+        SELECT
+        c.id,
+        c.course_name,
+        c.description,
+        c.course_type,
+        c.semester,
+        c.location,
+        c.teacher_id,
+        t.real_name as teacher_name,
+        c.assistant_teacher_ids,
+        c.cover_image_url,
+        c.status,
+        c.create_time,
+        c.update_time
+        FROM mg_course c
+        LEFT JOIN mg_teacher t ON c.teacher_id = t.id
+        INNER JOIN mg_course_student cs ON c.id = cs.course_id
+        <where>
+            cs.student_id = #{studentId}
+            AND cs.status = 0
+            AND c.is_deleted = 0
+            AND t.is_deleted = 0
+        </where>
+        ORDER BY c.create_time DESC
+    </select>
+
+    <select id="listAllCourseByTeacherId" resultMap="CourseVOMap">
+        SELECT
+        c.id,
+        c.course_name,
+        c.description,
+        c.course_type,
+        c.semester,
+        c.location,
+        c.teacher_id,
+        t.real_name as teacher_name,
+        c.assistant_teacher_ids,
+        c.cover_image_url,
+        c.status,
+        c.create_time,
+        c.update_time
+        FROM mg_course c
+        LEFT JOIN mg_teacher t ON c.teacher_id = t.id
+        <where>
+            c.is_deleted = 0
+            AND t.is_deleted = 0
+            AND (
+            c.teacher_id = #{teacherId}
+            OR JSON_CONTAINS(c.assistant_teacher_ids, JSON_QUOTE(#{teacherId}))
+            )
+        </where>
         ORDER BY c.create_time DESC
     </select>
 

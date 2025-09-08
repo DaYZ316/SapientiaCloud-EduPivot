@@ -12,8 +12,8 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
-@Schema(description = "学生选课详细信息视图对象 (DetailVO)")
-public class StudentCourseDetailVO implements Serializable {
+@Schema(description = "课程学生详细信息视图对象 (DetailVO)")
+public class CourseStudentDetailVO implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;

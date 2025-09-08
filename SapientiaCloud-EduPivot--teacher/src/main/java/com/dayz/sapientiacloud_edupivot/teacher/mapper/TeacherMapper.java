@@ -14,6 +14,8 @@ public interface TeacherMapper extends BaseMapper<Teacher> {
 
     List<TeacherVO> listTeacher(TeacherQueryDTO teacherQueryDTO);
 
+    List<TeacherVO> listAllTeacherWithUserInfo();
+
     Teacher selectByTeacherCode(String teacherCode);
 
     Teacher selectBySysUserId(UUID sysUserId);
