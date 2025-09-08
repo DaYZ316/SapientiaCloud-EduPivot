@@ -17,6 +17,6 @@ public class CourseTeacherQueryDTO extends PageEntity implements Serializable {
     @Serial
     private static final long serialVersionUID = 7756280467062573716L;
 
-    @Schema(name = "teacherId", description = "教师ID", required = true)
+    @Schema(name = "teacherId", description = "教师ID", requiredMode = Schema.RequiredMode.REQUIRED)
     private UUID teacherId;
 }
