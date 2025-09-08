@@ -29,7 +29,7 @@ public class SysPermissionController extends BaseController {
     private final ISysPermissionService sysPermissionService;
 
     @HasPermission(
-            summary = "分页查询权限",
+            summary = "listSysPermission",
             description = "根据传入的条件分页查询权限信息。支持根据权限名称、标识等字段进行模糊查询。",
             permission = PermissionConstants.PERMISSION_QUERY
     )
@@ -41,7 +41,7 @@ public class SysPermissionController extends BaseController {
     }
 
     @HasPermission(
-            summary = "查询权限树",
+            summary = "listSysPermissionTree",
             description = "查询权限树结构。",
             permission = PermissionConstants.PERMISSION_QUERY
     )
@@ -51,7 +51,7 @@ public class SysPermissionController extends BaseController {
     }
 
     @HasPermission(
-            summary = "根据ID获取权限",
+            summary = "getPermissionById",
             description = "通过权限的唯一ID获取其详细信息。",
             permission = PermissionConstants.PERMISSION_QUERY
     )
@@ -65,7 +65,7 @@ public class SysPermissionController extends BaseController {
     }
 
     @HasPermission(
-            summary = "添加新权限",
+            summary = "addPermission",
             description = "添加一个新的权限到系统中。",
             permission = PermissionConstants.PERMISSION_ADD
     )
@@ -75,7 +75,7 @@ public class SysPermissionController extends BaseController {
     }
 
     @HasPermission(
-            summary = "更新现有权限",
+            summary = "updatePermission",
             description = "修改现有权限的信息。",
             permission = PermissionConstants.PERMISSION_EDIT
     )
@@ -85,7 +85,7 @@ public class SysPermissionController extends BaseController {
     }
 
     @HasPermission(
-            summary = "删除权限",
+            summary = "removePermissionById",
             description = "根据权限ID从系统中移除权限。",
             permission = PermissionConstants.PERMISSION_DELETE
     )
@@ -97,7 +97,7 @@ public class SysPermissionController extends BaseController {
     }
 
     @HasPermission(
-            summary = "批量删除权限",
+            summary = "removePermissionByIds",
             description = "根据权限ID列表批量删除权限。",
             permission = PermissionConstants.PERMISSION_DELETE
     )

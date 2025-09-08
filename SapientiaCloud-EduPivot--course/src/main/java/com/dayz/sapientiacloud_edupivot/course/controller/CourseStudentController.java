@@ -30,7 +30,7 @@ public class CourseStudentController extends BaseController {
     private final ICourseStudentService courseStudentService;
 
     @HasPermission(
-            summary = "学生选课",
+            summary = "enrollCourse",
             description = "学生选择某门课程。",
             permission = PermissionConstants.COURSE_QUERY
     )
@@ -40,7 +40,7 @@ public class CourseStudentController extends BaseController {
     }
 
     @HasPermission(
-            summary = "学生退课",
+            summary = "dropCourse",
             description = "学生退出已选的课程。",
             permission = PermissionConstants.COURSE_QUERY
     )
@@ -53,7 +53,7 @@ public class CourseStudentController extends BaseController {
     }
 
     @HasPermission(
-            summary = "更新学生成绩",
+            summary = "updateGrade",
             description = "更新学生在某门课程的成绩。",
             permission = PermissionConstants.COURSE_EDIT
     )
@@ -67,7 +67,7 @@ public class CourseStudentController extends BaseController {
     }
 
     @HasPermission(
-            summary = "批量更新学生成绩",
+            summary = "batchUpdateGrade",
             description = "批量更新多个学生的课程成绩。",
             permission = PermissionConstants.COURSE_EDIT
     )
@@ -79,7 +79,7 @@ public class CourseStudentController extends BaseController {
     }
 
     @HasPermission(
-            summary = "分页查询学生选课记录",
+            summary = "listCourseStudentByStudentId",
             description = "根据学生ID分页查询选课记录。",
             permission = PermissionConstants.COURSE_QUERY
     )
@@ -91,7 +91,7 @@ public class CourseStudentController extends BaseController {
     }
 
     @HasPermission(
-            summary = "分页查询课程选课学生",
+            summary = "listCourseStudentByCourseId",
             description = "根据课程ID分页查询选课学生。",
             permission = PermissionConstants.COURSE_QUERY
     )
@@ -103,7 +103,7 @@ public class CourseStudentController extends BaseController {
     }
 
     @HasPermission(
-            summary = "获取学生所有选课记录",
+            summary = "listCourseStudentByStudentId",
             description = "根据学生ID获取所有选课记录。",
             permission = PermissionConstants.COURSE_QUERY
     )
@@ -116,7 +116,7 @@ public class CourseStudentController extends BaseController {
     }
 
     @HasPermission(
-            summary = "获取课程所有选课学生",
+            summary = "listAllCourseStudentByCourseId",
             description = "根据课程ID获取所有选课学生。",
             permission = PermissionConstants.COURSE_QUERY
     )
@@ -129,7 +129,7 @@ public class CourseStudentController extends BaseController {
     }
 
     @HasPermission(
-            summary = "检查学生是否已选某门课程",
+            summary = "isEnrolled",
             description = "检查学生是否已经选择了指定的课程。",
             permission = PermissionConstants.COURSE_QUERY
     )
@@ -142,7 +142,7 @@ public class CourseStudentController extends BaseController {
     }
 
     @HasPermission(
-            summary = "获取学生某门课程的成绩",
+            summary = "getStudentGrade",
             description = "获取学生在指定课程中的成绩。",
             permission = PermissionConstants.COURSE_QUERY
     )

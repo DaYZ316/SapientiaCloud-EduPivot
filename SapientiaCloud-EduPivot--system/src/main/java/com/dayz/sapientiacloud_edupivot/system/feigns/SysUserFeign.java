@@ -28,7 +28,7 @@ public class SysUserFeign {
     private final ISysUserService sysUserService;
 
     @HasPermission(
-            summary = "内部接口 - 获取用户角色列表",
+            summary = "getUserRoles",
             description = "获取指定用户的角色列表"
     )
     @GetMapping("/internal/{userId}/role")
@@ -40,7 +40,7 @@ public class SysUserFeign {
     }
 
     @HasPermission(
-            summary = "内部接口 - 获取用户权限列表",
+            summary = "getUserPermissions",
             description = "获取指定用户的权限列表"
     )
     @GetMapping("/internal/{userId}/permission")
@@ -52,7 +52,7 @@ public class SysUserFeign {
     }
 
     @HasPermission(
-            summary = "内部接口 - 根据用户名获取用户信息",
+            summary = "getUserInfoByUsername",
             description = "通过用户名获取用户详细信息"
     )
     @GetMapping("/internal/info/{username}")
@@ -62,7 +62,7 @@ public class SysUserFeign {
     }
 
     @HasPermission(
-            summary = "内部接口 - 根据用户ID获取用户信息",
+            summary = "getUserInfoById",
             description = "通过用户ID获取用户详细信息"
     )
     @GetMapping("/internal/info/id/{userId}")
@@ -73,7 +73,7 @@ public class SysUserFeign {
 
 
     @HasPermission(
-            summary = "内部接口 - 更新用户信息",
+            summary = "updateUserInternal",
             description = "内部接口，更新用户信息"
     )
     @PutMapping("/internal/update")
@@ -82,7 +82,7 @@ public class SysUserFeign {
     }
 
     @HasPermission(
-            summary = "内部接口 - 注册用户",
+            summary = "registerUser",
             description = "用户UI端注册用户。"
     )
     @PostMapping("/internal/register")
@@ -91,7 +91,7 @@ public class SysUserFeign {
     }
 
     @HasPermission(
-            summary = "内部接口 - 更新密码",
+            summary = "updatePassword",
             description = "更新用户密码"
     )
     @PutMapping("/internal/password")

@@ -29,7 +29,7 @@ public class SysUserController extends BaseController {
     private final ISysUserService sysUserService;
 
     @HasPermission(
-            summary = "分页查找用户",
+            summary = "listSysUser",
             description = "根据传入的条件分页查询用户信息。支持根据用户名、昵称等字段进行模糊查询。",
             permission = PermissionConstants.USER_QUERY
     )
@@ -41,7 +41,7 @@ public class SysUserController extends BaseController {
     }
 
     @HasPermission(
-            summary = "获取所有用户",
+            summary = "listAllSysUser",
             description = "获取所有用户列表。",
             permission = PermissionConstants.USER_QUERY
     )
@@ -52,7 +52,7 @@ public class SysUserController extends BaseController {
     }
 
     @HasPermission(
-            summary = "根据ID获取用户",
+            summary = "getUserById",
             description = "通过用户的唯一ID获取其详细信息。",
             permission = PermissionConstants.USER_QUERY
     )
@@ -65,7 +65,7 @@ public class SysUserController extends BaseController {
     }
 
     @HasPermission(
-            summary = "更新现有用户",
+            summary = "updateUser",
             description = "修改现有用户的信息。",
             permission = PermissionConstants.USER_EDIT
     )
@@ -75,7 +75,7 @@ public class SysUserController extends BaseController {
     }
 
     @HasPermission(
-            summary = "删除用户",
+            summary = "removeUserById",
             description = "根据用户ID从系统中移除用户。",
             permission = PermissionConstants.USER_DELETE
     )
@@ -87,7 +87,7 @@ public class SysUserController extends BaseController {
     }
 
     @HasPermission(
-            summary = "批量删除用户",
+            summary = "removeUserByIds",
             description = "根据用户ID列表批量删除用户。",
             permission = PermissionConstants.USER_DELETE
     )
@@ -99,7 +99,7 @@ public class SysUserController extends BaseController {
     }
 
     @HasPermission(
-            summary = "分配用户角色",
+            summary = "assignRoles",
             description = "为指定用户分配角色。",
             permission = PermissionConstants.USER_EDIT
     )
@@ -112,7 +112,7 @@ public class SysUserController extends BaseController {
     }
 
     @HasPermission(
-            summary = "管理员添加新用户",
+            summary = "addSysUser",
             description = "管理员添加系统用户",
             permission = PermissionConstants.USER_ADD
     )
@@ -122,7 +122,7 @@ public class SysUserController extends BaseController {
     }
 
     @HasPermission(
-            summary = "修改个人信息",
+            summary = "updateProfile",
             description = "修改用户自己的个人信息"
     )
     @PutMapping("/profile")
@@ -131,7 +131,7 @@ public class SysUserController extends BaseController {
     }
 
     @HasPermission(
-            summary = "手机验证码登录",
+            summary = "mobileLogin",
             description = "通过手机号码和验证码进行登录验证"
     )
     @PostMapping("/mobile-login")

@@ -29,7 +29,7 @@ public class SysRoleController extends BaseController {
     private final ISysRoleService sysRoleService;
 
     @HasPermission(
-            summary = "分页查询角色",
+            summary = "listSysRole",
             description = "根据传入的条件分页查询角色信息。支持根据角色名称、角色标识等字段进行模糊查询。",
             permission = PermissionConstants.ROLE_QUERY
     )
@@ -41,7 +41,7 @@ public class SysRoleController extends BaseController {
     }
 
     @HasPermission(
-            summary = "获取所有角色",
+            summary = "listAllSysRole",
             description = "获取系统中所有的角色信息。",
             permission = PermissionConstants.ROLE_QUERY
     )
@@ -52,7 +52,7 @@ public class SysRoleController extends BaseController {
     }
 
     @HasPermission(
-            summary = "根据ID获取角色",
+            summary = "getRoleById",
             description = "通过角色的唯一ID获取其详细信息。",
             permission = PermissionConstants.ROLE_QUERY
     )
@@ -65,7 +65,7 @@ public class SysRoleController extends BaseController {
     }
 
     @HasPermission(
-            summary = "添加新角色",
+            summary = "addRole",
             description = "添加一个新的角色到系统中。",
             permission = PermissionConstants.ROLE_ADD
     )
@@ -75,7 +75,7 @@ public class SysRoleController extends BaseController {
     }
 
     @HasPermission(
-            summary = "更新现有角色",
+            summary = "updateRole",
             description = "修改现有角色的信息。",
             permission = PermissionConstants.ROLE_EDIT
     )
@@ -85,7 +85,7 @@ public class SysRoleController extends BaseController {
     }
 
     @HasPermission(
-            summary = "删除角色",
+            summary = "removeRoleById",
             description = "根据角色ID从系统中移除角色。",
             permission = PermissionConstants.ROLE_DELETE
     )
@@ -97,7 +97,7 @@ public class SysRoleController extends BaseController {
     }
 
     @HasPermission(
-            summary = "批量删除角色",
+            summary = "removeRoleByIds",
             description = "根据角色ID列表批量删除角色。",
             permission = PermissionConstants.ROLE_DELETE
     )
@@ -109,7 +109,7 @@ public class SysRoleController extends BaseController {
     }
 
     @HasPermission(
-            summary = "分配角色权限",
+            summary = "assignRolePermissions",
             description = "为指定角色分配权限。",
             permission = PermissionConstants.ROLE_EDIT
     )

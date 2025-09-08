@@ -44,7 +44,7 @@ public class MinIOController {
      *
      * @return 存储桶列表
      */
-    @Operation(summary = "获取所有存储桶", description = "获取所有存储桶接口")
+    @Operation(summary = "listBuckets", description = "获取所有存储桶接口")
     @GetMapping("/buckets")
     public Result<List<String>> listBuckets() {
         List<Bucket> buckets = minIOUtil.getAllBuckets();
@@ -61,7 +61,7 @@ public class MinIOController {
      * @param directory 目录（可选）
      * @return 文件信息
      */
-    @Operation(summary = "上传文件", description = "上传文件接口")
+    @Operation(summary = "uploadFile", description = "上传文件接口")
     @PostMapping("/upload")
     public Result<Map<String, String>> uploadFile(
             @Parameter(description = "上传的文件", required = true) @RequestParam("file") MultipartFile file,
@@ -107,7 +107,7 @@ public class MinIOController {
      * @param expiry     过期时间（秒），可选
      * @return 文件URL
      */
-    @Operation(summary = "获取文件URL", description = "获取文件URL接口")
+    @Operation(summary = "getFileUrl", description = "获取文件URL接口")
     @GetMapping("/url")
     public Result<String> getFileUrl(
             @Parameter(description = "文件对象名称", required = true) @RequestParam("objectName") String objectName,
@@ -128,7 +128,7 @@ public class MinIOController {
      * @param objectName 对象名称
      * @param response   HTTP响应
      */
-    @Operation(summary = "下载文件", description = "下载文件接口")
+    @Operation(summary = "downloadFile", description = "下载文件接口")
     @GetMapping("/download")
     public void downloadFile(
             @Parameter(description = "文件对象名称", required = true) @RequestParam("objectName") String objectName,
@@ -167,7 +167,7 @@ public class MinIOController {
      * @param objectName 对象名称
      * @return 删除结果
      */
-    @Operation(summary = "删除文件", description = "删除文件接口")
+    @Operation(summary = "deleteFile", description = "删除文件接口")
     @DeleteMapping("/delete")
     public Result<Boolean> deleteFile(
             @Parameter(description = "文件对象名称", required = true) @RequestParam("objectName") String objectName
@@ -186,7 +186,7 @@ public class MinIOController {
      * @param objectNames 对象名称列表
      * @return 删除结果
      */
-    @Operation(summary = "批量删除文件", description = "批量删除文件接口")
+    @Operation(summary = "batchDeleteFiles", description = "批量删除文件接口")
     @DeleteMapping("/batch-delete")
     public Result<Map<String, String>> batchDeleteFiles(
             @Parameter(name = "objectNames", description = "文件对象名称列表", required = true) @RequestBody List<String> objectNames
@@ -201,7 +201,7 @@ public class MinIOController {
      * @param prefix 前缀
      * @return 文件列表
      */
-    @Operation(summary = "列出指定前缀的文件", description = "列出指定前缀的文件接口")
+    @Operation(summary = "listFiles", description = "列出指定前缀的文件接口")
     @GetMapping("/list")
     public Result<List<Map<String, Object>>> listFiles(
             @Parameter(description = "文件前缀", required = false)

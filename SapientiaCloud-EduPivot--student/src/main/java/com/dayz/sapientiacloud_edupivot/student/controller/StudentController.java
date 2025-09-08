@@ -3,6 +3,8 @@ package com.dayz.sapientiacloud_edupivot.student.controller;
 import com.dayz.sapientiacloud_edupivot.student.common.controller.BaseController;
 import com.dayz.sapientiacloud_edupivot.student.common.result.Result;
 import com.dayz.sapientiacloud_edupivot.student.common.result.TableDataResult;
+import com.dayz.sapientiacloud_edupivot.student.common.security.annotation.HasPermission;
+import com.dayz.sapientiacloud_edupivot.student.constant.PermissionConstants;
 import com.dayz.sapientiacloud_edupivot.student.entity.dto.StudentAddDTO;
 import com.dayz.sapientiacloud_edupivot.student.entity.dto.StudentDTO;
 import com.dayz.sapientiacloud_edupivot.student.entity.dto.StudentQueryDTO;
@@ -28,7 +30,11 @@ public class StudentController extends BaseController {
 
     private final IStudentService studentService;
 
-    @Operation(summary = "分页查询学生列表", description = "根据传入的条件分页查询学生信息。支持根据学号、姓名、专业等字段进行模糊查询。")
+    @HasPermission(
+            summary = "listStudent",
+            description = "根据传入的条件分页查询学生信息。支持根据学号、姓名、专业等字段进行模糊查询。",
+            permission = PermissionConstants.STUDENT_QUERY
+    )
     @GetMapping("/list")
     public TableDataResult listStudent(@ParameterObject StudentQueryDTO studentQueryDTO) {
         startPage();
@@ -36,14 +42,22 @@ public class StudentController extends BaseController {
         return getDataTable(pageInfo.getList());
     }
 
-    @Operation(summary = "获取所有学生", description = "获取系统中所有的学生信息。")
+    @HasPermission(
+            summary = "listAllStudent",
+            description = "获取系统中所有的学生信息。",
+            permission = PermissionConstants.STUDENT_QUERY
+    )
     @GetMapping("/all")
     public Result<List<StudentVO>> listAllStudent() {
         List<StudentVO> studentVOList = studentService.listAllStudent();
         return Result.success(studentVOList);
     }
 
-    @Operation(summary = "根据ID获取学生信息", description = "通过学生的唯一ID获取其详细信息。")
+    @HasPermission(
+            summary = "getStudentById",
+            description = "通过学生的唯一ID获取其详细信息。",
+            permission = PermissionConstants.STUDENT_QUERY
+    )
     @GetMapping("/{id}")
     public Result<StudentVO> getStudentById(
             @Parameter(name = "id", description = "学生ID", required = true) @PathVariable("id") UUID id
@@ -52,7 +66,11 @@ public class StudentController extends BaseController {
         return Result.success(studentVO);
     }
 
-    @Operation(summary = "根据用户ID获取学生信息", description = "通过学生的用户ID获取其详细信息。")
+    @HasPermission(
+            summary = "getStudentByUserId",
+            description = "通过学生的用户ID获取其详细信息。",
+            permission = PermissionConstants.STUDENT_QUERY
+    )
     @GetMapping("/user/{id}")
     public Result<StudentVO> getStudentByUserId(
             @Parameter(name = "id", description = "用户ID", required = true) @PathVariable("id") UUID id
@@ -61,7 +79,11 @@ public class StudentController extends BaseController {
         return Result.success(studentVO);
     }
 
-    @Operation(summary = "添加新学生", description = "向系统中添加一个新的学生。")
+    @HasPermission(
+            summary = "addStudent",
+            description = "向系统中添加一个新的学生。",
+            permission = PermissionConstants.STUDENT_ADD
+    )
     @PostMapping
     public Result<Boolean> addStudent(
             @RequestBody @Valid StudentAddDTO studentAddDTO
@@ -70,7 +92,11 @@ public class StudentController extends BaseController {
         return Result.success(result);
     }
 
-    @Operation(summary = "更新学生信息", description = "更新现有学生的信息。")
+    @HasPermission(
+            summary = "updateStudent",
+            description = "更新现有学生的信息。",
+            permission = PermissionConstants.STUDENT_EDIT
+    )
     @PutMapping
     public Result<Boolean> updateStudent(
             @RequestBody @Valid StudentDTO studentDTO
@@ -79,7 +105,11 @@ public class StudentController extends BaseController {
         return Result.success(result);
     }
 
-    @Operation(summary = "根据ID删除学生", description = "通过学生的唯一ID删除学生信息。")
+    @HasPermission(
+            summary = "removeStudentById",
+            description = "通过学生的唯一ID删除学生信息。",
+            permission = PermissionConstants.STUDENT_DELETE
+    )
     @DeleteMapping("/{id}")
     public Result<Boolean> removeStudentById(
             @Parameter(name = "id", description = "学生ID", required = true) @PathVariable("id") UUID id
@@ -88,7 +118,11 @@ public class StudentController extends BaseController {
         return Result.success(result);
     }
 
-    @Operation(summary = "批量删除学生", description = "根据学生ID列表批量删除学生信息。")
+    @HasPermission(
+            summary = "removeStudentByIds",
+            description = "根据学生ID列表批量删除学生信息。",
+            permission = PermissionConstants.STUDENT_DELETE
+    )
     @DeleteMapping
     public Result<Integer> removeStudentByIds(
             @RequestBody List<UUID> ids

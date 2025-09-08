@@ -7,22 +7,22 @@
     </resultMap>
 
     <select id="listSysUser" resultType="com.dayz.sapientiacloud_edupivot.system.entity.vo.SysUserVO">
-        select
+        SELECT
         id, username, nick_name, email, mobile, gender, avatar, status, create_time, update_time, last_login_time
-        from
+        FROM
         sys_user
         <where>
             <if test="username != null and username != ''">
-                and username like concat('%', #{username}, '%')
+                AND username LIKE CONCAT('%', #{username}, '%')
             </if>
             <if test="nickName != null and nickName != ''">
-                and nick_name like concat('%', #{nickName}, '%')
+                AND nick_name LIKE CONCAT('%', #{nickName}, '%')
             </if>
             <if test="gender != null">
-                and gender = #{gender}
+                AND gender = #{gender}
             </if>
             <if test="status != null">
-                and status = #{status}
+                AND status = #{status}
             </if>
             <if test="startTime != null or endTime != null">
                 <choose>
@@ -37,21 +37,23 @@
                     </otherwise>
                 </choose>
             </if>
-            and is_deleted = 0
+            AND is_deleted = 0
         </where>
         <if test="orderByColumn != null and orderByColumn != ''">
-            order by ${orderByColumn} ${isAsc == 'asc' ? 'asc' : 'desc'}
+            ORDER BY ${orderByColumn} ${isAsc == 'asc' ? 'ASC' : 'DESC'}
         </if>
         <if test="orderByColumn == null or orderByColumn == ''">
-            order by create_time desc
+            ORDER BY create_time DESC
         </if>
     </select>
 
     <select id="selectByUsername" resultMap="SysUser">
-        select *
-        from sys_user
-        where username = #{username}
-          and is_deleted = 0
+        SELECT *
+        FROM sys_user
+        <where>
+            username = #{username}
+            AND is_deleted = 0
+        </where>
     </select>
 
 </mapper>

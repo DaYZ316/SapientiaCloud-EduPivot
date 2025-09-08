@@ -22,7 +22,7 @@ public class SysPermissionFeign {
     private final PermissionService permissionService;
 
     @HasPermission(
-            summary = "内部接口 - 验证用户权限",
+            summary = "hasPermission",
             description = "验证当前用户是否有指定权限"
     )
     @GetMapping("/internal/check/{permission}")
@@ -35,7 +35,7 @@ public class SysPermissionFeign {
     }
 
     @HasPermission(
-            summary = "内部接口 - 验证用户任一权限",
+            summary = "hasAnyPermission",
             description = "验证当前用户是否有任一指定权限"
     )
     @PostMapping("/internal/check/any")
@@ -48,7 +48,7 @@ public class SysPermissionFeign {
     }
 
     @HasPermission(
-            summary = "内部接口 - 验证用户所有权限",
+            summary = "hasAllPermissions",
             description = "验证当前用户是否有所有指定权限"
     )
     @PostMapping("/internal/check/all")
@@ -61,7 +61,7 @@ public class SysPermissionFeign {
     }
 
     @HasPermission(
-            summary = "内部接口 - 获取用户权限列表",
+            summary = "getUserPermissions",
             description = "获取指定用户的所有权限标识列表"
     )
     @GetMapping("/internal/{userId}/permissions")
@@ -74,7 +74,7 @@ public class SysPermissionFeign {
     }
 
     @HasPermission(
-            summary = "内部接口 - 清除用户权限缓存",
+            summary = "clearUserPermissionCache",
             description = "清除指定用户的权限缓存"
     )
     @DeleteMapping("/internal/{userId}/cache")
@@ -92,7 +92,7 @@ public class SysPermissionFeign {
     }
 
     @HasPermission(
-            summary = "内部接口 - 清除所有权限缓存",
+            summary = "clearAllPermissionCache",
             description = "清除所有用户的权限缓存"
     )
     @DeleteMapping("/internal/cache/all")

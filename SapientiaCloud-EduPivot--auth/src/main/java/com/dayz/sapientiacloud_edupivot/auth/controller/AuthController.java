@@ -28,7 +28,7 @@ public class AuthController {
     private final SysUserClient sysUserClient;
 
     @PostMapping("/login")
-    @Operation(summary = "用户登录", description = "通过用户名和密码登录系统")
+    @Operation(summary = "login", description = "通过用户名和密码登录系统")
     public Result<SysUserLoginVO> login(@RequestBody SysUserLoginDTO sysUserLoginDTO) {
         log.info("用户登录请求: 用户名: {}", sysUserLoginDTO.getUsername());
         SysUserLoginVO loginVO = authService.login(sysUserLoginDTO);
@@ -36,7 +36,7 @@ public class AuthController {
     }
 
     @PostMapping("/mobile-login")
-    @Operation(summary = "手机验证码登录", description = "通过手机号和验证码登录系统")
+    @Operation(summary = "mobileLogin", description = "通过手机号和验证码登录系统")
     public Result<SysUserLoginVO> mobileLogin(@Valid @RequestBody SysUserMobileLoginDTO sysUserMobileLoginDTO) {
         log.info("手机验证码登录请求: 手机号: {}", sysUserMobileLoginDTO.getMobile());
         SysUserLoginVO loginVO = authService.mobileLogin(sysUserMobileLoginDTO);
@@ -44,33 +44,33 @@ public class AuthController {
     }
 
     @GetMapping("/validate")
-    @Operation(summary = "验证令牌", description = "验证JWT令牌是否有效")
+    @Operation(summary = "validateToken", description = "验证JWT令牌是否有效")
     public Result<Boolean> validateToken(@RequestParam("token") String token) {
         boolean isValid = authService.validateToken(token);
         return Result.success(isValid);
     }
 
     @PostMapping("/logout")
-    @Operation(summary = "用户登出", description = "使当前JWT令牌失效")
+    @Operation(summary = "logout", description = "使当前JWT令牌失效")
     public Result<Boolean> logout(HttpServletRequest request) {
         boolean result = authService.logout(request);
         return Result.success(result);
     }
 
     @PostMapping("/register")
-    @Operation(summary = "用户注册", description = "注册一个新的用户")
+    @Operation(summary = "register", description = "注册一个新的用户")
     public Result<Boolean> register(@Valid @RequestBody SysUserRegisterDTO sysUserRegisterDTO) {
         return sysUserClient.registerUser(sysUserRegisterDTO);
     }
 
     @GetMapping("/info")
-    @Operation(summary = "获取用户信息", description = "获取当前登录用户的信息")
+    @Operation(summary = "getUserInfo", description = "获取当前登录用户的信息")
     public Result<SysUserInternalVO> getUserInfo(HttpServletRequest request) {
         return authService.getUserInfo(request);
     }
 
     @PutMapping("/password")
-    @Operation(summary = "更新密码", description = "更新当前登录用户的密码")
+    @Operation(summary = "updatePassword", description = "更新当前登录用户的密码")
     public Result<Boolean> updatePassword(HttpServletRequest request, @Valid @RequestBody SysUserPasswordDTO sysUserPasswordDTO) {
         return Result.success(authService.updatePassword(request, sysUserPasswordDTO));
     }

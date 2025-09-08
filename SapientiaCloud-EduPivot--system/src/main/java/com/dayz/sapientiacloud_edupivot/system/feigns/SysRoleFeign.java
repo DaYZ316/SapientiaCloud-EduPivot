@@ -28,7 +28,7 @@ public class SysRoleFeign {
      * @return 角色信息
      */
     @HasPermission(
-            summary = "内部接口 - 根据角色标识获取角色信息",
+            summary = "getRoleByKey",
             description = "通过角色标识获取角色详细信息，包含权限列表"
     )
     @GetMapping("/internal/key/{roleKey}")
@@ -47,7 +47,7 @@ public class SysRoleFeign {
      * @return 操作结果
      */
     @HasPermission(
-            summary = "内部接口 - 为指定用户添加指定角色",
+            summary = "addRoleToUser",
             description = "通过用户ID和角色标识为用户分配角色"
     )
     @PostMapping("/internal/user/{userId}/role")
@@ -67,7 +67,7 @@ public class SysRoleFeign {
      * @return 操作结果
      */
     @HasPermission(
-            summary = "内部接口 - 从指定用户中删除指定角色",
+            summary = "removeRoleFromUser",
             description = "通过用户ID和角色标识从用户中移除角色"
     )
     @DeleteMapping("/internal/user/{userId}/role")

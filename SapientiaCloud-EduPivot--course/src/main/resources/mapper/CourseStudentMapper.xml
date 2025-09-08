@@ -144,7 +144,7 @@
             </if>
         </where>
         <if test="orderByColumn != null and orderByColumn != ''">
-            ORDER BY ${orderByColumn} ${isAsc == 'asc' ? 'asc' : 'desc'}
+            ORDER BY ${orderByColumn} ${isAsc == 'asc' ? 'ASC' : 'DESC'}
         </if>
         <if test="orderByColumn == null or orderByColumn == ''">
             ORDER BY cs.create_time DESC
@@ -182,7 +182,7 @@
             </if>
         </where>
         <if test="orderByColumn != null and orderByColumn != ''">
-            ORDER BY ${orderByColumn} ${isAsc == 'asc' ? 'asc' : 'desc'}
+            ORDER BY ${orderByColumn} ${isAsc == 'asc' ? 'ASC' : 'DESC'}
         </if>
         <if test="orderByColumn == null or orderByColumn == ''">
             ORDER BY cs.create_time DESC

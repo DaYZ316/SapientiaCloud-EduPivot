@@ -7,26 +7,26 @@
     </resultMap>
 
     <select id="listStudent" resultType="com.dayz.sapientiacloud_edupivot.student.entity.vo.StudentVO">
-        select
+        SELECT
         id, student_code, real_name, birth_date, admission_year, major,
         academic_status, description, sys_user_id, create_time, update_time
-        from
+        FROM
         mg_student
         <where>
             <if test="studentCode != null and studentCode != ''">
-                and student_code like concat('%', #{studentCode}, '%')
+                AND student_code LIKE CONCAT('%', #{studentCode}, '%')
             </if>
             <if test="realName != null and realName != ''">
-                and real_name like concat('%', #{realName}, '%')
+                AND real_name LIKE CONCAT('%', #{realName}, '%')
             </if>
             <if test="admissionYear != null">
-                and admission_year = #{admissionYear}
+                AND admission_year = #{admissionYear}
             </if>
             <if test="major != null and major != ''">
-                and major like concat('%', #{major}, '%')
+                AND major LIKE CONCAT('%', #{major}, '%')
             </if>
             <if test="academicStatus != null">
-                and academic_status = #{academicStatus}
+                AND academic_status = #{academicStatus}
             </if>
             <if test="startTime != null or endTime != null">
                 <choose>
@@ -41,28 +41,32 @@
                     </otherwise>
                 </choose>
             </if>
-            and is_deleted = 0
+            AND is_deleted = 0
         </where>
         <if test="orderByColumn != null and orderByColumn != ''">
-            order by ${orderByColumn} ${isAsc == 'asc' ? 'asc' : 'desc'}
+            ORDER BY ${orderByColumn} ${isAsc == 'asc' ? 'ASC' : 'DESC'}
         </if>
         <if test="orderByColumn == null or orderByColumn == ''">
-            order by create_time desc
+            ORDER BY create_time DESC
         </if>
     </select>
 
     <select id="selectByStudentCode" resultType="com.dayz.sapientiacloud_edupivot.student.entity.po.Student">
-        select *
-        from mg_student
-        where student_code = #{studentCode}
-          and is_deleted = 0
+        SELECT *
+        FROM mg_student
+        <where>
+            student_code = #{studentCode}
+            AND is_deleted = 0
+        </where>
     </select>
 
     <select id="selectByUserId" resultType="com.dayz.sapientiacloud_edupivot.student.entity.po.Student">
-        select *
-        from mg_student
-        where sys_user_id = #{sysUserId}
-          and is_deleted = 0
+        SELECT *
+        FROM mg_student
+        <where>
+            sys_user_id = #{sysUserId}
+            AND is_deleted = 0
+        </where>
     </select>
 
     <select id="listAllStudentWithUserInfo" resultType="com.dayz.sapientiacloud_edupivot.student.entity.vo.StudentVO">

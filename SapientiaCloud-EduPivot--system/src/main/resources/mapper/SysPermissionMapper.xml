@@ -7,19 +7,19 @@
     </resultMap>
 
     <select id="listSysPermission" resultType="com.dayz.sapientiacloud_edupivot.system.entity.vo.SysPermissionVO">
-        select
+        SELECT
         id, parent_id, permission_name, permission_key, sort, create_time, update_time
-        from
+        FROM
         sys_permission
         <where>
             <if test="permissionName != null and permissionName != ''">
-                and permission_name like concat('%', #{permissionName}, '%')
+                AND permission_name LIKE CONCAT('%', #{permissionName}, '%')
             </if>
             <if test="permissionKey != null and permissionKey != ''">
-                and permission_key like concat('%', #{permissionKey}, '%')
+                AND permission_key LIKE CONCAT('%', #{permissionKey}, '%')
             </if>
             <if test="parentId != null">
-                and parent_id = #{parentId}
+                AND parent_id = #{parentId}
             </if>
             <if test="startTime != null or endTime != null">
                 <choose>
@@ -34,13 +34,13 @@
                     </otherwise>
                 </choose>
             </if>
-            and is_deleted = 0
+            AND is_deleted = 0
         </where>
         <if test="orderByColumn != null and orderByColumn != ''">
-            order by ${orderByColumn} ${isAsc == 'asc' ? 'asc' : 'desc'}
+            ORDER BY ${orderByColumn} ${isAsc == 'asc' ? 'ASC' : 'DESC'}
         </if>
         <if test="orderByColumn == null or orderByColumn == ''">
-            order by create_time desc
+            ORDER BY create_time DESC
         </if>
     </select>
 

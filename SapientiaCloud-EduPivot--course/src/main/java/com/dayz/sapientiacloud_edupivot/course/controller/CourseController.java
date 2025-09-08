@@ -31,7 +31,7 @@ public class CourseController extends BaseController {
     private final ICourseService courseService;
 
     @HasPermission(
-            summary = "分页查找课程",
+            summary = "listCourse",
             description = "根据传入的条件分页查询课程信息。支持根据课程名称、课程代码、课程类型、学期、学年、教师等字段进行模糊查询。",
             permission = PermissionConstants.COURSE_QUERY
     )
@@ -43,7 +43,7 @@ public class CourseController extends BaseController {
     }
 
     @HasPermission(
-            summary = "获取所有课程",
+            summary = "listAllCourse",
             description = "获取所有课程列表。",
             permission = PermissionConstants.COURSE_QUERY
     )
@@ -54,7 +54,7 @@ public class CourseController extends BaseController {
     }
 
     @HasPermission(
-            summary = "根据ID获取课程",
+            summary = "getCourseById",
             description = "通过课程的唯一ID获取其详细信息。",
             permission = PermissionConstants.COURSE_QUERY
     )
@@ -67,7 +67,7 @@ public class CourseController extends BaseController {
     }
 
     @HasPermission(
-            summary = "管理员添加新课程",
+            summary = "addCourse",
             description = "管理员添加系统课程",
             permission = PermissionConstants.COURSE_ADD
     )
@@ -78,7 +78,7 @@ public class CourseController extends BaseController {
     }
 
     @HasPermission(
-            summary = "更新现有课程",
+            summary = "updateCourse",
             description = "修改现有课程的信息。",
             permission = PermissionConstants.COURSE_EDIT
     )
@@ -88,7 +88,7 @@ public class CourseController extends BaseController {
     }
 
     @HasPermission(
-            summary = "删除课程",
+            summary = "removeCourseById",
             description = "根据课程ID从系统中移除课程。",
             permission = PermissionConstants.COURSE_DELETE
     )
@@ -100,7 +100,7 @@ public class CourseController extends BaseController {
     }
 
     @HasPermission(
-            summary = "批量删除课程",
+            summary = "removeCourseByIds",
             description = "根据课程ID列表批量删除课程。",
             permission = PermissionConstants.COURSE_DELETE
     )
@@ -112,7 +112,7 @@ public class CourseController extends BaseController {
     }
 
     @HasPermission(
-            summary = "分配课程教师",
+            summary = "assignTeacher",
             description = "为指定课程分配教师。",
             permission = PermissionConstants.COURSE_EDIT
     )
@@ -125,7 +125,7 @@ public class CourseController extends BaseController {
     }
 
     @HasPermission(
-            summary = "学生加入课程",
+            summary = "enrollStudentToCourse",
             description = "学生根据课程ID加入课程。",
             permission = PermissionConstants.COURSE_QUERY
     )
@@ -138,7 +138,7 @@ public class CourseController extends BaseController {
     }
 
     @HasPermission(
-            summary = "分配课程教师团队",
+            summary = "assignCourseTeacherTeam",
             description = "为指定课程分配教师团队。",
             permission = PermissionConstants.COURSE_EDIT
     )
@@ -151,7 +151,7 @@ public class CourseController extends BaseController {
     }
 
     @HasPermission(
-            summary = "根据学生ID查询课程",
+            summary = "listAllCourseByStudentId",
             description = "获取学生已选择的所有课程。",
             permission = PermissionConstants.COURSE_QUERY
     )
@@ -164,7 +164,7 @@ public class CourseController extends BaseController {
     }
 
     @HasPermission(
-            summary = "根据教师ID查询课程",
+            summary = "listAllCourseByTeacherId",
             description = "获取教师作为负责人或教学团队成员的所有课程。",
             permission = PermissionConstants.COURSE_QUERY
     )
@@ -177,7 +177,7 @@ public class CourseController extends BaseController {
     }
 
     @HasPermission(
-            summary = "根据教师ID分页查询课程",
+            summary = "listCourseByTeacherId",
             description = "分页获取教师作为负责人或教学团队成员的所有课程。",
             permission = PermissionConstants.COURSE_QUERY
     )
@@ -189,7 +189,7 @@ public class CourseController extends BaseController {
     }
 
     @HasPermission(
-            summary = "根据学生ID分页查询课程",
+            summary = "listCourseByStudentId",
             description = "分页获取学生已选择的所有课程。",
             permission = PermissionConstants.COURSE_QUERY
     )
@@ -201,7 +201,7 @@ public class CourseController extends BaseController {
     }
 
     @HasPermission(
-            summary = "批量分配课程教师团队",
+            summary = "assignCourseTeachers",
             description = "为指定课程批量分配教师团队，支持添加和移除教师。",
             permission = PermissionConstants.COURSE_EDIT
     )
