@@ -3,7 +3,10 @@ package com.dayz.sapientiacloud_edupivot.student.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dayz.sapientiacloud_edupivot.student.common.clients.SysRoleClient;
+import com.dayz.sapientiacloud_edupivot.student.common.clients.SysUserClient;
+import com.dayz.sapientiacloud_edupivot.student.common.entity.vo.SysUserInternalVO;
 import com.dayz.sapientiacloud_edupivot.student.common.exception.BusinessException;
+import com.dayz.sapientiacloud_edupivot.student.common.result.Result;
 import com.dayz.sapientiacloud_edupivot.student.common.security.utils.UserContextUtil;
 import com.dayz.sapientiacloud_edupivot.student.entity.dto.StudentAddDTO;
 import com.dayz.sapientiacloud_edupivot.student.entity.dto.StudentDTO;
@@ -16,6 +19,7 @@ import com.dayz.sapientiacloud_edupivot.student.service.IStudentService;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +29,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> implements IStudentService {
 
@@ -32,6 +37,7 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
 
     private final StudentMapper studentMapper;
     private final SysRoleClient sysRoleClient;
+    private final SysUserClient sysUserClient;
 
     @Override
     public PageInfo<StudentVO> listStudentPage(StudentQueryDTO studentQueryDTO) {
@@ -47,16 +53,7 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
 
     @Override
     public List<StudentVO> listAllStudent() {
-        LambdaQueryWrapper<Student> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.orderByDesc(Student::getCreateTime);
-
-        List<Student> studentList = this.list(queryWrapper);
-
-        return studentList.stream().map(student -> {
-            StudentVO studentVO = new StudentVO();
-            BeanUtils.copyProperties(student, studentVO);
-            return studentVO;
-        }).toList();
+        return studentMapper.listAllStudentWithUserInfo();
     }
 
     @Override
@@ -69,6 +66,25 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
 
         StudentVO studentVO = new StudentVO();
         BeanUtils.copyProperties(student, studentVO);
+
+        // 获取用户信息（除了密码）
+        if (student.getSysUserId() != null) {
+            try {
+                Result<SysUserInternalVO> userResult = sysUserClient.getUserInfoById(student.getSysUserId());
+                if (userResult.isSuccess() && userResult.getData() != null) {
+                    SysUserInternalVO userInfo = userResult.getData();
+                    studentVO.setAvatar(userInfo.getAvatar());
+                    studentVO.setUsername(userInfo.getUsername());
+                    studentVO.setNickName(userInfo.getNickName());
+                    studentVO.setEmail(userInfo.getEmail());
+                    studentVO.setMobile(userInfo.getMobile());
+                    studentVO.setGender(userInfo.getGender());
+                    studentVO.setStatus(userInfo.getStatus());
+                }
+            } catch (Exception e) {
+                log.warn("获取学生用户信息失败: studentId={}, sysUserId={}", student.getId(), student.getSysUserId(), e);
+            }
+        }
 
         return studentVO;
     }

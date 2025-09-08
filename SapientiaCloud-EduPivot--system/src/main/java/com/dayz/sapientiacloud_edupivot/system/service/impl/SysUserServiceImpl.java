@@ -316,6 +316,27 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public SysUserInternalVO getUserInfoById(UUID userId) {
+        if (userId == null) {
+            throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
+        }
+
+        SysUser sysUser = this.getById(userId);
+        if (sysUser == null) {
+            throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
+        }
+
+        SysUserInternalVO sysUserInternalVO = new SysUserInternalVO();
+        BeanUtils.copyProperties(sysUser, sysUserInternalVO);
+
+        sysUserInternalVO.setRoles(sysUserRoleMapper.getUserRoles(userId));
+        sysUserInternalVO.setPermissions(sysUserPermissionMapper.getUserPermissions(userId));
+
+        return sysUserInternalVO;
+    }
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
     @CacheEvict(value = "SysUser", key = "#p0", condition = "#p0 != null")
     public Boolean assignRoles(UUID userId, List<UUID> newRoleIds) {
@@ -356,7 +377,6 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             }
         }
 
-        // 在角色分配完成后，清除该用户的权限缓存
         permissionService.clearUserPermissionCache(userId);
 
         return true;

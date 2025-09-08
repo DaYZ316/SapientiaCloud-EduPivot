@@ -4,14 +4,15 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dayz.sapientiacloud_edupivot.course.common.enums.StatusEnum;
 import com.dayz.sapientiacloud_edupivot.course.common.exception.BusinessException;
-import com.dayz.sapientiacloud_edupivot.course.entity.dto.StudentCourseDTO;
-import com.dayz.sapientiacloud_edupivot.course.entity.vo.StudentCourseVO;
+import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseStudentDTO;
+import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseStudentQueryDTO;
+import com.dayz.sapientiacloud_edupivot.course.entity.vo.CourseStudentVO;
 import com.dayz.sapientiacloud_edupivot.course.entity.po.Course;
-import com.dayz.sapientiacloud_edupivot.course.entity.po.StudentCourse;
+import com.dayz.sapientiacloud_edupivot.course.entity.po.CourseStudent;
 import com.dayz.sapientiacloud_edupivot.course.enums.CourseEnum;
 import com.dayz.sapientiacloud_edupivot.course.mapper.CourseMapper;
-import com.dayz.sapientiacloud_edupivot.course.mapper.StudentCourseMapper;
-import com.dayz.sapientiacloud_edupivot.course.service.IStudentCourseService;
+import com.dayz.sapientiacloud_edupivot.course.mapper.CourseStudentMapper;
+import com.dayz.sapientiacloud_edupivot.course.service.ICourseStudentService;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import lombok.RequiredArgsConstructor;
@@ -29,23 +30,23 @@ import java.util.UUID;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class StudentCourseServiceImpl extends ServiceImpl<StudentCourseMapper, StudentCourse> implements IStudentCourseService {
+public class CourseStudentServiceImpl extends ServiceImpl<CourseStudentMapper, CourseStudent> implements ICourseStudentService {
 
-    private final StudentCourseMapper studentCourseMapper;
+    private final CourseStudentMapper courseStudentMapper;
     private final CourseMapper courseMapper;
 
     @Override
     @Transactional
-    public Boolean enrollCourse(StudentCourseDTO studentCourseDTO) {
-        if (studentCourseDTO == null || studentCourseDTO.getStudentId() == null || studentCourseDTO.getCourseId() == null) {
+    public Boolean enrollCourse(CourseStudentDTO courseStudentDTO) {
+        if (courseStudentDTO == null || courseStudentDTO.getStudentId() == null || courseStudentDTO.getCourseId() == null) {
             throw new BusinessException(CourseEnum.ENROLLMENT_INFO_INCOMPLETE);
         }
 
-        if (isEnrolled(studentCourseDTO.getStudentId(), studentCourseDTO.getCourseId())) {
+        if (isEnrolled(courseStudentDTO.getStudentId(), courseStudentDTO.getCourseId())) {
             throw new BusinessException(CourseEnum.ALREADY_ENROLLED);
         }
 
-        Course course = courseMapper.selectById(studentCourseDTO.getCourseId());
+        Course course = courseMapper.selectById(courseStudentDTO.getCourseId());
         if (course == null) {
             throw new BusinessException(CourseEnum.COURSE_NOT_EXISTS);
         }
@@ -54,15 +55,15 @@ public class StudentCourseServiceImpl extends ServiceImpl<StudentCourseMapper, S
             throw new BusinessException(CourseEnum.COURSE_NOT_AVAILABLE);
         }
 
-        StudentCourse studentCourse = new StudentCourse();
-        BeanUtils.copyProperties(studentCourseDTO, studentCourse);
+        CourseStudent courseStudent = new CourseStudent();
+        BeanUtils.copyProperties(courseStudentDTO, courseStudent);
         
-        studentCourse.setEnrollmentDate(LocalDate.now());
-        studentCourse.setStatus(StatusEnum.NORMAL.getCode());
-        studentCourse.setCreateTime(LocalDateTime.now());
-        studentCourse.setUpdateTime(LocalDateTime.now());
+        courseStudent.setEnrollmentDate(LocalDate.now());
+        courseStudent.setStatus(StatusEnum.NORMAL.getCode());
+        courseStudent.setCreateTime(LocalDateTime.now());
+        courseStudent.setUpdateTime(LocalDateTime.now());
 
-        return this.save(studentCourse);
+        return this.save(courseStudent);
     }
 
     @Override
@@ -72,20 +73,20 @@ public class StudentCourseServiceImpl extends ServiceImpl<StudentCourseMapper, S
             throw new BusinessException(CourseEnum.STUDENT_ID_AND_COURSE_ID_REQUIRED);
         }
 
-        LambdaQueryWrapper<StudentCourse> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(StudentCourse::getStudentId, studentId)
-                   .eq(StudentCourse::getCourseId, courseId)
-                   .eq(StudentCourse::getStatus, StatusEnum.DISABLED);
+        LambdaQueryWrapper<CourseStudent> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(CourseStudent::getStudentId, studentId)
+                   .eq(CourseStudent::getCourseId, courseId)
+                   .eq(CourseStudent::getStatus, StatusEnum.DISABLED);
 
-        StudentCourse studentCourse = this.getOne(queryWrapper);
-        if (studentCourse == null) {
+        CourseStudent courseStudent = this.getOne(queryWrapper);
+        if (courseStudent == null) {
             throw new BusinessException(CourseEnum.ENROLLMENT_RECORD_NOT_FOUND);
         }
 
-        studentCourse.setStatus(StatusEnum.NORMAL.getCode());
-        studentCourse.setUpdateTime(LocalDateTime.now());
+        courseStudent.setStatus(StatusEnum.NORMAL.getCode());
+        courseStudent.setUpdateTime(LocalDateTime.now());
 
-        return this.updateById(studentCourse);
+        return this.updateById(courseStudent);
     }
 
     @Override
@@ -98,30 +99,30 @@ public class StudentCourseServiceImpl extends ServiceImpl<StudentCourseMapper, S
             throw new BusinessException(CourseEnum.GRADE_INVALID_RANGE);
         }
 
-        LambdaQueryWrapper<StudentCourse> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(StudentCourse::getStudentId, studentId)
-                   .eq(StudentCourse::getCourseId, courseId);
+        LambdaQueryWrapper<CourseStudent> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(CourseStudent::getStudentId, studentId)
+                   .eq(CourseStudent::getCourseId, courseId);
 
-        StudentCourse studentCourse = this.getOne(queryWrapper);
-        if (studentCourse == null) {
+        CourseStudent courseStudent = this.getOne(queryWrapper);
+        if (courseStudent == null) {
             throw new BusinessException(CourseEnum.ENROLLMENT_RECORD_NOT_EXISTS);
         }
 
-        studentCourse.setGrade(grade);
-        studentCourse.setUpdateTime(LocalDateTime.now());
+        courseStudent.setGrade(grade);
+        courseStudent.setUpdateTime(LocalDateTime.now());
 
-        return this.updateById(studentCourse);
+        return this.updateById(courseStudent);
     }
 
     @Override
     @Transactional
-    public Integer batchUpdateGrade(List<StudentCourseDTO> studentCourseDTOList) {
-        if (studentCourseDTOList == null || studentCourseDTOList.isEmpty()) {
+    public Integer batchUpdateGrade(List<CourseStudentDTO> courseStudentDTOList) {
+        if (courseStudentDTOList == null || courseStudentDTOList.isEmpty()) {
             throw new BusinessException(CourseEnum.GRADE_UPDATE_LIST_REQUIRED);
         }
 
         int updateCount = 0;
-        for (StudentCourseDTO dto : studentCourseDTOList) {
+        for (CourseStudentDTO dto : courseStudentDTOList) {
             if (dto.getStudentId() != null && dto.getCourseId() != null && dto.getGrade() != null) {
                 try {
                     if (updateGrade(dto.getStudentId(), dto.getCourseId(), dto.getGrade())) {
@@ -138,43 +139,43 @@ public class StudentCourseServiceImpl extends ServiceImpl<StudentCourseMapper, S
     }
 
     @Override
-    public PageInfo<StudentCourseVO> listStudentCoursePageByStudentId(UUID studentId, Integer pageNum, Integer pageSize) {
-        if (studentId == null) {
+    public PageInfo<CourseStudentVO> listCourseStudentByStudentId(CourseStudentQueryDTO courseStudentQueryDTO) {
+        if (courseStudentQueryDTO == null || courseStudentQueryDTO.getStudentId() == null) {
             throw new BusinessException(CourseEnum.STUDENT_ID_REQUIRED);
         }
 
-        return PageHelper.startPage(pageNum, pageSize)
-                .doSelectPageInfo(() -> studentCourseMapper.listStudentCourseByStudentId(studentId));
+        return PageHelper.startPage(courseStudentQueryDTO.getPageNum(), courseStudentQueryDTO.getPageSize())
+                .doSelectPageInfo(() -> courseStudentMapper.listCourseStudentByStudentId(courseStudentQueryDTO));
     }
 
     @Override
-    public PageInfo<StudentCourseVO> listStudentCoursePageByCourseId(UUID courseId, Integer pageNum, Integer pageSize) {
-        if (courseId == null) {
+    public PageInfo<CourseStudentVO> listCourseStudentByCourseId(CourseStudentQueryDTO courseStudentQueryDTO) {
+        if (courseStudentQueryDTO == null || courseStudentQueryDTO.getCourseId() == null) {
             throw new BusinessException(CourseEnum.COURSE_ID_REQUIRED);
         }
 
-        return PageHelper.startPage(pageNum, pageSize)
-                .doSelectPageInfo(() -> studentCourseMapper.listStudentCourseByCourseId(courseId));
+        return PageHelper.startPage(courseStudentQueryDTO.getPageNum(), courseStudentQueryDTO.getPageSize())
+                .doSelectPageInfo(() -> courseStudentMapper.listCourseStudentByCourseId(courseStudentQueryDTO));
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<StudentCourseVO> listStudentCourseByStudentId(UUID studentId) {
+    public List<CourseStudentVO> listAllCourseStudentByStudentId(UUID studentId) {
         if (studentId == null) {
             throw new BusinessException(CourseEnum.STUDENT_ID_REQUIRED);
         }
 
-        return studentCourseMapper.listStudentCourseByStudentId(studentId);
+        return courseStudentMapper.listAllCourseStudentByStudentId(studentId);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<StudentCourseVO> listStudentCourseByCourseId(UUID courseId) {
+    public List<CourseStudentVO> listAllCourseStudentByCourseId(UUID courseId) {
         if (courseId == null) {
             throw new BusinessException(CourseEnum.COURSE_ID_REQUIRED);
         }
 
-        return studentCourseMapper.listStudentCourseByCourseId(courseId);
+        return courseStudentMapper.listAllCourseStudentByCourseId(courseId);
     }
 
     @Override
@@ -184,7 +185,7 @@ public class StudentCourseServiceImpl extends ServiceImpl<StudentCourseMapper, S
             return false;
         }
 
-        return studentCourseMapper.countByStudentAndCourse(studentId, courseId) > 0;
+        return courseStudentMapper.countByStudentAndCourse(studentId, courseId) > 0;
     }
 
     @Override
@@ -194,7 +195,7 @@ public class StudentCourseServiceImpl extends ServiceImpl<StudentCourseMapper, S
             return null;
         }
 
-        StudentCourseVO studentCourse = studentCourseMapper.getStudentCourseByStudentAndCourse(studentId, courseId);
-        return studentCourse != null ? studentCourse.getGrade() : null;
+        CourseStudentVO courseStudent = courseStudentMapper.getCourseStudentByStudentAndCourse(studentId, courseId);
+        return courseStudent != null ? courseStudent.getGrade() : null;
     }
 }

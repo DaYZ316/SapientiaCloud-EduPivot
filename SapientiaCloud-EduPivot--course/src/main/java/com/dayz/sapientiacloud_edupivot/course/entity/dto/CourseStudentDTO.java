@@ -13,8 +13,8 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 @Data
-@Schema(description = "学生课程数据传输对象")
-public class StudentCourseDTO implements Serializable {
+@Schema(description = "课程学生数据传输对象")
+public class CourseStudentDTO implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;

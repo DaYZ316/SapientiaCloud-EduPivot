@@ -61,6 +61,16 @@ public class SysUserFeign {
         return Result.success(sysUserInternalVO);
     }
 
+    @HasPermission(
+            summary = "内部接口 - 根据用户ID获取用户信息",
+            description = "通过用户ID获取用户详细信息"
+    )
+    @GetMapping("/internal/info/id/{userId}")
+    public Result<SysUserInternalVO> getUserInfoById(@PathVariable("userId") UUID userId) {
+        SysUserInternalVO sysUserInternalVO = sysUserService.getUserInfoById(userId);
+        return Result.success(sysUserInternalVO);
+    }
+
 
     @HasPermission(
             summary = "内部接口 - 更新用户信息",

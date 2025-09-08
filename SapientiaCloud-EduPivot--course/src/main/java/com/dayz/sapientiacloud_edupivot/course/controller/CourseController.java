@@ -6,6 +6,8 @@ import com.dayz.sapientiacloud_edupivot.course.common.result.TableDataResult;
 import com.dayz.sapientiacloud_edupivot.course.common.security.annotation.HasPermission;
 import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseQueryDTO;
+import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseStudentQueryDTO;
+import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseTeacherQueryDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.vo.CourseVO;
 import com.dayz.sapientiacloud_edupivot.course.constant.PermissionConstants;
 import com.dayz.sapientiacloud_edupivot.course.service.ICourseService;
@@ -65,6 +67,17 @@ public class CourseController extends BaseController {
     }
 
     @HasPermission(
+            summary = "管理员添加新课程",
+            description = "管理员添加系统课程",
+            permission = PermissionConstants.COURSE_ADD
+    )
+    @PostMapping("/add")
+    public Result<CourseVO> addCourse(@Valid @RequestBody CourseDTO courseDTO) {
+        CourseVO courseVO = courseService.addCourse(courseDTO);
+        return Result.success(courseVO);
+    }
+
+    @HasPermission(
             summary = "更新现有课程",
             description = "修改现有课程的信息。",
             permission = PermissionConstants.COURSE_EDIT
@@ -80,10 +93,10 @@ public class CourseController extends BaseController {
             permission = PermissionConstants.COURSE_DELETE
     )
     @DeleteMapping("/{id}")
-    public Result<Boolean> removeCourse(
+    public Result<Boolean> removeCourseById(
             @Parameter(name = "id", description = "课程ID", required = true) @PathVariable("id") UUID id
     ) {
-        return Result.success(courseService.removeCourse(id));
+        return Result.success(courseService.removeCourseById(id));
     }
 
     @HasPermission(
@@ -92,10 +105,10 @@ public class CourseController extends BaseController {
             permission = PermissionConstants.COURSE_DELETE
     )
     @DeleteMapping
-    public Result<Integer> removeCourses(
+    public Result<Integer> removeCourseByIds(
             @Parameter(name = "ids", description = "课程ID列表", required = true) @RequestBody List<UUID> ids
     ) {
-        return Result.success(courseService.removeCourses(ids));
+        return Result.success(courseService.removeCourseByIds(ids));
     }
 
     @HasPermission(
@@ -112,52 +125,91 @@ public class CourseController extends BaseController {
     }
 
     @HasPermission(
-            summary = "管理员添加新课程",
-            description = "管理员添加系统课程",
-            permission = PermissionConstants.COURSE_ADD
-    )
-    @PostMapping("/add")
-    public Result<CourseVO> addCourse(@Valid @RequestBody CourseDTO courseDTO) {
-        CourseVO courseVO = courseService.addCourse(courseDTO);
-        return Result.success(courseVO);
-    }
-
-    @HasPermission(
-            summary = "根据教师ID获取课程列表",
-            description = "获取指定教师的所有课程。",
+            summary = "学生加入课程",
+            description = "学生根据课程ID加入课程。",
             permission = PermissionConstants.COURSE_QUERY
     )
-    @GetMapping("/teacher/{teacherId}")
-    public Result<List<CourseVO>> listCourseByTeacherId(
-            @Parameter(name = "teacherId", description = "教师ID", required = true) @PathVariable("teacherId") UUID teacherId
+    @PostMapping("/{courseId}/enroll")
+    public Result<Boolean> enrollStudentToCourse(
+            @Parameter(name = "courseId", description = "课程ID", required = true) @PathVariable("courseId") UUID courseId,
+            @Parameter(name = "studentId", description = "学生ID", required = true) @RequestParam("studentId") UUID studentId
     ) {
-        List<CourseVO> courseVOList = courseService.listCourseByTeacherId(teacherId);
-        return Result.success(courseVOList);
+        return Result.success(courseService.enrollStudentToCourse(courseId, studentId));
     }
 
     @HasPermission(
-            summary = "根据学生ID获取可选课程",
-            description = "获取学生可以选择的课程列表。",
-            permission = PermissionConstants.COURSE_QUERY
-    )
-    @GetMapping("/student/{studentId}/available")
-    public Result<List<CourseVO>> listAvailableCourseByStudentId(
-            @Parameter(name = "studentId", description = "学生ID", required = true) @PathVariable("studentId") UUID studentId
-    ) {
-        List<CourseVO> courseVOList = courseService.listAvailableCourseByStudentId(studentId);
-        return Result.success(courseVOList);
-    }
-
-    @HasPermission(
-            summary = "更新课程状态",
-            description = "更新课程的当前状态。",
+            summary = "分配课程教师团队",
+            description = "为指定课程分配教师团队。",
             permission = PermissionConstants.COURSE_EDIT
     )
-    @PutMapping("/{id}/status")
-    public Result<Boolean> updateCourseStatus(
-            @Parameter(name = "id", description = "课程ID", required = true) @PathVariable("id") UUID id,
-            @Parameter(name = "status", description = "课程状态", required = true) @RequestParam("status") Integer status
+    @PostMapping("/{courseId}/teachers")
+    public Result<Boolean> assignCourseTeacherTeam(
+            @Parameter(name = "courseId", description = "课程ID", required = true) @PathVariable("courseId") UUID courseId,
+            @Parameter(name = "teacherIds", description = "教师ID列表", required = true) @RequestBody List<UUID> teacherIds
     ) {
-        return Result.success(courseService.updateCourseStatus(id, status));
+        return Result.success(courseService.assignCourseTeacherTeam(courseId, teacherIds));
+    }
+
+    @HasPermission(
+            summary = "根据学生ID查询课程",
+            description = "获取学生已选择的所有课程。",
+            permission = PermissionConstants.COURSE_QUERY
+    )
+    @GetMapping("/student/{studentId}/all")
+    public Result<List<CourseVO>> listAllCourseByStudentId(
+            @Parameter(name = "studentId", description = "学生ID", required = true) @PathVariable("studentId") UUID studentId
+    ) {
+        List<CourseVO> courseVOList = courseService.listAllCourseByStudentId(studentId);
+        return Result.success(courseVOList);
+    }
+
+    @HasPermission(
+            summary = "根据教师ID查询课程",
+            description = "获取教师作为负责人或教学团队成员的所有课程。",
+            permission = PermissionConstants.COURSE_QUERY
+    )
+    @GetMapping("/teacher/{teacherId}/all")
+    public Result<List<CourseVO>> listAllCourseByTeacherId(
+            @Parameter(name = "teacherId", description = "教师ID", required = true) @PathVariable("teacherId") UUID teacherId
+    ) {
+        List<CourseVO> courseVOList = courseService.listAllCourseByTeacherId(teacherId);
+        return Result.success(courseVOList);
+    }
+
+    @HasPermission(
+            summary = "根据教师ID分页查询课程",
+            description = "分页获取教师作为负责人或教学团队成员的所有课程。",
+            permission = PermissionConstants.COURSE_QUERY
+    )
+    @GetMapping("/teacher/page")
+    public TableDataResult listCourseByTeacherId(@ParameterObject CourseTeacherQueryDTO courseTeacherQueryDTO) {
+        startPage();
+        PageInfo<CourseVO> pageInfo = courseService.listCourseByTeacherId(courseTeacherQueryDTO);
+        return getDataTable(pageInfo.getList());
+    }
+
+    @HasPermission(
+            summary = "根据学生ID分页查询课程",
+            description = "分页获取学生已选择的所有课程。",
+            permission = PermissionConstants.COURSE_QUERY
+    )
+    @GetMapping("/student/page")
+    public TableDataResult listCourseByStudentId(@ParameterObject CourseStudentQueryDTO courseStudentQueryDTO) {
+        startPage();
+        PageInfo<CourseVO> pageInfo = courseService.listCourseByStudentId(courseStudentQueryDTO);
+        return getDataTable(pageInfo.getList());
+    }
+
+    @HasPermission(
+            summary = "批量分配课程教师团队",
+            description = "为指定课程批量分配教师团队，支持添加和移除教师。",
+            permission = PermissionConstants.COURSE_EDIT
+    )
+    @PostMapping("/{courseId}/teachers/assign")
+    public Result<Boolean> assignCourseTeachers(
+            @Parameter(name = "courseId", description = "课程ID", required = true) @PathVariable("courseId") UUID courseId,
+            @Parameter(name = "teacherIds", description = "教师ID列表", required = true) @RequestBody List<UUID> teacherIds
+    ) {
+        return Result.success(courseService.assignCourseTeachers(courseId, teacherIds));
     }
 }

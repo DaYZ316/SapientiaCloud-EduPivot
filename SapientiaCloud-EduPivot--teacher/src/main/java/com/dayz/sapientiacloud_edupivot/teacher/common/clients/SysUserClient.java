@@ -19,6 +19,9 @@ public interface SysUserClient {
     @GetMapping("/internal/info/{username}")
     Result<SysUserInternalVO> getUserInfoByUsername(@PathVariable("username") String username);
 
+    @GetMapping("/internal/info/id/{userId}")
+    Result<SysUserInternalVO> getUserInfoById(@PathVariable("userId") UUID userId);
+
     @GetMapping("/internal/{userId}/role")
     Result<List<SysRoleVO>> getUserRoles(@PathVariable("userId") UUID userId);
 
