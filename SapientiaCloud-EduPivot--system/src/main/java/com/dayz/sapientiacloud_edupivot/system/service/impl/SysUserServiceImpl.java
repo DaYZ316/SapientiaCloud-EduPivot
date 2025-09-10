@@ -43,10 +43,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -56,6 +54,8 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     private final static int DEFAULT_USERNAME_LENGTH = 8;
     private final static String INIT_PASSWORD = "123456";
     private final static String INIT_VERIFICATION_CODE = "123456";
+    private static final String STUDENT = "STUDENT";
+    private static final String TEACHER = "TEACHER";
 
     private final SysUserMapper sysUserMapper;
     private final SysUserRoleMapper sysUserRoleMapper;
@@ -344,18 +344,49 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
         }
 
-        List<UUID> existingRoleIds = sysUserRoleMapper.getUserRoleIds(userId);
-
-        if (!existingRoleIds.isEmpty()) {
-            List<SysRoleVO> exitingRoles = sysRoleMapper.getRolesByIds(existingRoleIds);
-            if (exitingRoles.stream().anyMatch(SysRoleVO::isAdmin)) {
-                throw new BusinessException(SysUserEnum.ADMIN_OPERATION_FORBIDDEN);
-            }
+        if (newRoleIds == null) {
+            throw new BusinessException(SysRoleEnum.ROLE_NOT_FOUND);
         }
 
+        // 1. 获取现有角色和新角色的ID集合
+        List<UUID> existingRoleIds = sysUserRoleMapper.getUserRoleIds(userId);
+
+        // 创建Set
         Set<UUID> newRoleSet = new HashSet<>(newRoleIds);
         Set<UUID> existingRoleSet = new HashSet<>(existingRoleIds);
 
+        // 2. 查询出学生和老师角色的ID，并存入Set以备后用
+        List<String> specialRoleKeys = Arrays.asList(STUDENT, TEACHER);
+        LambdaQueryWrapper<SysRole> specialRoleWrapper = new LambdaQueryWrapper<>();
+        specialRoleWrapper.in(SysRole::getRoleKey, specialRoleKeys);
+        Set<UUID> specialRoleIds = sysRoleMapper.selectList(specialRoleWrapper).stream()
+                .map(SysRole::getId)
+                .collect(Collectors.toSet());
+
+        // 3. 新增角色中是否同时存在角色和老师角色，如果是则抛出异常
+        if (newRoleSet.containsAll(specialRoleIds)) {
+            throw new BusinessException(SysRoleEnum.STUDENT_AND_TEACHER_ROLE_FORBIDDEN_AT_SAME_TIME);
+        }
+
+        // 4. 检查现有角色是否包含管理员角色
+        boolean hasAdminRole = false;
+        if (!existingRoleSet.isEmpty()) {
+            List<SysRoleVO> existingRoles = sysRoleMapper.getRolesByIds(existingRoleIds);
+            hasAdminRole = existingRoles.stream().anyMatch(SysRoleVO::isAdmin);
+        }
+
+        // 5. 检查新增角色中是否包含学生或老师角色
+        boolean addsSpecialRole = false;
+        if (!newRoleSet.isEmpty()) {
+            addsSpecialRole = specialRoleIds.stream().anyMatch(newRoleSet::contains);
+        }
+
+        //6. 将业务逻辑清晰地写入条件判断
+        if (hasAdminRole && !addsSpecialRole) {
+            throw new BusinessException(SysUserEnum.ADMIN_OPERATION_FORBIDDEN);
+        }
+
+        // 7. 计算需要添加和删除的角色ID
         List<UUID> rolesToAdd = newRoleIds.stream()
                 .filter(newRoleId -> !existingRoleSet.contains(newRoleId))
                 .toList();
@@ -378,7 +409,6 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         }
 
         permissionService.clearUserPermissionCache(userId);
-
         return true;
     }
 
@@ -446,7 +476,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         sysUser.setStatus(StatusEnum.NORMAL.getCode());
         sysUser.setCreateTime(LocalDateTime.now());
         sysUser.setUpdateTime(LocalDateTime.now());
-        sysUser.setStatus(DeletedEnum.NOT_DELETED.getCode());
+        sysUser.setDeleted(DeletedEnum.NOT_DELETED.getCode());
         return sysUser;
     }
 

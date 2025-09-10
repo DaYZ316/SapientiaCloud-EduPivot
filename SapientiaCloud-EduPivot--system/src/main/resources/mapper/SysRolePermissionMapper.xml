@@ -25,20 +25,23 @@
     </insert>
 
     <delete id="removeRolePermissions">
-        DELETE FROM sys_role_permission WHERE role_id = #{roleId} AND permission_id IN
+        DELETE FROM sys_role_permission WHERE role_id = #{roleId}
+        AND permission_id IN
         <foreach item="permissionId" collection="permissionIds" separator="," open="(" close=")">
             #{permissionId}
         </foreach>
     </delete>
     <delete id="removePermissionsByRoleIds">
-        DELETE FROM sys_role_permission WHERE role_id IN
+        DELETE FROM sys_role_permission
+        WHERE role_id IN
         <foreach item="roleId" collection="roleIds" separator="," open="(" close=")">
             #{roleId}
         </foreach>
     </delete>
 
     <delete id="removePermissionsByIds">
-        DELETE FROM sys_role_permission WHERE permission_id IN
+        DELETE FROM sys_role_permission
+        WHERE permission_id IN
         <foreach item="permissionId" collection="ids" separator="," open="(" close=")">
             #{permissionId}
         </foreach>

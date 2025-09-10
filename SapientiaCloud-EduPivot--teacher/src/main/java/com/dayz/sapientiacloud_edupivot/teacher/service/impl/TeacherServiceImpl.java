@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dayz.sapientiacloud_edupivot.teacher.common.clients.SysRoleClient;
 import com.dayz.sapientiacloud_edupivot.teacher.common.clients.SysUserClient;
 import com.dayz.sapientiacloud_edupivot.teacher.common.entity.vo.SysUserInternalVO;
+import com.dayz.sapientiacloud_edupivot.teacher.common.enums.DeletedEnum;
 import com.dayz.sapientiacloud_edupivot.teacher.common.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.teacher.common.result.Result;
 import com.dayz.sapientiacloud_edupivot.teacher.common.security.utils.UserContextUtil;
@@ -77,6 +78,7 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
                 teacherVO.setMobile(userInfo.getMobile());
                 teacherVO.setGender(userInfo.getGender());
                 teacherVO.setStatus(userInfo.getStatus());
+                teacherVO.setLastLoginTime(userInfo.getLastLoginTime());
             }
         }
 
@@ -119,6 +121,7 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
             sysRoleClient.addRoleToUser(teacher.getSysUserId(), TEACHER);
         }
 
+        teacher.setDeleted(DeletedEnum.NOT_DELETED.getCode());
         teacher.setCreateTime(LocalDateTime.now());
         teacher.setUpdateTime(LocalDateTime.now());
 

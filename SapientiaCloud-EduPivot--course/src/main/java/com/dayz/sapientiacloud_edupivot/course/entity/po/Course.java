@@ -3,6 +3,7 @@ package com.dayz.sapientiacloud_edupivot.course.entity.po;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.dayz.sapientiacloud_edupivot.course.common.config.UuidListTypeHandler;
 import com.dayz.sapientiacloud_edupivot.course.common.entity.base.BaseEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -39,7 +40,7 @@ public class Course extends BaseEntity implements Serializable {
     private UUID teacherId;
 
     @Schema(name = "assistantTeacherIds", description = "辅助教学教师ID列表")
-    @TableField("assistant_teacher_ids")
+    @TableField(value = "assistant_teacher_ids", typeHandler = UuidListTypeHandler.class)
     private List<UUID> assistantTeacherIds;
 
     @Schema(name = "description", description = "课程描述")

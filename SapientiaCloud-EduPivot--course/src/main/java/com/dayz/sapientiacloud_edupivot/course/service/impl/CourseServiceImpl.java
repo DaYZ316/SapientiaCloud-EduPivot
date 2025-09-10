@@ -84,6 +84,7 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
 
         course.setId(UuidCreator.getTimeOrdered());
         course.setStatus(StatusEnum.NORMAL.getCode());
+        course.setDeleted(DeletedEnum.NOT_DELETED.getCode());
         course.setCreateTime(LocalDateTime.now());
         course.setUpdateTime(LocalDateTime.now());
 

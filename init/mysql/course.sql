@@ -5,7 +5,7 @@ CREATE TABLE `mg_course`
     `teacher_id`            binary(16)   NOT NULL COMMENT '授课教师ID',
     `assistant_teacher_ids` json         DEFAULT NULL COMMENT '辅助教学教师ID列表 (JSON array)',
     `description`           text         DEFAULT NULL COMMENT '课程描述',
-    `cover_image_url`       varchar(255) DEFAULT NULL COMMENT '课程封面图片URL',
+    `cover_image_url`       varchar(512) DEFAULT NULL COMMENT '课程封面图片URL',
     `semester`              varchar(20)  DEFAULT NULL COMMENT '开设学期 (例如: 2025秋季)',
     `location`              varchar(100) DEFAULT NULL COMMENT '上课地点',
     `course_type`           tinyint(1)   DEFAULT 0 COMMENT '课程类型 (0=必修, 1=选修)',

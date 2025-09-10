@@ -15,7 +15,8 @@ public enum SysRoleEnum implements BaseEnum {
     ROLE_KEY_CANNOT_BE_EMPTY(2005, "角色标识不能为空"),
     ADMIN_OPERATION_FORBIDDEN(2006, "超级管理员角色禁止操作"),
     ASSIGN_PERMISSION_FAILED(2007, "分配角色权限失败"),
-    ROLE_PERMISSION_DELETE_FAILED(2008, "删除角色权限失败");
+    ROLE_PERMISSION_DELETE_FAILED(2008, "删除角色权限失败"),
+    STUDENT_AND_TEACHER_ROLE_FORBIDDEN_AT_SAME_TIME(2009, "学生角色和教师角色不能同时存在");
 
     private final int code;
     private final String message;

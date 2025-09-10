@@ -2,6 +2,7 @@ package com.dayz.sapientiacloud_edupivot.system.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.dayz.sapientiacloud_edupivot.system.common.enums.DeletedEnum;
 import com.dayz.sapientiacloud_edupivot.system.common.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysPermissionAddDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysPermissionDTO;
@@ -99,6 +100,7 @@ public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, S
         BeanUtils.copyProperties(sysPermissionDTO, sysPermission);
 
         sysPermission.setId(UuidCreator.getTimeOrderedEpoch());
+        sysPermission.setDeleted(DeletedEnum.NOT_DELETED.getCode());
         sysPermission.setCreateTime(LocalDateTime.now());
         sysPermission.setUpdateTime(LocalDateTime.now());
 

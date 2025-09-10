@@ -2,6 +2,7 @@ package com.dayz.sapientiacloud_edupivot.system.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.dayz.sapientiacloud_edupivot.system.common.enums.DeletedEnum;
 import com.dayz.sapientiacloud_edupivot.system.common.enums.StatusEnum;
 import com.dayz.sapientiacloud_edupivot.system.common.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.system.common.security.service.PermissionService;
@@ -110,6 +111,7 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
 
         sysRole.setId(UuidCreator.getTimeOrderedEpoch());
         sysRole.setStatus(StatusEnum.NORMAL.getCode());
+        sysRole.setDeleted(DeletedEnum.NOT_DELETED.getCode());
         sysRole.setCreateTime(LocalDateTime.now());
         sysRole.setUpdateTime(LocalDateTime.now());
 

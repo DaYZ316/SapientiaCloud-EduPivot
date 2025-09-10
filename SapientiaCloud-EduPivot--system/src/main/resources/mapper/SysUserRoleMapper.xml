@@ -25,14 +25,16 @@
     </insert>
 
     <delete id="removeUserRoles">
-        DELETE FROM sys_user_role WHERE user_id = #{userId} AND role_id IN
+        DELETE FROM sys_user_role WHERE user_id = #{userId}
+        AND role_id IN
         <foreach item="roleId" collection="roleIds" separator="," open="(" close=")">
             #{roleId}
         </foreach>
     </delete>
 
     <delete id="removeRolesByUserIds">
-        DELETE FROM sys_user_role WHERE user_id IN
+        DELETE FROM sys_user_role
+        WHERE user_id IN
         <foreach item="userId" collection="userIds" separator="," open="(" close=")">
             #{userId}
         </foreach>
@@ -53,7 +55,8 @@
     </select>
 
     <delete id="removeRolesByRoleIds">
-        DELETE FROM sys_user_role WHERE role_id IN
+        DELETE FROM sys_user_role
+        WHERE role_id IN
         <foreach item="roleId" collection="roleIds" separator="," open="(" close=")">
             #{roleId}
         </foreach>

@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dayz.sapientiacloud_edupivot.student.common.clients.SysRoleClient;
 import com.dayz.sapientiacloud_edupivot.student.common.clients.SysUserClient;
 import com.dayz.sapientiacloud_edupivot.student.common.entity.vo.SysUserInternalVO;
+import com.dayz.sapientiacloud_edupivot.student.common.enums.DeletedEnum;
 import com.dayz.sapientiacloud_edupivot.student.common.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.student.common.result.Result;
 import com.dayz.sapientiacloud_edupivot.student.common.security.utils.UserContextUtil;
@@ -79,6 +80,7 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
                     studentVO.setMobile(userInfo.getMobile());
                     studentVO.setGender(userInfo.getGender());
                     studentVO.setStatus(userInfo.getStatus());
+                    studentVO.setLastLoginTime(userInfo.getLastLoginTime());
                 }
             } catch (Exception e) {
                 log.warn("获取学生用户信息失败: studentId={}, sysUserId={}", student.getId(), student.getSysUserId(), e);
@@ -124,6 +126,7 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
             sysRoleClient.addRoleToUser(student.getSysUserId(), STUDENT);
         }
 
+        student.setDeleted(DeletedEnum.NOT_DELETED.getCode());
         student.setCreateTime(LocalDateTime.now());
         student.setUpdateTime(LocalDateTime.now());
 

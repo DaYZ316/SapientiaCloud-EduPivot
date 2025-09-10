@@ -87,7 +87,8 @@
                u.email,
                u.mobile,
                u.gender,
-               u.status
+               u.status,
+               u.last_login_time
         FROM mg_teacher t
                  LEFT JOIN sys_user u ON t.sys_user_id = u.id AND u.is_deleted = 0
         WHERE t.is_deleted = 0

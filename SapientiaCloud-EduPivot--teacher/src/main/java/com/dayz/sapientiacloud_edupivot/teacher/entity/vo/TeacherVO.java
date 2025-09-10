@@ -73,4 +73,8 @@ public class TeacherVO implements Serializable {
     @Schema(name = "updateTime", description = "更新时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updateTime;
+
+    @Schema(name = "lastLoginTime", description = "最后登录时间")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime lastLoginTime;
 }

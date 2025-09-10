@@ -6,6 +6,7 @@ import com.dayz.sapientiacloud_edupivot.teacher.common.enums.SysRoleEnum;
 import com.dayz.sapientiacloud_edupivot.teacher.common.enums.SysUserEnum;
 import com.dayz.sapientiacloud_edupivot.teacher.common.result.Result;
 import com.dayz.sapientiacloud_edupivot.teacher.common.utils.EnumUtil;
+import com.dayz.sapientiacloud_edupivot.teacher.enums.TeacherEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
@@ -43,6 +44,10 @@ public class GlobalExceptionHandler {
         SysPermissionEnum sysPermissionEnum = EnumUtil.getByAttribute(SysPermissionEnum.class, e.getMessage(), SysPermissionEnum::getMessage);
         if (sysPermissionEnum != null) {
             return Result.fail(sysPermissionEnum.getMessage());
+        }
+        TeacherEnum teacherEnum = EnumUtil.getByAttribute(TeacherEnum.class, e.getMessage(), TeacherEnum::getMessage);
+        if (teacherEnum != null) {
+            return Result.fail(teacherEnum.getMessage());
         }
         ResultEnum resultEnum = EnumUtil.getByAttribute(ResultEnum.class, e.getMessage(), ResultEnum::getMessage);
         return Result.fail(Objects.requireNonNullElse(resultEnum, ResultEnum.SYSTEM_ERROR));

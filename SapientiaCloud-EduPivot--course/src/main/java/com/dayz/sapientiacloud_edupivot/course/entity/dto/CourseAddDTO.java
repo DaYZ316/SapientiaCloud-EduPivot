@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
@@ -25,7 +26,7 @@ public class CourseAddDTO implements Serializable {
     private String courseName;
 
     @Schema(name = "teacherId", description = "授课教师ID")
-    @NotBlank(message = "授课教师ID不能为空")
+    @NotNull(message = "授课教师ID不能为空")
     private UUID teacherId;
 
     @Schema(name = "assistantTeacherIds", description = "辅助教学教师ID列表")
