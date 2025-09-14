@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dayz.sapientiacloud_edupivot.course.mapper.CourseChapterMapper">
+
+    <resultMap id="CourseChapterVOMap" type="com.dayz.sapientiacloud_edupivot.course.entity.vo.CourseChapterVO">
+        <id column="id" property="id"/>
+        <result column="course_id" property="courseId"/>
+        <result column="parent_id" property="parentId"/>
+        <result column="chapter_name" property="chapterName"/>
+        <result column="chapter_content" property="chapterContent"/>
+        <result column="sort" property="sort"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <collection property="children" ofType="com.dayz.sapientiacloud_edupivot.course.entity.vo.CourseChapterVO"
+                    select="selectChildrenByParentId" column="id"/>
+    </resultMap>
+
+    <select id="listCourseChapter" resultMap="CourseChapterVOMap"
+            parameterType="com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseChapterQueryDTO">
+        SELECT
+        id,
+        course_id,
+        parent_id,
+        chapter_name,
+        chapter_content,
+        sort,
+        create_time,
+        update_time
+        FROM mg_course_chapter
+        <where>
+            is_deleted = 0
+            <if test="courseId != null">
+                AND course_id = #{courseId}
+            </if>
+            <if test="parentId != null">
+                AND parent_id = #{parentId}
+            </if>
+            <if test="chapterName != null and chapterName != ''">
+                AND chapter_name LIKE CONCAT('%', #{chapterName}, '%')
+            </if>
+        </where>
+        <if test="orderByColumn != null and orderByColumn != ''">
+            ORDER BY ${orderByColumn} ${isAsc == 'asc' ? 'ASC' : 'DESC'}
+        </if>
+        <if test="orderByColumn == null or orderByColumn == ''">
+            ORDER BY sort ASC, create_time ASC
+        </if>
+    </select>
+
+    <select id="listAllCourseChapterTree" resultMap="CourseChapterVOMap">
+        SELECT
+        id,
+        course_id,
+        parent_id,
+        chapter_name,
+        chapter_content,
+        sort,
+        create_time,
+        update_time
+        FROM mg_course_chapter
+        <where>
+            course_id = #{courseId} AND is_deleted = 0
+        </where>
+        ORDER BY sort ASC, create_time ASC
+    </select>
+
+    <select id="selectChildrenByParentId" resultMap="CourseChapterVOMap">
+        SELECT
+        id,
+        course_id,
+        parent_id,
+        chapter_name,
+        chapter_content,
+        sort,
+        create_time,
+        update_time
+        FROM mg_course_chapter
+        <where>
+            parent_id = #{id} AND is_deleted = 0
+        </where>
+        ORDER BY sort ASC, create_time ASC
+    </select>
+
+    <select id="getCourseChapterById" resultMap="CourseChapterVOMap">
+        SELECT
+        id,
+        course_id,
+        parent_id,
+        chapter_name,
+        chapter_content,
+        sort,
+        create_time,
+        update_time
+        FROM mg_course_chapter
+        <where>
+            id = #{id} AND is_deleted = 0
+        </where>
+    </select>
+
+    <insert id="addCourseChapter" parameterType="com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseChapterDTO">
+        INSERT INTO mg_course_chapter (id,
+                                       course_id,
+                                       parent_id,
+                                       chapter_name,
+                                       chapter_content,
+                                       sort,
+                                       create_time,
+                                       update_time,
+                                       is_deleted)
+        VALUES (#{id},
+                #{courseId},
+                #{parentId},
+                #{chapterName},
+                #{chapterContent},
+                #{sort},
+                NOW(),
+                NOW(),
+                0)
+    </insert>
+
+    <update id="updateCourseChapter"
+            parameterType="com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseChapterDTO">
+        UPDATE mg_course_chapter
+        <set>
+            <if test="courseId != null">
+                course_id = #{courseId},
+            </if>
+            <if test="parentId != null">
+                parent_id = #{parentId},
+            </if>
+            <if test="chapterName != null and chapterName != ''">
+                chapter_name = #{chapterName},
+            </if>
+            <if test="chapterContent != null">
+                chapter_content = #{chapterContent},
+            </if>
+            <if test="sort != null">
+                sort = #{sort},
+            </if>
+            update_time = NOW()
+        </set>
+        <where>
+            id = #{id} AND is_deleted = 0
+        </where>
+    </update>
+
+    <update id="removeCourseChapterById">
+        UPDATE mg_course_chapter
+        SET is_deleted = 1, update_time = NOW()
+        <where>
+            id = #{id} AND is_deleted = 0
+        </where>
+    </update>
+
+    <update id="removeCourseChapterByIds">
+        UPDATE mg_course_chapter
+        SET is_deleted = 1, update_time = NOW()
+        <where>
+            id IN
+            <foreach item="item" index="index" collection="ids" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+            AND is_deleted = 0
+        </where>
+    </update>
+
+</mapper>

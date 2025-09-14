@@ -27,9 +27,5 @@ public interface CourseMapper extends BaseMapper<Course> {
 
     List<CourseVO> listAllCourse();
 
-    Boolean enrollStudentToCourse(@Param("courseId") UUID courseId, @Param("studentId") UUID studentId);
-
-    List<CourseVO> listAllCourseByStudentId(@Param("studentId") UUID studentId);
-
     List<CourseVO> listAllCourseByTeacherId(@Param("teacherId") UUID teacherId);
 }

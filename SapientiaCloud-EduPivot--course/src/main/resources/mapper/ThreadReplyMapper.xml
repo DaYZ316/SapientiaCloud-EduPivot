@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dayz.sapientiacloud_edupivot.course.mapper.ThreadReplyMapper">
+
+    <resultMap id="ThreadReplyVOMap" type="com.dayz.sapientiacloud_edupivot.course.entity.vo.ThreadReplyVO">
+        <id column="id" property="id"/>
+        <result column="thread_id" property="threadId"/>
+        <result column="user_id" property="userId"/>
+        <result column="user_name" property="userName"/>
+        <result column="user_avatar" property="userAvatar"/>
+        <result column="parent_reply_id" property="parentReplyId"/>
+        <result column="content" property="content"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <collection property="children" ofType="com.dayz.sapientiacloud_edupivot.course.entity.vo.ThreadReplyVO"
+                    select="selectChildrenByParentReplyId" column="id"/>
+    </resultMap>
+
+    <select id="listThreadReply" resultMap="ThreadReplyVOMap"
+            parameterType="com.dayz.sapientiacloud_edupivot.course.entity.dto.ThreadReplyQueryDTO">
+        SELECT
+        r.id,
+        r.thread_id,
+        r.user_id,
+        u.real_name as user_name,
+        u.avatar as user_avatar,
+        r.parent_reply_id,
+        r.content,
+        r.create_time,
+        r.update_time
+        FROM mg_thread_reply r
+        LEFT JOIN sys_user u ON r.user_id = u.id AND u.is_deleted = 0
+        <where>
+            r.is_deleted = 0
+            <if test="threadId != null">
+                AND r.thread_id = #{threadId}
+            </if>
+            <if test="userId != null">
+                AND r.user_id = #{userId}
+            </if>
+            <if test="parentReplyId != null">
+                AND r.parent_reply_id = #{parentReplyId}
+            </if>
+        </where>
+        <if test="orderByColumn != null and orderByColumn != ''">
+            ORDER BY ${orderByColumn} ${isAsc == 'asc' ? 'ASC' : 'DESC'}
+        </if>
+        <if test="orderByColumn == null or orderByColumn == ''">
+            ORDER BY r.create_time ASC
+        </if>
+    </select>
+
+    <select id="listThreadReplyTreeByThreadId" resultMap="ThreadReplyVOMap">
+        SELECT
+        r.id,
+        r.thread_id,
+        r.user_id,
+        u.real_name as user_name,
+        u.avatar as user_avatar,
+        r.parent_reply_id,
+        r.content,
+        r.create_time,
+        r.update_time
+        FROM mg_thread_reply r
+        LEFT JOIN sys_user u ON r.user_id = u.id AND u.is_deleted = 0
+        <where>
+            r.thread_id = #{threadId} AND r.is_deleted = 0 AND r.parent_reply_id IS NULL
+        </where>
+        ORDER BY r.create_time ASC
+    </select>
+
+    <select id="selectChildrenByParentReplyId" resultMap="ThreadReplyVOMap">
+        SELECT
+        r.id,
+        r.thread_id,
+        r.user_id,
+        u.real_name as user_name,
+        u.avatar as user_avatar,
+        r.parent_reply_id,
+        r.content,
+        r.create_time,
+        r.update_time
+        FROM mg_thread_reply r
+        LEFT JOIN sys_user u ON r.user_id = u.id AND u.is_deleted = 0
+        <where>
+            r.parent_reply_id = #{id} AND r.is_deleted = 0
+        </where>
+        ORDER BY r.create_time ASC
+    </select>
+
+    <select id="getThreadReplyById" resultMap="ThreadReplyVOMap">
+        SELECT
+        r.id,
+        r.thread_id,
+        r.user_id,
+        u.real_name as user_name,
+        u.avatar as user_avatar,
+        r.parent_reply_id,
+        r.content,
+        r.create_time,
+        r.update_time
+        FROM mg_thread_reply r
+        LEFT JOIN sys_user u ON r.user_id = u.id AND u.is_deleted = 0
+        <where>
+            r.id = #{id} AND r.is_deleted = 0
+        </where>
+    </select>
+
+    <insert id="addThreadReply" parameterType="com.dayz.sapientiacloud_edupivot.course.entity.dto.ThreadReplyDTO">
+        INSERT INTO mg_thread_reply (id,
+                                     thread_id,
+                                     user_id,
+                                     parent_reply_id,
+                                     content,
+                                     create_time,
+                                     update_time,
+                                     is_deleted)
+        VALUES (#{id},
+                #{threadId},
+                #{userId},
+                #{parentReplyId},
+                #{content},
+                NOW(),
+                NOW(),
+                0)
+    </insert>
+
+    <update id="updateThreadReply" parameterType="com.dayz.sapientiacloud_edupivot.course.entity.dto.ThreadReplyDTO">
+        UPDATE mg_thread_reply
+        <set>
+            <if test="threadId != null">
+                thread_id = #{threadId},
+            </if>
+            <if test="userId != null">
+                user_id = #{userId},
+            </if>
+            <if test="parentReplyId != null">
+                parent_reply_id = #{parentReplyId},
+            </if>
+            <if test="content != null and content != ''">
+                content = #{content},
+            </if>
+            update_time = NOW()
+        </set>
+        <where>
+            id = #{id} AND is_deleted = 0
+        </where>
+    </update>
+
+    <update id="removeThreadReplyById">
+        UPDATE mg_thread_reply
+        SET is_deleted = 1, update_time = NOW()
+        <where>
+            id = #{id} AND is_deleted = 0
+        </where>
+    </update>
+
+    <update id="removeThreadReplyByIds">
+        UPDATE mg_thread_reply
+        SET is_deleted = 1, update_time = NOW()
+        <where>
+            id IN
+            <foreach item="item" index="index" collection="ids" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+            AND is_deleted = 0
+        </where>
+    </update>
+
+</mapper>

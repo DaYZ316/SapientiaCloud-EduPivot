@@ -7,8 +7,6 @@ import com.dayz.sapientiacloud_edupivot.course.common.enums.StatusEnum;
 import com.dayz.sapientiacloud_edupivot.course.common.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseQueryDTO;
-import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseStudentQueryDTO;
-import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseTeacherQueryDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.po.Course;
 import com.dayz.sapientiacloud_edupivot.course.entity.vo.CourseVO;
 import com.dayz.sapientiacloud_edupivot.course.enums.CourseEnum;
@@ -82,7 +80,7 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
         Course course = new Course();
         BeanUtils.copyProperties(courseDTO, course);
 
-        course.setId(UuidCreator.getTimeOrdered());
+        course.setId(UuidCreator.getTimeOrderedEpoch());
         course.setStatus(StatusEnum.NORMAL.getCode());
         course.setDeleted(DeletedEnum.NOT_DELETED.getCode());
         course.setCreateTime(LocalDateTime.now());
@@ -164,137 +162,5 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
         }
 
         return deleteCount;
-    }
-
-    @Override
-    @Transactional
-    public Boolean assignTeacher(UUID courseId, UUID teacherId) {
-        if (courseId == null) {
-            throw new BusinessException(CourseEnum.COURSE_ID_REQUIRED);
-        }
-        if (teacherId == null) {
-            throw new BusinessException(CourseEnum.TEACHER_ID_REQUIRED);
-        }
-
-        Course course = this.getById(courseId);
-        if (course == null) {
-            throw new BusinessException(CourseEnum.COURSE_NOT_EXISTS);
-        }
-
-        course.setTeacherId(teacherId);
-        course.setUpdateTime(LocalDateTime.now());
-
-        return this.updateById(course);
-    }
-
-    @Override
-    @Transactional
-    public Boolean enrollStudentToCourse(UUID courseId, UUID studentId) {
-        if (courseId == null) {
-            throw new BusinessException(CourseEnum.COURSE_ID_REQUIRED);
-        }
-        if (studentId == null) {
-            throw new BusinessException(CourseEnum.STUDENT_ID_REQUIRED);
-        }
-
-        // 检查课程是否存在
-        Course course = this.getById(courseId);
-        if (course == null) {
-            throw new BusinessException(CourseEnum.COURSE_NOT_EXISTS);
-        }
-
-        // 检查课程状态
-        if (course.getStatus() != StatusEnum.NORMAL.getCode()) {
-            throw new BusinessException(CourseEnum.COURSE_STATUS_INVALID);
-        }
-
-        // 调用学生课程服务进行选课
-        return courseMapper.enrollStudentToCourse(courseId, studentId);
-    }
-
-    @Override
-    @Transactional
-    public Boolean assignCourseTeacherTeam(UUID courseId, List<UUID> teacherIds) {
-        if (courseId == null) {
-            throw new BusinessException(CourseEnum.COURSE_ID_REQUIRED);
-        }
-        if (teacherIds == null || teacherIds.isEmpty()) {
-            throw new BusinessException(CourseEnum.TEACHER_ID_LIST_REQUIRED);
-        }
-
-        // 检查课程是否存在
-        Course course = this.getById(courseId);
-        if (course == null) {
-            throw new BusinessException(CourseEnum.COURSE_NOT_EXISTS);
-        }
-
-        // 更新课程的辅助教师列表
-        course.setAssistantTeacherIds(teacherIds);
-        course.setUpdateTime(LocalDateTime.now());
-
-        return this.updateById(course);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<CourseVO> listAllCourseByStudentId(UUID studentId) {
-        if (studentId == null) {
-            throw new BusinessException(CourseEnum.STUDENT_ID_REQUIRED);
-        }
-
-        return courseMapper.listAllCourseByStudentId(studentId);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<CourseVO> listAllCourseByTeacherId(UUID teacherId) {
-        if (teacherId == null) {
-            throw new BusinessException(CourseEnum.TEACHER_ID_REQUIRED);
-        }
-
-        return courseMapper.listAllCourseByTeacherId(teacherId);
-    }
-
-    @Override
-    @Transactional
-    public Boolean assignCourseTeachers(UUID courseId, List<UUID> teacherIds) {
-        if (courseId == null) {
-            throw new BusinessException(CourseEnum.COURSE_ID_REQUIRED);
-        }
-        if (teacherIds == null) {
-            throw new BusinessException(CourseEnum.TEACHER_ID_LIST_REQUIRED);
-        }
-
-        Course course = this.getById(courseId);
-        if (course == null) {
-            throw new BusinessException(CourseEnum.COURSE_NOT_EXISTS);
-        }
-
-        course.setAssistantTeacherIds(teacherIds);
-        course.setUpdateTime(LocalDateTime.now());
-
-        return this.updateById(course);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public PageInfo<CourseVO> listCourseByTeacherId(CourseTeacherQueryDTO courseTeacherQueryDTO) {
-        if (courseTeacherQueryDTO == null || courseTeacherQueryDTO.getTeacherId() == null) {
-            throw new BusinessException(CourseEnum.TEACHER_ID_REQUIRED);
-        }
-
-        return PageHelper.startPage(courseTeacherQueryDTO.getPageNum(), courseTeacherQueryDTO.getPageSize())
-                .doSelectPageInfo(() -> courseMapper.listCourseByTeacherId(courseTeacherQueryDTO));
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public PageInfo<CourseVO> listCourseByStudentId(CourseStudentQueryDTO courseStudentQueryDTO) {
-        if (courseStudentQueryDTO == null || courseStudentQueryDTO.getStudentId() == null) {
-            throw new BusinessException(CourseEnum.STUDENT_ID_REQUIRED);
-        }
-
-        return PageHelper.startPage(courseStudentQueryDTO.getPageNum(), courseStudentQueryDTO.getPageSize())
-                .doSelectPageInfo(() -> courseMapper.listCourseByStudentId(courseStudentQueryDTO));
     }
 }

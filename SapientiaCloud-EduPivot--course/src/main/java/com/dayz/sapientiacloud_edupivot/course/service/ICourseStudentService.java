@@ -5,29 +5,24 @@ import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseStudentQueryDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.vo.CourseStudentVO;
 import com.github.pagehelper.PageInfo;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
 public interface ICourseStudentService {
 
-    Boolean enrollCourse(CourseStudentDTO courseStudentDTO);
-
-    Boolean dropCourse(UUID studentId, UUID courseId);
-
-    Boolean updateGrade(UUID studentId, UUID courseId, java.math.BigDecimal grade);
-
-    Integer batchUpdateGrade(List<CourseStudentDTO> courseStudentDTOList);
-
-    PageInfo<CourseStudentVO> listCourseStudentByStudentId(CourseStudentQueryDTO courseStudentQueryDTO);
-
-    PageInfo<CourseStudentVO> listCourseStudentByCourseId(CourseStudentQueryDTO courseStudentQueryDTO);
-
-    List<CourseStudentVO> listAllCourseStudentByStudentId(UUID studentId);
+    PageInfo<CourseStudentVO> listCourseStudent(CourseStudentQueryDTO courseStudentQueryDTO);
 
     List<CourseStudentVO> listAllCourseStudentByCourseId(UUID courseId);
 
-    Boolean isEnrolled(UUID studentId, UUID courseId);
+    List<CourseStudentVO> listAllCourseStudentByStudentId(UUID studentId);
 
-    BigDecimal getStudentGrade(UUID studentId, UUID courseId);
+    CourseStudentVO getStudentCourseById(UUID studentId, UUID courseId);
+
+    Boolean addCourseStudent(CourseStudentDTO courseStudentDTO);
+
+    Boolean updateCourseStudent(CourseStudentDTO courseStudentDTO);
+
+    Boolean removeCourseStudentById(UUID courseId, UUID studentId);
+
+    Integer removeCourseStudentByIds(UUID courseId, List<UUID> ids);
 }

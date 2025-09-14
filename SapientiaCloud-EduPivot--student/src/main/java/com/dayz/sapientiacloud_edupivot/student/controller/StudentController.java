@@ -11,7 +11,6 @@ import com.dayz.sapientiacloud_edupivot.student.entity.dto.StudentQueryDTO;
 import com.dayz.sapientiacloud_edupivot.student.entity.vo.StudentVO;
 import com.dayz.sapientiacloud_edupivot.student.service.IStudentService;
 import com.github.pagehelper.PageInfo;
-import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;

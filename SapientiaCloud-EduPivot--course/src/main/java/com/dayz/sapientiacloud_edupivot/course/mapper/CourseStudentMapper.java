@@ -5,7 +5,6 @@ import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseStudentQueryDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.po.CourseStudent;
 import com.dayz.sapientiacloud_edupivot.course.entity.vo.CourseStudentVO;
 import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 import java.util.UUID;
@@ -13,17 +12,19 @@ import java.util.UUID;
 @Mapper
 public interface CourseStudentMapper extends BaseMapper<CourseStudent> {
 
-    List<CourseStudentVO> listAllCourseStudentByStudentId(@Param("studentId") UUID studentId);
+    List<CourseStudentVO> listCourseStudent(CourseStudentQueryDTO courseStudentQueryDTO);
 
-    List<CourseStudentVO> listAllCourseStudentByCourseId(@Param("courseId") UUID courseId);
+    List<CourseStudentVO> listAllCourseStudentByCourseId(UUID courseId);
 
-    List<CourseStudentVO> listCourseStudentByStudentId(CourseStudentQueryDTO courseStudentQueryDTO);
+    List<CourseStudentVO> listAllCourseStudentByStudentId(UUID studentId);
 
-    List<CourseStudentVO> listCourseStudentByCourseId(CourseStudentQueryDTO courseStudentQueryDTO);
+    CourseStudentVO getStudentCourseById(UUID studentId, UUID courseId);
 
-    CourseStudentVO getCourseStudentByStudentAndCourse(@Param("studentId") UUID studentId, @Param("courseId") UUID courseId);
+    Boolean addCourseStudent(CourseStudent courseStudent);
 
-    int countByStudentAndCourse(@Param("studentId") UUID studentId, @Param("courseId") UUID courseId);
+    Boolean updateCourseStudent(CourseStudent courseStudent);
 
-    int countByCourseId(@Param("courseId") UUID courseId);
+    Boolean removeCourseStudentById(UUID courseId, UUID studentId);
+
+    Integer removeCourseStudentByIds(UUID courseId, List<UUID> studentIds);
 }

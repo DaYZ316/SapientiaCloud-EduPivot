@@ -224,38 +224,6 @@
         ORDER BY c.create_time DESC
     </select>
 
-    <insert id="enrollStudentToCourse">
-        INSERT INTO mg_course_student (student_id, course_id, enrollment_date, status, create_time, update_time)
-        VALUES (#{studentId}, #{courseId}, CURDATE(), 0, NOW(), NOW())
-    </insert>
-
-    <select id="listAllCourseByStudentId" resultMap="CourseVOMap">
-        SELECT
-        c.id,
-        c.course_name,
-        c.description,
-        c.course_type,
-        c.semester,
-        c.location,
-        c.teacher_id,
-        t.real_name as teacher_name,
-        c.assistant_teacher_ids,
-        c.cover_image_url,
-        c.status,
-        c.create_time,
-        c.update_time
-        FROM mg_course c
-        LEFT JOIN mg_teacher t ON c.teacher_id = t.id
-        INNER JOIN mg_course_student cs ON c.id = cs.course_id
-        <where>
-            cs.student_id = #{studentId}
-            AND cs.status = 0
-            AND c.is_deleted = 0
-            AND t.is_deleted = 0
-        </where>
-        ORDER BY c.create_time DESC
-    </select>
-
     <select id="listAllCourseByTeacherId" resultMap="CourseVOMap">
         SELECT
         c.id,
