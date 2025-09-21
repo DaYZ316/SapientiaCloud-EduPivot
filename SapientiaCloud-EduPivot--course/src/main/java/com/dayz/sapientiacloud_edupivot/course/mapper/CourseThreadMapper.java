@@ -5,6 +5,7 @@ import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseThreadQueryDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.po.CourseThread;
 import com.dayz.sapientiacloud_edupivot.course.entity.vo.CourseThreadVO;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 import java.util.UUID;
@@ -24,11 +25,11 @@ public interface CourseThreadMapper extends BaseMapper<CourseThread> {
 
     Boolean removeCourseThreadById(UUID threadId);
 
-    Integer removeCourseThreadByIds(List<UUID> threadIds);
+    Integer removeCourseThreadByIds(@Param("threadIds") List<UUID> threadIds);
 
-    Boolean pinThread(UUID id, Boolean pinned);
+    Boolean pinThread(@Param("id") UUID id, @Param("pinned") Boolean pinned);
 
-    Boolean closeThread(UUID id, Boolean closed);
+    Boolean closeThread(@Param("id") UUID id, @Param("closed") Boolean closed);
 
     Boolean viewThread(UUID id);
 }

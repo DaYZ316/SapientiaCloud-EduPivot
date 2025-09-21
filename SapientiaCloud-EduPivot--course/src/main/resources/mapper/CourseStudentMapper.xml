@@ -6,7 +6,6 @@
         <id column="student_id" property="studentId"/>
         <id column="course_id" property="courseId"/>
         <result column="grade" property="grade"/>
-        <result column="enrollment_date" property="enrollmentDate"/>
         <result column="status" property="status"/>
         <result column="create_time" property="createTime"/>
         <result column="update_time" property="updateTime"/>
@@ -18,7 +17,6 @@
         student_id,
         course_id,
         grade,
-        enrollment_date,
         status,
         create_time,
         update_time
@@ -44,7 +42,6 @@
         student_id,
         course_id,
         grade,
-        enrollment_date,
         status,
         create_time,
         update_time
@@ -60,7 +57,6 @@
         student_id,
         course_id,
         grade,
-        enrollment_date,
         status,
         create_time,
         update_time
@@ -76,7 +72,6 @@
         student_id,
         course_id,
         grade,
-        enrollment_date,
         status,
         create_time,
         update_time
@@ -90,14 +85,12 @@
         INSERT INTO mg_course_student (student_id,
                                        course_id,
                                        grade,
-                                       enrollment_date,
                                        status,
                                        create_time,
                                        update_time)
         VALUES (#{studentId},
                 #{courseId},
                 #{grade},
-                #{enrollmentDate},
                 #{status},
                 NOW(),
                 NOW())
@@ -109,9 +102,6 @@
         <set>
             <if test="grade != null">
                 grade = #{grade},
-            </if>
-            <if test="enrollmentDate != null">
-                enrollment_date = #{enrollmentDate},
             </if>
             <if test="status != null">
                 status = #{status},

@@ -16,11 +16,14 @@ import com.dayz.sapientiacloud_edupivot.teacher.entity.vo.TeacherVO;
 import com.dayz.sapientiacloud_edupivot.teacher.enums.TeacherEnum;
 import com.dayz.sapientiacloud_edupivot.teacher.mapper.TeacherMapper;
 import com.dayz.sapientiacloud_edupivot.teacher.service.ITeacherService;
+import com.github.f4b6a3.uuid.UuidCreator;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,10 +48,8 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
             throw new BusinessException(TeacherEnum.TEACHER_NOT_FOUND);
         }
 
-        PageInfo<TeacherVO> pageInfo = PageHelper.startPage(teacherQueryDTO.getPageNum(), teacherQueryDTO.getPageSize())
+        return PageHelper.startPage(teacherQueryDTO.getPageNum(), teacherQueryDTO.getPageSize())
                 .doSelectPageInfo(() -> teacherMapper.listTeacher(teacherQueryDTO));
-
-        return pageInfo;
     }
 
     @Override
@@ -58,7 +59,12 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "Teacher", key = "#p0", condition = "#p0 != null")
     public TeacherVO getTeacherById(UUID id) {
+        if (id == null) {
+            throw new BusinessException(TeacherEnum.TEACHER_NOT_FOUND);
+        }
+
         Teacher teacher = this.getById(id);
         if (teacher == null) {
             throw new BusinessException(TeacherEnum.TEACHER_NOT_FOUND);
@@ -88,6 +94,10 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
     @Override
     @Transactional(readOnly = true)
     public TeacherVO getTeacherByUserId(UUID sysUserId) {
+        if (sysUserId == null) {
+            return null;
+        }
+
         Teacher teacher = teacherMapper.selectByUserId(sysUserId);
         if (teacher == null) {
             return null;
@@ -101,6 +111,7 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(value = "Teacher", allEntries = true)
     public Boolean addTeacher(TeacherAddDTO teacherAddDTO) {
         if (teacherAddDTO == null) {
             throw new BusinessException(TeacherEnum.TEACHER_NOT_FOUND);
@@ -115,7 +126,7 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
 
         Teacher teacher = new Teacher();
         BeanUtils.copyProperties(teacherAddDTO, teacher);
-        teacher.setId(UUID.randomUUID());
+        teacher.setId(UuidCreator.getTimeOrderedEpoch());
         teacher.setSysUserId(UserContextUtil.getCurrentUserId());
         if (sysRoleClient.getRoleByKey(TEACHER).getData() != null) {
             sysRoleClient.addRoleToUser(teacher.getSysUserId(), TEACHER);
@@ -130,6 +141,7 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(value = "Teacher", key = "#p0.id", condition = "#p0.id != null")
     public Boolean updateTeacher(TeacherDTO teacherDTO) {
         if (teacherDTO == null || teacherDTO.getId() == null) {
             throw new BusinessException(TeacherEnum.TEACHER_ID_REQUIRED);
@@ -156,13 +168,17 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(value = "Teacher", key = "#p0", condition = "#p0 != null")
     public Boolean removeTeacherById(UUID id) {
+        if (id == null) {
+            throw new BusinessException(TeacherEnum.TEACHER_NOT_FOUND);
+        }
+
         Teacher teacher = this.getById(id);
         if (teacher == null) {
             throw new BusinessException(TeacherEnum.TEACHER_NOT_FOUND);
         }
 
-        // 删除教师记录
         boolean removeResult = this.removeById(id);
         if (removeResult) {
             // 同步删除用户的教师角色绑定
@@ -174,15 +190,19 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(value = "Teacher", allEntries = true)
     public Integer removeTeacherByIds(List<UUID> ids) {
         if (ids == null || ids.isEmpty()) {
-            return 0;
+            throw new BusinessException(TeacherEnum.TEACHER_NOT_FOUND);
         }
 
-        // 获取要删除的教师信息，用于后续删除角色绑定
         List<Teacher> teachers = this.listByIds(ids);
+        ids.forEach(id -> {
+            if (teachers.stream().noneMatch(teacher -> teacher.getId().equals(id))) {
+                throw new BusinessException(TeacherEnum.TEACHER_NOT_FOUND);
+            }
+        });
 
-        // 批量删除教师记录
         boolean removeResult = this.removeBatchByIds(ids);
         if (removeResult) {
             // 同步删除用户的教师角色绑定

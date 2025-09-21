@@ -18,6 +18,8 @@ import com.github.pagehelper.PageInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -51,6 +53,7 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "Course", key = "#p0", condition = "#p0 != null")
     public CourseVO getCourseById(UUID courseId) {
         if (courseId == null) {
             throw new BusinessException(CourseEnum.COURSE_ID_REQUIRED);
@@ -65,7 +68,8 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(value = "Course", allEntries = true)
     public CourseVO addCourse(CourseDTO courseDTO) {
         if (courseDTO == null) {
             throw new BusinessException(CourseEnum.COURSE_INFO_REQUIRED);
@@ -94,7 +98,8 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(value = "Course", key = "#p0.id", condition = "#p0.id != null")
     public Boolean updateCourse(CourseDTO courseDTO) {
         if (courseDTO == null || courseDTO.getId() == null) {
             throw new BusinessException(CourseEnum.COURSE_INFO_OR_ID_REQUIRED);
@@ -124,7 +129,8 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(value = "Course", key = "#p0", condition = "#p0 != null")
     public Boolean removeCourseById(UUID courseId) {
         if (courseId == null) {
             throw new BusinessException(CourseEnum.COURSE_ID_REQUIRED);
@@ -135,32 +141,25 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
             throw new BusinessException(CourseEnum.COURSE_NOT_EXISTS);
         }
 
-        course.setDeleted(DeletedEnum.DELETED.getCode());
-        course.setUpdateTime(LocalDateTime.now());
-
-        return this.updateById(course);
+        return this.removeById(courseId);
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(value = "Course", allEntries = true)
     public Integer removeCourseByIds(List<UUID> courseIds) {
         if (courseIds == null || courseIds.isEmpty()) {
             throw new BusinessException(CourseEnum.COURSE_ID_LIST_REQUIRED);
         }
 
-        // 批量逻辑删除
-        int deleteCount = 0;
-        for (UUID courseId : courseIds) {
-            Course course = this.getById(courseId);
-            if (course != null) {
-                course.setDeleted(DeletedEnum.DELETED.getCode());
-                course.setUpdateTime(LocalDateTime.now());
-                if (this.updateById(course)) {
-                    deleteCount++;
-                }
+        List<Course> courses = this.listByIds(courseIds);
+        courseIds.forEach(courseId -> {
+            if (courses.stream().noneMatch(course -> course.getId().equals(courseId))) {
+                throw new BusinessException(CourseEnum.COURSE_NOT_EXISTS);
             }
-        }
+        });
 
-        return deleteCount;
+        boolean removeResult = this.removeBatchByIds(courseIds);
+        return Math.toIntExact(removeResult ? courseIds.size() : 0);
     }
 }

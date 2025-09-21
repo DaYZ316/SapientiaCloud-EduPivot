@@ -41,6 +41,9 @@ public class CourseVO implements Serializable {
     @Schema(name = "teacherName", description = "授课教师姓名")
     private String teacherName;
 
+    @Schema(name = "teacherAvatar", description = "授课教师头像")
+    private String teacherAvatar;
+
     @Schema(name = "assistantTeacherIds", description = "辅助教学教师ID列表")
     private List<UUID> assistantTeacherIds;
 

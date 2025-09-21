@@ -5,6 +5,7 @@ import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseChapterQueryDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.po.CourseChapter;
 import com.dayz.sapientiacloud_edupivot.course.entity.vo.CourseChapterVO;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 import java.util.UUID;
@@ -24,5 +25,5 @@ public interface CourseChapterMapper extends BaseMapper<CourseChapter> {
 
     Boolean removeCourseChapterById(UUID chapterId);
 
-    Integer removeCourseChapterByIds(List<UUID> chapterIds);
+    Integer removeCourseChapterByIds(@Param("chapterIds") List<UUID> chapterIds);
 }

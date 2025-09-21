@@ -9,7 +9,6 @@ import lombok.Data;
 import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.UUID;
 
 @Data
@@ -31,9 +30,6 @@ public class CourseStudentDTO implements Serializable {
     @Min(value = 0, message = "成绩不能小于0")
     @Max(value = 100, message = "成绩不能大于100")
     private BigDecimal grade;
-
-    @Schema(name = "enrollmentDate", description = "选课日期")
-    private LocalDate enrollmentDate;
 
     @Schema(name = "status", description = "选课状态 (0=在读, 1=已退课, 2=已完成)")
     @Min(value = 0, message = "选课状态输入不正确")
