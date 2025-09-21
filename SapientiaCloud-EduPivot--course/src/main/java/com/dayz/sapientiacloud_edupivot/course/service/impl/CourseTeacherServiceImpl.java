@@ -5,6 +5,7 @@ import com.dayz.sapientiacloud_edupivot.course.common.exception.BusinessExceptio
 import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseTeacherQueryDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.po.Course;
 import com.dayz.sapientiacloud_edupivot.course.entity.vo.CourseVO;
+import com.dayz.sapientiacloud_edupivot.course.entity.vo.TeacherVO;
 import com.dayz.sapientiacloud_edupivot.course.enums.CourseEnum;
 import com.dayz.sapientiacloud_edupivot.course.mapper.CourseMapper;
 import com.dayz.sapientiacloud_edupivot.course.service.ICourseTeacherService;
@@ -12,10 +13,13 @@ import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -27,7 +31,41 @@ public class CourseTeacherServiceImpl extends ServiceImpl<CourseMapper, Course> 
     private final CourseMapper courseMapper;
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
+    @Cacheable(value = "CourseTeacher", key = "'courses_' + #p0", condition = "#p0 != null")
+    public List<CourseVO> listAllCourseByTeacherId(UUID teacherId) {
+        if (teacherId == null) {
+            throw new BusinessException(CourseEnum.TEACHER_ID_REQUIRED);
+        }
+
+        return courseMapper.listAllCourseByTeacherId(teacherId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    @Cacheable(value = "CourseTeacher", key = "'teachers_' + #p0", condition = "#p0 != null")
+    public List<TeacherVO> listAllTeacherByCourseId(UUID courseId) {
+        if (courseId == null) {
+            throw new BusinessException(CourseEnum.COURSE_ID_REQUIRED);
+        }
+
+        CourseVO courseVO = courseMapper.getCourseById(courseId);
+        if (courseVO == null) {
+            throw new BusinessException(CourseEnum.COURSE_NOT_EXISTS);
+        }
+
+        List<UUID> teacherIds = courseVO.getAssistantTeacherIds();
+        if (teacherIds == null && courseVO.getTeacherId() != null) {
+            teacherIds = new ArrayList<>();
+        }
+        teacherIds.add(courseVO.getTeacherId());
+
+        return courseMapper.listAllTeacherByCourseId(teacherIds);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(value = {"Course", "CourseTeacher"}, allEntries = true)
     public Boolean assignTeacher(UUID courseId, UUID teacherId) {
         if (courseId == null) {
             throw new BusinessException(CourseEnum.COURSE_ID_REQUIRED);
@@ -48,17 +86,8 @@ public class CourseTeacherServiceImpl extends ServiceImpl<CourseMapper, Course> 
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public List<CourseVO> listAllCourseByTeacherId(UUID teacherId) {
-        if (teacherId == null) {
-            throw new BusinessException(CourseEnum.TEACHER_ID_REQUIRED);
-        }
-
-        return courseMapper.listAllCourseByTeacherId(teacherId);
-    }
-
-    @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(value = {"Course", "CourseTeacher"}, allEntries = true)
     public Boolean assignCourseTeachers(UUID courseId, List<UUID> teacherIds) {
         if (courseId == null) {
             throw new BusinessException(CourseEnum.COURSE_ID_REQUIRED);

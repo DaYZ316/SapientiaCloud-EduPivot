@@ -2,7 +2,6 @@ package com.dayz.sapientiacloud_edupivot.course.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.dayz.sapientiacloud_edupivot.course.common.enums.DeletedEnum;
 import com.dayz.sapientiacloud_edupivot.course.common.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseStudentDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseStudentQueryDTO;
@@ -17,10 +16,11 @@ import com.github.pagehelper.PageInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -64,6 +64,7 @@ public class CourseStudentServiceImpl extends ServiceImpl<CourseStudentMapper, C
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "CourseStudent", key = "#p0 + '_' + #p1", condition = "#p0 != null && #p1 != null")
     public CourseStudentVO getStudentCourseById(UUID studentId, UUID courseId) {
         if (studentId == null) {
             throw new BusinessException(CourseChapterEnum.CHAPTER_ID_REQUIRED);
@@ -81,7 +82,8 @@ public class CourseStudentServiceImpl extends ServiceImpl<CourseStudentMapper, C
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(value = "CourseStudent", allEntries = true)
     public Boolean addCourseStudent(CourseStudentDTO courseStudentDTO) {
         if (courseStudentDTO == null) {
             throw new BusinessException(CourseChapterEnum.CHAPTER_INFO_REQUIRED);
@@ -97,8 +99,7 @@ public class CourseStudentServiceImpl extends ServiceImpl<CourseStudentMapper, C
         // 检查是否已经选课
         LambdaQueryWrapper<CourseStudent> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(CourseStudent::getStudentId, courseStudentDTO.getStudentId())
-                .eq(CourseStudent::getCourseId, courseStudentDTO.getCourseId())
-                .eq(CourseStudent::getDeleted, DeletedEnum.NOT_DELETED.getCode());
+                .eq(CourseStudent::getCourseId, courseStudentDTO.getCourseId());
         if (this.count(queryWrapper) > 0) {
             throw new BusinessException(CourseChapterEnum.CHAPTER_NAME_EXISTS);
         }
@@ -110,11 +111,7 @@ public class CourseStudentServiceImpl extends ServiceImpl<CourseStudentMapper, C
         if (courseStudent.getStatus() == null) {
             courseStudent.setStatus(EnrollmentStatusEnum.ENROLLED.getCode());
         }
-        if (courseStudent.getEnrollmentDate() == null) {
-            courseStudent.setEnrollmentDate(LocalDate.now());
-        }
 
-        courseStudent.setDeleted(DeletedEnum.NOT_DELETED.getCode());
         courseStudent.setCreateTime(LocalDateTime.now());
         courseStudent.setUpdateTime(LocalDateTime.now());
 
@@ -122,7 +119,8 @@ public class CourseStudentServiceImpl extends ServiceImpl<CourseStudentMapper, C
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(value = "CourseStudent", key = "#p0.studentId + '_' + #p0.courseId", condition = "#p0.studentId != null && #p0.courseId != null")
     public Boolean updateCourseStudent(CourseStudentDTO courseStudentDTO) {
         if (courseStudentDTO == null || courseStudentDTO.getStudentId() == null || courseStudentDTO.getCourseId() == null) {
             throw new BusinessException(CourseChapterEnum.CHAPTER_INFO_OR_ID_REQUIRED);
@@ -130,8 +128,7 @@ public class CourseStudentServiceImpl extends ServiceImpl<CourseStudentMapper, C
 
         LambdaQueryWrapper<CourseStudent> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(CourseStudent::getStudentId, courseStudentDTO.getStudentId())
-                .eq(CourseStudent::getCourseId, courseStudentDTO.getCourseId())
-                .eq(CourseStudent::getDeleted, DeletedEnum.NOT_DELETED.getCode());
+                .eq(CourseStudent::getCourseId, courseStudentDTO.getCourseId());
 
         CourseStudent existingCourseStudent = this.getOne(queryWrapper);
         if (existingCourseStudent == null) {
@@ -142,11 +139,12 @@ public class CourseStudentServiceImpl extends ServiceImpl<CourseStudentMapper, C
         BeanUtils.copyProperties(courseStudentDTO, courseStudent);
         courseStudent.setUpdateTime(LocalDateTime.now());
 
-        return this.updateById(courseStudent);
+        return courseStudentMapper.updateCourseStudent(courseStudent);
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(value = "CourseStudent", key = "#p1 + '_' + #p0", condition = "#p0 != null && #p1 != null")
     public Boolean removeCourseStudentById(UUID courseId, UUID studentId) {
         if (studentId == null) {
             throw new BusinessException(CourseChapterEnum.CHAPTER_ID_REQUIRED);
@@ -155,24 +153,12 @@ public class CourseStudentServiceImpl extends ServiceImpl<CourseStudentMapper, C
             throw new BusinessException(CourseChapterEnum.COURSE_ID_REQUIRED);
         }
 
-        LambdaQueryWrapper<CourseStudent> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(CourseStudent::getStudentId, studentId)
-                .eq(CourseStudent::getCourseId, courseId)
-                .eq(CourseStudent::getDeleted, DeletedEnum.NOT_DELETED.getCode());
-
-        CourseStudent courseStudent = this.getOne(queryWrapper);
-        if (courseStudent == null) {
-            throw new BusinessException(CourseChapterEnum.CHAPTER_NOT_EXISTS);
-        }
-
-        courseStudent.setDeleted(DeletedEnum.DELETED.getCode());
-        courseStudent.setUpdateTime(LocalDateTime.now());
-
-        return this.updateById(courseStudent);
+        return courseStudentMapper.removeCourseStudentById(studentId, courseId);
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(value = "CourseStudent", allEntries = true)
     public Integer removeCourseStudentByIds(UUID courseId, List<UUID> studentIds) {
         if (courseId == null) {
             throw new BusinessException(CourseChapterEnum.COURSE_ID_REQUIRED);
@@ -181,24 +167,6 @@ public class CourseStudentServiceImpl extends ServiceImpl<CourseStudentMapper, C
             throw new BusinessException(CourseChapterEnum.CHAPTER_ID_LIST_REQUIRED);
         }
 
-        // 批量逻辑删除
-        int deleteCount = 0;
-        for (UUID studentId : studentIds) {
-            LambdaQueryWrapper<CourseStudent> queryWrapper = new LambdaQueryWrapper<>();
-            queryWrapper.eq(CourseStudent::getStudentId, studentId)
-                    .eq(CourseStudent::getCourseId, courseId)
-                    .eq(CourseStudent::getDeleted, DeletedEnum.NOT_DELETED.getCode());
-
-            CourseStudent courseStudent = this.getOne(queryWrapper);
-            if (courseStudent != null) {
-                courseStudent.setDeleted(DeletedEnum.DELETED.getCode());
-                courseStudent.setUpdateTime(LocalDateTime.now());
-                if (this.updateById(courseStudent)) {
-                    deleteCount++;
-                }
-            }
-        }
-
-        return deleteCount;
+        return courseStudentMapper.removeCourseStudentByIds(courseId, studentIds);
     }
 }

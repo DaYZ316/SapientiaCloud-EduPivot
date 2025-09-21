@@ -16,11 +16,14 @@ import com.dayz.sapientiacloud_edupivot.student.entity.vo.StudentVO;
 import com.dayz.sapientiacloud_edupivot.student.enums.StudentEnum;
 import com.dayz.sapientiacloud_edupivot.student.mapper.StudentMapper;
 import com.dayz.sapientiacloud_edupivot.student.service.IStudentService;
+import com.github.f4b6a3.uuid.UuidCreator;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,10 +48,8 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
             throw new BusinessException(StudentEnum.STUDENT_NOT_FOUND);
         }
 
-        PageInfo<StudentVO> pageInfo = PageHelper.startPage(studentQueryDTO.getPageNum(), studentQueryDTO.getPageSize())
+        return PageHelper.startPage(studentQueryDTO.getPageNum(), studentQueryDTO.getPageSize())
                 .doSelectPageInfo(() -> studentMapper.listStudent(studentQueryDTO));
-
-        return pageInfo;
     }
 
     @Override
@@ -58,7 +59,12 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "Student", key = "#p0", condition = "#p0 != null")
     public StudentVO getStudentById(UUID id) {
+        if (id == null) {
+            throw new BusinessException(StudentEnum.STUDENT_NOT_FOUND);
+        }
+
         Student student = this.getById(id);
         if (student == null) {
             throw new BusinessException(StudentEnum.STUDENT_NOT_FOUND);
@@ -93,6 +99,10 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
     @Override
     @Transactional(readOnly = true)
     public StudentVO getStudentByUserId(UUID sysUserId) {
+        if (sysUserId == null) {
+            return null;
+        }
+
         Student student = studentMapper.selectByUserId(sysUserId);
         if (student == null) {
             return null;
@@ -106,6 +116,7 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(value = "Student", allEntries = true)
     public Boolean addStudent(StudentAddDTO studentAddDTO) {
         if (studentAddDTO == null) {
             throw new BusinessException(StudentEnum.STUDENT_NOT_FOUND);
@@ -120,7 +131,7 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
 
         Student student = new Student();
         BeanUtils.copyProperties(studentAddDTO, student);
-        student.setId(UUID.randomUUID());
+        student.setId(UuidCreator.getTimeOrderedEpoch());
         student.setSysUserId(UserContextUtil.getCurrentUserId());
         if (sysRoleClient.getRoleByKey(STUDENT).getData() != null) {
             sysRoleClient.addRoleToUser(student.getSysUserId(), STUDENT);
@@ -135,6 +146,7 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(value = "Student", key = "#p0.id", condition = "#p0.id != null")
     public Boolean updateStudent(StudentDTO studentDTO) {
         if (studentDTO == null || studentDTO.getId() == null) {
             throw new BusinessException(StudentEnum.STUDENT_ID_REQUIRED);
@@ -161,13 +173,17 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(value = "Student", key = "#p0", condition = "#p0 != null")
     public Boolean removeStudentById(UUID id) {
+        if (id == null) {
+            throw new BusinessException(StudentEnum.STUDENT_NOT_FOUND);
+        }
+
         Student student = this.getById(id);
         if (student == null) {
             throw new BusinessException(StudentEnum.STUDENT_NOT_FOUND);
         }
 
-        // 删除学生记录
         boolean removeResult = this.removeById(id);
         if (removeResult) {
             // 同步删除用户的学生角色绑定
@@ -179,15 +195,19 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(value = "Student", allEntries = true)
     public Integer removeStudentByIds(List<UUID> ids) {
         if (ids == null || ids.isEmpty()) {
-            return 0;
+            throw new BusinessException(StudentEnum.STUDENT_NOT_FOUND);
         }
 
-        // 获取要删除的学生信息，用于后续删除角色绑定
         List<Student> students = this.listByIds(ids);
+        ids.forEach(id -> {
+            if (students.stream().noneMatch(student -> student.getId().equals(id))) {
+                throw new BusinessException(StudentEnum.STUDENT_NOT_FOUND);
+            }
+        });
 
-        // 批量删除学生记录
         boolean removeResult = this.removeBatchByIds(ids);
         if (removeResult) {
             // 同步删除用户的学生角色绑定

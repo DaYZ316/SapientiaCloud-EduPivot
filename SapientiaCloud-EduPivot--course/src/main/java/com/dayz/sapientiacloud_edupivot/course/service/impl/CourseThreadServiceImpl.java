@@ -18,6 +18,8 @@ import com.github.pagehelper.PageInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -51,6 +53,7 @@ public class CourseThreadServiceImpl extends ServiceImpl<CourseThreadMapper, Cou
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "CourseThread", key = "#p0", condition = "#p0 != null")
     public CourseThreadVO getCourseThreadById(UUID threadId) {
         if (threadId == null) {
             throw new BusinessException(CourseThreadEnum.THREAD_ID_REQUIRED);
@@ -65,7 +68,8 @@ public class CourseThreadServiceImpl extends ServiceImpl<CourseThreadMapper, Cou
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(value = "CourseThread", allEntries = true)
     public CourseThreadVO addCourseThread(CourseThreadDTO courseThreadDTO) {
         if (courseThreadDTO == null) {
             throw new BusinessException(CourseThreadEnum.THREAD_INFO_REQUIRED);
@@ -106,7 +110,8 @@ public class CourseThreadServiceImpl extends ServiceImpl<CourseThreadMapper, Cou
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(value = "CourseThread", key = "#p0.id", condition = "#p0.id != null")
     public Boolean updateCourseThread(CourseThreadDTO courseThreadDTO) {
         if (courseThreadDTO == null || courseThreadDTO.getId() == null) {
             throw new BusinessException(CourseThreadEnum.THREAD_INFO_OR_ID_REQUIRED);
@@ -129,48 +134,30 @@ public class CourseThreadServiceImpl extends ServiceImpl<CourseThreadMapper, Cou
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(value = "CourseThread", key = "#p0", condition = "#p0 != null")
     public Boolean removeCourseThreadById(UUID threadId) {
         if (threadId == null) {
             throw new BusinessException(CourseThreadEnum.THREAD_ID_REQUIRED);
         }
 
-        CourseThread courseThread = this.getById(threadId);
-        if (courseThread == null) {
-            throw new BusinessException(CourseThreadEnum.THREAD_NOT_EXISTS);
-        }
-
-        courseThread.setDeleted(DeletedEnum.DELETED.getCode());
-        courseThread.setUpdateTime(LocalDateTime.now());
-
-        return this.updateById(courseThread);
+        return courseThreadMapper.removeCourseThreadById(threadId);
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(value = "CourseThread", allEntries = true)
     public Integer removeCourseThreadByIds(List<UUID> threadIds) {
         if (threadIds == null || threadIds.isEmpty()) {
             throw new BusinessException(CourseThreadEnum.THREAD_ID_LIST_REQUIRED);
         }
 
-        // 批量逻辑删除
-        int deleteCount = 0;
-        for (UUID threadId : threadIds) {
-            CourseThread courseThread = this.getById(threadId);
-            if (courseThread != null) {
-                courseThread.setDeleted(DeletedEnum.DELETED.getCode());
-                courseThread.setUpdateTime(LocalDateTime.now());
-                if (this.updateById(courseThread)) {
-                    deleteCount++;
-                }
-            }
-        }
-
-        return deleteCount;
+        return courseThreadMapper.removeCourseThreadByIds(threadIds);
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(value = "CourseThread", key = "#p0", condition = "#p0 != null")
     public Boolean pinThread(UUID id, Boolean pinned) {
         if (id == null) {
             throw new BusinessException(CourseThreadEnum.THREAD_ID_REQUIRED);
@@ -191,7 +178,8 @@ public class CourseThreadServiceImpl extends ServiceImpl<CourseThreadMapper, Cou
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(value = "CourseThread", key = "#p0", condition = "#p0 != null")
     public Boolean closeThread(UUID id, Boolean closed) {
         if (id == null) {
             throw new BusinessException(CourseThreadEnum.THREAD_ID_REQUIRED);
@@ -212,7 +200,8 @@ public class CourseThreadServiceImpl extends ServiceImpl<CourseThreadMapper, Cou
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(value = "CourseThread", key = "#p0", condition = "#p0 != null")
     public Boolean viewThread(UUID id) {
         if (id == null) {
             throw new BusinessException(CourseThreadEnum.THREAD_ID_REQUIRED);

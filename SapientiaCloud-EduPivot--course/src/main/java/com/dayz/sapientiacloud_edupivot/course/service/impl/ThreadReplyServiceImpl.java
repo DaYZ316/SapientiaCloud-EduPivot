@@ -20,6 +20,8 @@ import com.github.pagehelper.PageInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -48,6 +50,7 @@ public class ThreadReplyServiceImpl extends ServiceImpl<ThreadReplyMapper, Threa
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "ThreadReply", key = "'tree_' + #p0", condition = "#p0 != null")
     public List<ThreadReplyVO> listThreadReplyTreeByThreadId(UUID threadId) {
         if (threadId == null) {
             throw new BusinessException(ThreadReplyEnum.THREAD_ID_REQUIRED);
@@ -67,6 +70,7 @@ public class ThreadReplyServiceImpl extends ServiceImpl<ThreadReplyMapper, Threa
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "ThreadReply", key = "#p0", condition = "#p0 != null")
     public ThreadReplyVO getThreadReplyById(UUID replyId) {
         if (replyId == null) {
             throw new BusinessException(ThreadReplyEnum.REPLY_ID_REQUIRED);
@@ -81,7 +85,8 @@ public class ThreadReplyServiceImpl extends ServiceImpl<ThreadReplyMapper, Threa
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(value = {"ThreadReply", "CourseThread"}, allEntries = true)
     public ThreadReplyVO addThreadReply(ThreadReplyDTO threadReplyDTO) {
         if (threadReplyDTO == null) {
             throw new BusinessException(ThreadReplyEnum.REPLY_INFO_REQUIRED);
@@ -141,7 +146,8 @@ public class ThreadReplyServiceImpl extends ServiceImpl<ThreadReplyMapper, Threa
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(value = "ThreadReply", key = "#p0.id", condition = "#p0.id != null")
     public Boolean updateThreadReply(ThreadReplyDTO threadReplyDTO) {
         if (threadReplyDTO == null || threadReplyDTO.getId() == null) {
             throw new BusinessException(ThreadReplyEnum.REPLY_INFO_OR_ID_REQUIRED);
@@ -166,58 +172,25 @@ public class ThreadReplyServiceImpl extends ServiceImpl<ThreadReplyMapper, Threa
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(value = {"ThreadReply", "CourseThread"}, allEntries = true)
     public Boolean removeThreadReplyById(UUID replyId) {
         if (replyId == null) {
             throw new BusinessException(ThreadReplyEnum.REPLY_ID_REQUIRED);
         }
 
-        ThreadReply threadReply = this.getById(replyId);
-        if (threadReply == null) {
-            throw new BusinessException(ThreadReplyEnum.REPLY_NOT_EXISTS);
-        }
-
-        threadReply.setDeleted(DeletedEnum.DELETED.getCode());
-        threadReply.setUpdateTime(LocalDateTime.now());
-
-        boolean result = this.updateById(threadReply);
-
-        // 更新主贴的回复数
-        if (result) {
-            updateThreadReplyCount(threadReply.getThreadId());
-        }
-
-        return result;
+        return threadReplyMapper.removeThreadReplyById(replyId);
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(value = {"ThreadReply", "CourseThread"}, allEntries = true)
     public Integer removeThreadReplyByIds(List<UUID> replyIds) {
         if (replyIds == null || replyIds.isEmpty()) {
             throw new BusinessException(ThreadReplyEnum.REPLY_ID_LIST_REQUIRED);
         }
 
-        // 批量逻辑删除
-        int deleteCount = 0;
-        UUID threadId = null;
-        for (UUID replyId : replyIds) {
-            ThreadReply threadReply = this.getById(replyId);
-            if (threadReply != null) {
-                threadId = threadReply.getThreadId();
-                threadReply.setDeleted(DeletedEnum.DELETED.getCode());
-                threadReply.setUpdateTime(LocalDateTime.now());
-                if (this.updateById(threadReply)) {
-                    deleteCount++;
-                }
-            }
-        }
-
-        // 更新主贴的回复数
-        if (threadId != null) {
-            updateThreadReplyCount(threadId);
-        }
-
-        return deleteCount;
+        return threadReplyMapper.removeThreadReplyByIds(replyIds);
     }
 
     /**

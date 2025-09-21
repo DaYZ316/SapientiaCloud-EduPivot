@@ -68,7 +68,7 @@ public class CourseChapterServiceImpl extends ServiceImpl<CourseChapterMapper, C
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public CourseChapterVO addCourseChapter(CourseChapterDTO courseChapterDTO) {
         if (courseChapterDTO == null) {
             throw new BusinessException(CourseChapterEnum.CHAPTER_INFO_REQUIRED);
@@ -116,7 +116,7 @@ public class CourseChapterServiceImpl extends ServiceImpl<CourseChapterMapper, C
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public Boolean updateCourseChapter(CourseChapterDTO courseChapterDTO) {
         if (courseChapterDTO == null || courseChapterDTO.getId() == null) {
             throw new BusinessException(CourseChapterEnum.CHAPTER_INFO_OR_ID_REQUIRED);
@@ -165,58 +165,23 @@ public class CourseChapterServiceImpl extends ServiceImpl<CourseChapterMapper, C
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public Boolean removeCourseChapterById(UUID chapterId) {
         if (chapterId == null) {
             throw new BusinessException(CourseChapterEnum.CHAPTER_ID_REQUIRED);
         }
 
-        CourseChapter courseChapter = this.getById(chapterId);
-        if (courseChapter == null) {
-            throw new BusinessException(CourseChapterEnum.CHAPTER_NOT_EXISTS);
-        }
-
-        // 检查是否有子章节
-        LambdaQueryWrapper<CourseChapter> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(CourseChapter::getParentId, chapterId)
-                .eq(CourseChapter::getDeleted, DeletedEnum.NOT_DELETED.getCode());
-        if (this.count(queryWrapper) > 0) {
-            throw new BusinessException(CourseChapterEnum.CHAPTER_DELETE_FAILED);
-        }
-
-        courseChapter.setDeleted(DeletedEnum.DELETED.getCode());
-        courseChapter.setUpdateTime(LocalDateTime.now());
-
-        return this.updateById(courseChapter);
+        return courseChapterMapper.removeCourseChapterById(chapterId);
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public Integer removeCourseChapterByIds(List<UUID> chapterIds) {
         if (chapterIds == null || chapterIds.isEmpty()) {
             throw new BusinessException(CourseChapterEnum.CHAPTER_ID_LIST_REQUIRED);
         }
 
-        // 批量逻辑删除
-        int deleteCount = 0;
-        for (UUID chapterId : chapterIds) {
-            CourseChapter courseChapter = this.getById(chapterId);
-            if (courseChapter != null) {
-                // 检查是否有子章节
-                LambdaQueryWrapper<CourseChapter> queryWrapper = new LambdaQueryWrapper<>();
-                queryWrapper.eq(CourseChapter::getParentId, chapterId)
-                        .eq(CourseChapter::getDeleted, DeletedEnum.NOT_DELETED.getCode());
-                if (this.count(queryWrapper) == 0) {
-                    courseChapter.setDeleted(DeletedEnum.DELETED.getCode());
-                    courseChapter.setUpdateTime(LocalDateTime.now());
-                    if (this.updateById(courseChapter)) {
-                        deleteCount++;
-                    }
-                }
-            }
-        }
-
-        return deleteCount;
+        return courseChapterMapper.removeCourseChapterByIds(chapterIds);
     }
 
     /**

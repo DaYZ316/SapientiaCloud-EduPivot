@@ -7,7 +7,6 @@ import lombok.Data;
 import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -26,10 +25,6 @@ public class CourseStudentVO implements Serializable {
 
     @Schema(name = "grade", description = "成绩")
     private BigDecimal grade;
-
-    @Schema(name = "enrollmentDate", description = "选课日期")
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    private LocalDate enrollmentDate;
 
     @Schema(name = "status", description = "选课状态 (0=在读, 1=已退课, 2=已完成)", example = "0")
     private Integer status;

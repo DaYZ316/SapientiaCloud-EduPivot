@@ -7,6 +7,7 @@ import com.dayz.sapientiacloud_edupivot.course.common.security.annotation.HasPer
 import com.dayz.sapientiacloud_edupivot.course.constant.PermissionConstants;
 import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseTeacherQueryDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.vo.CourseVO;
+import com.dayz.sapientiacloud_edupivot.course.entity.vo.TeacherVO;
 import com.dayz.sapientiacloud_edupivot.course.service.ICourseTeacherService;
 import com.github.pagehelper.PageInfo;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -32,11 +33,24 @@ public class CourseTeacherController extends BaseController {
             description = "分页获取教师作为负责人或教学团队成员的所有课程。",
             permission = PermissionConstants.COURSE_QUERY
     )
-    @GetMapping("/teacher/page")
+    @GetMapping("/teacher")
     public TableDataResult listCourseByTeacherId(@ParameterObject CourseTeacherQueryDTO courseTeacherQueryDTO) {
         startPage();
         PageInfo<CourseVO> pageInfo = courseTeacherService.listCourseByTeacherId(courseTeacherQueryDTO);
         return getDataTable(pageInfo.getList());
+    }
+
+    @HasPermission(
+            summary = "listAllTeacherByCourseId",
+            description = "获取课程下的所有教师。",
+            permission = PermissionConstants.COURSE_QUERY
+    )
+    @GetMapping("/course/{courseId}/all")
+    public Result<List<TeacherVO>> listAllTeacherByCourseId(
+            @Parameter(name = "courseId", description = "课程ID", required = true) @PathVariable("courseId") UUID courseId
+    ) {
+        List<TeacherVO> teacherVOList = courseTeacherService.listAllTeacherByCourseId(courseId);
+        return Result.success(teacherVOList);
     }
 
     @HasPermission(

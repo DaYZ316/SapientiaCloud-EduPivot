@@ -5,6 +5,7 @@ import com.dayz.sapientiacloud_edupivot.course.entity.dto.ThreadReplyQueryDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.po.ThreadReply;
 import com.dayz.sapientiacloud_edupivot.course.entity.vo.ThreadReplyVO;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 import java.util.UUID;
@@ -24,5 +25,5 @@ public interface ThreadReplyMapper extends BaseMapper<ThreadReply> {
 
     Boolean removeThreadReplyById(UUID replyId);
 
-    Integer removeThreadReplyByIds(List<UUID> replyIds);
+    Integer removeThreadReplyByIds(@Param("replyIds") List<UUID> replyIds);
 }
