@@ -32,6 +32,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -75,6 +76,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     }
 
     @Override
+    @Cacheable(value = "SysUser", key = "'all'", condition = "true")
     public List<SysUserVO> listAllSysUser() {
         LambdaQueryWrapper<SysUser> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.orderByDesc(SysUser::getCreateTime);
@@ -163,7 +165,10 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    @CacheEvict(value = "SysUser", key = "#p0.id", condition = "#p0.id != null")
+    @Caching(evict = {
+            @CacheEvict(value = "SysUser", key = "#p0.id", condition = "#p0.id != null"),
+            @CacheEvict(value = "SysUser", key = "'all'", condition = "true")
+    })
     public Boolean updateUser(SysUserDTO sysUserDTO) {
         if (sysUserDTO == null || sysUserDTO.getId() == null) {
             throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
@@ -187,7 +192,10 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    @CacheEvict(value = "SysUser", key = "#p0", condition = "#p0 != null")
+    @Caching(evict = {
+            @CacheEvict(value = "SysUser", key = "#p0", condition = "#p0 != null"),
+            @CacheEvict(value = "SysUser", key = "'all'", condition = "true")
+    })
     public Boolean removeUserById(UUID id) {
         if (id == null) {
             throw new BusinessException(SysUserEnum.USER_NOT_FOUND);

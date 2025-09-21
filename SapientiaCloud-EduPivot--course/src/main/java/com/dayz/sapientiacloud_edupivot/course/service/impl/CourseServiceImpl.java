@@ -20,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -47,6 +48,7 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "Course", key = "'all'", condition = "true")
     public List<CourseVO> listAllCourse() {
         return courseMapper.listAllCourse();
     }
@@ -99,7 +101,10 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    @CacheEvict(value = "Course", key = "#p0.id", condition = "#p0.id != null")
+    @Caching(evict = {
+            @CacheEvict(value = "Course", key = "#p0.id", condition = "#p0.id != null"),
+            @CacheEvict(value = "Course", key = "'all'", condition = "true")
+    })
     public Boolean updateCourse(CourseDTO courseDTO) {
         if (courseDTO == null || courseDTO.getId() == null) {
             throw new BusinessException(CourseEnum.COURSE_INFO_OR_ID_REQUIRED);
@@ -130,7 +135,10 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    @CacheEvict(value = "Course", key = "#p0", condition = "#p0 != null")
+    @Caching(evict = {
+            @CacheEvict(value = "Course", key = "#p0", condition = "#p0 != null"),
+            @CacheEvict(value = "Course", key = "'all'", condition = "true")
+    })
     public Boolean removeCourseById(UUID courseId) {
         if (courseId == null) {
             throw new BusinessException(CourseEnum.COURSE_ID_REQUIRED);

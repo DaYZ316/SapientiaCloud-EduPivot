@@ -17,6 +17,7 @@ import com.github.pagehelper.PageInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -44,6 +45,7 @@ public class CourseChapterServiceImpl extends ServiceImpl<CourseChapterMapper, C
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "CourseChapter", key = "'tree_' + #p0", condition = "#p0 != null")
     public List<CourseChapterVO> listAllCourseChapterTree(UUID courseId) {
         if (courseId == null) {
             throw new BusinessException(CourseChapterEnum.COURSE_ID_REQUIRED);

@@ -24,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,6 +54,7 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
     }
 
     @Override
+    @Cacheable(value = "Student", key = "'all'", condition = "true")
     public List<StudentVO> listAllStudent() {
         return studentMapper.listAllStudentWithUserInfo();
     }
@@ -146,7 +148,10 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    @CacheEvict(value = "Student", key = "#p0.id", condition = "#p0.id != null")
+    @Caching(evict = {
+            @CacheEvict(value = "Student", key = "#p0.id", condition = "#p0.id != null"),
+            @CacheEvict(value = "Student", key = "'all'", condition = "true")
+    })
     public Boolean updateStudent(StudentDTO studentDTO) {
         if (studentDTO == null || studentDTO.getId() == null) {
             throw new BusinessException(StudentEnum.STUDENT_ID_REQUIRED);
@@ -173,7 +178,10 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    @CacheEvict(value = "Student", key = "#p0", condition = "#p0 != null")
+    @Caching(evict = {
+            @CacheEvict(value = "Student", key = "#p0", condition = "#p0 != null"),
+            @CacheEvict(value = "Student", key = "'all'", condition = "true")
+    })
     public Boolean removeStudentById(UUID id) {
         if (id == null) {
             throw new BusinessException(StudentEnum.STUDENT_NOT_FOUND);

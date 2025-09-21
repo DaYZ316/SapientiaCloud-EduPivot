@@ -47,6 +47,7 @@ public class CourseThreadServiceImpl extends ServiceImpl<CourseThreadMapper, Cou
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "CourseThread", key = "'all'", condition = "true")
     public List<CourseThreadVO> listAllCourseThread() {
         return courseThreadMapper.listAllCourseThread();
     }

@@ -56,6 +56,7 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
     }
 
     @Override
+    @Cacheable(value = "SysRole", key = "'all'", condition = "true")
     public List<SysRoleVO> listAllSysRole() {
         LambdaQueryWrapper<SysRole> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.orderByAsc(SysRole::getSort);
@@ -122,6 +123,7 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
     @Transactional(rollbackFor = Exception.class)
     @Caching(evict = {
             @CacheEvict(value = "SysRole", key = "#p0.id", condition = "#p0.id != null"),
+            @CacheEvict(value = "SysRole", key = "'all'", condition = "true"),
             @CacheEvict(value = "SysUser", allEntries = true)
     })
     public Boolean updateRole(SysRoleDTO sysRoleDTO) {

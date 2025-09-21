@@ -24,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,6 +54,7 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
     }
 
     @Override
+    @Cacheable(value = "Teacher", key = "'all'", condition = "true")
     public List<TeacherVO> listAllTeacher() {
         return teacherMapper.listAllTeacherWithUserInfo();
     }
@@ -141,7 +143,10 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    @CacheEvict(value = "Teacher", key = "#p0.id", condition = "#p0.id != null")
+    @Caching(evict = {
+            @CacheEvict(value = "Teacher", key = "#p0.id", condition = "#p0.id != null"),
+            @CacheEvict(value = "Teacher", key = "'all'", condition = "true")
+    })
     public Boolean updateTeacher(TeacherDTO teacherDTO) {
         if (teacherDTO == null || teacherDTO.getId() == null) {
             throw new BusinessException(TeacherEnum.TEACHER_ID_REQUIRED);
@@ -168,7 +173,10 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    @CacheEvict(value = "Teacher", key = "#p0", condition = "#p0 != null")
+    @Caching(evict = {
+            @CacheEvict(value = "Teacher", key = "#p0", condition = "#p0 != null"),
+            @CacheEvict(value = "Teacher", key = "'all'", condition = "true")
+    })
     public Boolean removeTeacherById(UUID id) {
         if (id == null) {
             throw new BusinessException(TeacherEnum.TEACHER_NOT_FOUND);

@@ -44,6 +44,7 @@ public class CourseStudentServiceImpl extends ServiceImpl<CourseStudentMapper, C
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "CourseStudent", key = "'course_' + #p0", condition = "#p0 != null")
     public List<CourseStudentVO> listAllCourseStudentByCourseId(UUID courseId) {
         if (courseId == null) {
             throw new BusinessException(CourseChapterEnum.COURSE_ID_REQUIRED);
@@ -54,6 +55,7 @@ public class CourseStudentServiceImpl extends ServiceImpl<CourseStudentMapper, C
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "CourseStudent", key = "'student_' + #p0", condition = "#p0 != null")
     public List<CourseStudentVO> listAllCourseStudentByStudentId(UUID studentId) {
         if (studentId == null) {
             throw new BusinessException(CourseChapterEnum.CHAPTER_ID_REQUIRED);
