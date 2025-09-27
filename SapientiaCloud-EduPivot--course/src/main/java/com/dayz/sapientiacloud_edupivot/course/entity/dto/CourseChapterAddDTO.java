@@ -10,14 +10,11 @@ import java.util.List;
 import java.util.UUID;
 
 @Data
-@Schema(description = "课程章节数据传输对象")
-public class CourseChapterDTO implements Serializable {
+@Schema(description = "课程章节新增数据传输对象")
+public class CourseChapterAddDTO implements Serializable {
 
     @Serial
-    private static final long serialVersionUID = 6351201752499048238L;
-
-    @Schema(name = "id", description = "章节ID，更新时必须提供")
-    private UUID id;
+    private static final long serialVersionUID = 6058873313295897890L;
 
     @Schema(name = "courseId", description = "所属课程ID")
     @NotNull(message = "课程ID不能为空")
@@ -29,17 +26,18 @@ public class CourseChapterDTO implements Serializable {
     private String chapterName;
 
     @Schema(name = "chapterNumber", description = "章节序号")
+    @NotNull(message = "章节序号不能为空")
     @Min(value = 1, message = "章节序号必须大于0")
     private Integer chapterNumber;
 
-    @Schema(name = "parentChapterId", description = "父章节ID")
+    @Schema(name = "parentChapterId", description = "父章节ID (用于构建章节树结构)")
     private UUID parentChapterId;
 
     @Schema(name = "description", description = "章节描述")
     @Size(max = 500, message = "章节描述不能超过500个字符")
     private String description;
 
-    @Schema(name = "content", description = "章节内容")
+    @Schema(name = "content", description = "章节内容 (富文本)")
     private String content;
 
     @Schema(name = "videoUrl", description = "视频资源URL")

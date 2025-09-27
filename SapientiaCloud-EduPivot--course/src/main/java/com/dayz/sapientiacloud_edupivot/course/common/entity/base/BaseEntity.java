@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -19,15 +20,18 @@ public class BaseEntity implements Serializable {
 
     @Schema(name = "createTime", description = "创建时间 (系统自动生成)", accessMode = Schema.AccessMode.READ_ONLY)
     @TableField("create_time")
+    @Field("create_time")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createTime;
 
     @Schema(name = "updateTime", description = "更新时间 (系统自动生成)", accessMode = Schema.AccessMode.READ_ONLY)
     @TableField("update_time")
+    @Field("update_time")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updateTime;
 
     @Schema(name = "deleted", description = "逻辑删除标记 (内部使用)", hidden = true)
     @TableField("is_deleted")
+    @Field("is_deleted")
     private Integer deleted;
 }

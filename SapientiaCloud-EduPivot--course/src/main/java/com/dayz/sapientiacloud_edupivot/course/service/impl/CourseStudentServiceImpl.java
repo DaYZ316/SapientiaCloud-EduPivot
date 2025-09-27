@@ -7,7 +7,7 @@ import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseStudentDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseStudentQueryDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.po.CourseStudent;
 import com.dayz.sapientiacloud_edupivot.course.entity.vo.CourseStudentVO;
-import com.dayz.sapientiacloud_edupivot.course.enums.CourseChapterEnum;
+import com.dayz.sapientiacloud_edupivot.course.enums.CourseStudentEnum;
 import com.dayz.sapientiacloud_edupivot.course.enums.EnrollmentStatusEnum;
 import com.dayz.sapientiacloud_edupivot.course.mapper.CourseStudentMapper;
 import com.dayz.sapientiacloud_edupivot.course.service.ICourseStudentService;
@@ -35,7 +35,7 @@ public class CourseStudentServiceImpl extends ServiceImpl<CourseStudentMapper, C
     @Override
     public PageInfo<CourseStudentVO> listCourseStudent(CourseStudentQueryDTO courseStudentQueryDTO) {
         if (courseStudentQueryDTO == null) {
-            throw new BusinessException(CourseChapterEnum.CHAPTER_REQUIRED);
+            throw new BusinessException(CourseStudentEnum.COURSE_STUDENT_REQUIRED);
         }
 
         return PageHelper.startPage(courseStudentQueryDTO.getPageNum(), courseStudentQueryDTO.getPageSize())
@@ -47,7 +47,7 @@ public class CourseStudentServiceImpl extends ServiceImpl<CourseStudentMapper, C
     @Cacheable(value = "CourseStudent", key = "'course_' + #p0", condition = "#p0 != null")
     public List<CourseStudentVO> listAllCourseStudentByCourseId(UUID courseId) {
         if (courseId == null) {
-            throw new BusinessException(CourseChapterEnum.COURSE_ID_REQUIRED);
+            throw new BusinessException(CourseStudentEnum.COURSE_ID_REQUIRED);
         }
 
         return courseStudentMapper.listAllCourseStudentByCourseId(courseId);
@@ -58,7 +58,7 @@ public class CourseStudentServiceImpl extends ServiceImpl<CourseStudentMapper, C
     @Cacheable(value = "CourseStudent", key = "'student_' + #p0", condition = "#p0 != null")
     public List<CourseStudentVO> listAllCourseStudentByStudentId(UUID studentId) {
         if (studentId == null) {
-            throw new BusinessException(CourseChapterEnum.CHAPTER_ID_REQUIRED);
+            throw new BusinessException(CourseStudentEnum.STUDENT_ID_REQUIRED);
         }
 
         return courseStudentMapper.listAllCourseStudentByStudentId(studentId);
@@ -69,15 +69,15 @@ public class CourseStudentServiceImpl extends ServiceImpl<CourseStudentMapper, C
     @Cacheable(value = "CourseStudent", key = "#p0 + '_' + #p1", condition = "#p0 != null && #p1 != null")
     public CourseStudentVO getStudentCourseById(UUID studentId, UUID courseId) {
         if (studentId == null) {
-            throw new BusinessException(CourseChapterEnum.CHAPTER_ID_REQUIRED);
+            throw new BusinessException(CourseStudentEnum.STUDENT_ID_REQUIRED);
         }
         if (courseId == null) {
-            throw new BusinessException(CourseChapterEnum.COURSE_ID_REQUIRED);
+            throw new BusinessException(CourseStudentEnum.COURSE_ID_REQUIRED);
         }
 
         CourseStudentVO courseStudentVO = courseStudentMapper.getStudentCourseById(studentId, courseId);
         if (courseStudentVO == null) {
-            throw new BusinessException(CourseChapterEnum.CHAPTER_NOT_EXISTS);
+            throw new BusinessException(CourseStudentEnum.COURSE_STUDENT_NOT_EXISTS);
         }
 
         return courseStudentVO;
@@ -88,14 +88,14 @@ public class CourseStudentServiceImpl extends ServiceImpl<CourseStudentMapper, C
     @CacheEvict(value = "CourseStudent", allEntries = true)
     public Boolean addCourseStudent(CourseStudentDTO courseStudentDTO) {
         if (courseStudentDTO == null) {
-            throw new BusinessException(CourseChapterEnum.CHAPTER_INFO_REQUIRED);
+            throw new BusinessException(CourseStudentEnum.COURSE_STUDENT_INFO_REQUIRED);
         }
 
         if (courseStudentDTO.getStudentId() == null) {
-            throw new BusinessException(CourseChapterEnum.CHAPTER_ID_REQUIRED);
+            throw new BusinessException(CourseStudentEnum.STUDENT_ID_REQUIRED);
         }
         if (courseStudentDTO.getCourseId() == null) {
-            throw new BusinessException(CourseChapterEnum.COURSE_ID_REQUIRED);
+            throw new BusinessException(CourseStudentEnum.COURSE_ID_REQUIRED);
         }
 
         // 检查是否已经选课
@@ -103,7 +103,7 @@ public class CourseStudentServiceImpl extends ServiceImpl<CourseStudentMapper, C
         queryWrapper.eq(CourseStudent::getStudentId, courseStudentDTO.getStudentId())
                 .eq(CourseStudent::getCourseId, courseStudentDTO.getCourseId());
         if (this.count(queryWrapper) > 0) {
-            throw new BusinessException(CourseChapterEnum.CHAPTER_NAME_EXISTS);
+            throw new BusinessException(CourseStudentEnum.ALREADY_ENROLLED);
         }
 
         CourseStudent courseStudent = new CourseStudent();
@@ -125,7 +125,7 @@ public class CourseStudentServiceImpl extends ServiceImpl<CourseStudentMapper, C
     @CacheEvict(value = "CourseStudent", key = "#p0.studentId + '_' + #p0.courseId", condition = "#p0.studentId != null && #p0.courseId != null")
     public Boolean updateCourseStudent(CourseStudentDTO courseStudentDTO) {
         if (courseStudentDTO == null || courseStudentDTO.getStudentId() == null || courseStudentDTO.getCourseId() == null) {
-            throw new BusinessException(CourseChapterEnum.CHAPTER_INFO_OR_ID_REQUIRED);
+            throw new BusinessException(CourseStudentEnum.COURSE_STUDENT_INFO_OR_ID_REQUIRED);
         }
 
         LambdaQueryWrapper<CourseStudent> queryWrapper = new LambdaQueryWrapper<>();
@@ -134,7 +134,7 @@ public class CourseStudentServiceImpl extends ServiceImpl<CourseStudentMapper, C
 
         CourseStudent existingCourseStudent = this.getOne(queryWrapper);
         if (existingCourseStudent == null) {
-            throw new BusinessException(CourseChapterEnum.CHAPTER_NOT_EXISTS);
+            throw new BusinessException(CourseStudentEnum.COURSE_STUDENT_NOT_EXISTS);
         }
 
         CourseStudent courseStudent = new CourseStudent();
@@ -149,10 +149,10 @@ public class CourseStudentServiceImpl extends ServiceImpl<CourseStudentMapper, C
     @CacheEvict(value = "CourseStudent", key = "#p1 + '_' + #p0", condition = "#p0 != null && #p1 != null")
     public Boolean removeCourseStudentById(UUID courseId, UUID studentId) {
         if (studentId == null) {
-            throw new BusinessException(CourseChapterEnum.CHAPTER_ID_REQUIRED);
+            throw new BusinessException(CourseStudentEnum.STUDENT_ID_REQUIRED);
         }
         if (courseId == null) {
-            throw new BusinessException(CourseChapterEnum.COURSE_ID_REQUIRED);
+            throw new BusinessException(CourseStudentEnum.COURSE_ID_REQUIRED);
         }
 
         return courseStudentMapper.removeCourseStudentById(studentId, courseId);
@@ -163,10 +163,10 @@ public class CourseStudentServiceImpl extends ServiceImpl<CourseStudentMapper, C
     @CacheEvict(value = "CourseStudent", allEntries = true)
     public Integer removeCourseStudentByIds(UUID courseId, List<UUID> studentIds) {
         if (courseId == null) {
-            throw new BusinessException(CourseChapterEnum.COURSE_ID_REQUIRED);
+            throw new BusinessException(CourseStudentEnum.COURSE_ID_REQUIRED);
         }
         if (studentIds == null || studentIds.isEmpty()) {
-            throw new BusinessException(CourseChapterEnum.CHAPTER_ID_LIST_REQUIRED);
+            throw new BusinessException(CourseStudentEnum.COURSE_STUDENT_ID_LIST_REQUIRED);
         }
 
         return courseStudentMapper.removeCourseStudentByIds(courseId, studentIds);

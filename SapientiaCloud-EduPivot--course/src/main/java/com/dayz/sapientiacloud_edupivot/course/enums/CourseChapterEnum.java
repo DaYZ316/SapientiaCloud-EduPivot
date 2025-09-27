@@ -9,41 +9,36 @@ import lombok.Getter;
 public enum CourseChapterEnum implements BaseEnum {
 
     // 通用验证错误
-    CHAPTER_REQUIRED(50001, "章节不能为空"),
-    CHAPTER_ID_REQUIRED(50002, "章节ID不能为空"),
-    CHAPTER_INFO_REQUIRED(50003, "章节信息不能为空"),
-    CHAPTER_INFO_OR_ID_REQUIRED(50004, "章节信息或ID不能为空"),
-    CHAPTER_ID_LIST_REQUIRED(50005, "章节ID列表不能为空"),
-    CHAPTER_NOT_EXISTS(50006, "章节不存在"),
-    CHAPTER_NAME_EXISTS(50007, "章节名称已存在"),
-    CHAPTER_TITLE_REQUIRED(50008, "章节标题不能为空"),
-    CHAPTER_SORT_REQUIRED(50009, "章节排序不能为空"),
-    CHAPTER_SORT_INVALID(50010, "章节排序必须大于0"),
+    CHAPTER_REQUIRED(41001, "章节不能为空"),
+    CHAPTER_ID_REQUIRED(41002, "章节ID不能为空"),
+    CHAPTER_INFO_REQUIRED(41003, "章节信息不能为空"),
+    CHAPTER_INFO_OR_ID_REQUIRED(41004, "章节信息或ID不能为空"),
+    CHAPTER_ID_LIST_REQUIRED(41005, "章节ID列表不能为空"),
+    CHAPTER_NOT_EXISTS(41006, "章节不存在"),
+    CHAPTER_NAME_EXISTS(41007, "章节名称已存在"),
+    CHAPTER_STATUS_INVALID(41008, "章节状态值无效 (0=正常, 1=停用)"),
 
     // 课程相关错误
-    COURSE_ID_REQUIRED(50011, "课程ID不能为空"),
-    COURSE_NOT_EXISTS(50012, "课程不存在"),
-    COURSE_NOT_AVAILABLE(50013, "课程不可用"),
+    COURSE_ID_REQUIRED(41009, "课程ID不能为空"),
+    COURSE_NOT_EXISTS(41010, "课程不存在"),
 
     // 父章节相关错误
-    PARENT_CHAPTER_NOT_EXISTS(50014, "父章节不存在"),
-    PARENT_CHAPTER_INVALID(50015, "父章节无效"),
-    CANNOT_SET_SELF_AS_PARENT(50016, "不能将自己设置为父章节"),
-    CANNOT_SET_CHILD_AS_PARENT(50017, "不能将子章节设置为父章节"),
+    PARENT_CHAPTER_ID_REQUIRED(41011, "父章节ID不能为空"),
+    PARENT_CHAPTER_NOT_EXISTS(41012, "父章节不存在"),
+    CHAPTER_HAS_CHILDREN(41013, "章节下存在子章节，无法删除"),
 
-    // 章节状态相关错误
-    CHAPTER_STATUS_INVALID(50018, "章节状态值无效 (0=正常, 1=停用)"),
+    // 排序相关错误
+    SORT_ORDER_INVALID(41014, "排序值无效"),
+
+    // 统计相关错误
+    VIEW_COUNT_INVALID(41015, "浏览次数无效"),
+    LIKE_COUNT_INVALID(41016, "点赞次数无效"),
+    COMMENT_COUNT_INVALID(41017, "评论次数无效"),
 
     // 分页相关错误
-    PAGE_NUM_REQUIRED(50019, "页码不能为空"),
-    PAGE_SIZE_REQUIRED(50020, "页面大小不能为空"),
-
-    // 操作相关错误
-    CHAPTER_ADD_FAILED(50021, "添加章节失败"),
-    CHAPTER_UPDATE_FAILED(50022, "更新章节失败"),
-    CHAPTER_DELETE_FAILED(50023, "删除章节失败"),
-    CHAPTER_QUERY_FAILED(50024, "查询章节失败"),
-    CHAPTER_TREE_BUILD_FAILED(50025, "构建章节树失败");
+    PAGE_NUM_REQUIRED(41018, "页码不能为空"),
+    PAGE_SIZE_REQUIRED(41019, "页面大小不能为空"),
+    CHAPTER_NAME_REQUIRED(41020, "章节名称不能为空" );
 
     private final int code;
 

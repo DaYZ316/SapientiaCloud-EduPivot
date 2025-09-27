@@ -71,7 +71,7 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    @CacheEvict(value = "Course", allEntries = true)
+    @CacheEvict(value = {"Course", "CourseTeacher"}, allEntries = true)
     public CourseVO addCourse(CourseDTO courseDTO) {
         if (courseDTO == null) {
             throw new BusinessException(CourseEnum.COURSE_INFO_REQUIRED);
@@ -103,7 +103,8 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
     @Transactional(rollbackFor = Exception.class)
     @Caching(evict = {
             @CacheEvict(value = "Course", key = "#p0.id", condition = "#p0.id != null"),
-            @CacheEvict(value = "Course", key = "'all'", condition = "true")
+            @CacheEvict(value = "Course", key = "'all'", condition = "true"),
+            @CacheEvict(value = "CourseTeacher", allEntries = true)
     })
     public Boolean updateCourse(CourseDTO courseDTO) {
         if (courseDTO == null || courseDTO.getId() == null) {
@@ -137,7 +138,8 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
     @Transactional(rollbackFor = Exception.class)
     @Caching(evict = {
             @CacheEvict(value = "Course", key = "#p0", condition = "#p0 != null"),
-            @CacheEvict(value = "Course", key = "'all'", condition = "true")
+            @CacheEvict(value = "Course", key = "'all'", condition = "true"),
+            @CacheEvict(value = "CourseTeacher", allEntries = true)
     })
     public Boolean removeCourseById(UUID courseId) {
         if (courseId == null) {
@@ -149,12 +151,15 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
             throw new BusinessException(CourseEnum.COURSE_NOT_EXISTS);
         }
 
+        // TODO 只要还有学生存在就不允许删除
+
         return this.removeById(courseId);
     }
 
+    // 弃用
     @Override
     @Transactional(rollbackFor = Exception.class)
-    @CacheEvict(value = "Course", allEntries = true)
+    @CacheEvict(value = {"Course", "CourseTeacher"}, allEntries = true)
     public Integer removeCourseByIds(List<UUID> courseIds) {
         if (courseIds == null || courseIds.isEmpty()) {
             throw new BusinessException(CourseEnum.COURSE_ID_LIST_REQUIRED);
@@ -166,6 +171,8 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
                 throw new BusinessException(CourseEnum.COURSE_NOT_EXISTS);
             }
         });
+
+        // TODO 只要还有学生存在就不允许删除
 
         boolean removeResult = this.removeBatchByIds(courseIds);
         return Math.toIntExact(removeResult ? courseIds.size() : 0);

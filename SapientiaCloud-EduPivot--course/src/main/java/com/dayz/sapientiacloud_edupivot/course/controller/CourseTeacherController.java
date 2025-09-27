@@ -31,7 +31,7 @@ public class CourseTeacherController extends BaseController {
     @HasPermission(
             summary = "listCourseByTeacherId",
             description = "分页获取教师作为负责人或教学团队成员的所有课程。",
-            permission = PermissionConstants.COURSE_QUERY
+            permission = PermissionConstants.TEACHER_QUERY
     )
     @GetMapping("/teacher")
     public TableDataResult listCourseByTeacherId(@ParameterObject CourseTeacherQueryDTO courseTeacherQueryDTO) {
@@ -43,7 +43,7 @@ public class CourseTeacherController extends BaseController {
     @HasPermission(
             summary = "listAllTeacherByCourseId",
             description = "获取课程下的所有教师。",
-            permission = PermissionConstants.COURSE_QUERY
+            permission = PermissionConstants.TEACHER_QUERY
     )
     @GetMapping("/course/{courseId}/all")
     public Result<List<TeacherVO>> listAllTeacherByCourseId(
@@ -56,7 +56,7 @@ public class CourseTeacherController extends BaseController {
     @HasPermission(
             summary = "listAllCourseByTeacherId",
             description = "获取教师作为负责人或教学团队成员的所有课程。",
-            permission = PermissionConstants.COURSE_QUERY
+            permission = PermissionConstants.TEACHER_QUERY
     )
     @GetMapping("/teacher/{teacherId}/all")
     public Result<List<CourseVO>> listAllCourseByTeacherId(
@@ -69,7 +69,7 @@ public class CourseTeacherController extends BaseController {
     @HasPermission(
             summary = "assignTeacher",
             description = "为指定课程分配主讲教师。",
-            permission = PermissionConstants.COURSE_EDIT
+            permission = PermissionConstants.TEACHER_EDIT
     )
     @PostMapping("/{courseId}/teacher")
     public Result<Boolean> assignTeacher(
@@ -82,7 +82,7 @@ public class CourseTeacherController extends BaseController {
     @HasPermission(
             summary = "assignCourseTeachers",
             description = "为指定课程批量分配教师团队，支持添加和移除教师。",
-            permission = PermissionConstants.COURSE_EDIT
+            permission = PermissionConstants.TEACHER_EDIT
     )
     @PostMapping("/{courseId}/teachers/assign")
     public Result<Boolean> assignCourseTeachers(

@@ -51,7 +51,22 @@ services:
       - minio_data:/data
     command: server /data --console-address ":31590" --address ":31589"
 
+  mongodb:
+    image: mongo:6.0.5
+    container_name: mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: zhaosheng123
+      MONGO_INITDB_DATABASE: sapientiacloud_edupivot
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+      - ./init/mongodb:/docker-entrypoint-initdb.d
+    command: mongod --auth
+
 volumes:
   mysql_data:
   redis_data:
   minio_data:
+  mongodb_data:

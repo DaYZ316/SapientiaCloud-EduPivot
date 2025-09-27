@@ -18,11 +18,29 @@ public class PermissionConstants {
     public static final String CHAPTER_EDIT = "manage:chapter:edit";
     public static final String CHAPTER_DELETE = "manage:chapter:delete";
 
-    // 论坛主贴权限
-    public static final String THREAD_QUERY = "manage:thread:query";
-    public static final String THREAD_ADD = "manage:thread:add";
-    public static final String THREAD_EDIT = "manage:thread:edit";
-    public static final String THREAD_DELETE = "manage:thread:delete";
+    // 课程教师权限
+    public static final String TEACHER_QUERY = "manage:teacher:query";
+    public static final String TEACHER_ADD = "manage:teacher:add";
+    public static final String TEACHER_EDIT = "manage:teacher:edit";
+    public static final String TEACHER_DELETE = "manage:teacher:delete";
+
+    // 课程学生权限
+    public static final String STUDENT_QUERY = "manage:student:query";
+    public static final String STUDENT_ADD = "manage:student:add";
+    public static final String STUDENT_EDIT = "manage:student:edit";
+    public static final String STUDENT_DELETE = "manage:student:delete";
+
+    // 课程论坛权限
+    public static final String FORUM_QUERY = "manage:forum:query";
+    public static final String FORUM_ADD = "manage:forum:add";
+    public static final String FORUM_EDIT = "manage:forum:edit";
+    public static final String FORUM_DELETE = "manage:forum:delete";
+
+    // 论坛帖子权限
+    public static final String POST_QUERY = "manage:post:query";
+    public static final String POST_ADD = "manage:post:add";
+    public static final String POST_EDIT = "manage:post:edit";
+    public static final String POST_DELETE = "manage:post:delete";
 
     // 论坛回复权限
     public static final String REPLY_QUERY = "manage:reply:query";

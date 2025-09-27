@@ -12,15 +12,31 @@ public interface ICourseChapterService {
 
     PageInfo<CourseChapterVO> listCourseChapter(CourseChapterQueryDTO courseChapterQueryDTO);
 
-    List<CourseChapterVO> listAllCourseChapterTree(UUID courseId);
+    List<CourseChapterVO> listCourseChapterByCourseId(UUID courseId);
 
-    CourseChapterVO getCourseChapterById(UUID chapterId);
+    List<CourseChapterVO> listCourseChapterTree(UUID courseId);
+
+    CourseChapterVO getCourseChapterById(UUID id);
 
     CourseChapterVO addCourseChapter(CourseChapterDTO courseChapterDTO);
 
     Boolean updateCourseChapter(CourseChapterDTO courseChapterDTO);
 
-    Boolean removeCourseChapterById(UUID chapterId);
+    Boolean removeCourseChapterById(UUID id);
 
-    Integer removeCourseChapterByIds(List<UUID> chapterIds);
+    Integer removeCourseChapterByIds(List<UUID> ids);
+
+    Boolean updateChapterStatus(UUID id, Integer status);
+
+    Boolean updateChapterSortOrder(UUID id, Integer sortOrder);
+
+    Boolean batchUpdateChapterSortOrder(List<CourseChapterDTO> chapterSortList);
+
+    Boolean likeChapter(UUID id);
+
+    Boolean unlikeChapter(UUID id);
+
+    Boolean viewChapter(UUID id);
+
+    CourseChapterVO getChapterStatistics(UUID id);
 }

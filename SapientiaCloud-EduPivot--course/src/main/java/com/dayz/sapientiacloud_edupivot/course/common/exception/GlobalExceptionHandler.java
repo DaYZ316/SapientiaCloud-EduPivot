@@ -6,10 +6,7 @@ import com.dayz.sapientiacloud_edupivot.course.common.enums.SysRoleEnum;
 import com.dayz.sapientiacloud_edupivot.course.common.enums.SysUserEnum;
 import com.dayz.sapientiacloud_edupivot.course.common.result.Result;
 import com.dayz.sapientiacloud_edupivot.course.common.utils.EnumUtil;
-import com.dayz.sapientiacloud_edupivot.course.enums.CourseChapterEnum;
-import com.dayz.sapientiacloud_edupivot.course.enums.CourseEnum;
-import com.dayz.sapientiacloud_edupivot.course.enums.CourseThreadEnum;
-import com.dayz.sapientiacloud_edupivot.course.enums.ThreadReplyEnum;
+import com.dayz.sapientiacloud_edupivot.course.enums.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
@@ -56,13 +53,17 @@ public class GlobalExceptionHandler {
         if (courseChapterEnum != null) {
             return Result.fail(courseChapterEnum.getMessage());
         }
-        CourseThreadEnum courseThreadEnum = EnumUtil.getByAttribute(CourseThreadEnum.class, e.getMessage(), CourseThreadEnum::getMessage);
-        if (courseThreadEnum != null) {
-            return Result.fail(courseThreadEnum.getMessage());
+        CourseForumEnum courseForumEnum = EnumUtil.getByAttribute(CourseForumEnum.class, e.getMessage(), CourseForumEnum::getMessage);
+        if (courseForumEnum != null) {
+            return Result.fail(courseForumEnum.getMessage());
         }
-        ThreadReplyEnum threadReplyEnum = EnumUtil.getByAttribute(ThreadReplyEnum.class, e.getMessage(), ThreadReplyEnum::getMessage);
-        if (threadReplyEnum != null) {
-            return Result.fail(threadReplyEnum.getMessage());
+        ForumPostEnum forumPostEnum = EnumUtil.getByAttribute(ForumPostEnum.class, e.getMessage(), ForumPostEnum::getMessage);
+        if (forumPostEnum != null) {
+            return Result.fail(forumPostEnum.getMessage());
+        }
+        ForumReplyEnum forumReplyEnum = EnumUtil.getByAttribute(ForumReplyEnum.class, e.getMessage(), ForumReplyEnum::getMessage);
+        if (forumReplyEnum != null) {
+            return Result.fail(forumReplyEnum.getMessage());
         }
         ResultEnum resultEnum = EnumUtil.getByAttribute(ResultEnum.class, e.getMessage(), ResultEnum::getMessage);
         return Result.fail(Objects.requireNonNullElse(resultEnum, ResultEnum.SYSTEM_ERROR));

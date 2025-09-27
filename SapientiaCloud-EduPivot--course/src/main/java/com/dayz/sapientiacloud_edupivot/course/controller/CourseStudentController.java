@@ -31,7 +31,7 @@ public class CourseStudentController extends BaseController {
     @HasPermission(
             summary = "listCourseStudent",
             description = "分页查询选课记录。",
-            permission = PermissionConstants.COURSE_QUERY
+            permission = PermissionConstants.STUDENT_QUERY
     )
     @GetMapping("/course/list")
     public TableDataResult listCourseStudent(@ParameterObject CourseStudentQueryDTO courseStudentQueryDTO) {
@@ -43,7 +43,7 @@ public class CourseStudentController extends BaseController {
     @HasPermission(
             summary = "listAllCourseStudentByCourseId",
             description = "根据课程ID获取所有选课学生。",
-            permission = PermissionConstants.COURSE_QUERY
+            permission = PermissionConstants.STUDENT_QUERY
     )
     @GetMapping("/course/{courseId}/all")
     public Result<List<CourseStudentVO>> listAllCourseStudentByCourseId(
@@ -56,7 +56,7 @@ public class CourseStudentController extends BaseController {
     @HasPermission(
             summary = "listAllCourseStudentByStudentId",
             description = "根据学生ID获取所有选课记录。",
-            permission = PermissionConstants.COURSE_QUERY
+            permission = PermissionConstants.STUDENT_QUERY
     )
     @GetMapping("/student/{studentId}/all")
     public Result<List<CourseStudentVO>> listAllCourseStudentByStudentId(
@@ -69,7 +69,7 @@ public class CourseStudentController extends BaseController {
     @HasPermission(
             summary = "getStudentCourseById",
             description = "获取学生在指定课程中的选课信息。",
-            permission = PermissionConstants.COURSE_QUERY
+            permission = PermissionConstants.STUDENT_QUERY
     )
     @GetMapping("/{studentId}")
     public Result<CourseStudentVO> getStudentCourseById(
@@ -82,7 +82,7 @@ public class CourseStudentController extends BaseController {
     @HasPermission(
             summary = "addCourseStudent",
             description = "学生选择某门课程。",
-            permission = PermissionConstants.COURSE_QUERY
+            permission = PermissionConstants.STUDENT_QUERY
     )
     @PostMapping("/add")
     public Result<Boolean> addCourseStudent(@Valid @RequestBody CourseStudentDTO courseStudentDTO) {
@@ -92,7 +92,7 @@ public class CourseStudentController extends BaseController {
     @HasPermission(
             summary = "updateCourseStudent",
             description = "修改选课信息。",
-            permission = PermissionConstants.COURSE_EDIT
+            permission = PermissionConstants.STUDENT_EDIT
     )
     @PutMapping
     public Result<Boolean> updateCourseStudent(@Valid @RequestBody CourseStudentDTO courseStudentDTO) {
@@ -102,7 +102,7 @@ public class CourseStudentController extends BaseController {
     @HasPermission(
             summary = "removeCourseStudentByStudentId",
             description = "学生退出已选的课程。",
-            permission = PermissionConstants.COURSE_QUERY
+            permission = PermissionConstants.STUDENT_QUERY
     )
     @DeleteMapping("/{studentId}")
     public Result<Boolean> removeCourseStudentByStudentId(
@@ -115,7 +115,7 @@ public class CourseStudentController extends BaseController {
     @HasPermission(
             summary = "removeCourseStudentByStudentIds",
             description = "批量删除选课记录。",
-            permission = PermissionConstants.COURSE_DELETE
+            permission = PermissionConstants.STUDENT_DELETE
     )
     @DeleteMapping
     public Result<Integer> removeCourseStudentByStudentIds(
