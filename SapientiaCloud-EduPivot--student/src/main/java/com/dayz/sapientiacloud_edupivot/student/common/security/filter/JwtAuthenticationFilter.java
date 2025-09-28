@@ -18,7 +18,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -80,7 +79,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     null,
                     roleKeys.stream()
                             .map(SimpleGrantedAuthority::new)
-                            .collect(Collectors.toList())
+                            .toList()
             );
 
             // 设置认证信息到安全上下文
@@ -115,7 +114,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                 null,
                                 roleKeys.stream()
                                         .map(SimpleGrantedAuthority::new)
-                                        .collect(Collectors.toList())
+                                        .toList()
                         );
 
                         // 设置认证信息到安全上下文

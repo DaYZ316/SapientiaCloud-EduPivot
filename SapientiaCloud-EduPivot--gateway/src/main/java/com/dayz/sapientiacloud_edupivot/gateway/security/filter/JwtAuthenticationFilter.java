@@ -21,7 +21,6 @@ import reactor.core.publisher.Mono;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -105,7 +104,7 @@ public class JwtAuthenticationFilter implements WebFilter {
                                 null,
                                 roleKeys.stream()
                                         .map(SimpleGrantedAuthority::new)
-                                        .collect(Collectors.toList())
+                                        .toList()
                         );
 
                         // 设置认证信息到反应式安全上下文

@@ -15,7 +15,6 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Feign请求处理切面
@@ -79,7 +78,7 @@ public class FeignRequestAspect {
                         null,
                         roleKeys.stream()
                                 .map(SimpleGrantedAuthority::new)
-                                .collect(Collectors.toList())
+                                .toList()
                 );
 
                 // 设置认证信息到安全上下文

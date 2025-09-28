@@ -23,11 +23,13 @@ public class CourseChapterVO implements Serializable {
     @Schema(name = "courseId", description = "所属课程ID")
     private UUID courseId;
 
+    @Schema(name = "teacherId", description = "创建教师ID")
+    private UUID teacherId;
+
+
     @Schema(name = "chapterName", description = "章节名称")
     private String chapterName;
 
-    @Schema(name = "chapterNumber", description = "章节序号")
-    private Integer chapterNumber;
 
     @Schema(name = "parentChapterId", description = "父章节ID")
     private UUID parentChapterId;

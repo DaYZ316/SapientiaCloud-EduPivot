@@ -5,6 +5,7 @@ import com.dayz.sapientiacloud_edupivot.course.common.result.Result;
 import com.dayz.sapientiacloud_edupivot.course.common.result.TableDataResult;
 import com.dayz.sapientiacloud_edupivot.course.common.security.annotation.HasPermission;
 import com.dayz.sapientiacloud_edupivot.course.constant.PermissionConstants;
+import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseChapterAddDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseChapterDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseChapterQueryDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.vo.CourseChapterVO;
@@ -30,7 +31,7 @@ public class CourseChapterController extends BaseController {
 
     @HasPermission(
             summary = "listCourseChapter",
-            description = "根据传入的条件分页查询课程章节信息。支持根据章节名称、课程ID、章节序号等字段进行查询。",
+            description = "根据传入的条件分页查询课程章节信息。支持根据章节名称、课程ID等字段进行查询。",
             permission = PermissionConstants.CHAPTER_QUERY
     )
     @GetMapping("/list")
@@ -86,9 +87,9 @@ public class CourseChapterController extends BaseController {
     )
     @PostMapping
     public Result<CourseChapterVO> addCourseChapter(
-            @RequestBody @Valid CourseChapterDTO courseChapterDTO
+            @RequestBody @Valid CourseChapterAddDTO courseChapterAddDTO
     ) {
-        CourseChapterVO courseChapterVO = courseChapterService.addCourseChapter(courseChapterDTO);
+        CourseChapterVO courseChapterVO = courseChapterService.addCourseChapter(courseChapterAddDTO);
         return Result.success(courseChapterVO);
     }
 

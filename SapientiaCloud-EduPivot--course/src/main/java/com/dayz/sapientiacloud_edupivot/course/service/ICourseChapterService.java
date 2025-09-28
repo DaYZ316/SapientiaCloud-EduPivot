@@ -1,5 +1,6 @@
 package com.dayz.sapientiacloud_edupivot.course.service;
 
+import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseChapterAddDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseChapterDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseChapterQueryDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.vo.CourseChapterVO;
@@ -18,7 +19,7 @@ public interface ICourseChapterService {
 
     CourseChapterVO getCourseChapterById(UUID id);
 
-    CourseChapterVO addCourseChapter(CourseChapterDTO courseChapterDTO);
+    CourseChapterVO addCourseChapter(CourseChapterAddDTO courseChapterAddDTO);
 
     Boolean updateCourseChapter(CourseChapterDTO courseChapterDTO);
 

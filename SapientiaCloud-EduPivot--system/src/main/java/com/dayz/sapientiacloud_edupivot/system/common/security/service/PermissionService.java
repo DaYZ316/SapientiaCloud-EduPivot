@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * 权限服务类
@@ -121,15 +120,15 @@ public class PermissionService {
         }
 
         // 从数据库获取用户权限
-        List<SysPermissionVO> permissionVOS = sysUserPermissionMapper.getUserPermissions(userId);
-        if (CollectionUtils.isEmpty(permissionVOS)) {
+        List<SysPermissionVO> permissionVOList = sysUserPermissionMapper.getUserPermissions(userId);
+        if (CollectionUtils.isEmpty(permissionVOList)) {
             return Collections.emptyList();
         }
 
         // 提取权限标识
-        permissions = permissionVOS.stream()
+        permissions = permissionVOList.stream()
                 .map(SysPermissionVO::getPermissionKey)
-                .collect(Collectors.toList());
+                .toList();
 
         // 缓存用户权限
         userPermissionCache.put(userId, permissions);

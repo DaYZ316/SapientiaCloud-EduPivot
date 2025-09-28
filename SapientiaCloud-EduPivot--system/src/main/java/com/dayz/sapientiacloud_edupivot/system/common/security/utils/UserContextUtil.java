@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 /**
  * 用户上下文工具类
@@ -89,7 +88,7 @@ public class UserContextUtil {
                 .map(Authentication::getAuthorities)
                 .map(authorities -> authorities.stream()
                         .map(GrantedAuthority::getAuthority)
-                        .collect(Collectors.toList()))
+                        .toList())
                 .orElseThrow(() -> new BusinessException(ResultEnum.UNAUTHORIZED));
     }
 

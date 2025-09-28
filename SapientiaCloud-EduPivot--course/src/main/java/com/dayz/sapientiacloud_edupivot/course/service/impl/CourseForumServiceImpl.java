@@ -19,14 +19,12 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -35,7 +33,6 @@ import org.springframework.util.StringUtils;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -96,7 +93,7 @@ public class CourseForumServiceImpl implements ICourseForumService {
         // 转换为VO
         List<CourseForumVO> forumVOList = forums.stream()
                 .map(this::convertToVO)
-                .collect(Collectors.toList());
+                .toList();
 
         // 构建分页信息
         PageInfo<CourseForumVO> pageInfo = new PageInfo<>(forumVOList);
@@ -119,7 +116,7 @@ public class CourseForumServiceImpl implements ICourseForumService {
         List<CourseForum> forums = courseForumRepository.findByCourseIdOrderBySortOrderAsc(courseId);
         return forums.stream()
                 .map(this::convertToVO)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
@@ -165,10 +162,10 @@ public class CourseForumServiceImpl implements ICourseForumService {
         // 创建论坛实体
         CourseForum forum = new CourseForum();
         BeanUtils.copyProperties(courseForumDTO, forum);
-        
+
         // 设置ID
         forum.setId(UuidCreator.getTimeOrderedEpoch());
-        
+
         // 设置默认值
         if (forum.getStatus() == null) {
             forum.setStatus(StatusEnum.NORMAL.getCode());
@@ -193,7 +190,7 @@ public class CourseForumServiceImpl implements ICourseForumService {
 
         // 保存论坛
         CourseForum savedForum = courseForumRepository.save(forum);
-        
+
         log.info(CourseForumConstants.LOG_ADD_SUCCESS, savedForum.getForumName());
         return convertToVO(savedForum);
     }
@@ -259,7 +256,7 @@ public class CourseForumServiceImpl implements ICourseForumService {
 
         // 保存更新
         courseForumRepository.save(existingForum);
-        
+
         log.info(CourseForumConstants.LOG_UPDATE_SUCCESS, existingForum.getForumName());
         return true;
     }
@@ -283,7 +280,7 @@ public class CourseForumServiceImpl implements ICourseForumService {
         forum.setDeleted(DeletedEnum.DELETED.getCode());
         forum.setUpdateTime(LocalDateTime.now());
         courseForumRepository.save(forum);
-        
+
         log.info(CourseForumConstants.LOG_DELETE_SUCCESS, forum.getForumName());
         return true;
     }
@@ -335,7 +332,7 @@ public class CourseForumServiceImpl implements ICourseForumService {
         forum.setStatus(status);
         forum.setUpdateTime(LocalDateTime.now());
         courseForumRepository.save(forum);
-        
+
         log.info(CourseForumConstants.LOG_UPDATE_STATUS_SUCCESS, forum.getForumName(), status);
         return true;
     }
@@ -359,7 +356,7 @@ public class CourseForumServiceImpl implements ICourseForumService {
         forum.setModeratorIds(moderatorIds);
         forum.setUpdateTime(LocalDateTime.now());
         courseForumRepository.save(forum);
-        
+
         log.info(CourseForumConstants.LOG_SET_MODERATORS_SUCCESS, forum.getForumName());
         return true;
     }

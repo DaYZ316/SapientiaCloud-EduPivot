@@ -34,13 +34,14 @@ public class CourseChapter extends BaseEntity implements Serializable {
     @Field("course_id")
     private UUID courseId;
 
+    @Schema(name = "teacherId", description = "创建教师ID")
+    @Field("teacher_id")
+    private UUID teacherId;
+
     @Schema(name = "chapterName", description = "章节名称")
     @Field("chapter_name")
     private String chapterName;
 
-    @Schema(name = "chapterNumber", description = "章节序号")
-    @Field("chapter_number")
-    private Integer chapterNumber;
 
     @Schema(name = "parentChapterId", description = "父章节ID (用于构建章节树结构)")
     @Field("parent_chapter_id")

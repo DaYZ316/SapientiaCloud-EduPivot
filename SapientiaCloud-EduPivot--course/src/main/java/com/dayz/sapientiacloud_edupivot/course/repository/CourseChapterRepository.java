@@ -6,7 +6,6 @@ import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -23,11 +22,9 @@ public interface CourseChapterRepository extends MongoRepository<CourseChapter, 
     @Query("{'course_id': ?0, 'chapter_name': {$regex: ?1, $options: 'i'}}")
     List<CourseChapter> findByCourseIdAndChapterNameContainingIgnoreCase(UUID courseId, String chapterName);
 
-    Optional<CourseChapter> findByCourseIdAndChapterNumber(UUID courseId, Integer chapterNumber);
 
     boolean existsByCourseIdAndChapterName(UUID courseId, String chapterName);
 
-    boolean existsByCourseIdAndChapterNumber(UUID courseId, Integer chapterNumber);
 
     long countByCourseId(UUID courseId);
 

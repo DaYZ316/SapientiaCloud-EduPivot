@@ -22,6 +22,9 @@ public enum CourseChapterEnum implements BaseEnum {
     COURSE_ID_REQUIRED(41009, "课程ID不能为空"),
     COURSE_NOT_EXISTS(41010, "课程不存在"),
 
+    // 教师相关错误
+    TEACHER_NOT_EXISTS(41021, "教师不存在"),
+
     // 父章节相关错误
     PARENT_CHAPTER_ID_REQUIRED(41011, "父章节ID不能为空"),
     PARENT_CHAPTER_NOT_EXISTS(41012, "父章节不存在"),
@@ -38,7 +41,7 @@ public enum CourseChapterEnum implements BaseEnum {
     // 分页相关错误
     PAGE_NUM_REQUIRED(41018, "页码不能为空"),
     PAGE_SIZE_REQUIRED(41019, "页面大小不能为空"),
-    CHAPTER_NAME_REQUIRED(41020, "章节名称不能为空" );
+    CHAPTER_NAME_REQUIRED(41020, "章节名称不能为空");
 
     private final int code;
 

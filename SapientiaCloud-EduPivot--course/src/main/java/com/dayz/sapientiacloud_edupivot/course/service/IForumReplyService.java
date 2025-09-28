@@ -2,10 +2,8 @@ package com.dayz.sapientiacloud_edupivot.course.service;
 
 import com.dayz.sapientiacloud_edupivot.course.entity.dto.ForumReplyDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.dto.ForumReplyQueryDTO;
-import com.dayz.sapientiacloud_edupivot.course.entity.po.ForumReply;
 import com.dayz.sapientiacloud_edupivot.course.entity.vo.ForumReplyVO;
 import com.github.pagehelper.PageInfo;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.UUID;

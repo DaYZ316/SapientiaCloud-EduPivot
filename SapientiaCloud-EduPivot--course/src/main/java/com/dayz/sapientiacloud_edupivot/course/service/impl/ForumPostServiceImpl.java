@@ -19,7 +19,6 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -35,7 +34,6 @@ import org.springframework.util.StringUtils;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -106,7 +104,7 @@ public class ForumPostServiceImpl implements IForumPostService {
         // 转换为VO
         List<ForumPostVO> postVOList = posts.stream()
                 .map(this::convertToVO)
-                .collect(Collectors.toList());
+                .toList();
 
         // 构建分页信息
         PageInfo<ForumPostVO> pageInfo = new PageInfo<>(postVOList);
@@ -129,7 +127,7 @@ public class ForumPostServiceImpl implements IForumPostService {
         List<ForumPost> posts = forumPostRepository.findByForumIdOrderByCreateTimeDesc(forumId);
         List<ForumPostVO> postVOList = posts.stream()
                 .map(this::convertToVO)
-                .collect(Collectors.toList());
+                .toList();
 
         // 构建分页信息
         PageInfo<ForumPostVO> pageInfo = new PageInfo<>(postVOList);
@@ -152,7 +150,7 @@ public class ForumPostServiceImpl implements IForumPostService {
         List<ForumPost> posts = forumPostRepository.findByCourseIdOrderByCreateTimeDesc(courseId);
         List<ForumPostVO> postVOList = posts.stream()
                 .map(this::convertToVO)
-                .collect(Collectors.toList());
+                .toList();
 
         // 构建分页信息
         PageInfo<ForumPostVO> pageInfo = new PageInfo<>(postVOList);
@@ -217,10 +215,10 @@ public class ForumPostServiceImpl implements IForumPostService {
         // 创建帖子实体
         ForumPost post = new ForumPost();
         BeanUtils.copyProperties(forumPostDTO, post);
-        
+
         // 设置ID
         post.setId(UuidCreator.getTimeOrderedEpoch());
-        
+
         // 设置默认值
         if (post.getStatus() == null) {
             post.setStatus(StatusEnum.NORMAL.getCode());
@@ -260,7 +258,7 @@ public class ForumPostServiceImpl implements IForumPostService {
 
         // 保存帖子
         ForumPost savedPost = forumPostRepository.save(post);
-        
+
         log.info(ForumPostConstants.LOG_ADD_SUCCESS, savedPost.getTitle());
         return convertToVO(savedPost);
     }
@@ -315,7 +313,7 @@ public class ForumPostServiceImpl implements IForumPostService {
 
         // 保存更新
         forumPostRepository.save(existingPost);
-        
+
         log.info(ForumPostConstants.LOG_UPDATE_SUCCESS, existingPost.getTitle());
         return true;
     }
@@ -339,7 +337,7 @@ public class ForumPostServiceImpl implements IForumPostService {
         post.setDeleted(DeletedEnum.DELETED.getCode());
         post.setUpdateTime(LocalDateTime.now());
         forumPostRepository.save(post);
-        
+
         log.info(ForumPostConstants.LOG_DELETE_SUCCESS, post.getTitle());
         return true;
     }
@@ -391,7 +389,7 @@ public class ForumPostServiceImpl implements IForumPostService {
         post.setStatus(status);
         post.setUpdateTime(LocalDateTime.now());
         forumPostRepository.save(post);
-        
+
         log.info(ForumPostConstants.LOG_UPDATE_STATUS_SUCCESS, post.getTitle(), status);
         return true;
     }
@@ -418,7 +416,7 @@ public class ForumPostServiceImpl implements IForumPostService {
         post.setIsTop(isTop);
         post.setUpdateTime(LocalDateTime.now());
         forumPostRepository.save(post);
-        
+
         log.info(ForumPostConstants.LOG_SET_TOP_SUCCESS, post.getTitle(), isTop);
         return true;
     }
@@ -445,7 +443,7 @@ public class ForumPostServiceImpl implements IForumPostService {
         post.setIsEssence(isEssence);
         post.setUpdateTime(LocalDateTime.now());
         forumPostRepository.save(post);
-        
+
         log.info(ForumPostConstants.LOG_SET_ESSENCE_SUCCESS, post.getTitle(), isEssence);
         return true;
     }
@@ -472,7 +470,7 @@ public class ForumPostServiceImpl implements IForumPostService {
         post.setIsLocked(isLocked);
         post.setUpdateTime(LocalDateTime.now());
         forumPostRepository.save(post);
-        
+
         log.info(ForumPostConstants.LOG_SET_LOCK_SUCCESS, post.getTitle(), isLocked);
         return true;
     }
@@ -489,9 +487,9 @@ public class ForumPostServiceImpl implements IForumPostService {
 
         Query query = new Query(Criteria.where(ForumPostConstants.FIELD_ID).is(id));
         Update update = new Update().inc(ForumPostConstants.FIELD_LIKE_COUNT, ForumPostConstants.INCREMENT_VALUE);
-        
+
         mongoTemplate.updateFirst(query, update, ForumPost.class);
-        
+
         log.info(ForumPostConstants.LOG_LIKE_SUCCESS, id);
         return true;
     }
@@ -508,9 +506,9 @@ public class ForumPostServiceImpl implements IForumPostService {
 
         Query query = new Query(Criteria.where(ForumPostConstants.FIELD_ID).is(id));
         Update update = new Update().inc(ForumPostConstants.FIELD_LIKE_COUNT, ForumPostConstants.DECREMENT_VALUE);
-        
+
         mongoTemplate.updateFirst(query, update, ForumPost.class);
-        
+
         log.info(ForumPostConstants.LOG_UNLIKE_SUCCESS, id);
         return true;
     }
@@ -527,9 +525,9 @@ public class ForumPostServiceImpl implements IForumPostService {
 
         Query query = new Query(Criteria.where(ForumPostConstants.FIELD_ID).is(id));
         Update update = new Update().inc(ForumPostConstants.FIELD_SHARE_COUNT, ForumPostConstants.INCREMENT_VALUE);
-        
+
         mongoTemplate.updateFirst(query, update, ForumPost.class);
-        
+
         log.info(ForumPostConstants.LOG_SHARE_SUCCESS, id);
         return true;
     }
@@ -546,9 +544,9 @@ public class ForumPostServiceImpl implements IForumPostService {
 
         Query query = new Query(Criteria.where(ForumPostConstants.FIELD_ID).is(id));
         Update update = new Update().inc(ForumPostConstants.FIELD_VIEW_COUNT, ForumPostConstants.INCREMENT_VALUE);
-        
+
         mongoTemplate.updateFirst(query, update, ForumPost.class);
-        
+
         log.info(ForumPostConstants.LOG_VIEW_SUCCESS, id);
         return true;
     }
@@ -564,7 +562,7 @@ public class ForumPostServiceImpl implements IForumPostService {
         List<ForumPost> posts = forumPostRepository.findTopPostsByLikeCount(limit);
         return posts.stream()
                 .map(this::convertToVO)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
@@ -578,7 +576,7 @@ public class ForumPostServiceImpl implements IForumPostService {
         List<ForumPost> posts = forumPostRepository.findLatestPosts(limit);
         return posts.stream()
                 .map(this::convertToVO)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     /**

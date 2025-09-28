@@ -23,14 +23,13 @@ public class CourseChapterDTO implements Serializable {
     @NotNull(message = "课程ID不能为空")
     private UUID courseId;
 
+    @Schema(name = "teacherId", description = "创建教师ID")
+    private UUID teacherId;
+
     @Schema(name = "chapterName", description = "章节名称")
     @NotBlank(message = "章节名称不能为空")
     @Size(max = 100, message = "章节名称不能超过100个字符")
     private String chapterName;
-
-    @Schema(name = "chapterNumber", description = "章节序号")
-    @Min(value = 1, message = "章节序号必须大于0")
-    private Integer chapterNumber;
 
     @Schema(name = "parentChapterId", description = "父章节ID")
     private UUID parentChapterId;

@@ -2,10 +2,8 @@ package com.dayz.sapientiacloud_edupivot.course.service;
 
 import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseForumDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseForumQueryDTO;
-import com.dayz.sapientiacloud_edupivot.course.entity.po.CourseForum;
 import com.dayz.sapientiacloud_edupivot.course.entity.vo.CourseForumVO;
 import com.github.pagehelper.PageInfo;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.UUID;

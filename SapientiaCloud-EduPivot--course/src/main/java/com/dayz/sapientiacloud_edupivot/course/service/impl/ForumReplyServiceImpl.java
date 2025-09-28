@@ -19,7 +19,6 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -36,7 +35,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 /**
  * 论坛回复服务实现类
@@ -113,7 +111,7 @@ public class ForumReplyServiceImpl implements IForumReplyService {
         // 转换为VO
         List<ForumReplyVO> replyVOList = replies.stream()
                 .map(this::convertToVO)
-                .collect(Collectors.toList());
+                .toList();
 
         // 构建分页信息
         PageInfo<ForumReplyVO> pageInfo = new PageInfo<>(replyVOList);
@@ -136,7 +134,7 @@ public class ForumReplyServiceImpl implements IForumReplyService {
         List<ForumReply> replies = forumReplyRepository.findByPostIdOrderByCreateTimeAsc(postId);
         List<ForumReplyVO> replyVOList = replies.stream()
                 .map(this::convertToVO)
-                .collect(Collectors.toList());
+                .toList();
 
         // 构建分页信息
         PageInfo<ForumReplyVO> pageInfo = new PageInfo<>(replyVOList);
@@ -159,7 +157,7 @@ public class ForumReplyServiceImpl implements IForumReplyService {
         List<ForumReply> replies = forumReplyRepository.findByForumIdOrderByCreateTimeDesc(forumId);
         List<ForumReplyVO> replyVOList = replies.stream()
                 .map(this::convertToVO)
-                .collect(Collectors.toList());
+                .toList();
 
         // 构建分页信息
         PageInfo<ForumReplyVO> pageInfo = new PageInfo<>(replyVOList);
@@ -182,7 +180,7 @@ public class ForumReplyServiceImpl implements IForumReplyService {
         List<ForumReply> replies = forumReplyRepository.findByCourseIdOrderByCreateTimeDesc(courseId);
         List<ForumReplyVO> replyVOList = replies.stream()
                 .map(this::convertToVO)
-                .collect(Collectors.toList());
+                .toList();
 
         // 构建分页信息
         PageInfo<ForumReplyVO> pageInfo = new PageInfo<>(replyVOList);
@@ -256,10 +254,10 @@ public class ForumReplyServiceImpl implements IForumReplyService {
         // 创建回复实体
         ForumReply reply = new ForumReply();
         BeanUtils.copyProperties(forumReplyDTO, reply);
-        
+
         // 设置ID
         reply.setId(UuidCreator.getTimeOrderedEpoch());
-        
+
         // 设置默认值
         if (reply.getStatus() == null) {
             reply.setStatus(StatusEnum.NORMAL.getCode());
@@ -292,7 +290,7 @@ public class ForumReplyServiceImpl implements IForumReplyService {
 
         // 保存回复
         ForumReply savedReply = forumReplyRepository.save(reply);
-        
+
         log.info(ForumReplyConstants.LOG_ADD_SUCCESS, savedReply.getId());
         return convertToVO(savedReply);
     }
@@ -336,7 +334,7 @@ public class ForumReplyServiceImpl implements IForumReplyService {
 
         // 保存更新
         forumReplyRepository.save(existingReply);
-        
+
         log.info(ForumReplyConstants.LOG_UPDATE_SUCCESS, existingReply.getId());
         return true;
     }
@@ -360,7 +358,7 @@ public class ForumReplyServiceImpl implements IForumReplyService {
         reply.setDeleted(DeletedEnum.DELETED.getCode());
         reply.setUpdateTime(LocalDateTime.now());
         forumReplyRepository.save(reply);
-        
+
         log.info(ForumReplyConstants.LOG_DELETE_SUCCESS, reply.getId());
         return true;
     }
@@ -412,7 +410,7 @@ public class ForumReplyServiceImpl implements IForumReplyService {
         reply.setStatus(status);
         reply.setUpdateTime(LocalDateTime.now());
         forumReplyRepository.save(reply);
-        
+
         log.info(ForumReplyConstants.LOG_UPDATE_STATUS_SUCCESS, reply.getId(), status);
         return true;
     }
@@ -429,9 +427,9 @@ public class ForumReplyServiceImpl implements IForumReplyService {
 
         Query query = new Query(Criteria.where(ForumReplyConstants.FIELD_ID).is(id));
         Update update = new Update().inc(ForumReplyConstants.FIELD_LIKE_COUNT, ForumReplyConstants.INCREMENT_VALUE);
-        
+
         mongoTemplate.updateFirst(query, update, ForumReply.class);
-        
+
         log.info(ForumReplyConstants.LOG_LIKE_SUCCESS, id);
         return true;
     }
@@ -448,9 +446,9 @@ public class ForumReplyServiceImpl implements IForumReplyService {
 
         Query query = new Query(Criteria.where(ForumReplyConstants.FIELD_ID).is(id));
         Update update = new Update().inc(ForumReplyConstants.FIELD_LIKE_COUNT, ForumReplyConstants.DECREMENT_VALUE);
-        
+
         mongoTemplate.updateFirst(query, update, ForumReply.class);
-        
+
         log.info(ForumReplyConstants.LOG_UNLIKE_SUCCESS, id);
         return true;
     }
@@ -474,7 +472,7 @@ public class ForumReplyServiceImpl implements IForumReplyService {
         reply.setIsAccepted(1);
         reply.setUpdateTime(LocalDateTime.now());
         forumReplyRepository.save(reply);
-        
+
         log.info(ForumReplyConstants.LOG_ACCEPT_SUCCESS, reply.getId());
         return true;
     }
@@ -498,7 +496,7 @@ public class ForumReplyServiceImpl implements IForumReplyService {
         reply.setIsAccepted(0);
         reply.setUpdateTime(LocalDateTime.now());
         forumReplyRepository.save(reply);
-        
+
         log.info(ForumReplyConstants.LOG_UNACCEPT_SUCCESS, reply.getId());
         return true;
     }
@@ -513,14 +511,14 @@ public class ForumReplyServiceImpl implements IForumReplyService {
 
         // 获取所有回复
         List<ForumReply> allReplies = forumReplyRepository.findByPostIdOrderByCreateTimeAsc(id);
-        
+
         // 转换为VO
-        List<ForumReplyVO> allReplyVOs = allReplies.stream()
+        List<ForumReplyVO> replyVOList = allReplies.stream()
                 .map(this::convertToVO)
-                .collect(Collectors.toList());
+                .toList();
 
         // 构建树形结构
-        return buildReplyTree(allReplyVOs, null);
+        return buildReplyTree(replyVOList, null);
     }
 
     @Override
@@ -546,7 +544,7 @@ public class ForumReplyServiceImpl implements IForumReplyService {
     private int getReplyDepth(UUID parentReplyId) {
         int depth = 0;
         UUID currentParentId = parentReplyId;
-        
+
         while (currentParentId != null && depth < ForumReplyConstants.MAX_REPLY_DEPTH) {
             ForumReply parentReply = forumReplyRepository.findById(currentParentId).orElse(null);
             if (parentReply == null) {
@@ -555,7 +553,7 @@ public class ForumReplyServiceImpl implements IForumReplyService {
             depth++;
             currentParentId = parentReply.getParentReplyId();
         }
-        
+
         return depth;
     }
 
@@ -580,22 +578,22 @@ public class ForumReplyServiceImpl implements IForumReplyService {
      */
     private List<ForumReplyVO> buildReplyTree(List<ForumReplyVO> allReplies, UUID parentId) {
         List<ForumReplyVO> result = new ArrayList<>();
-        
+
         for (ForumReplyVO reply : allReplies) {
             UUID currentParentId = reply.getParentReplyId();
-            
+
             // 判断是否为当前层级的回复
             if ((parentId == null && currentParentId == null) ||
-                (parentId != null && parentId.equals(currentParentId))) {
-                
+                    (parentId != null && parentId.equals(currentParentId))) {
+
                 // 递归查找子回复
                 List<ForumReplyVO> children = buildReplyTree(allReplies, reply.getId());
                 reply.setChildren(children);
-                
+
                 result.add(reply);
             }
         }
-        
+
         return result;
     }
 

@@ -23,7 +23,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * 文件上传控制器
@@ -50,7 +49,7 @@ public class MinIOController {
         List<Bucket> buckets = minIOUtil.getAllBuckets();
         List<String> bucketNames = buckets.stream()
                 .map(Bucket::name)
-                .collect(Collectors.toList());
+                .toList();
         return Result.success(bucketNames);
     }
 
@@ -223,7 +222,7 @@ public class MinIOController {
                         }
                         return fileInfo;
                     })
-                    .collect(Collectors.toList());
+                    .toList();
             return Result.success(fileList);
         } catch (Exception e) {
             log.error("列出文件失败: {}", e.getMessage(), e);
