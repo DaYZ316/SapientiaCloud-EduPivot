@@ -134,13 +134,13 @@ public class CourseChapterController extends BaseController {
 
     @HasPermission(
             summary = "updateChapterStatus",
-            description = "更新章节状态（草稿/发布/下架）。",
+            description = "更新章节状态（草稿/发布）。",
             permission = PermissionConstants.CHAPTER_EDIT
     )
     @PutMapping("/{id}/status")
     public Result<Boolean> updateChapterStatus(
             @Parameter(name = "id", description = "章节ID", required = true) @PathVariable("id") UUID id,
-            @Parameter(name = "status", description = "章节状态 (0=草稿, 1=发布, 2=下架)", required = true) @RequestParam("status") Integer status
+            @Parameter(name = "status", description = "章节状态 (0=草稿, 1=发布)", required = true) @RequestParam("status") Integer status
     ) {
         Boolean result = courseChapterService.updateChapterStatus(id, status);
         return Result.success(result);

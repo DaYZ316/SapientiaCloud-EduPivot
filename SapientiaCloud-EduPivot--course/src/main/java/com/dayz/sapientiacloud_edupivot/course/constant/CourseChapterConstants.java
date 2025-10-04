@@ -21,13 +21,12 @@ public class CourseChapterConstants {
 
     // 状态值
     public static final int STATUS_MIN = 0;
-    public static final int STATUS_MAX = 2;
+    public static final int STATUS_MAX = 1;
 
     // 默认值
     public static final int DEFAULT_SORT_ORDER = 0;
     public static final long DEFAULT_VIEW_COUNT = 0L;
     public static final long DEFAULT_LIKE_COUNT = 0L;
-    public static final long DEFAULT_COMMENT_COUNT = 0L;
     public static final int INCREMENT_VALUE = 1;
     public static final int DECREMENT_VALUE = -1;
 

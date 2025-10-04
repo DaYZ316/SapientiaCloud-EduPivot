@@ -41,13 +41,6 @@ public class CourseChapterDTO implements Serializable {
     @Schema(name = "content", description = "章节内容")
     private String content;
 
-    @Schema(name = "videoUrl", description = "视频资源URL")
-    private String videoUrl;
-
-    @Schema(name = "videoDuration", description = "视频时长(秒)")
-    @Min(value = 0, message = "视频时长不能为负数")
-    private Integer videoDuration;
-
     @Schema(name = "attachmentUrls", description = "附件URL列表")
     private List<String> attachmentUrls;
 
@@ -55,8 +48,8 @@ public class CourseChapterDTO implements Serializable {
     @Min(value = 0, message = "排序权重不能为负数")
     private Integer sortOrder;
 
-    @Schema(name = "status", description = "章节状态 (0=草稿, 1=发布, 2=下架)")
+    @Schema(name = "status", description = "章节状态 (0=草稿, 1=发布)")
     @Min(value = 0, message = "章节状态输入不正确")
-    @Max(value = 2, message = "章节状态输入不正确")
+    @Max(value = 1, message = "章节状态输入不正确")
     private Integer status;
 }

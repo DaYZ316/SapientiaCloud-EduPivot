@@ -223,9 +223,6 @@ public class CourseChapterServiceImpl implements ICourseChapterService {
         if (chapter.getLikeCount() == null) {
             chapter.setLikeCount(CourseChapterConstants.DEFAULT_LIKE_COUNT);
         }
-        if (chapter.getCommentCount() == null) {
-            chapter.setCommentCount(CourseChapterConstants.DEFAULT_COMMENT_COUNT);
-        }
         if (chapter.getSortOrder() == null) {
             chapter.setSortOrder(CourseChapterConstants.DEFAULT_SORT_ORDER);
         }
@@ -296,12 +293,6 @@ public class CourseChapterServiceImpl implements ICourseChapterService {
         }
         if (courseChapterDTO.getContent() != null) {
             existingChapter.setContent(courseChapterDTO.getContent());
-        }
-        if (courseChapterDTO.getVideoUrl() != null) {
-            existingChapter.setVideoUrl(courseChapterDTO.getVideoUrl());
-        }
-        if (courseChapterDTO.getVideoDuration() != null) {
-            existingChapter.setVideoDuration(courseChapterDTO.getVideoDuration());
         }
         if (courseChapterDTO.getAttachmentUrls() != null) {
             existingChapter.setAttachmentUrls(courseChapterDTO.getAttachmentUrls());

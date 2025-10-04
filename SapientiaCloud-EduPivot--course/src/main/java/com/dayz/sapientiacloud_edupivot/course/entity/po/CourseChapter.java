@@ -42,7 +42,6 @@ public class CourseChapter extends BaseEntity implements Serializable {
     @Field("chapter_name")
     private String chapterName;
 
-
     @Schema(name = "parentChapterId", description = "父章节ID (用于构建章节树结构)")
     @Field("parent_chapter_id")
     private UUID parentChapterId;
@@ -55,14 +54,6 @@ public class CourseChapter extends BaseEntity implements Serializable {
     @Field("content")
     private String content;
 
-    @Schema(name = "videoUrl", description = "视频资源URL")
-    @Field("video_url")
-    private String videoUrl;
-
-    @Schema(name = "videoDuration", description = "视频时长(秒)")
-    @Field("video_duration")
-    private Integer videoDuration;
-
     @Schema(name = "attachmentUrls", description = "附件URL列表")
     @Field("attachment_urls")
     private List<String> attachmentUrls;
@@ -71,7 +62,7 @@ public class CourseChapter extends BaseEntity implements Serializable {
     @Field("sort_order")
     private Integer sortOrder;
 
-    @Schema(name = "status", description = "章节状态 (0=草稿, 1=发布, 2=下架)")
+    @Schema(name = "status", description = "章节状态 (0=草稿, 1=发布)")
     @Field("status")
     private Integer status;
 
@@ -83,7 +74,4 @@ public class CourseChapter extends BaseEntity implements Serializable {
     @Field("like_count")
     private Long likeCount;
 
-    @Schema(name = "commentCount", description = "评论次数")
-    @Field("comment_count")
-    private Long commentCount;
 }

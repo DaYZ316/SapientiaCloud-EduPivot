@@ -1,5 +1,7 @@
 package com.dayz.sapientiacloud_edupivot.minio.controller;
 
+import com.dayz.sapientiacloud_edupivot.minio.constant.MinIOConstants;
+import com.dayz.sapientiacloud_edupivot.minio.entity.dto.FileInfoDTO;
 import com.dayz.sapientiacloud_edupivot.minio.enums.FileEnum;
 import com.dayz.sapientiacloud_edupivot.minio.result.Result;
 import com.dayz.sapientiacloud_edupivot.minio.utils.MinIOUtil;
@@ -68,7 +70,7 @@ public class MinIOController {
     ) {
         try {
             if (file == null || file.isEmpty()) {
-                return Result.fail(FileEnum.FILE_CANNOT_BE_EMPTY.getMessage());
+                return Result.fail(MinIOConstants.FILE_CANNOT_BE_EMPTY_MESSAGE);
             }
 
             String objectName = null;
@@ -94,8 +96,8 @@ public class MinIOController {
 
             return Result.success(fileInfo);
         } catch (Exception e) {
-            log.error("文件上传失败: {}", e.getMessage(), e);
-            return Result.fail(FileEnum.FILE_UPLOAD_FAILED.getMessage());
+            log.error(MinIOConstants.FILE_UPLOAD_ERROR_LOG, e.getMessage(), e);
+            return Result.fail(MinIOConstants.FILE_UPLOAD_FAILED_MESSAGE);
         }
     }
 
@@ -116,8 +118,8 @@ public class MinIOController {
             String url = minIOUtil.getPresignedObjectUrl(objectName, expiry);
             return Result.success(url);
         } catch (Exception e) {
-            log.error("获取文件URL失败: {}", e.getMessage(), e);
-            return Result.fail(FileEnum.FILE_URL_GENERATION_FAILED.getMessage());
+            log.error(MinIOConstants.FILE_URL_ERROR_LOG, e.getMessage(), e);
+            return Result.fail(MinIOConstants.FILE_URL_GENERATION_FAILED_MESSAGE);
         }
     }
 
@@ -151,11 +153,11 @@ public class MinIOController {
                 response.flushBuffer();
             }
         } catch (Exception e) {
-            log.error("文件下载失败: {}", e.getMessage(), e);
+            log.error(MinIOConstants.FILE_DOWNLOAD_ERROR_LOG, e.getMessage(), e);
             try {
-                response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "文件下载失败: " + e.getMessage());
+                response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, MinIOConstants.FILE_DOWNLOAD_FAILED_MESSAGE + ": " + e.getMessage());
             } catch (Exception ex) {
-                log.error("发送错误响应失败", ex);
+                log.error(MinIOConstants.SEND_ERROR_RESPONSE_ERROR_LOG, ex);
             }
         }
     }
@@ -175,7 +177,7 @@ public class MinIOController {
         if (result) {
             return Result.success(true);
         } else {
-            return Result.fail(FileEnum.FILE_DELETE_FAILED.getMessage());
+            return Result.fail(MinIOConstants.FILE_DELETE_FAILED_MESSAGE);
         }
     }
 
@@ -218,15 +220,139 @@ public class MinIOController {
                             fileInfo.put("isDir", item.isDir());
                             fileInfo.put("etag", item.etag());
                         } catch (Exception e) {
-                            log.error("获取文件信息失败", e);
+                            log.error(MinIOConstants.FILE_INFO_ERROR_LOG, e.getMessage(), e);
                         }
                         return fileInfo;
                     })
                     .toList();
             return Result.success(fileList);
         } catch (Exception e) {
-            log.error("列出文件失败: {}", e.getMessage(), e);
-            return Result.fail(FileEnum.FILE_LIST_FAILED.getMessage());
+            log.error(MinIOConstants.FILE_LIST_ERROR_LOG, e.getMessage(), e);
+            return Result.fail(MinIOConstants.FILE_LIST_FAILED_MESSAGE);
+        }
+    }
+
+    /**
+     * 获取文件详细信息
+     *
+     * @param objectName 对象名称
+     * @return 文件详细信息
+     */
+    @Operation(summary = "getFileInfo", description = "获取文件详细信息接口")
+    @GetMapping("/info")
+    public Result<FileInfoDTO> getFileInfo(
+            @Parameter(description = "文件对象名称", required = true) @RequestParam("objectName") String objectName
+    ) {
+        try {
+            FileInfoDTO fileInfo = minIOUtil.getFileInfo(objectName);
+            return Result.success(fileInfo);
+        } catch (Exception e) {
+            log.error(MinIOConstants.FILE_INFO_ERROR_LOG, e.getMessage(), e);
+            return Result.fail(MinIOConstants.FILE_INFO_FAILED_MESSAGE);
+        }
+    }
+
+    /**
+     * 通过路径获取文件详细信息
+     *
+     * @param filePath 文件路径
+     * @return 文件详细信息
+     */
+    @Operation(summary = "getFileInfoByPath", description = "通过路径获取文件详细信息接口")
+    @GetMapping("/info/path")
+    public Result<FileInfoDTO> getFileInfoByPath(
+            @Parameter(description = "文件路径", required = true) @RequestParam("filePath") String filePath
+    ) {
+        try {
+            FileInfoDTO fileInfo = minIOUtil.getFileInfoByPath(filePath);
+            return Result.success(fileInfo);
+        } catch (Exception e) {
+            log.error(MinIOConstants.FILE_INFO_BY_PATH_ERROR_LOG, e.getMessage(), e);
+            return Result.fail(MinIOConstants.FILE_INFO_FAILED_MESSAGE);
+        }
+    }
+
+    /**
+     * 批量获取文件详细信息
+     *
+     * @param objectNames 对象名称数组
+     * @return 文件详细信息列表
+     */
+    @Operation(summary = "getBatchFileInfo", description = "批量获取文件详细信息接口")
+    @PostMapping("/info/batch")
+    public Result<List<FileInfoDTO>> getBatchFileInfo(
+            @Parameter(description = "文件对象名称数组", required = true) @RequestBody String[] objectNames
+    ) {
+        try {
+            List<FileInfoDTO> fileInfoList = minIOUtil.getBatchFileInfo(objectNames);
+            return Result.success(fileInfoList);
+        } catch (Exception e) {
+            log.error(MinIOConstants.FILE_INFO_BATCH_ERROR_LOG, e.getMessage(), e);
+            return Result.fail(MinIOConstants.FILE_INFO_FAILED_MESSAGE);
+        }
+    }
+
+    /**
+     * 通过路径数组批量获取文件详细信息
+     *
+     * @param filePaths 文件路径数组
+     * @return 文件详细信息列表
+     */
+    @Operation(summary = "getBatchFileInfoByPath", description = "通过路径数组批量获取文件详细信息接口")
+    @PostMapping("/info/batch/path")
+    public Result<List<FileInfoDTO>> getBatchFileInfoByPath(
+            @Parameter(description = "文件路径数组", required = true) @RequestBody String[] filePaths
+    ) {
+        try {
+            List<FileInfoDTO> fileInfoList = minIOUtil.getBatchFileInfoByPath(filePaths);
+            return Result.success(fileInfoList);
+        } catch (Exception e) {
+            log.error(MinIOConstants.FILE_INFO_BATCH_BY_PATHS_ERROR_LOG, e.getMessage(), e);
+            return Result.fail(MinIOConstants.FILE_INFO_FAILED_MESSAGE);
+        }
+    }
+
+    /**
+     * 根据文件路径删除文件
+     *
+     * @param filePath 文件路径
+     * @return 删除结果
+     */
+    @Operation(summary = "deleteFileByPath", description = "根据文件路径删除文件接口")
+    @DeleteMapping("/delete/path")
+    public Result<Boolean> deleteFileByPath(
+            @Parameter(description = "文件路径", required = true) @RequestParam("filePath") String filePath
+    ) {
+        try {
+            boolean result = minIOUtil.removeObjectByPath(filePath);
+            if (result) {
+                return Result.success(true);
+            } else {
+                return Result.fail(MinIOConstants.FILE_DELETE_FAILED_MESSAGE);
+            }
+        } catch (Exception e) {
+            log.error(MinIOConstants.FILE_DELETE_BY_URL_ERROR_LOG, e.getMessage(), e);
+            return Result.fail(MinIOConstants.FILE_DELETE_BY_URL_FAILED_MESSAGE + ": " + e.getMessage());
+        }
+    }
+
+    /**
+     * 根据文件路径批量删除文件
+     *
+     * @param filePaths 文件路径列表
+     * @return 删除结果
+     */
+    @Operation(summary = "batchDeleteFilesByPath", description = "根据文件路径批量删除文件接口")
+    @DeleteMapping("/batch-delete/path")
+    public Result<Map<String, String>> batchDeleteFilesByPath(
+            @Parameter(name = "filePaths", description = "文件路径列表", required = true) @RequestBody List<String> filePaths
+    ) {
+        try {
+            Map<String, String> result = minIOUtil.removeObjectsByPath(filePaths);
+            return Result.success(result);
+        } catch (Exception e) {
+            log.error(MinIOConstants.FILE_DELETE_BATCH_BY_URL_ERROR_LOG, e.getMessage(), e);
+            return Result.fail(MinIOConstants.FILE_DELETE_BATCH_BY_URL_FAILED_MESSAGE + ": " + e.getMessage());
         }
     }
 } 

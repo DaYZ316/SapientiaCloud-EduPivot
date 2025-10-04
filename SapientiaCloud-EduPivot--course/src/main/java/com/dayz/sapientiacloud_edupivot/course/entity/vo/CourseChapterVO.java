@@ -40,11 +40,6 @@ public class CourseChapterVO implements Serializable {
     @Schema(name = "content", description = "章节内容")
     private String content;
 
-    @Schema(name = "videoUrl", description = "视频资源URL")
-    private String videoUrl;
-
-    @Schema(name = "videoDuration", description = "视频时长(秒)")
-    private Integer videoDuration;
 
     @Schema(name = "attachmentUrls", description = "附件URL列表")
     private List<String> attachmentUrls;
@@ -52,7 +47,7 @@ public class CourseChapterVO implements Serializable {
     @Schema(name = "sortOrder", description = "排序权重")
     private Integer sortOrder;
 
-    @Schema(name = "status", description = "章节状态 (0=草稿, 1=发布, 2=下架)")
+    @Schema(name = "status", description = "章节状态 (0=草稿, 1=发布)")
     private Integer status;
 
     @Schema(name = "viewCount", description = "浏览次数")
@@ -61,8 +56,6 @@ public class CourseChapterVO implements Serializable {
     @Schema(name = "likeCount", description = "点赞次数")
     private Long likeCount;
 
-    @Schema(name = "commentCount", description = "评论次数")
-    private Long commentCount;
 
     @Schema(name = "createTime", description = "创建时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")

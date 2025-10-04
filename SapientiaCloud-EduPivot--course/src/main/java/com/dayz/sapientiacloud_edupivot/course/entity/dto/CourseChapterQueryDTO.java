@@ -26,7 +26,7 @@ public class CourseChapterQueryDTO extends PageEntity implements Serializable {
     @Schema(name = "parentChapterId", description = "父章节ID")
     private UUID parentChapterId;
 
-    @Schema(name = "status", description = "章节状态 (0=草稿, 1=发布, 2=下架)")
+    @Schema(name = "status", description = "章节状态 (0=草稿, 1=发布)")
     private Integer status;
 
     @Schema(name = "minViewCount", description = "最小浏览次数")
