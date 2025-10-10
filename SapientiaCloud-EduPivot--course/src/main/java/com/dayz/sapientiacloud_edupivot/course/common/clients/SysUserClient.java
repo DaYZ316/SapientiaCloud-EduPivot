@@ -6,6 +6,7 @@ import com.dayz.sapientiacloud_edupivot.course.common.entity.dto.SysUserPassword
 import com.dayz.sapientiacloud_edupivot.course.common.entity.dto.SysUserRegisterDTO;
 import com.dayz.sapientiacloud_edupivot.course.common.entity.vo.SysRoleVO;
 import com.dayz.sapientiacloud_edupivot.course.common.entity.vo.SysUserInternalVO;
+import com.dayz.sapientiacloud_edupivot.course.common.entity.vo.SysUserVO;
 import com.dayz.sapientiacloud_edupivot.course.common.result.Result;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
@@ -15,6 +16,8 @@ import java.util.UUID;
 
 @FeignClient(contextId = "SysUserClient", value = "SapientiaCloud-EduPivot--system", path = "/user", configuration = FeignConfig.class)
 public interface SysUserClient {
+    @GetMapping("/internal/all")
+    Result<List<SysUserVO>> listAllSysUser();
 
     @GetMapping("/internal/info/{username}")
     Result<SysUserInternalVO> getUserInfoByUsername(@PathVariable("username") String username);

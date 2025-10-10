@@ -37,19 +37,19 @@ public class CourseForumController extends BaseController {
     public TableDataResult listCourseForum(@ParameterObject CourseForumQueryDTO courseForumQueryDTO) {
         startPage();
         PageInfo<CourseForumVO> pageInfo = courseForumService.listCourseForum(courseForumQueryDTO);
-        return getDataTable(pageInfo.getList());
+        return getDataTable(pageInfo);
     }
 
     @HasPermission(
-            summary = "listCourseForumByCourseId",
+            summary = "listAllCourseForumByCourseId",
             description = "根据课程ID获取该课程下的所有论坛列表。",
             permission = PermissionConstants.FORUM_QUERY
     )
     @GetMapping("/course/{courseId}")
-    public Result<List<CourseForumVO>> listCourseForumByCourseId(
+    public Result<List<CourseForumVO>> listAllCourseForumByCourseId(
             @Parameter(name = "courseId", description = "课程ID", required = true) @PathVariable("courseId") UUID courseId
     ) {
-        List<CourseForumVO> forumVOList = courseForumService.listCourseForumByCourseId(courseId);
+        List<CourseForumVO> forumVOList = courseForumService.listAllCourseForumByCourseId(courseId);
         return Result.success(forumVOList);
     }
 

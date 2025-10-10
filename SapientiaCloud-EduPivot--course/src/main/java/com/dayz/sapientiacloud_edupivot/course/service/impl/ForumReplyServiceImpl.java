@@ -1,8 +1,11 @@
 package com.dayz.sapientiacloud_edupivot.course.service.impl;
 
+import com.dayz.sapientiacloud_edupivot.course.common.clients.SysUserClient;
+import com.dayz.sapientiacloud_edupivot.course.common.entity.vo.SysUserVO;
 import com.dayz.sapientiacloud_edupivot.course.common.enums.DeletedEnum;
 import com.dayz.sapientiacloud_edupivot.course.common.enums.StatusEnum;
 import com.dayz.sapientiacloud_edupivot.course.common.exception.BusinessException;
+import com.dayz.sapientiacloud_edupivot.course.common.result.Result;
 import com.dayz.sapientiacloud_edupivot.course.constant.ForumReplyConstants;
 import com.dayz.sapientiacloud_edupivot.course.entity.dto.ForumReplyDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.dto.ForumReplyQueryDTO;
@@ -10,6 +13,7 @@ import com.dayz.sapientiacloud_edupivot.course.entity.po.ForumReply;
 import com.dayz.sapientiacloud_edupivot.course.entity.vo.ForumReplyVO;
 import com.dayz.sapientiacloud_edupivot.course.enums.ForumReplyEnum;
 import com.dayz.sapientiacloud_edupivot.course.repository.ForumReplyRepository;
+import com.dayz.sapientiacloud_edupivot.course.service.IForumPostService;
 import com.dayz.sapientiacloud_edupivot.course.service.IForumReplyService;
 import com.github.f4b6a3.uuid.UuidCreator;
 import com.github.pagehelper.PageInfo;
@@ -32,9 +36,8 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 论坛回复服务实现类
@@ -49,6 +52,8 @@ public class ForumReplyServiceImpl implements IForumReplyService {
 
     private final ForumReplyRepository forumReplyRepository;
     private final MongoTemplate mongoTemplate;
+    private final SysUserClient sysUserClient;
+    private final IForumPostService forumPostService;
 
     @Override
     @Transactional(readOnly = true)
@@ -84,6 +89,9 @@ public class ForumReplyServiceImpl implements IForumReplyService {
         // 父回复ID
         if (forumReplyQueryDTO.getParentReplyId() != null) {
             criteria.and(ForumReplyConstants.FIELD_PARENT_REPLY_ID).is(forumReplyQueryDTO.getParentReplyId());
+        } else {
+            // 如果父回复ID为null，则查询父回复为null的回复（根回复）
+            criteria.and(ForumReplyConstants.FIELD_PARENT_REPLY_ID).isNull();
         }
 
         // 状态
@@ -91,11 +99,12 @@ public class ForumReplyServiceImpl implements IForumReplyService {
             criteria.and(ForumReplyConstants.FIELD_STATUS).is(forumReplyQueryDTO.getStatus());
         }
 
-        // 逻辑删除
-        criteria.and(ForumReplyConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode());
-
         query.addCriteria(criteria);
-        query.with(Sort.by(Sort.Direction.ASC, ForumReplyConstants.FIELD_FLOOR_NUMBER, ForumReplyConstants.FIELD_CREATE_TIME));
+        query.with(Sort.by(Sort.Direction.DESC, ForumReplyConstants.FIELD_LIKE_COUNT, ForumReplyConstants.FIELD_FLOOR_NUMBER));
+
+        // 创建用于计数的查询对象（不包含分页条件）
+        Query countQuery = new Query();
+        countQuery.addCriteria(criteria);
 
         // 分页
         Pageable pageable = PageRequest.of(
@@ -106,12 +115,10 @@ public class ForumReplyServiceImpl implements IForumReplyService {
 
         // 执行查询
         List<ForumReply> replies = mongoTemplate.find(query, ForumReply.class);
-        long total = mongoTemplate.count(query, ForumReply.class);
+        long total = mongoTemplate.count(countQuery, ForumReply.class);
 
         // 转换为VO
-        List<ForumReplyVO> replyVOList = replies.stream()
-                .map(this::convertToVO)
-                .toList();
+        List<ForumReplyVO> replyVOList = convertToVOList(replies);
 
         // 构建分页信息
         PageInfo<ForumReplyVO> pageInfo = new PageInfo<>(replyVOList);
@@ -126,70 +133,58 @@ public class ForumReplyServiceImpl implements IForumReplyService {
     @Override
     @Transactional(readOnly = true)
     @Cacheable(value = "ForumReply", key = "'post:' + #p0", condition = "#p0 != null")
-    public PageInfo<ForumReplyVO> listForumReplyByPostId(UUID postId, ForumReplyQueryDTO forumReplyQueryDTO) {
+    public List<ForumReplyVO> listAllForumReplyByPostId(UUID postId) {
         if (postId == null) {
             throw new BusinessException(ForumReplyEnum.POST_ID_REQUIRED);
         }
 
-        List<ForumReply> replies = forumReplyRepository.findByPostIdOrderByCreateTimeAsc(postId);
-        List<ForumReplyVO> replyVOList = replies.stream()
-                .map(this::convertToVO)
-                .toList();
+        // 构建查询条件
+        Query query = new Query();
+        Criteria criteria = new Criteria();
+        criteria.and(ForumReplyConstants.FIELD_POST_ID).is(postId);
+        query.addCriteria(criteria);
+        query.with(Sort.by(Sort.Direction.ASC, ForumReplyConstants.FIELD_FLOOR_NUMBER, ForumReplyConstants.FIELD_CREATE_TIME));
 
-        // 构建分页信息
-        PageInfo<ForumReplyVO> pageInfo = new PageInfo<>(replyVOList);
-        pageInfo.setTotal(replyVOList.size());
-        pageInfo.setPageNum(1);
-        pageInfo.setPageSize(replyVOList.size());
-        pageInfo.setPages(1);
-
-        return pageInfo;
+        List<ForumReply> replies = mongoTemplate.find(query, ForumReply.class);
+        return convertToVOList(replies);
     }
 
     @Override
     @Transactional(readOnly = true)
     @Cacheable(value = "ForumReply", key = "'forum:' + #p0", condition = "#p0 != null")
-    public PageInfo<ForumReplyVO> listForumReplyByForumId(UUID forumId, ForumReplyQueryDTO forumReplyQueryDTO) {
+    public List<ForumReplyVO> listAllForumReplyByForumId(UUID forumId) {
         if (forumId == null) {
             throw new BusinessException(ForumReplyEnum.FORUM_ID_REQUIRED);
         }
 
-        List<ForumReply> replies = forumReplyRepository.findByForumIdOrderByCreateTimeDesc(forumId);
-        List<ForumReplyVO> replyVOList = replies.stream()
-                .map(this::convertToVO)
-                .toList();
+        // 构建查询条件
+        Query query = new Query();
+        Criteria criteria = new Criteria();
+        criteria.and(ForumReplyConstants.FIELD_FORUM_ID).is(forumId);
+        query.addCriteria(criteria);
+        query.with(Sort.by(Sort.Direction.DESC, ForumReplyConstants.FIELD_CREATE_TIME));
 
-        // 构建分页信息
-        PageInfo<ForumReplyVO> pageInfo = new PageInfo<>(replyVOList);
-        pageInfo.setTotal(replyVOList.size());
-        pageInfo.setPageNum(1);
-        pageInfo.setPageSize(replyVOList.size());
-        pageInfo.setPages(1);
-
-        return pageInfo;
+        List<ForumReply> replies = mongoTemplate.find(query, ForumReply.class);
+        return convertToVOList(replies);
     }
 
     @Override
     @Transactional(readOnly = true)
     @Cacheable(value = "ForumReply", key = "'course:' + #p0", condition = "#p0 != null")
-    public PageInfo<ForumReplyVO> listForumReplyByCourseId(UUID courseId, ForumReplyQueryDTO forumReplyQueryDTO) {
+    public List<ForumReplyVO> listAllForumReplyByCourseId(UUID courseId) {
         if (courseId == null) {
             throw new BusinessException(ForumReplyEnum.COURSE_ID_REQUIRED);
         }
 
-        List<ForumReply> replies = forumReplyRepository.findByCourseIdOrderByCreateTimeDesc(courseId);
-        List<ForumReplyVO> replyVOList = replies.stream()
-                .map(this::convertToVO)
-                .toList();
+        // 构建查询条件
+        Query query = new Query();
+        Criteria criteria = new Criteria();
+        criteria.and(ForumReplyConstants.FIELD_COURSE_ID).is(courseId);
+        query.addCriteria(criteria);
+        query.with(Sort.by(Sort.Direction.DESC, ForumReplyConstants.FIELD_CREATE_TIME));
 
-        // 构建分页信息
-        PageInfo<ForumReplyVO> pageInfo = new PageInfo<>(replyVOList);
-        pageInfo.setTotal(replyVOList.size());
-        pageInfo.setPageNum(1);
-        pageInfo.setPageSize(replyVOList.size());
-        pageInfo.setPages(1);
-
-        return pageInfo;
+        List<ForumReply> replies = mongoTemplate.find(query, ForumReply.class);
+        return convertToVOList(replies);
     }
 
     @Override
@@ -200,8 +195,15 @@ public class ForumReplyServiceImpl implements IForumReplyService {
             throw new BusinessException(ForumReplyEnum.REPLY_ID_REQUIRED);
         }
 
-        ForumReply reply = forumReplyRepository.findById(id)
-                .orElseThrow(() -> new BusinessException(ForumReplyEnum.REPLY_NOT_EXISTS));
+        Query query = new Query();
+        Criteria criteria = new Criteria();
+        criteria.and(ForumReplyConstants.FIELD_ID).is(id);
+        query.addCriteria(criteria);
+
+        ForumReply reply = mongoTemplate.findOne(query, ForumReply.class);
+        if (reply == null) {
+            throw new BusinessException(ForumReplyEnum.REPLY_NOT_EXISTS);
+        }
 
         return convertToVO(reply);
     }
@@ -211,7 +213,9 @@ public class ForumReplyServiceImpl implements IForumReplyService {
     @Caching(evict = {
             @CacheEvict(value = "ForumReply", key = "'post:' + #p0.postId"),
             @CacheEvict(value = "ForumReply", key = "'forum:' + #p0.forumId"),
-            @CacheEvict(value = "ForumReply", key = "'course:' + #p0.courseId")
+            @CacheEvict(value = "ForumReply", key = "'course:' + #p0.courseId"),
+            @CacheEvict(value = "ForumReply", key = "'tree:' + #p0.postId"),
+            @CacheEvict(value = "ReplyChildren", allEntries = true)
     })
     public ForumReplyVO addForumReply(ForumReplyDTO forumReplyDTO) {
         if (forumReplyDTO == null) {
@@ -243,10 +247,11 @@ public class ForumReplyServiceImpl implements IForumReplyService {
             throw new BusinessException(ForumReplyEnum.REPLY_CONTENT_REQUIRED);
         }
 
-        // 检查回复层级
+        // 检查回复层级（设置合理的上限防止恶意创建过深的回复）
         if (forumReplyDTO.getParentReplyId() != null) {
             int depth = getReplyDepth(forumReplyDTO.getParentReplyId());
-            if (depth >= ForumReplyConstants.MAX_REPLY_DEPTH) {
+            // 设置一个合理的上限，比如100层，防止恶意创建过深的回复
+            if (depth >= 100) {
                 throw new BusinessException(ForumReplyEnum.REPLY_TOO_DEEP);
             }
         }
@@ -301,7 +306,9 @@ public class ForumReplyServiceImpl implements IForumReplyService {
             @CacheEvict(value = "ForumReply", key = "#p0.id"),
             @CacheEvict(value = "ForumReply", key = "'post:' + #p0.postId"),
             @CacheEvict(value = "ForumReply", key = "'forum:' + #p0.forumId"),
-            @CacheEvict(value = "ForumReply", key = "'course:' + #p0.courseId")
+            @CacheEvict(value = "ForumReply", key = "'course:' + #p0.courseId"),
+            @CacheEvict(value = "ForumReply", key = "'tree:' + #p0.id"),
+            @CacheEvict(value = "ReplyChildren", allEntries = true)
     })
     public Boolean updateForumReply(ForumReplyDTO forumReplyDTO) {
         if (forumReplyDTO == null || forumReplyDTO.getId() == null) {
@@ -309,8 +316,15 @@ public class ForumReplyServiceImpl implements IForumReplyService {
         }
 
         // 检查回复是否存在
-        ForumReply existingReply = forumReplyRepository.findById(forumReplyDTO.getId())
-                .orElseThrow(() -> new BusinessException(ForumReplyEnum.REPLY_NOT_EXISTS));
+        Query query = new Query();
+        Criteria criteria = new Criteria();
+        criteria.and(ForumReplyConstants.FIELD_ID).is(forumReplyDTO.getId());
+        query.addCriteria(criteria);
+
+        ForumReply existingReply = mongoTemplate.findOne(query, ForumReply.class);
+        if (existingReply == null) {
+            throw new BusinessException(ForumReplyEnum.REPLY_NOT_EXISTS);
+        }
 
         // 更新字段
         if (StringUtils.hasText(forumReplyDTO.getContent())) {
@@ -342,8 +356,8 @@ public class ForumReplyServiceImpl implements IForumReplyService {
     @Override
     @Transactional
     @Caching(evict = {
-            @CacheEvict(value = "ForumReply", key = "#p0"),
-            @CacheEvict(value = "ForumReply", allEntries = true)
+            @CacheEvict(value = "ForumReply", allEntries = true),
+            @CacheEvict(value = "ReplyChildren", allEntries = true)
     })
     public Boolean removeForumReplyById(UUID id) {
         if (id == null) {
@@ -351,8 +365,15 @@ public class ForumReplyServiceImpl implements IForumReplyService {
         }
 
         // 检查回复是否存在
-        ForumReply reply = forumReplyRepository.findById(id)
-                .orElseThrow(() -> new BusinessException(ForumReplyEnum.REPLY_NOT_EXISTS));
+        Query query = new Query();
+        Criteria criteria = new Criteria();
+        criteria.and(ForumReplyConstants.FIELD_ID).is(id);
+        query.addCriteria(criteria);
+
+        ForumReply reply = mongoTemplate.findOne(query, ForumReply.class);
+        if (reply == null) {
+            throw new BusinessException(ForumReplyEnum.REPLY_NOT_EXISTS);
+        }
 
         // 逻辑删除
         reply.setDeleted(DeletedEnum.DELETED.getCode());
@@ -366,7 +387,8 @@ public class ForumReplyServiceImpl implements IForumReplyService {
     @Override
     @Transactional
     @Caching(evict = {
-            @CacheEvict(value = "ForumReply", allEntries = true)
+            @CacheEvict(value = "ForumReply", allEntries = true),
+            @CacheEvict(value = "ReplyChildren", allEntries = true)
     })
     public Integer removeForumReplyByIds(List<UUID> ids) {
         if (CollectionUtils.isEmpty(ids)) {
@@ -391,8 +413,8 @@ public class ForumReplyServiceImpl implements IForumReplyService {
     @Override
     @Transactional
     @Caching(evict = {
-            @CacheEvict(value = "ForumReply", key = "#p0"),
-            @CacheEvict(value = "ForumReply", allEntries = true)
+            @CacheEvict(value = "ForumReply", allEntries = true),
+            @CacheEvict(value = "ReplyChildren", allEntries = true)
     })
     public Boolean updateReplyStatus(UUID id, Integer status) {
         if (id == null) {
@@ -403,8 +425,15 @@ public class ForumReplyServiceImpl implements IForumReplyService {
         }
 
         // 检查回复是否存在
-        ForumReply reply = forumReplyRepository.findById(id)
-                .orElseThrow(() -> new BusinessException(ForumReplyEnum.REPLY_NOT_EXISTS));
+        Query query = new Query();
+        Criteria criteria = new Criteria();
+        criteria.and(ForumReplyConstants.FIELD_ID).is(id);
+        query.addCriteria(criteria);
+
+        ForumReply reply = mongoTemplate.findOne(query, ForumReply.class);
+        if (reply == null) {
+            throw new BusinessException(ForumReplyEnum.REPLY_NOT_EXISTS);
+        }
 
         // 更新状态
         reply.setStatus(status);
@@ -418,7 +447,8 @@ public class ForumReplyServiceImpl implements IForumReplyService {
     @Override
     @Transactional
     @Caching(evict = {
-            @CacheEvict(value = "ForumReply", key = "#p0")
+            @CacheEvict(value = "ForumReply", allEntries = true),
+            @CacheEvict(value = "ReplyChildren", allEntries = true)
     })
     public Boolean likeReply(UUID id) {
         if (id == null) {
@@ -437,7 +467,8 @@ public class ForumReplyServiceImpl implements IForumReplyService {
     @Override
     @Transactional
     @Caching(evict = {
-            @CacheEvict(value = "ForumReply", key = "#p0")
+            @CacheEvict(value = "ForumReply", allEntries = true),
+            @CacheEvict(value = "ReplyChildren", allEntries = true)
     })
     public Boolean unlikeReply(UUID id) {
         if (id == null) {
@@ -456,8 +487,8 @@ public class ForumReplyServiceImpl implements IForumReplyService {
     @Override
     @Transactional
     @Caching(evict = {
-            @CacheEvict(value = "ForumReply", key = "#p0"),
-            @CacheEvict(value = "ForumReply", allEntries = true)
+            @CacheEvict(value = "ForumReply", allEntries = true),
+            @CacheEvict(value = "ReplyChildren", allEntries = true)
     })
     public Boolean acceptReply(UUID id) {
         if (id == null) {
@@ -465,8 +496,15 @@ public class ForumReplyServiceImpl implements IForumReplyService {
         }
 
         // 检查回复是否存在
-        ForumReply reply = forumReplyRepository.findById(id)
-                .orElseThrow(() -> new BusinessException(ForumReplyEnum.REPLY_NOT_EXISTS));
+        Query query = new Query();
+        Criteria criteria = new Criteria();
+        criteria.and(ForumReplyConstants.FIELD_ID).is(id);
+        query.addCriteria(criteria);
+
+        ForumReply reply = mongoTemplate.findOne(query, ForumReply.class);
+        if (reply == null) {
+            throw new BusinessException(ForumReplyEnum.REPLY_NOT_EXISTS);
+        }
 
         // 更新采纳状态
         reply.setIsAccepted(1);
@@ -480,8 +518,8 @@ public class ForumReplyServiceImpl implements IForumReplyService {
     @Override
     @Transactional
     @Caching(evict = {
-            @CacheEvict(value = "ForumReply", key = "#p0"),
-            @CacheEvict(value = "ForumReply", allEntries = true)
+            @CacheEvict(value = "ForumReply", allEntries = true),
+            @CacheEvict(value = "ReplyChildren", allEntries = true)
     })
     public Boolean unacceptReply(UUID id) {
         if (id == null) {
@@ -489,8 +527,15 @@ public class ForumReplyServiceImpl implements IForumReplyService {
         }
 
         // 检查回复是否存在
-        ForumReply reply = forumReplyRepository.findById(id)
-                .orElseThrow(() -> new BusinessException(ForumReplyEnum.REPLY_NOT_EXISTS));
+        Query query = new Query();
+        Criteria criteria = new Criteria();
+        criteria.and(ForumReplyConstants.FIELD_ID).is(id);
+        query.addCriteria(criteria);
+
+        ForumReply reply = mongoTemplate.findOne(query, ForumReply.class);
+        if (reply == null) {
+            throw new BusinessException(ForumReplyEnum.REPLY_NOT_EXISTS);
+        }
 
         // 更新采纳状态
         reply.setIsAccepted(0);
@@ -509,16 +554,51 @@ public class ForumReplyServiceImpl implements IForumReplyService {
             throw new BusinessException(ForumReplyEnum.REPLY_ID_REQUIRED);
         }
 
+        // 构建查询条件
+        Query query = new Query();
+        Criteria criteria = new Criteria();
+        criteria.and(ForumReplyConstants.FIELD_POST_ID).is(id);
+        query.addCriteria(criteria);
+        query.with(Sort.by(Sort.Direction.ASC, ForumReplyConstants.FIELD_CREATE_TIME));
+
         // 获取所有回复
-        List<ForumReply> allReplies = forumReplyRepository.findByPostIdOrderByCreateTimeAsc(id);
+        List<ForumReply> allReplies = mongoTemplate.find(query, ForumReply.class);
 
         // 转换为VO
-        List<ForumReplyVO> replyVOList = allReplies.stream()
-                .map(this::convertToVO)
-                .toList();
+        List<ForumReplyVO> replyVOList = convertToVOList(allReplies);
 
         // 构建树形结构
         return buildReplyTree(replyVOList, null);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    @Cacheable(value = "ReplyChildren", key = "#p0", condition = "#p0 != null")
+    public List<ForumReplyVO> getAllRepliesByParentId(UUID parentReplyId) {
+        if (parentReplyId == null) {
+            throw new BusinessException(ForumReplyEnum.REPLY_ID_REQUIRED);
+        }
+
+        // 递归获取所有子回复（平铺的list形式）
+        List<ForumReplyVO> allReplies = new ArrayList<>();
+        collectAllRepliesByParentId(parentReplyId, allReplies);
+
+        // 按照点赞量（降序）和创建时间（降序）排序
+        allReplies.sort((a, b) -> {
+            // 首先按点赞量降序排序
+            int likeComparison = Long.compare(b.getLikeCount() != null ? b.getLikeCount() : 0L,
+                    a.getLikeCount() != null ? a.getLikeCount() : 0L);
+            if (likeComparison != 0) {
+                return likeComparison;
+            }
+            // 点赞量相同时，按创建时间降序排序
+            if (a.getCreateTime() != null && b.getCreateTime() != null) {
+                return b.getCreateTime().compareTo(a.getCreateTime());
+            }
+            return 0;
+        });
+
+        return allReplies;
     }
 
     @Override
@@ -529,14 +609,21 @@ public class ForumReplyServiceImpl implements IForumReplyService {
             throw new BusinessException(ForumReplyEnum.REPLY_ID_REQUIRED);
         }
 
-        ForumReply reply = forumReplyRepository.findById(id)
-                .orElseThrow(() -> new BusinessException(ForumReplyEnum.REPLY_NOT_EXISTS));
+        Query query = new Query();
+        Criteria criteria = new Criteria();
+        criteria.and(ForumReplyConstants.FIELD_ID).is(id);
+        query.addCriteria(criteria);
+
+        ForumReply reply = mongoTemplate.findOne(query, ForumReply.class);
+        if (reply == null) {
+            throw new BusinessException(ForumReplyEnum.REPLY_NOT_EXISTS);
+        }
 
         return convertToVO(reply);
     }
 
     /**
-     * 获取回复层级深度
+     * 获取回复层级深度（支持无限层级）
      *
      * @param parentReplyId 父回复ID
      * @return 层级深度
@@ -544,12 +631,28 @@ public class ForumReplyServiceImpl implements IForumReplyService {
     private int getReplyDepth(UUID parentReplyId) {
         int depth = 0;
         UUID currentParentId = parentReplyId;
+        Set<UUID> visitedIds = new HashSet<>(); // 用于检测循环引用
 
-        while (currentParentId != null && depth < ForumReplyConstants.MAX_REPLY_DEPTH) {
-            ForumReply parentReply = forumReplyRepository.findById(currentParentId).orElse(null);
-            if (parentReply == null) {
+        while (currentParentId != null) {
+            // 检测循环引用，防止无限循环
+            if (visitedIds.contains(currentParentId)) {
+                log.warn("检测到循环引用，停止深度计算。当前父回复ID: {}", currentParentId);
                 break;
             }
+            visitedIds.add(currentParentId);
+
+            // 构建查询条件
+            Query query = new Query();
+            Criteria criteria = new Criteria();
+            criteria.and(ForumReplyConstants.FIELD_ID).is(currentParentId);
+            query.addCriteria(criteria);
+
+            List<ForumReply> replies = mongoTemplate.find(query, ForumReply.class);
+            if (replies.isEmpty()) {
+                break;
+            }
+
+            ForumReply parentReply = replies.get(0);
             depth++;
             currentParentId = parentReply.getParentReplyId();
         }
@@ -558,15 +661,29 @@ public class ForumReplyServiceImpl implements IForumReplyService {
     }
 
     /**
-     * 获取下一个楼层号
+     * 获取下一个楼层号并更新帖子的回复数量
      *
      * @param postId 帖子ID
      * @return 下一个楼层号
      */
     private Integer getNextFloorNumber(UUID postId) {
-        return forumReplyRepository.findTopByPostIdOrderByFloorNumberDesc(postId)
-                .map(reply -> reply.getFloorNumber() + 1)
-                .orElse(ForumReplyConstants.DEFAULT_FLOOR_NUMBER);
+        // 构建查询条件
+        Query query = new Query();
+        Criteria criteria = new Criteria();
+        criteria.and(ForumReplyConstants.FIELD_POST_ID).is(postId);
+        query.addCriteria(criteria);
+        query.with(Sort.by(Sort.Direction.DESC, ForumReplyConstants.FIELD_FLOOR_NUMBER));
+        query.limit(1);
+
+        List<ForumReply> replies = mongoTemplate.find(query, ForumReply.class);
+        int nextFloorNumber = replies.isEmpty() ?
+                ForumReplyConstants.DEFAULT_FLOOR_NUMBER :
+                replies.get(0).getFloorNumber() + 1;
+
+        // 使用帖子服务更新回复数量
+        forumPostService.updateReplyCount(postId, (long) nextFloorNumber);
+
+        return nextFloorNumber;
     }
 
     /**
@@ -598,7 +715,52 @@ public class ForumReplyServiceImpl implements IForumReplyService {
     }
 
     /**
-     * 将PO转换为VO
+     * 递归收集父回复下的所有子回复（平铺的list形式）
+     *
+     * @param parentReplyId 父回复ID
+     * @param allReplies    收集结果的列表
+     */
+    private void collectAllRepliesByParentId(UUID parentReplyId, List<ForumReplyVO> allReplies) {
+        // 构建查询条件，查找直接子回复
+        Query query = new Query();
+        Criteria criteria = new Criteria();
+        criteria.and(ForumReplyConstants.FIELD_PARENT_REPLY_ID).is(parentReplyId);
+        query.addCriteria(criteria);
+        // 移除排序，统一在 getAllRepliesByParentId 方法中排序
+
+        // 获取直接子回复
+        List<ForumReply> directChildren = mongoTemplate.find(query, ForumReply.class);
+
+        for (ForumReply child : directChildren) {
+            ForumReplyVO childVO = convertToVO(child);
+            allReplies.add(childVO);
+
+            // 递归收集子回复的子回复
+            collectAllRepliesByParentId(child.getId(), allReplies);
+        }
+    }
+
+    /**
+     * 批量将PO转换为VO（优化版本，只查询一次用户信息）
+     *
+     * @param replies 回复PO列表
+     * @return 回复VO列表
+     */
+    private List<ForumReplyVO> convertToVOList(List<ForumReply> replies) {
+        if (CollectionUtils.isEmpty(replies)) {
+            return new ArrayList<>();
+        }
+
+        // 获取所有用户信息
+        Map<UUID, SysUserVO> userMap = getUserMap();
+
+        return replies.stream()
+                .map(reply -> convertToVOWithUserMap(reply, userMap))
+                .toList();
+    }
+
+    /**
+     * 将PO转换为VO（优化版本，使用用户映射避免N+1查询）
      *
      * @param reply 回复PO
      * @return 回复VO
@@ -608,8 +770,89 @@ public class ForumReplyServiceImpl implements IForumReplyService {
             return null;
         }
 
+        // 获取用户映射（避免N+1查询）
+        Map<UUID, SysUserVO> userMap = getUserMap();
+
+        return convertToVOWithUserMap(reply, userMap);
+    }
+
+    /**
+     * 使用用户映射将PO转换为VO
+     *
+     * @param reply   回复PO
+     * @param userMap 用户映射
+     * @return 回复VO
+     */
+    private ForumReplyVO convertToVOWithUserMap(ForumReply reply, Map<UUID, SysUserVO> userMap) {
+        if (reply == null) {
+            return null;
+        }
+
         ForumReplyVO vo = new ForumReplyVO();
         BeanUtils.copyProperties(reply, vo);
+
+        // 填充用户信息
+        fillUserInfoWithMap(vo, reply.getSysUserId(), userMap);
+
+        // 填充回复目标用户信息
+        fillReplyToUserInfo(vo, reply.getReplyToUserId(), userMap);
+
         return vo;
+    }
+
+
+    /**
+     * 获取用户映射
+     *
+     * @return 用户ID到用户信息的映射
+     */
+    private Map<UUID, SysUserVO> getUserMap() {
+        try {
+            Result<List<SysUserVO>> result = sysUserClient.listAllSysUser();
+            if (result != null && result.getData() != null) {
+                return result.getData().stream()
+                        .collect(Collectors.toMap(SysUserVO::getId, user -> user));
+            }
+        } catch (Exception e) {
+            log.warn("获取用户信息失败: error={}", e.getMessage());
+        }
+        return new HashMap<>();
+    }
+
+    /**
+     * 使用用户映射填充用户信息
+     *
+     * @param vo        回复VO
+     * @param sysUserId 用户ID
+     * @param userMap   用户映射
+     */
+    private void fillUserInfoWithMap(ForumReplyVO vo, UUID sysUserId, Map<UUID, SysUserVO> userMap) {
+        if (sysUserId == null || userMap.isEmpty()) {
+            return;
+        }
+
+        SysUserVO user = userMap.get(sysUserId);
+        if (user != null) {
+            vo.setUserName(user.getNickName() != null ? user.getNickName() : user.getUsername());
+            vo.setUserAvatar(user.getAvatar());
+        }
+    }
+
+    /**
+     * 填充回复目标用户信息
+     *
+     * @param vo            回复VO
+     * @param replyToUserId 回复目标用户ID
+     * @param userMap       用户映射
+     */
+    private void fillReplyToUserInfo(ForumReplyVO vo, UUID replyToUserId, Map<UUID, SysUserVO> userMap) {
+        if (replyToUserId == null || userMap.isEmpty()) {
+            return;
+        }
+
+        SysUserVO replyToUser = userMap.get(replyToUserId);
+        if (replyToUser != null) {
+            vo.setReplyToUserName(replyToUser.getNickName() != null ? replyToUser.getNickName() : replyToUser.getUsername());
+        }
     }
 }

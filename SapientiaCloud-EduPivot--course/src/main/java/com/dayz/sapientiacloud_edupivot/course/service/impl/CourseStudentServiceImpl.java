@@ -18,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -122,7 +123,11 @@ public class CourseStudentServiceImpl extends ServiceImpl<CourseStudentMapper, C
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    @CacheEvict(value = "CourseStudent", key = "#p0.studentId + '_' + #p0.courseId", condition = "#p0.studentId != null && #p0.courseId != null")
+    @Caching(evict = {
+            @CacheEvict(value = "CourseStudent", key = "#p0.studentId + '_' + #p0.courseId", condition = "#p0.studentId != null && #p0.courseId != null"),
+            @CacheEvict(value = "CourseStudent", key = "'course_' + #p0.courseId", condition = "#p0.courseId != null"),
+            @CacheEvict(value = "CourseStudent", key = "'student_' + #p0.studentId", condition = "#p0.studentId != null")
+    })
     public Boolean updateCourseStudent(CourseStudentDTO courseStudentDTO) {
         if (courseStudentDTO == null || courseStudentDTO.getStudentId() == null || courseStudentDTO.getCourseId() == null) {
             throw new BusinessException(CourseStudentEnum.COURSE_STUDENT_INFO_OR_ID_REQUIRED);
@@ -146,7 +151,11 @@ public class CourseStudentServiceImpl extends ServiceImpl<CourseStudentMapper, C
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    @CacheEvict(value = "CourseStudent", key = "#p1 + '_' + #p0", condition = "#p0 != null && #p1 != null")
+    @Caching(evict = {
+            @CacheEvict(value = "CourseStudent", key = "#p1 + '_' + #p0", condition = "#p0 != null && #p1 != null"),
+            @CacheEvict(value = "CourseStudent", key = "'course_' + #p0", condition = "#p0 != null"),
+            @CacheEvict(value = "CourseStudent", key = "'student_' + #p0", condition = "#p0 != null")
+    })
     public Boolean removeCourseStudentById(UUID courseId, UUID studentId) {
         if (studentId == null) {
             throw new BusinessException(CourseStudentEnum.STUDENT_ID_REQUIRED);

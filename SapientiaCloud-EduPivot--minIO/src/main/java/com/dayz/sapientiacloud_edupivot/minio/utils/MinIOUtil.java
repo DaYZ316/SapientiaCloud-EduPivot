@@ -435,7 +435,7 @@ public class MinIOUtil {
         if (objectName.startsWith("/")) {
             objectName = objectName.substring(1);
         }
-        
+
         return getFileInfo(objectName);
     }
 
@@ -448,12 +448,12 @@ public class MinIOUtil {
      */
     public List<FileInfoDTO> getBatchFileInfo(String[] objectNames) throws Exception {
         List<FileInfoDTO> fileInfoList = new ArrayList<>();
-        
+
         for (String input : objectNames) {
             try {
                 // 判断输入是否为URL，如果是则提取对象名称
                 String objectName = isMinIOUrl(input) ? extractObjectNameFromUrl(input) : input;
-                
+
                 FileInfoDTO fileInfo = getFileInfo(objectName);
                 fileInfoList.add(fileInfo);
             } catch (Exception e) {
@@ -471,7 +471,7 @@ public class MinIOUtil {
                 fileInfoList.add(errorFileInfo);
             }
         }
-        
+
         return fileInfoList;
     }
 
@@ -484,12 +484,12 @@ public class MinIOUtil {
      */
     public List<FileInfoDTO> getBatchFileInfoByPath(String[] filePaths) throws Exception {
         List<FileInfoDTO> fileInfoList = new ArrayList<>();
-        
+
         for (String input : filePaths) {
             try {
                 // 判断输入是否为URL，如果是则提取对象名称
                 String objectName = isMinIOUrl(input) ? extractObjectNameFromUrl(input) : input;
-                
+
                 FileInfoDTO fileInfo = getFileInfoByPath(objectName);
                 fileInfoList.add(fileInfo);
             } catch (Exception e) {
@@ -507,7 +507,7 @@ public class MinIOUtil {
                 fileInfoList.add(errorFileInfo);
             }
         }
-        
+
         return fileInfoList;
     }
 
@@ -521,15 +521,15 @@ public class MinIOUtil {
         if (path == null || path.isEmpty()) {
             return "unknown";
         }
-        
+
         // 处理路径分隔符
         String normalizedPath = path.replace("\\", "/");
         int lastSlashIndex = normalizedPath.lastIndexOf("/");
-        
+
         if (lastSlashIndex >= 0 && lastSlashIndex < normalizedPath.length() - 1) {
             return normalizedPath.substring(lastSlashIndex + 1);
         }
-        
+
         return normalizedPath;
     }
 
@@ -543,19 +543,19 @@ public class MinIOUtil {
         if (url == null || url.isEmpty()) {
             return "";
         }
-        
+
         try {
             // 移除查询参数
             String urlWithoutQuery = url.split("\\?")[0];
-            
+
             // 查找bucket名称后的路径部分
             // URL格式: http://host:port/bucket-name/object-path
             String[] parts = urlWithoutQuery.split("/");
-            
+
             // 找到bucket名称后的部分
             boolean foundBucket = false;
             StringBuilder objectName = new StringBuilder();
-            
+
             for (String part : parts) {
                 if (foundBucket) {
                     if (objectName.length() > 0) {
@@ -567,14 +567,14 @@ public class MinIOUtil {
                     foundBucket = true;
                 }
             }
-            
+
             String result = objectName.toString();
-            
+
             // URL解码
             if (!result.isEmpty()) {
                 result = URLDecoder.decode(result, StandardCharsets.UTF_8);
             }
-            
+
             return result;
         } catch (Exception e) {
             log.warn("解析URL失败: {}, 错误: {}", url, e.getMessage());
@@ -603,12 +603,12 @@ public class MinIOUtil {
             if (!isMinIOUrl(filePath)) {
                 throw new BusinessException("无效的URL格式");
             }
-            
+
             String objectName = extractObjectNameFromUrl(filePath);
             if (objectName.isEmpty()) {
                 throw new BusinessException("无法从URL中提取对象名称");
             }
-            
+
             return removeObject(objectName);
         } catch (BusinessException e) {
             throw e;
@@ -627,7 +627,7 @@ public class MinIOUtil {
     public Map<String, String> removeObjectsByPath(List<String> filePaths) {
         Map<String, String> result = new HashMap<>(filePaths.size());
         List<String> objectNames = new ArrayList<>();
-        
+
         // 提取所有文件路径中的对象名称
         for (String filePath : filePaths) {
             try {
@@ -635,35 +635,35 @@ public class MinIOUtil {
                     result.put(filePath, "失败: 无效的URL格式");
                     continue;
                 }
-                
+
                 String objectName = extractObjectNameFromUrl(filePath);
                 if (objectName.isEmpty()) {
                     result.put(filePath, "失败: 无法从URL中提取对象名称");
                     continue;
                 }
-                
+
                 objectNames.add(objectName);
                 result.put(filePath, "成功");
             } catch (Exception e) {
                 result.put(filePath, "失败: " + e.getMessage());
             }
         }
-        
+
         // 如果没有有效的对象名称，直接返回结果
         if (objectNames.isEmpty()) {
             return result;
         }
-        
+
         try {
             // 执行批量删除
             Map<String, String> deleteResult = removeObjects(objectNames);
-            
+
             // 更新结果，将对象名称映射回文件路径
             Map<String, String> finalResult = new HashMap<>();
             for (Map.Entry<String, String> entry : result.entrySet()) {
                 String filePath = entry.getKey();
                 String status = entry.getValue();
-                
+
                 if ("成功".equals(status)) {
                     String objectName = extractObjectNameFromUrl(filePath);
                     String deleteStatus = deleteResult.get(objectName);
@@ -676,7 +676,7 @@ public class MinIOUtil {
                     finalResult.put(filePath, status);
                 }
             }
-            
+
             return finalResult;
         } catch (Exception e) {
             log.error("根据文件路径批量删除文件失败: {}", e.getMessage());

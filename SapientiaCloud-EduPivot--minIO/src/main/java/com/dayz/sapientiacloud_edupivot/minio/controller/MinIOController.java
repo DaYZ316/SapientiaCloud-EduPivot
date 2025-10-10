@@ -2,7 +2,6 @@ package com.dayz.sapientiacloud_edupivot.minio.controller;
 
 import com.dayz.sapientiacloud_edupivot.minio.constant.MinIOConstants;
 import com.dayz.sapientiacloud_edupivot.minio.entity.dto.FileInfoDTO;
-import com.dayz.sapientiacloud_edupivot.minio.enums.FileEnum;
 import com.dayz.sapientiacloud_edupivot.minio.result.Result;
 import com.dayz.sapientiacloud_edupivot.minio.utils.MinIOUtil;
 import io.minio.messages.Bucket;

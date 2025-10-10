@@ -79,6 +79,10 @@ public class CourseForumServiceImpl implements ICourseForumService {
         query.addCriteria(criteria);
         query.with(Sort.by(Sort.Direction.ASC, CourseForumConstants.FIELD_SORT_ORDER, CourseForumConstants.FIELD_FORUM_NAME));
 
+        // 创建专门的count查询，不包含分页条件
+        Query countQuery = new Query();
+        countQuery.addCriteria(criteria);
+
         // 分页
         Pageable pageable = PageRequest.of(
                 courseForumQueryDTO.getPageNum() - CourseForumConstants.PAGE_NUM_OFFSET,
@@ -88,7 +92,7 @@ public class CourseForumServiceImpl implements ICourseForumService {
 
         // 执行查询
         List<CourseForum> forums = mongoTemplate.find(query, CourseForum.class);
-        long total = mongoTemplate.count(query, CourseForum.class);
+        long total = mongoTemplate.count(countQuery, CourseForum.class);
 
         // 转换为VO
         List<CourseForumVO> forumVOList = forums.stream()
@@ -108,12 +112,20 @@ public class CourseForumServiceImpl implements ICourseForumService {
     @Override
     @Transactional(readOnly = true)
     @Cacheable(value = "CourseForum", key = "'course:' + #p0", condition = "#p0 != null")
-    public List<CourseForumVO> listCourseForumByCourseId(UUID courseId) {
+    public List<CourseForumVO> listAllCourseForumByCourseId(UUID courseId) {
         if (courseId == null) {
             throw new BusinessException(CourseForumEnum.COURSE_ID_REQUIRED);
         }
 
-        List<CourseForum> forums = courseForumRepository.findByCourseIdOrderBySortOrderAsc(courseId);
+        // 构建查询条件
+        Query query = new Query();
+        Criteria criteria = new Criteria();
+        criteria.and(CourseForumConstants.FIELD_COURSE_ID).is(courseId);
+        criteria.and(CourseForumConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode());
+        query.addCriteria(criteria);
+        query.with(Sort.by(Sort.Direction.ASC, CourseForumConstants.FIELD_SORT_ORDER, CourseForumConstants.FIELD_FORUM_NAME));
+
+        List<CourseForum> forums = mongoTemplate.find(query, CourseForum.class);
         return forums.stream()
                 .map(this::convertToVO)
                 .toList();
@@ -127,8 +139,16 @@ public class CourseForumServiceImpl implements ICourseForumService {
             throw new BusinessException(CourseForumEnum.FORUM_ID_REQUIRED);
         }
 
-        CourseForum forum = courseForumRepository.findById(id)
-                .orElseThrow(() -> new BusinessException(CourseForumEnum.FORUM_NOT_EXISTS));
+        Query query = new Query();
+        Criteria criteria = new Criteria();
+        criteria.and(CourseForumConstants.FIELD_ID).is(id);
+        criteria.and(CourseForumConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode());
+        query.addCriteria(criteria);
+
+        CourseForum forum = mongoTemplate.findOne(query, CourseForum.class);
+        if (forum == null) {
+            throw new BusinessException(CourseForumEnum.FORUM_NOT_EXISTS);
+        }
 
         return convertToVO(forum);
     }
@@ -154,8 +174,14 @@ public class CourseForumServiceImpl implements ICourseForumService {
         }
 
         // 检查论坛名称是否重复
-        if (courseForumRepository.existsByCourseIdAndForumName(
-                courseForumDTO.getCourseId(), courseForumDTO.getForumName())) {
+        Query query = new Query();
+        Criteria criteria = new Criteria();
+        criteria.and(CourseForumConstants.FIELD_COURSE_ID).is(courseForumDTO.getCourseId());
+        criteria.and(CourseForumConstants.FIELD_FORUM_NAME).is(courseForumDTO.getForumName());
+        criteria.and(CourseForumConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode());
+        query.addCriteria(criteria);
+
+        if (mongoTemplate.exists(query, CourseForum.class)) {
             throw new BusinessException(CourseForumEnum.FORUM_NAME_EXISTS);
         }
 
@@ -207,14 +233,28 @@ public class CourseForumServiceImpl implements ICourseForumService {
         }
 
         // 检查论坛是否存在
-        CourseForum existingForum = courseForumRepository.findById(courseForumDTO.getId())
-                .orElseThrow(() -> new BusinessException(CourseForumEnum.FORUM_NOT_EXISTS));
+        Query query = new Query();
+        Criteria criteria = new Criteria();
+        criteria.and(CourseForumConstants.FIELD_ID).is(courseForumDTO.getId());
+        criteria.and(CourseForumConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode());
+        query.addCriteria(criteria);
+
+        CourseForum existingForum = mongoTemplate.findOne(query, CourseForum.class);
+        if (existingForum == null) {
+            throw new BusinessException(CourseForumEnum.FORUM_NOT_EXISTS);
+        }
 
         // 验证论坛名称是否重复（排除自己）
         if (StringUtils.hasText(courseForumDTO.getForumName()) &&
                 !courseForumDTO.getForumName().equals(existingForum.getForumName())) {
-            if (courseForumRepository.existsByCourseIdAndForumName(
-                    courseForumDTO.getCourseId(), courseForumDTO.getForumName())) {
+            Query nameCheckQuery = new Query();
+            Criteria nameCheckCriteria = new Criteria();
+            nameCheckCriteria.and(CourseForumConstants.FIELD_COURSE_ID).is(courseForumDTO.getCourseId());
+            nameCheckCriteria.and(CourseForumConstants.FIELD_FORUM_NAME).is(courseForumDTO.getForumName());
+            nameCheckCriteria.and(CourseForumConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode());
+            nameCheckQuery.addCriteria(nameCheckCriteria);
+
+            if (mongoTemplate.exists(nameCheckQuery, CourseForum.class)) {
                 throw new BusinessException(CourseForumEnum.FORUM_NAME_EXISTS);
             }
         }
@@ -263,18 +303,23 @@ public class CourseForumServiceImpl implements ICourseForumService {
 
     @Override
     @Transactional
-    @Caching(evict = {
-            @CacheEvict(value = "CourseForum", key = "#p0"),
-            @CacheEvict(value = "CourseForum", allEntries = true)
-    })
+    @CacheEvict(value = "CourseForum", allEntries = true)
     public Boolean removeCourseForumById(UUID id) {
         if (id == null) {
             throw new BusinessException(CourseForumEnum.FORUM_ID_REQUIRED);
         }
 
         // 检查论坛是否存在
-        CourseForum forum = courseForumRepository.findById(id)
-                .orElseThrow(() -> new BusinessException(CourseForumEnum.FORUM_NOT_EXISTS));
+        Query query = new Query();
+        Criteria criteria = new Criteria();
+        criteria.and(CourseForumConstants.FIELD_ID).is(id);
+        criteria.and(CourseForumConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode());
+        query.addCriteria(criteria);
+
+        CourseForum forum = mongoTemplate.findOne(query, CourseForum.class);
+        if (forum == null) {
+            throw new BusinessException(CourseForumEnum.FORUM_NOT_EXISTS);
+        }
 
         // 逻辑删除
         forum.setDeleted(DeletedEnum.DELETED.getCode());
@@ -287,9 +332,7 @@ public class CourseForumServiceImpl implements ICourseForumService {
 
     @Override
     @Transactional
-    @Caching(evict = {
-            @CacheEvict(value = "CourseForum", allEntries = true)
-    })
+    @CacheEvict(value = "CourseForum", allEntries = true)
     public Integer removeCourseForumByIds(List<UUID> ids) {
         if (CollectionUtils.isEmpty(ids)) {
             throw new BusinessException(CourseForumEnum.FORUM_ID_LIST_REQUIRED);
@@ -312,10 +355,7 @@ public class CourseForumServiceImpl implements ICourseForumService {
 
     @Override
     @Transactional
-    @Caching(evict = {
-            @CacheEvict(value = "CourseForum", key = "#p0"),
-            @CacheEvict(value = "CourseForum", allEntries = true)
-    })
+    @CacheEvict(value = "CourseForum", allEntries = true)
     public Boolean updateForumStatus(UUID id, Integer status) {
         if (id == null) {
             throw new BusinessException(CourseForumEnum.FORUM_ID_REQUIRED);
@@ -325,8 +365,16 @@ public class CourseForumServiceImpl implements ICourseForumService {
         }
 
         // 检查论坛是否存在
-        CourseForum forum = courseForumRepository.findById(id)
-                .orElseThrow(() -> new BusinessException(CourseForumEnum.FORUM_NOT_EXISTS));
+        Query query = new Query();
+        Criteria criteria = new Criteria();
+        criteria.and(CourseForumConstants.FIELD_ID).is(id);
+        criteria.and(CourseForumConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode());
+        query.addCriteria(criteria);
+
+        CourseForum forum = mongoTemplate.findOne(query, CourseForum.class);
+        if (forum == null) {
+            throw new BusinessException(CourseForumEnum.FORUM_NOT_EXISTS);
+        }
 
         // 更新状态
         forum.setStatus(status);
@@ -339,18 +387,23 @@ public class CourseForumServiceImpl implements ICourseForumService {
 
     @Override
     @Transactional
-    @Caching(evict = {
-            @CacheEvict(value = "CourseForum", key = "#p0"),
-            @CacheEvict(value = "CourseForum", allEntries = true)
-    })
+    @CacheEvict(value = "CourseForum", allEntries = true)
     public Boolean setForumModerators(UUID id, List<UUID> moderatorIds) {
         if (id == null) {
             throw new BusinessException(CourseForumEnum.FORUM_ID_REQUIRED);
         }
 
         // 检查论坛是否存在
-        CourseForum forum = courseForumRepository.findById(id)
-                .orElseThrow(() -> new BusinessException(CourseForumEnum.FORUM_NOT_EXISTS));
+        Query query = new Query();
+        Criteria criteria = new Criteria();
+        criteria.and(CourseForumConstants.FIELD_ID).is(id);
+        criteria.and(CourseForumConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode());
+        query.addCriteria(criteria);
+
+        CourseForum forum = mongoTemplate.findOne(query, CourseForum.class);
+        if (forum == null) {
+            throw new BusinessException(CourseForumEnum.FORUM_NOT_EXISTS);
+        }
 
         // 设置版主
         forum.setModeratorIds(moderatorIds);
@@ -369,8 +422,16 @@ public class CourseForumServiceImpl implements ICourseForumService {
             throw new BusinessException(CourseForumEnum.FORUM_ID_REQUIRED);
         }
 
-        CourseForum forum = courseForumRepository.findById(id)
-                .orElseThrow(() -> new BusinessException(CourseForumEnum.FORUM_NOT_EXISTS));
+        Query query = new Query();
+        Criteria criteria = new Criteria();
+        criteria.and(CourseForumConstants.FIELD_ID).is(id);
+        criteria.and(CourseForumConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode());
+        query.addCriteria(criteria);
+
+        CourseForum forum = mongoTemplate.findOne(query, CourseForum.class);
+        if (forum == null) {
+            throw new BusinessException(CourseForumEnum.FORUM_NOT_EXISTS);
+        }
 
         return convertToVO(forum);
     }

@@ -51,7 +51,7 @@ public class ForumPost extends BaseEntity implements Serializable {
     @Field("content")
     private String content;
 
-    @Schema(name = "postType", description = "帖子类型 (0=普通帖子, 1=置顶帖子, 2=精华帖子, 3=公告)")
+    @Schema(name = "postType", description = "帖子类型 (0=普通帖子, 1=公告)")
     @Field("post_type")
     private Integer postType;
 

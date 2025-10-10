@@ -9,75 +9,101 @@
         <result column="status" property="status"/>
         <result column="create_time" property="createTime"/>
         <result column="update_time" property="updateTime"/>
+        <result column="real_name" property="realName"/>
+        <result column="avatar" property="avatar"/>
+        <result column="sys_user_id" property="sysUserId"/>
     </resultMap>
 
     <select id="listCourseStudent" resultMap="CourseStudentVOMap"
             parameterType="com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseStudentQueryDTO">
         SELECT
-        student_id,
-        course_id,
-        grade,
-        status,
-        create_time,
-        update_time
-        FROM mg_course_student
+        cs.student_id,
+        cs.course_id,
+        cs.grade,
+        cs.status,
+        cs.create_time,
+        cs.update_time,
+        s.real_name,
+        s.sys_user_id,
+        u.avatar
+        FROM mg_course_student cs
+        LEFT JOIN mg_student s ON cs.student_id = s.id AND s.is_deleted = 0
+        LEFT JOIN sys_user u ON s.sys_user_id = u.id AND u.is_deleted = 0
         <where>
             <if test="studentId != null">
-                AND student_id = #{studentId}
+                AND cs.student_id = #{studentId}
             </if>
             <if test="courseId != null">
-                AND course_id = #{courseId}
+                AND cs.course_id = #{courseId}
+            </if>
+            <if test="realName != null and realName != ''">
+                AND s.real_name LIKE CONCAT('%', #{realName}, '%')
             </if>
         </where>
         <if test="orderByColumn != null and orderByColumn != ''">
             ORDER BY ${orderByColumn} ${isAsc == 'asc' ? 'ASC' : 'DESC'}
         </if>
         <if test="orderByColumn == null or orderByColumn == ''">
-            ORDER BY create_time DESC
+            ORDER BY cs.create_time DESC
         </if>
     </select>
 
     <select id="listAllCourseStudentByCourseId" resultMap="CourseStudentVOMap">
         SELECT
-        student_id,
-        course_id,
-        grade,
-        status,
-        create_time,
-        update_time
-        FROM mg_course_student
+        cs.student_id,
+        cs.course_id,
+        cs.grade,
+        cs.status,
+        cs.create_time,
+        cs.update_time,
+        s.real_name,
+        s.sys_user_id,
+        u.avatar
+        FROM mg_course_student cs
+        LEFT JOIN mg_student s ON cs.student_id = s.id AND s.is_deleted = 0
+        LEFT JOIN sys_user u ON s.sys_user_id = u.id AND u.is_deleted = 0
         <where>
-            course_id = #{courseId}
+            cs.course_id = #{courseId}
         </where>
-        ORDER BY create_time DESC
+        ORDER BY cs.create_time DESC
     </select>
 
     <select id="listAllCourseStudentByStudentId" resultMap="CourseStudentVOMap">
         SELECT
-        student_id,
-        course_id,
-        grade,
-        status,
-        create_time,
-        update_time
-        FROM mg_course_student
+        cs.student_id,
+        cs.course_id,
+        cs.grade,
+        cs.status,
+        cs.create_time,
+        cs.update_time,
+        s.real_name,
+        s.sys_user_id,
+        u.avatar
+        FROM mg_course_student cs
+        LEFT JOIN mg_student s ON cs.student_id = s.id AND s.is_deleted = 0
+        LEFT JOIN sys_user u ON s.sys_user_id = u.id AND u.is_deleted = 0
         <where>
-            student_id = #{studentId}
+            cs.student_id = #{studentId}
         </where>
-        ORDER BY create_time DESC
+        ORDER BY cs.create_time DESC
     </select>
 
     <select id="getStudentCourseById" resultMap="CourseStudentVOMap">
         SELECT
-        student_id,
-        course_id,
-        grade,
-        status,
-        create_time,
-        update_time
-        FROM mg_course_student
+        cs.student_id,
+        cs.course_id,
+        cs.grade,
+        cs.status,
+        cs.create_time,
+        cs.update_time,
+        s.real_name,
+        s.sys_user_id,
+        u.avatar
+        FROM mg_course_student cs
+        LEFT JOIN mg_student s ON cs.student_id = s.id AND s.is_deleted = 0
+        LEFT JOIN sys_user u ON s.sys_user_id = u.id AND u.is_deleted = 0
         <where>
-            student_id = #{studentId} AND course_id = #{courseId}
+            cs.student_id = #{studentId} AND cs.course_id = #{courseId}
         </where>
     </select>
 

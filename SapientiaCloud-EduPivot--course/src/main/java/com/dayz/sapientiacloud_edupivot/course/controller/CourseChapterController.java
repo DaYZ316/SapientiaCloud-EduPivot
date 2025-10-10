@@ -38,19 +38,19 @@ public class CourseChapterController extends BaseController {
     public TableDataResult listCourseChapter(@ParameterObject CourseChapterQueryDTO courseChapterQueryDTO) {
         startPage();
         PageInfo<CourseChapterVO> pageInfo = courseChapterService.listCourseChapter(courseChapterQueryDTO);
-        return getDataTable(pageInfo.getList());
+        return getDataTable(pageInfo);
     }
 
     @HasPermission(
-            summary = "listCourseChapterByCourseId",
+            summary = "listAllCourseChapterByCourseId",
             description = "根据课程ID获取该课程下的所有章节列表。",
             permission = PermissionConstants.CHAPTER_QUERY
     )
     @GetMapping("/course/{courseId}")
-    public Result<List<CourseChapterVO>> listCourseChapterByCourseId(
+    public Result<List<CourseChapterVO>> listAllCourseChapterByCourseId(
             @Parameter(name = "courseId", description = "课程ID", required = true) @PathVariable("courseId") UUID courseId
     ) {
-        List<CourseChapterVO> chapterVOList = courseChapterService.listCourseChapterByCourseId(courseId);
+        List<CourseChapterVO> chapterVOList = courseChapterService.listAllCourseChapterByCourseId(courseId);
         return Result.success(chapterVOList);
     }
 

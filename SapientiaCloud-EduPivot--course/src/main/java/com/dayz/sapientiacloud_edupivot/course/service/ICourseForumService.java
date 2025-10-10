@@ -12,7 +12,7 @@ public interface ICourseForumService {
 
     PageInfo<CourseForumVO> listCourseForum(CourseForumQueryDTO courseForumQueryDTO);
 
-    List<CourseForumVO> listCourseForumByCourseId(UUID courseId);
+    List<CourseForumVO> listAllCourseForumByCourseId(UUID courseId);
 
     CourseForumVO getCourseForumById(UUID id);
 

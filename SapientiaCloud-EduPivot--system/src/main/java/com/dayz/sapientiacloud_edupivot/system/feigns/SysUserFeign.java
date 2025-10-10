@@ -8,6 +8,7 @@ import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserRegisterDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysPermissionVO;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysRoleVO;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysUserInternalVO;
+import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysUserVO;
 import com.dayz.sapientiacloud_edupivot.system.service.ISysUserService;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -26,6 +27,16 @@ import java.util.UUID;
 public class SysUserFeign {
 
     private final ISysUserService sysUserService;
+
+    @HasPermission(
+            summary = "listAllSysUser",
+            description = "获取所有用户列表。"
+    )
+    @GetMapping("internal/all")
+    public Result<List<SysUserVO>> listAllSysUser() {
+        List<SysUserVO> sysUserVOList = sysUserService.listAllSysUser();
+        return Result.success(sysUserVOList);
+    }
 
     @HasPermission(
             summary = "getUserRoles",

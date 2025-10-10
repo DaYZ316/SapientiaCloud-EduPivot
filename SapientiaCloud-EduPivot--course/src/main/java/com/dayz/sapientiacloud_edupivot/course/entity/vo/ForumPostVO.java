@@ -29,6 +29,11 @@ public class ForumPostVO implements Serializable {
     @Schema(name = "sysUserId", description = "发帖人ID")
     private UUID sysUserId;
 
+    @Schema(name = "userName", description = "发帖人用户名")
+    private String userName;
+
+    @Schema(name = "userAvatar", description = "发帖人头像URL")
+    private String userAvatar;
 
     @Schema(name = "title", description = "帖子标题")
     private String title;
@@ -36,7 +41,7 @@ public class ForumPostVO implements Serializable {
     @Schema(name = "content", description = "帖子内容")
     private String content;
 
-    @Schema(name = "postType", description = "帖子类型 (0=普通帖子, 1=置顶帖子, 2=精华帖子, 3=公告)")
+    @Schema(name = "postType", description = "帖子类型 (0=普通帖子, 1=公告)")
     private Integer postType;
 
     @Schema(name = "isAnonymous", description = "是否匿名发帖 (0=实名, 1=匿名)")

@@ -1,8 +1,11 @@
 package com.dayz.sapientiacloud_edupivot.course.service.impl;
 
+import com.dayz.sapientiacloud_edupivot.course.common.clients.SysUserClient;
+import com.dayz.sapientiacloud_edupivot.course.common.entity.vo.SysUserVO;
 import com.dayz.sapientiacloud_edupivot.course.common.enums.DeletedEnum;
 import com.dayz.sapientiacloud_edupivot.course.common.enums.StatusEnum;
 import com.dayz.sapientiacloud_edupivot.course.common.exception.BusinessException;
+import com.dayz.sapientiacloud_edupivot.course.common.result.Result;
 import com.dayz.sapientiacloud_edupivot.course.constant.ForumPostConstants;
 import com.dayz.sapientiacloud_edupivot.course.entity.dto.ForumPostDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.dto.ForumPostQueryDTO;
@@ -32,8 +35,8 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -42,6 +45,7 @@ public class ForumPostServiceImpl implements IForumPostService {
 
     private final ForumPostRepository forumPostRepository;
     private final MongoTemplate mongoTemplate;
+    private final SysUserClient sysUserClient;
 
     @Override
     @Transactional(readOnly = true)
@@ -88,7 +92,17 @@ public class ForumPostServiceImpl implements IForumPostService {
         criteria.and(ForumPostConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode());
 
         query.addCriteria(criteria);
-        query.with(Sort.by(Sort.Direction.DESC, ForumPostConstants.FIELD_IS_TOP, ForumPostConstants.FIELD_CREATE_TIME));
+        // 排序：置顶优先级最高，其次是精华，然后是点赞数量，最后按创建时间
+        query.with(Sort.by(
+                Sort.Order.desc(ForumPostConstants.FIELD_IS_TOP),
+                Sort.Order.desc(ForumPostConstants.FIELD_IS_ESSENCE),
+                Sort.Order.desc(ForumPostConstants.FIELD_LIKE_COUNT),
+                Sort.Order.desc(ForumPostConstants.FIELD_CREATE_TIME)
+        ));
+
+        // 创建专门的count查询，不包含分页条件
+        Query countQuery = new Query();
+        countQuery.addCriteria(criteria);
 
         // 分页
         Pageable pageable = PageRequest.of(
@@ -99,12 +113,10 @@ public class ForumPostServiceImpl implements IForumPostService {
 
         // 执行查询
         List<ForumPost> posts = mongoTemplate.find(query, ForumPost.class);
-        long total = mongoTemplate.count(query, ForumPost.class);
+        long total = mongoTemplate.count(countQuery, ForumPost.class);
 
         // 转换为VO
-        List<ForumPostVO> postVOList = posts.stream()
-                .map(this::convertToVO)
-                .toList();
+        List<ForumPostVO> postVOList = convertToVOList(posts);
 
         // 构建分页信息
         PageInfo<ForumPostVO> pageInfo = new PageInfo<>(postVOList);
@@ -119,47 +131,53 @@ public class ForumPostServiceImpl implements IForumPostService {
     @Override
     @Transactional(readOnly = true)
     @Cacheable(value = "ForumPost", key = "'forum:' + #p0", condition = "#p0 != null")
-    public PageInfo<ForumPostVO> listForumPostByForumId(UUID forumId, ForumPostQueryDTO forumPostQueryDTO) {
+    public List<ForumPostVO> listAllForumPostByForumId(UUID forumId) {
         if (forumId == null) {
             throw new BusinessException(ForumPostEnum.FORUM_ID_REQUIRED);
         }
 
-        List<ForumPost> posts = forumPostRepository.findByForumIdOrderByCreateTimeDesc(forumId);
-        List<ForumPostVO> postVOList = posts.stream()
-                .map(this::convertToVO)
-                .toList();
+        // 构建查询条件
+        Query query = new Query();
+        Criteria criteria = new Criteria();
+        criteria.and(ForumPostConstants.FIELD_FORUM_ID).is(forumId);
+        criteria.and(ForumPostConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode());
+        query.addCriteria(criteria);
+        // 排序：置顶优先级最高，其次是精华，然后是点赞数量，最后按创建时间
+        query.with(Sort.by(
+                Sort.Order.desc(ForumPostConstants.FIELD_IS_TOP),
+                Sort.Order.desc(ForumPostConstants.FIELD_IS_ESSENCE),
+                Sort.Order.desc(ForumPostConstants.FIELD_LIKE_COUNT),
+                Sort.Order.desc(ForumPostConstants.FIELD_CREATE_TIME)
+        ));
 
-        // 构建分页信息
-        PageInfo<ForumPostVO> pageInfo = new PageInfo<>(postVOList);
-        pageInfo.setTotal(postVOList.size());
-        pageInfo.setPageNum(1);
-        pageInfo.setPageSize(postVOList.size());
-        pageInfo.setPages(1);
-
-        return pageInfo;
+        List<ForumPost> posts = mongoTemplate.find(query, ForumPost.class);
+        return convertToVOList(posts);
     }
 
     @Override
     @Transactional(readOnly = true)
     @Cacheable(value = "ForumPost", key = "'course:' + #p0", condition = "#p0 != null")
-    public PageInfo<ForumPostVO> listForumPostByCourseId(UUID courseId, ForumPostQueryDTO forumPostQueryDTO) {
+    public List<ForumPostVO> listAllForumPostByCourseId(UUID courseId) {
         if (courseId == null) {
             throw new BusinessException(ForumPostEnum.COURSE_ID_REQUIRED);
         }
 
-        List<ForumPost> posts = forumPostRepository.findByCourseIdOrderByCreateTimeDesc(courseId);
-        List<ForumPostVO> postVOList = posts.stream()
-                .map(this::convertToVO)
-                .toList();
+        // 构建查询条件
+        Query query = new Query();
+        Criteria criteria = new Criteria();
+        criteria.and(ForumPostConstants.FIELD_COURSE_ID).is(courseId);
+        criteria.and(ForumPostConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode());
+        query.addCriteria(criteria);
+        // 排序：置顶优先级最高，其次是精华，然后是点赞数量，最后按创建时间
+        query.with(Sort.by(
+                Sort.Order.desc(ForumPostConstants.FIELD_IS_TOP),
+                Sort.Order.desc(ForumPostConstants.FIELD_IS_ESSENCE),
+                Sort.Order.desc(ForumPostConstants.FIELD_LIKE_COUNT),
+                Sort.Order.desc(ForumPostConstants.FIELD_CREATE_TIME)
+        ));
 
-        // 构建分页信息
-        PageInfo<ForumPostVO> pageInfo = new PageInfo<>(postVOList);
-        pageInfo.setTotal(postVOList.size());
-        pageInfo.setPageNum(1);
-        pageInfo.setPageSize(postVOList.size());
-        pageInfo.setPages(1);
-
-        return pageInfo;
+        List<ForumPost> posts = mongoTemplate.find(query, ForumPost.class);
+        return convertToVOList(posts);
     }
 
     @Override
@@ -170,8 +188,17 @@ public class ForumPostServiceImpl implements IForumPostService {
             throw new BusinessException(ForumPostEnum.POST_ID_REQUIRED);
         }
 
-        ForumPost post = forumPostRepository.findById(id)
-                .orElseThrow(() -> new BusinessException(ForumPostEnum.POST_NOT_EXISTS));
+        // 构建查询条件
+        Query query = new Query();
+        Criteria criteria = new Criteria();
+        criteria.and(ForumPostConstants.FIELD_ID).is(id);
+        criteria.and(ForumPostConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode());
+        query.addCriteria(criteria);
+
+        ForumPost post = mongoTemplate.findOne(query, ForumPost.class);
+        if (post == null) {
+            throw new BusinessException(ForumPostEnum.POST_NOT_EXISTS);
+        }
 
         return convertToVO(post);
     }
@@ -276,8 +303,16 @@ public class ForumPostServiceImpl implements IForumPostService {
         }
 
         // 检查帖子是否存在
-        ForumPost existingPost = forumPostRepository.findById(forumPostDTO.getId())
-                .orElseThrow(() -> new BusinessException(ForumPostEnum.POST_NOT_EXISTS));
+        Query query = new Query();
+        Criteria criteria = new Criteria();
+        criteria.and(ForumPostConstants.FIELD_ID).is(forumPostDTO.getId());
+        criteria.and(ForumPostConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode());
+        query.addCriteria(criteria);
+
+        ForumPost existingPost = mongoTemplate.findOne(query, ForumPost.class);
+        if (existingPost == null) {
+            throw new BusinessException(ForumPostEnum.POST_NOT_EXISTS);
+        }
 
         // 更新字段
         if (StringUtils.hasText(forumPostDTO.getTitle())) {
@@ -320,18 +355,23 @@ public class ForumPostServiceImpl implements IForumPostService {
 
     @Override
     @Transactional
-    @Caching(evict = {
-            @CacheEvict(value = "ForumPost", key = "#p0"),
-            @CacheEvict(value = "ForumPost", allEntries = true)
-    })
+    @CacheEvict(value = "ForumPost", allEntries = true)
     public Boolean removeForumPostById(UUID id) {
         if (id == null) {
             throw new BusinessException(ForumPostEnum.POST_ID_REQUIRED);
         }
 
         // 检查帖子是否存在
-        ForumPost post = forumPostRepository.findById(id)
-                .orElseThrow(() -> new BusinessException(ForumPostEnum.POST_NOT_EXISTS));
+        Query query = new Query();
+        Criteria criteria = new Criteria();
+        criteria.and(ForumPostConstants.FIELD_ID).is(id);
+        criteria.and(ForumPostConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode());
+        query.addCriteria(criteria);
+
+        ForumPost post = mongoTemplate.findOne(query, ForumPost.class);
+        if (post == null) {
+            throw new BusinessException(ForumPostEnum.POST_NOT_EXISTS);
+        }
 
         // 逻辑删除
         post.setDeleted(DeletedEnum.DELETED.getCode());
@@ -344,9 +384,7 @@ public class ForumPostServiceImpl implements IForumPostService {
 
     @Override
     @Transactional
-    @Caching(evict = {
-            @CacheEvict(value = "ForumPost", allEntries = true)
-    })
+    @CacheEvict(value = "ForumPost", allEntries = true)
     public Integer removeForumPostByIds(List<UUID> ids) {
         if (CollectionUtils.isEmpty(ids)) {
             throw new BusinessException(ForumPostEnum.POST_ID_LIST_REQUIRED);
@@ -369,10 +407,7 @@ public class ForumPostServiceImpl implements IForumPostService {
 
     @Override
     @Transactional
-    @Caching(evict = {
-            @CacheEvict(value = "ForumPost", key = "#p0"),
-            @CacheEvict(value = "ForumPost", allEntries = true)
-    })
+    @CacheEvict(value = "ForumPost", allEntries = true)
     public Boolean updatePostStatus(UUID id, Integer status) {
         if (id == null) {
             throw new BusinessException(ForumPostEnum.POST_ID_REQUIRED);
@@ -382,8 +417,16 @@ public class ForumPostServiceImpl implements IForumPostService {
         }
 
         // 检查帖子是否存在
-        ForumPost post = forumPostRepository.findById(id)
-                .orElseThrow(() -> new BusinessException(ForumPostEnum.POST_NOT_EXISTS));
+        Query query = new Query();
+        Criteria criteria = new Criteria();
+        criteria.and(ForumPostConstants.FIELD_ID).is(id);
+        criteria.and(ForumPostConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode());
+        query.addCriteria(criteria);
+
+        ForumPost post = mongoTemplate.findOne(query, ForumPost.class);
+        if (post == null) {
+            throw new BusinessException(ForumPostEnum.POST_NOT_EXISTS);
+        }
 
         // 更新状态
         post.setStatus(status);
@@ -396,10 +439,7 @@ public class ForumPostServiceImpl implements IForumPostService {
 
     @Override
     @Transactional
-    @Caching(evict = {
-            @CacheEvict(value = "ForumPost", key = "#p0"),
-            @CacheEvict(value = "ForumPost", allEntries = true)
-    })
+    @CacheEvict(value = "ForumPost", allEntries = true)
     public Boolean setPostTop(UUID id, Integer isTop) {
         if (id == null) {
             throw new BusinessException(ForumPostEnum.POST_ID_REQUIRED);
@@ -409,8 +449,16 @@ public class ForumPostServiceImpl implements IForumPostService {
         }
 
         // 检查帖子是否存在
-        ForumPost post = forumPostRepository.findById(id)
-                .orElseThrow(() -> new BusinessException(ForumPostEnum.POST_NOT_EXISTS));
+        Query query = new Query();
+        Criteria criteria = new Criteria();
+        criteria.and(ForumPostConstants.FIELD_ID).is(id);
+        criteria.and(ForumPostConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode());
+        query.addCriteria(criteria);
+
+        ForumPost post = mongoTemplate.findOne(query, ForumPost.class);
+        if (post == null) {
+            throw new BusinessException(ForumPostEnum.POST_NOT_EXISTS);
+        }
 
         // 更新置顶状态
         post.setIsTop(isTop);
@@ -423,10 +471,7 @@ public class ForumPostServiceImpl implements IForumPostService {
 
     @Override
     @Transactional
-    @Caching(evict = {
-            @CacheEvict(value = "ForumPost", key = "#p0"),
-            @CacheEvict(value = "ForumPost", allEntries = true)
-    })
+    @CacheEvict(value = "ForumPost", allEntries = true)
     public Boolean setPostEssence(UUID id, Integer isEssence) {
         if (id == null) {
             throw new BusinessException(ForumPostEnum.POST_ID_REQUIRED);
@@ -436,8 +481,16 @@ public class ForumPostServiceImpl implements IForumPostService {
         }
 
         // 检查帖子是否存在
-        ForumPost post = forumPostRepository.findById(id)
-                .orElseThrow(() -> new BusinessException(ForumPostEnum.POST_NOT_EXISTS));
+        Query query = new Query();
+        Criteria criteria = new Criteria();
+        criteria.and(ForumPostConstants.FIELD_ID).is(id);
+        criteria.and(ForumPostConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode());
+        query.addCriteria(criteria);
+
+        ForumPost post = mongoTemplate.findOne(query, ForumPost.class);
+        if (post == null) {
+            throw new BusinessException(ForumPostEnum.POST_NOT_EXISTS);
+        }
 
         // 更新精华状态
         post.setIsEssence(isEssence);
@@ -450,10 +503,7 @@ public class ForumPostServiceImpl implements IForumPostService {
 
     @Override
     @Transactional
-    @Caching(evict = {
-            @CacheEvict(value = "ForumPost", key = "#p0"),
-            @CacheEvict(value = "ForumPost", allEntries = true)
-    })
+    @CacheEvict(value = "ForumPost", allEntries = true)
     public Boolean setPostLock(UUID id, Integer isLocked) {
         if (id == null) {
             throw new BusinessException(ForumPostEnum.POST_ID_REQUIRED);
@@ -463,8 +513,16 @@ public class ForumPostServiceImpl implements IForumPostService {
         }
 
         // 检查帖子是否存在
-        ForumPost post = forumPostRepository.findById(id)
-                .orElseThrow(() -> new BusinessException(ForumPostEnum.POST_NOT_EXISTS));
+        Query query = new Query();
+        Criteria criteria = new Criteria();
+        criteria.and(ForumPostConstants.FIELD_ID).is(id);
+        criteria.and(ForumPostConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode());
+        query.addCriteria(criteria);
+
+        ForumPost post = mongoTemplate.findOne(query, ForumPost.class);
+        if (post == null) {
+            throw new BusinessException(ForumPostEnum.POST_NOT_EXISTS);
+        }
 
         // 更新锁定状态
         post.setIsLocked(isLocked);
@@ -477,9 +535,7 @@ public class ForumPostServiceImpl implements IForumPostService {
 
     @Override
     @Transactional
-    @Caching(evict = {
-            @CacheEvict(value = "ForumPost", key = "#p0")
-    })
+    @CacheEvict(value = "ForumPost", key = "#p0")
     public Boolean likePost(UUID id) {
         if (id == null) {
             throw new BusinessException(ForumPostEnum.POST_ID_REQUIRED);
@@ -496,9 +552,7 @@ public class ForumPostServiceImpl implements IForumPostService {
 
     @Override
     @Transactional
-    @Caching(evict = {
-            @CacheEvict(value = "ForumPost", key = "#p0")
-    })
+    @CacheEvict(value = "ForumPost", key = "#p0")
     public Boolean unlikePost(UUID id) {
         if (id == null) {
             throw new BusinessException(ForumPostEnum.POST_ID_REQUIRED);
@@ -515,9 +569,7 @@ public class ForumPostServiceImpl implements IForumPostService {
 
     @Override
     @Transactional
-    @Caching(evict = {
-            @CacheEvict(value = "ForumPost", key = "#p0")
-    })
+    @CacheEvict(value = "ForumPost", key = "#p0")
     public Boolean sharePost(UUID id) {
         if (id == null) {
             throw new BusinessException(ForumPostEnum.POST_ID_REQUIRED);
@@ -534,9 +586,7 @@ public class ForumPostServiceImpl implements IForumPostService {
 
     @Override
     @Transactional
-    @Caching(evict = {
-            @CacheEvict(value = "ForumPost", key = "#p0")
-    })
+    @CacheEvict(value = "ForumPost", key = "#p0")
     public Boolean viewPost(UUID id) {
         if (id == null) {
             throw new BusinessException(ForumPostEnum.POST_ID_REQUIRED);
@@ -559,10 +609,22 @@ public class ForumPostServiceImpl implements IForumPostService {
             limit = 10;
         }
 
-        List<ForumPost> posts = forumPostRepository.findTopPostsByLikeCount(limit);
-        return posts.stream()
-                .map(this::convertToVO)
-                .toList();
+        // 构建查询条件
+        Query query = new Query();
+        Criteria criteria = new Criteria();
+        criteria.and(ForumPostConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode());
+        query.addCriteria(criteria);
+        // 排序：置顶优先级最高，其次是精华，然后是点赞数量，最后按创建时间
+        query.with(Sort.by(
+                Sort.Order.desc(ForumPostConstants.FIELD_IS_TOP),
+                Sort.Order.desc(ForumPostConstants.FIELD_IS_ESSENCE),
+                Sort.Order.desc(ForumPostConstants.FIELD_LIKE_COUNT),
+                Sort.Order.desc(ForumPostConstants.FIELD_CREATE_TIME)
+        ));
+        query.limit(limit);
+
+        List<ForumPost> posts = mongoTemplate.find(query, ForumPost.class);
+        return convertToVOList(posts);
     }
 
     @Override
@@ -573,14 +635,45 @@ public class ForumPostServiceImpl implements IForumPostService {
             limit = 10;
         }
 
-        List<ForumPost> posts = forumPostRepository.findLatestPosts(limit);
+        // 构建查询条件
+        Query query = new Query();
+        Criteria criteria = new Criteria();
+        criteria.and(ForumPostConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode());
+        query.addCriteria(criteria);
+        // 排序：置顶优先级最高，其次是精华，然后是点赞数量，最后按创建时间
+        query.with(Sort.by(
+                Sort.Order.desc(ForumPostConstants.FIELD_IS_TOP),
+                Sort.Order.desc(ForumPostConstants.FIELD_IS_ESSENCE),
+                Sort.Order.desc(ForumPostConstants.FIELD_LIKE_COUNT),
+                Sort.Order.desc(ForumPostConstants.FIELD_CREATE_TIME)
+        ));
+        query.limit(limit);
+
+        List<ForumPost> posts = mongoTemplate.find(query, ForumPost.class);
+        return convertToVOList(posts);
+    }
+
+    /**
+     * 批量将PO转换为VO（优化版本，只查询一次用户信息）
+     *
+     * @param posts 帖子PO列表
+     * @return 帖子VO列表
+     */
+    private List<ForumPostVO> convertToVOList(List<ForumPost> posts) {
+        if (CollectionUtils.isEmpty(posts)) {
+            return new ArrayList<>();
+        }
+
+        // 获取所有用户信息
+        Map<UUID, SysUserVO> userMap = getUserMap();
+
         return posts.stream()
-                .map(this::convertToVO)
+                .map(post -> convertToVOWithUserMap(post, userMap))
                 .toList();
     }
 
     /**
-     * 将PO转换为VO
+     * 将PO转换为VO（优化版本，使用用户映射避免N+1查询）
      *
      * @param post 帖子PO
      * @return 帖子VO
@@ -590,8 +683,94 @@ public class ForumPostServiceImpl implements IForumPostService {
             return null;
         }
 
+        // 获取用户映射（避免N+1查询）
+        Map<UUID, SysUserVO> userMap = getUserMap();
+
+        return convertToVOWithUserMap(post, userMap);
+    }
+
+    /**
+     * 使用用户映射将PO转换为VO
+     *
+     * @param post    帖子PO
+     * @param userMap 用户映射
+     * @return 帖子VO
+     */
+    private ForumPostVO convertToVOWithUserMap(ForumPost post, Map<UUID, SysUserVO> userMap) {
+        if (post == null) {
+            return null;
+        }
+
         ForumPostVO vo = new ForumPostVO();
         BeanUtils.copyProperties(post, vo);
+
+        // 填充用户信息
+        fillUserInfoWithMap(vo, post.getSysUserId(), userMap);
+
         return vo;
+    }
+
+
+    /**
+     * 获取用户映射
+     *
+     * @return 用户ID到用户信息的映射
+     */
+    private Map<UUID, SysUserVO> getUserMap() {
+        try {
+            Result<List<SysUserVO>> result = sysUserClient.listAllSysUser();
+            if (result != null && result.getData() != null) {
+                return result.getData().stream()
+                        .collect(Collectors.toMap(SysUserVO::getId, user -> user));
+            }
+        } catch (Exception e) {
+            log.warn("获取用户信息失败: error={}", e.getMessage());
+        }
+        return new HashMap<>();
+    }
+
+    /**
+     * 使用用户映射填充用户信息
+     *
+     * @param vo        帖子VO
+     * @param sysUserId 用户ID
+     * @param userMap   用户映射
+     */
+    private void fillUserInfoWithMap(ForumPostVO vo, UUID sysUserId, Map<UUID, SysUserVO> userMap) {
+        if (sysUserId == null || userMap.isEmpty()) {
+            return;
+        }
+
+        SysUserVO user = userMap.get(sysUserId);
+        if (user != null) {
+            vo.setUserName(user.getNickName() != null ? user.getNickName() : user.getUsername());
+            vo.setUserAvatar(user.getAvatar());
+        }
+    }
+
+    @Override
+    @Transactional
+    @CacheEvict(value = "ForumPost", allEntries = true)
+    public Boolean updateReplyCount(UUID postId, Long replyCount) {
+        if (postId == null) {
+            throw new BusinessException(ForumPostEnum.POST_ID_REQUIRED);
+        }
+        if (replyCount == null || replyCount < 0) {
+            throw new BusinessException(ForumPostEnum.REPLY_COUNT_INVALID);
+        }
+
+        // 检查帖子是否存在
+        Query query = new Query(Criteria.where(ForumPostConstants.FIELD_ID).is(postId));
+        ForumPost post = mongoTemplate.findOne(query, ForumPost.class);
+        if (post == null) {
+            throw new BusinessException(ForumPostEnum.POST_NOT_EXISTS);
+        }
+
+        // 更新回复数量
+        Update update = new Update().set(ForumPostConstants.FIELD_REPLY_COUNT, replyCount);
+        mongoTemplate.updateFirst(query, update, ForumPost.class);
+
+        log.info("更新帖子回复数量成功: postId={}, replyCount={}", postId, replyCount);
+        return true;
     }
 }

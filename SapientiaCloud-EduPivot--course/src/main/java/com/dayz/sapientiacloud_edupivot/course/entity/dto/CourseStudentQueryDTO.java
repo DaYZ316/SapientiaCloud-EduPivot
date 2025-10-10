@@ -21,4 +21,7 @@ public class CourseStudentQueryDTO extends PageEntity {
 
     @Schema(name = "courseId", description = "课程ID", example = "78d44b4a-becd-4f65-9461-f2dcdda03f01")
     private UUID courseId;
+
+    @Schema(name = "realName", description = "学生真实姓名", example = "张三")
+    private String realName;
 }

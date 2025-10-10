@@ -37,52 +37,46 @@ public class ForumReplyController extends BaseController {
     public TableDataResult listForumReply(@ParameterObject ForumReplyQueryDTO forumReplyQueryDTO) {
         startPage();
         PageInfo<ForumReplyVO> pageInfo = forumReplyService.listForumReply(forumReplyQueryDTO);
-        return getDataTable(pageInfo.getList());
+        return getDataTable(pageInfo);
     }
 
     @HasPermission(
-            summary = "listForumReplyByPostId",
+            summary = "listAllForumReplyByPostId",
             description = "根据帖子ID获取该帖子下的所有回复列表。",
             permission = PermissionConstants.REPLY_QUERY
     )
     @GetMapping("/post/{postId}")
-    public TableDataResult listForumReplyByPostId(
-            @Parameter(name = "postId", description = "帖子ID", required = true) @PathVariable("postId") UUID postId,
-            @ParameterObject ForumReplyQueryDTO forumReplyQueryDTO
+    public Result<List<ForumReplyVO>> listAllForumReplyByPostId(
+            @Parameter(name = "postId", description = "帖子ID", required = true) @PathVariable("postId") UUID postId
     ) {
-        startPage();
-        PageInfo<ForumReplyVO> pageInfo = forumReplyService.listForumReplyByPostId(postId, forumReplyQueryDTO);
-        return getDataTable(pageInfo.getList());
+        List<ForumReplyVO> replyList = forumReplyService.listAllForumReplyByPostId(postId);
+        return Result.success(replyList);
     }
 
     @HasPermission(
-            summary = "listForumReplyByForumId",
+            summary = "listAllForumReplyByForumId",
             description = "根据论坛ID获取该论坛下的所有回复列表。",
             permission = PermissionConstants.REPLY_QUERY
     )
     @GetMapping("/forum/{forumId}")
-    public TableDataResult listForumReplyByForumId(
-            @Parameter(name = "forumId", description = "论坛ID", required = true) @PathVariable("forumId") UUID forumId,
-            @ParameterObject ForumReplyQueryDTO forumReplyQueryDTO
+    public Result<List<ForumReplyVO>> listAllForumReplyByForumId(
+            @Parameter(name = "forumId", description = "论坛ID", required = true) @PathVariable("forumId") UUID forumId
     ) {
-        startPage();
-        PageInfo<ForumReplyVO> pageInfo = forumReplyService.listForumReplyByForumId(forumId, forumReplyQueryDTO);
-        return getDataTable(pageInfo.getList());
+        List<ForumReplyVO> replyList = forumReplyService.listAllForumReplyByForumId(forumId);
+        return Result.success(replyList);
     }
 
     @HasPermission(
-            summary = "listForumReplyByCourseId",
+            summary = "listAllForumReplyByCourseId",
             description = "根据课程ID获取该课程下的所有回复列表。",
             permission = PermissionConstants.REPLY_QUERY
     )
     @GetMapping("/course/{courseId}")
-    public TableDataResult listForumReplyByCourseId(
-            @Parameter(name = "courseId", description = "课程ID", required = true) @PathVariable("courseId") UUID courseId,
-            @ParameterObject ForumReplyQueryDTO forumReplyQueryDTO
+    public Result<List<ForumReplyVO>> listAllForumReplyByCourseId(
+            @Parameter(name = "courseId", description = "课程ID", required = true) @PathVariable("courseId") UUID courseId
     ) {
-        startPage();
-        PageInfo<ForumReplyVO> pageInfo = forumReplyService.listForumReplyByCourseId(courseId, forumReplyQueryDTO);
-        return getDataTable(pageInfo.getList());
+        List<ForumReplyVO> replyList = forumReplyService.listAllForumReplyByCourseId(courseId);
+        return Result.success(replyList);
     }
 
     @HasPermission(
@@ -227,6 +221,19 @@ public class ForumReplyController extends BaseController {
     ) {
         List<ForumReplyVO> replyTree = forumReplyService.getReplyTree(id);
         return Result.success(replyTree);
+    }
+
+    @HasPermission(
+            summary = "getAllRepliesByParentId",
+            description = "获取父回复下的所有子回复（平铺的list形式）。",
+            permission = PermissionConstants.REPLY_QUERY
+    )
+    @GetMapping("/{parentReplyId}/all")
+    public Result<List<ForumReplyVO>> getAllRepliesByParentId(
+            @Parameter(name = "parentReplyId", description = "父回复ID", required = true) @PathVariable("parentReplyId") UUID parentReplyId
+    ) {
+        List<ForumReplyVO> allReplies = forumReplyService.getAllRepliesByParentId(parentReplyId);
+        return Result.success(allReplies);
     }
 
     @HasPermission(

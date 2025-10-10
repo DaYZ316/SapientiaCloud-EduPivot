@@ -32,6 +32,11 @@ public class ForumReplyVO implements Serializable {
     @Schema(name = "sysUserId", description = "回复人ID")
     private UUID sysUserId;
 
+    @Schema(name = "userName", description = "回复人用户名")
+    private String userName;
+
+    @Schema(name = "userAvatar", description = "回复人头像URL")
+    private String userAvatar;
 
     @Schema(name = "content", description = "回复内容")
     private String content;
@@ -42,6 +47,8 @@ public class ForumReplyVO implements Serializable {
     @Schema(name = "replyToUserId", description = "回复目标用户ID")
     private UUID replyToUserId;
 
+    @Schema(name = "replyToUserName", description = "回复目标用户昵称")
+    private String replyToUserName;
 
     @Schema(name = "isAnonymous", description = "是否匿名回复 (0=实名, 1=匿名)")
     private Integer isAnonymous;
@@ -83,4 +90,7 @@ public class ForumReplyVO implements Serializable {
     @Schema(name = "updateTime", description = "更新时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updateTime;
+
+    @Schema(name = "deleted", description = "是否删除 (0=未删除, 1=已删除)")
+    private Integer deleted;
 }

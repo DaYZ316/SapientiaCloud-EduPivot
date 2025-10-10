@@ -63,4 +63,19 @@ public class PageUtil {
         rspData.setTotal(new PageInfo<>(list).getTotal());
         return rspData;
     }
+
+    /**
+     * 响应请求分页数据（使用PageInfo保持正确的total值）
+     *
+     * @param pageInfo 分页信息
+     * @return 分页数据
+     */
+    public static TableDataResult getDataTable(PageInfo<?> pageInfo) {
+        TableDataResult rspData = new TableDataResult();
+        rspData.setCode(200);
+        rspData.setMessage("查询成功");
+        rspData.setData(pageInfo.getList());
+        rspData.setTotal(pageInfo.getTotal());
+        return rspData;
+    }
 } 

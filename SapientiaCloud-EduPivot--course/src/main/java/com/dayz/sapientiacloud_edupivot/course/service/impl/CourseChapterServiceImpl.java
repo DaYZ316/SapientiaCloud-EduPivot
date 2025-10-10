@@ -87,6 +87,10 @@ public class CourseChapterServiceImpl implements ICourseChapterService {
         query.addCriteria(criteria);
         query.with(Sort.by(Sort.Direction.ASC, CourseChapterConstants.FIELD_SORT_ORDER));
 
+        // 创建专门的count查询，不包含分页条件
+        Query countQuery = new Query();
+        countQuery.addCriteria(criteria);
+
         Pageable pageable = PageRequest.of(
                 courseChapterQueryDTO.getPageNum() - CourseChapterConstants.PAGE_NUM_OFFSET,
                 courseChapterQueryDTO.getPageSize()
@@ -94,7 +98,7 @@ public class CourseChapterServiceImpl implements ICourseChapterService {
         query.with(pageable);
 
         List<CourseChapter> chapters = mongoTemplate.find(query, CourseChapter.class);
-        long total = mongoTemplate.count(query, CourseChapter.class);
+        long total = mongoTemplate.count(countQuery, CourseChapter.class);
 
         List<CourseChapterVO> chapterVOList = convertToVO(chapters);
         PageInfo<CourseChapterVO> pageInfo = new PageInfo<>(chapterVOList);
@@ -109,7 +113,7 @@ public class CourseChapterServiceImpl implements ICourseChapterService {
     @Override
     @Transactional(readOnly = true)
     @Cacheable(value = "CourseChapter", key = "'course:' + #p0", condition = "#p0 != null")
-    public List<CourseChapterVO> listCourseChapterByCourseId(UUID courseId) {
+    public List<CourseChapterVO> listAllCourseChapterByCourseId(UUID courseId) {
         if (courseId == null) {
             throw new BusinessException(CourseChapterEnum.COURSE_ID_REQUIRED);
         }

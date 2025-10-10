@@ -13,7 +13,7 @@ public interface ICourseChapterService {
 
     PageInfo<CourseChapterVO> listCourseChapter(CourseChapterQueryDTO courseChapterQueryDTO);
 
-    List<CourseChapterVO> listCourseChapterByCourseId(UUID courseId);
+    List<CourseChapterVO> listAllCourseChapterByCourseId(UUID courseId);
 
     List<CourseChapterVO> listCourseChapterTree(UUID courseId);
 

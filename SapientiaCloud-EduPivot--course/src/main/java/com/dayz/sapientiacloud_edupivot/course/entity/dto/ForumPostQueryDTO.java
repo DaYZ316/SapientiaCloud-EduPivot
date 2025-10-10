@@ -29,7 +29,7 @@ public class ForumPostQueryDTO extends PageEntity implements Serializable {
     @Schema(name = "title", description = "帖子标题（模糊查询）")
     private String title;
 
-    @Schema(name = "postType", description = "帖子类型 (0=普通帖子, 1=置顶帖子, 2=精华帖子, 3=公告)")
+    @Schema(name = "postType", description = "帖子类型 (0=普通帖子, 1=公告)")
     private Integer postType;
 
     @Schema(name = "isAnonymous", description = "是否匿名发帖 (0=实名, 1=匿名)")

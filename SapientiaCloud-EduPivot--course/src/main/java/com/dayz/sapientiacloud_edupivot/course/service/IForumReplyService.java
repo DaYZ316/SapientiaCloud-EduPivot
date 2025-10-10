@@ -12,11 +12,11 @@ public interface IForumReplyService {
 
     PageInfo<ForumReplyVO> listForumReply(ForumReplyQueryDTO forumReplyQueryDTO);
 
-    PageInfo<ForumReplyVO> listForumReplyByPostId(UUID postId, ForumReplyQueryDTO forumReplyQueryDTO);
+    List<ForumReplyVO> listAllForumReplyByPostId(UUID postId);
 
-    PageInfo<ForumReplyVO> listForumReplyByForumId(UUID forumId, ForumReplyQueryDTO forumReplyQueryDTO);
+    List<ForumReplyVO> listAllForumReplyByForumId(UUID forumId);
 
-    PageInfo<ForumReplyVO> listForumReplyByCourseId(UUID courseId, ForumReplyQueryDTO forumReplyQueryDTO);
+    List<ForumReplyVO> listAllForumReplyByCourseId(UUID courseId);
 
     ForumReplyVO getForumReplyById(UUID id);
 
@@ -39,6 +39,8 @@ public interface IForumReplyService {
     Boolean unacceptReply(UUID id);
 
     List<ForumReplyVO> getReplyTree(UUID id);
+
+    List<ForumReplyVO> getAllRepliesByParentId(UUID parentReplyId);
 
     ForumReplyVO getReplyStatistics(UUID id);
 }

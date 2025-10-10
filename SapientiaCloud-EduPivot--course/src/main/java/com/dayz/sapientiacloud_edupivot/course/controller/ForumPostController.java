@@ -37,37 +37,33 @@ public class ForumPostController extends BaseController {
     public TableDataResult listForumPost(@ParameterObject ForumPostQueryDTO forumPostQueryDTO) {
         startPage();
         PageInfo<ForumPostVO> pageInfo = forumPostService.listForumPost(forumPostQueryDTO);
-        return getDataTable(pageInfo.getList());
+        return getDataTable(pageInfo);
     }
 
     @HasPermission(
-            summary = "listForumPostByForumId",
+            summary = "listAllForumPostByForumId",
             description = "根据论坛ID获取该论坛下的所有帖子列表。",
             permission = PermissionConstants.POST_QUERY
     )
     @GetMapping("/forum/{forumId}")
-    public TableDataResult listForumPostByForumId(
-            @Parameter(name = "forumId", description = "论坛ID", required = true) @PathVariable("forumId") UUID forumId,
-            @ParameterObject ForumPostQueryDTO forumPostQueryDTO
+    public Result<List<ForumPostVO>> listAllForumPostByForumId(
+            @Parameter(name = "forumId", description = "论坛ID", required = true) @PathVariable("forumId") UUID forumId
     ) {
-        startPage();
-        PageInfo<ForumPostVO> pageInfo = forumPostService.listForumPostByForumId(forumId, forumPostQueryDTO);
-        return getDataTable(pageInfo.getList());
+        List<ForumPostVO> postList = forumPostService.listAllForumPostByForumId(forumId);
+        return Result.success(postList);
     }
 
     @HasPermission(
-            summary = "listForumPostByCourseId",
+            summary = "listAllForumPostByCourseId",
             description = "根据课程ID获取该课程下的所有帖子列表。",
             permission = PermissionConstants.POST_QUERY
     )
     @GetMapping("/course/{courseId}")
-    public TableDataResult listForumPostByCourseId(
-            @Parameter(name = "courseId", description = "课程ID", required = true) @PathVariable("courseId") UUID courseId,
-            @ParameterObject ForumPostQueryDTO forumPostQueryDTO
+    public Result<List<ForumPostVO>> listAllForumPostByCourseId(
+            @Parameter(name = "courseId", description = "课程ID", required = true) @PathVariable("courseId") UUID courseId
     ) {
-        startPage();
-        PageInfo<ForumPostVO> pageInfo = forumPostService.listForumPostByCourseId(courseId, forumPostQueryDTO);
-        return getDataTable(pageInfo.getList());
+        List<ForumPostVO> postList = forumPostService.listAllForumPostByCourseId(courseId);
+        return Result.success(postList);
     }
 
     @HasPermission(

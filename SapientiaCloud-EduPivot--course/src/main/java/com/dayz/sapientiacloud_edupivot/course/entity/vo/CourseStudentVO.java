@@ -20,6 +20,15 @@ public class CourseStudentVO implements Serializable {
     @Schema(name = "studentId", description = "学生ID")
     private UUID studentId;
 
+    @Schema(name = "realName", description = "学生真实姓名")
+    private String realName;
+
+    @Schema(name = "avatar", description = "学生头像")
+    private String avatar;
+
+    @Schema(name = "sysUserId", description = "系统用户ID")
+    private UUID sysUserId;
+
     @Schema(name = "courseId", description = "课程ID")
     private UUID courseId;
 

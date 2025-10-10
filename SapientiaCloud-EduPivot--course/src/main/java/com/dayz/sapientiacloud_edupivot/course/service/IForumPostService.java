@@ -12,9 +12,9 @@ public interface IForumPostService {
 
     PageInfo<ForumPostVO> listForumPost(ForumPostQueryDTO forumPostQueryDTO);
 
-    PageInfo<ForumPostVO> listForumPostByForumId(UUID forumId, ForumPostQueryDTO forumPostQueryDTO);
+    List<ForumPostVO> listAllForumPostByForumId(UUID forumId);
 
-    PageInfo<ForumPostVO> listForumPostByCourseId(UUID courseId, ForumPostQueryDTO forumPostQueryDTO);
+    List<ForumPostVO> listAllForumPostByCourseId(UUID courseId);
 
     ForumPostVO getForumPostById(UUID id);
 
@@ -45,4 +45,6 @@ public interface IForumPostService {
     List<ForumPostVO> getHotPosts(Integer limit);
 
     List<ForumPostVO> getLatestPosts(Integer limit);
+
+    Boolean updateReplyCount(UUID postId, Long replyCount);
 }
