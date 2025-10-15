@@ -157,4 +157,27 @@
         </where>
     </delete>
 
+    <select id="listAllCourseStudentByCourseIds" resultMap="CourseStudentVOMap">
+        SELECT
+        cs.student_id,
+        cs.course_id,
+        cs.grade,
+        cs.status,
+        cs.create_time,
+        cs.update_time,
+        s.real_name,
+        s.sys_user_id,
+        u.avatar
+        FROM mg_course_student cs
+        LEFT JOIN mg_student s ON cs.student_id = s.id AND s.is_deleted = 0
+        LEFT JOIN sys_user u ON s.sys_user_id = u.id AND u.is_deleted = 0
+        <where>
+            cs.course_id IN
+            <foreach item="item" index="index" collection="courseIds" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </where>
+        ORDER BY cs.create_time DESC
+    </select>
+
 </mapper>

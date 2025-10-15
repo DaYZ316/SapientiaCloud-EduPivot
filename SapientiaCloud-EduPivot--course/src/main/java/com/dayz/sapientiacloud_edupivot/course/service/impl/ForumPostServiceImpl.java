@@ -54,45 +54,36 @@ public class ForumPostServiceImpl implements IForumPostService {
             throw new BusinessException(ForumPostEnum.POST_REQUIRED);
         }
 
-        // 构建查询条件
         Query query = new Query();
         Criteria criteria = new Criteria();
 
-        // 论坛ID
         if (forumPostQueryDTO.getForumId() != null) {
             criteria.and(ForumPostConstants.FIELD_FORUM_ID).is(forumPostQueryDTO.getForumId());
         }
 
-        // 课程ID
         if (forumPostQueryDTO.getCourseId() != null) {
             criteria.and(ForumPostConstants.FIELD_COURSE_ID).is(forumPostQueryDTO.getCourseId());
         }
 
-        // 作者ID
         if (forumPostQueryDTO.getSysUserId() != null) {
             criteria.and(ForumPostConstants.FIELD_SYS_USER_ID).is(forumPostQueryDTO.getSysUserId());
         }
 
-        // 帖子标题模糊查询
         if (StringUtils.hasText(forumPostQueryDTO.getTitle())) {
             criteria.and(ForumPostConstants.FIELD_TITLE).regex(forumPostQueryDTO.getTitle(), ForumPostConstants.REGEX_CASE_INSENSITIVE);
         }
 
-        // 帖子类型
         if (forumPostQueryDTO.getPostType() != null) {
             criteria.and(ForumPostConstants.FIELD_POST_TYPE).is(forumPostQueryDTO.getPostType());
         }
 
-        // 状态
         if (forumPostQueryDTO.getStatus() != null) {
             criteria.and(ForumPostConstants.FIELD_STATUS).is(forumPostQueryDTO.getStatus());
         }
 
-        // 逻辑删除
         criteria.and(ForumPostConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode());
 
         query.addCriteria(criteria);
-        // 排序：置顶优先级最高，其次是精华，然后是点赞数量，最后按创建时间
         query.with(Sort.by(
                 Sort.Order.desc(ForumPostConstants.FIELD_IS_TOP),
                 Sort.Order.desc(ForumPostConstants.FIELD_IS_ESSENCE),
@@ -100,25 +91,20 @@ public class ForumPostServiceImpl implements IForumPostService {
                 Sort.Order.desc(ForumPostConstants.FIELD_CREATE_TIME)
         ));
 
-        // 创建专门的count查询，不包含分页条件
         Query countQuery = new Query();
         countQuery.addCriteria(criteria);
 
-        // 分页
         Pageable pageable = PageRequest.of(
                 forumPostQueryDTO.getPageNum() - ForumPostConstants.PAGE_NUM_OFFSET,
                 forumPostQueryDTO.getPageSize()
         );
         query.with(pageable);
 
-        // 执行查询
         List<ForumPost> posts = mongoTemplate.find(query, ForumPost.class);
         long total = mongoTemplate.count(countQuery, ForumPost.class);
 
-        // 转换为VO
         List<ForumPostVO> postVOList = convertToVOList(posts);
 
-        // 构建分页信息
         PageInfo<ForumPostVO> pageInfo = new PageInfo<>(postVOList);
         pageInfo.setTotal(total);
         pageInfo.setPageNum(forumPostQueryDTO.getPageNum());
@@ -136,13 +122,11 @@ public class ForumPostServiceImpl implements IForumPostService {
             throw new BusinessException(ForumPostEnum.FORUM_ID_REQUIRED);
         }
 
-        // 构建查询条件
         Query query = new Query();
         Criteria criteria = new Criteria();
         criteria.and(ForumPostConstants.FIELD_FORUM_ID).is(forumId);
         criteria.and(ForumPostConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode());
         query.addCriteria(criteria);
-        // 排序：置顶优先级最高，其次是精华，然后是点赞数量，最后按创建时间
         query.with(Sort.by(
                 Sort.Order.desc(ForumPostConstants.FIELD_IS_TOP),
                 Sort.Order.desc(ForumPostConstants.FIELD_IS_ESSENCE),
@@ -162,13 +146,11 @@ public class ForumPostServiceImpl implements IForumPostService {
             throw new BusinessException(ForumPostEnum.COURSE_ID_REQUIRED);
         }
 
-        // 构建查询条件
         Query query = new Query();
         Criteria criteria = new Criteria();
         criteria.and(ForumPostConstants.FIELD_COURSE_ID).is(courseId);
         criteria.and(ForumPostConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode());
         query.addCriteria(criteria);
-        // 排序：置顶优先级最高，其次是精华，然后是点赞数量，最后按创建时间
         query.with(Sort.by(
                 Sort.Order.desc(ForumPostConstants.FIELD_IS_TOP),
                 Sort.Order.desc(ForumPostConstants.FIELD_IS_ESSENCE),
@@ -188,7 +170,6 @@ public class ForumPostServiceImpl implements IForumPostService {
             throw new BusinessException(ForumPostEnum.POST_ID_REQUIRED);
         }
 
-        // 构建查询条件
         Query query = new Query();
         Criteria criteria = new Criteria();
         criteria.and(ForumPostConstants.FIELD_ID).is(id);
@@ -214,39 +195,31 @@ public class ForumPostServiceImpl implements IForumPostService {
             throw new BusinessException(ForumPostEnum.POST_REQUIRED);
         }
 
-        // 验证论坛ID
         if (forumPostDTO.getForumId() == null) {
             throw new BusinessException(ForumPostEnum.FORUM_ID_REQUIRED);
         }
 
-        // 验证课程ID
         if (forumPostDTO.getCourseId() == null) {
             throw new BusinessException(ForumPostEnum.COURSE_ID_REQUIRED);
         }
 
-        // 验证作者ID
         if (forumPostDTO.getSysUserId() == null) {
             throw new BusinessException(ForumPostEnum.AUTHOR_ID_REQUIRED);
         }
 
-        // 验证帖子标题
         if (!StringUtils.hasText(forumPostDTO.getTitle())) {
             throw new BusinessException(ForumPostEnum.POST_TITLE_REQUIRED);
         }
 
-        // 验证帖子内容
         if (!StringUtils.hasText(forumPostDTO.getContent())) {
             throw new BusinessException(ForumPostEnum.POST_CONTENT_REQUIRED);
         }
 
-        // 创建帖子实体
         ForumPost post = new ForumPost();
         BeanUtils.copyProperties(forumPostDTO, post);
 
-        // 设置ID
         post.setId(UuidCreator.getTimeOrderedEpoch());
 
-        // 设置默认值
         if (post.getStatus() == null) {
             post.setStatus(StatusEnum.NORMAL.getCode());
         }
@@ -278,12 +251,10 @@ public class ForumPostServiceImpl implements IForumPostService {
             post.setDeleted(DeletedEnum.NOT_DELETED.getCode());
         }
 
-        // 设置时间
         LocalDateTime now = LocalDateTime.now();
         post.setCreateTime(now);
         post.setUpdateTime(now);
 
-        // 保存帖子
         ForumPost savedPost = forumPostRepository.save(post);
 
         log.info(ForumPostConstants.LOG_ADD_SUCCESS, savedPost.getTitle());
@@ -302,7 +273,6 @@ public class ForumPostServiceImpl implements IForumPostService {
             throw new BusinessException(ForumPostEnum.POST_INFO_OR_ID_REQUIRED);
         }
 
-        // 检查帖子是否存在
         Query query = new Query();
         Criteria criteria = new Criteria();
         criteria.and(ForumPostConstants.FIELD_ID).is(forumPostDTO.getId());
@@ -314,7 +284,6 @@ public class ForumPostServiceImpl implements IForumPostService {
             throw new BusinessException(ForumPostEnum.POST_NOT_EXISTS);
         }
 
-        // 更新字段
         if (StringUtils.hasText(forumPostDTO.getTitle())) {
             existingPost.setTitle(forumPostDTO.getTitle());
         }
@@ -343,10 +312,8 @@ public class ForumPostServiceImpl implements IForumPostService {
             existingPost.setChapterId(forumPostDTO.getChapterId());
         }
 
-        // 更新时间
         existingPost.setUpdateTime(LocalDateTime.now());
 
-        // 保存更新
         forumPostRepository.save(existingPost);
 
         log.info(ForumPostConstants.LOG_UPDATE_SUCCESS, existingPost.getTitle());
@@ -361,7 +328,6 @@ public class ForumPostServiceImpl implements IForumPostService {
             throw new BusinessException(ForumPostEnum.POST_ID_REQUIRED);
         }
 
-        // 检查帖子是否存在
         Query query = new Query();
         Criteria criteria = new Criteria();
         criteria.and(ForumPostConstants.FIELD_ID).is(id);
@@ -373,7 +339,6 @@ public class ForumPostServiceImpl implements IForumPostService {
             throw new BusinessException(ForumPostEnum.POST_NOT_EXISTS);
         }
 
-        // 逻辑删除
         post.setDeleted(DeletedEnum.DELETED.getCode());
         post.setUpdateTime(LocalDateTime.now());
         forumPostRepository.save(post);
@@ -416,7 +381,6 @@ public class ForumPostServiceImpl implements IForumPostService {
             throw new BusinessException(ForumPostEnum.POST_STATUS_INVALID);
         }
 
-        // 检查帖子是否存在
         Query query = new Query();
         Criteria criteria = new Criteria();
         criteria.and(ForumPostConstants.FIELD_ID).is(id);
@@ -428,7 +392,6 @@ public class ForumPostServiceImpl implements IForumPostService {
             throw new BusinessException(ForumPostEnum.POST_NOT_EXISTS);
         }
 
-        // 更新状态
         post.setStatus(status);
         post.setUpdateTime(LocalDateTime.now());
         forumPostRepository.save(post);
@@ -448,7 +411,6 @@ public class ForumPostServiceImpl implements IForumPostService {
             throw new BusinessException(ForumPostEnum.IS_TOP_INVALID);
         }
 
-        // 检查帖子是否存在
         Query query = new Query();
         Criteria criteria = new Criteria();
         criteria.and(ForumPostConstants.FIELD_ID).is(id);
@@ -460,7 +422,6 @@ public class ForumPostServiceImpl implements IForumPostService {
             throw new BusinessException(ForumPostEnum.POST_NOT_EXISTS);
         }
 
-        // 更新置顶状态
         post.setIsTop(isTop);
         post.setUpdateTime(LocalDateTime.now());
         forumPostRepository.save(post);
@@ -480,7 +441,6 @@ public class ForumPostServiceImpl implements IForumPostService {
             throw new BusinessException(ForumPostEnum.IS_ESSENCE_INVALID);
         }
 
-        // 检查帖子是否存在
         Query query = new Query();
         Criteria criteria = new Criteria();
         criteria.and(ForumPostConstants.FIELD_ID).is(id);
@@ -492,7 +452,6 @@ public class ForumPostServiceImpl implements IForumPostService {
             throw new BusinessException(ForumPostEnum.POST_NOT_EXISTS);
         }
 
-        // 更新精华状态
         post.setIsEssence(isEssence);
         post.setUpdateTime(LocalDateTime.now());
         forumPostRepository.save(post);
@@ -512,7 +471,6 @@ public class ForumPostServiceImpl implements IForumPostService {
             throw new BusinessException(ForumPostEnum.IS_LOCKED_INVALID);
         }
 
-        // 检查帖子是否存在
         Query query = new Query();
         Criteria criteria = new Criteria();
         criteria.and(ForumPostConstants.FIELD_ID).is(id);
@@ -524,7 +482,6 @@ public class ForumPostServiceImpl implements IForumPostService {
             throw new BusinessException(ForumPostEnum.POST_NOT_EXISTS);
         }
 
-        // 更新锁定状态
         post.setIsLocked(isLocked);
         post.setUpdateTime(LocalDateTime.now());
         forumPostRepository.save(post);
@@ -609,12 +566,10 @@ public class ForumPostServiceImpl implements IForumPostService {
             limit = 10;
         }
 
-        // 构建查询条件
         Query query = new Query();
         Criteria criteria = new Criteria();
         criteria.and(ForumPostConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode());
         query.addCriteria(criteria);
-        // 排序：置顶优先级最高，其次是精华，然后是点赞数量，最后按创建时间
         query.with(Sort.by(
                 Sort.Order.desc(ForumPostConstants.FIELD_IS_TOP),
                 Sort.Order.desc(ForumPostConstants.FIELD_IS_ESSENCE),
@@ -635,12 +590,10 @@ public class ForumPostServiceImpl implements IForumPostService {
             limit = 10;
         }
 
-        // 构建查询条件
         Query query = new Query();
         Criteria criteria = new Criteria();
         criteria.and(ForumPostConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode());
         query.addCriteria(criteria);
-        // 排序：置顶优先级最高，其次是精华，然后是点赞数量，最后按创建时间
         query.with(Sort.by(
                 Sort.Order.desc(ForumPostConstants.FIELD_IS_TOP),
                 Sort.Order.desc(ForumPostConstants.FIELD_IS_ESSENCE),
@@ -653,18 +606,11 @@ public class ForumPostServiceImpl implements IForumPostService {
         return convertToVOList(posts);
     }
 
-    /**
-     * 批量将PO转换为VO（优化版本，只查询一次用户信息）
-     *
-     * @param posts 帖子PO列表
-     * @return 帖子VO列表
-     */
     private List<ForumPostVO> convertToVOList(List<ForumPost> posts) {
         if (CollectionUtils.isEmpty(posts)) {
             return new ArrayList<>();
         }
 
-        // 获取所有用户信息
         Map<UUID, SysUserVO> userMap = getUserMap();
 
         return posts.stream()
@@ -672,30 +618,16 @@ public class ForumPostServiceImpl implements IForumPostService {
                 .toList();
     }
 
-    /**
-     * 将PO转换为VO（优化版本，使用用户映射避免N+1查询）
-     *
-     * @param post 帖子PO
-     * @return 帖子VO
-     */
     private ForumPostVO convertToVO(ForumPost post) {
         if (post == null) {
             return null;
         }
 
-        // 获取用户映射（避免N+1查询）
         Map<UUID, SysUserVO> userMap = getUserMap();
 
         return convertToVOWithUserMap(post, userMap);
     }
 
-    /**
-     * 使用用户映射将PO转换为VO
-     *
-     * @param post    帖子PO
-     * @param userMap 用户映射
-     * @return 帖子VO
-     */
     private ForumPostVO convertToVOWithUserMap(ForumPost post, Map<UUID, SysUserVO> userMap) {
         if (post == null) {
             return null;
@@ -704,18 +636,11 @@ public class ForumPostServiceImpl implements IForumPostService {
         ForumPostVO vo = new ForumPostVO();
         BeanUtils.copyProperties(post, vo);
 
-        // 填充用户信息
         fillUserInfoWithMap(vo, post.getSysUserId(), userMap);
 
         return vo;
     }
 
-
-    /**
-     * 获取用户映射
-     *
-     * @return 用户ID到用户信息的映射
-     */
     private Map<UUID, SysUserVO> getUserMap() {
         try {
             Result<List<SysUserVO>> result = sysUserClient.listAllSysUser();
@@ -729,13 +654,6 @@ public class ForumPostServiceImpl implements IForumPostService {
         return new HashMap<>();
     }
 
-    /**
-     * 使用用户映射填充用户信息
-     *
-     * @param vo        帖子VO
-     * @param sysUserId 用户ID
-     * @param userMap   用户映射
-     */
     private void fillUserInfoWithMap(ForumPostVO vo, UUID sysUserId, Map<UUID, SysUserVO> userMap) {
         if (sysUserId == null || userMap.isEmpty()) {
             return;
@@ -759,14 +677,12 @@ public class ForumPostServiceImpl implements IForumPostService {
             throw new BusinessException(ForumPostEnum.REPLY_COUNT_INVALID);
         }
 
-        // 检查帖子是否存在
         Query query = new Query(Criteria.where(ForumPostConstants.FIELD_ID).is(postId));
         ForumPost post = mongoTemplate.findOne(query, ForumPost.class);
         if (post == null) {
             throw new BusinessException(ForumPostEnum.POST_NOT_EXISTS);
         }
 
-        // 更新回复数量
         Update update = new Update().set(ForumPostConstants.FIELD_REPLY_COUNT, replyCount);
         mongoTemplate.updateFirst(query, update, ForumPost.class);
 

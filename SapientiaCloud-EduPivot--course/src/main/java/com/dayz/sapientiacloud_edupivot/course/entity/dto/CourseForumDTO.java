@@ -47,21 +47,10 @@ public class CourseForumDTO implements Serializable {
     @Max(value = 1, message = "匿名发帖标识输入不正确")
     private Integer allowAnonymous;
 
-    @Schema(name = "moderatorIds", description = "版主ID列表")
-    private List<UUID> moderatorIds;
-
-    @Schema(name = "sortOrder", description = "排序权重")
-    @Min(value = 0, message = "排序权重不能为负数")
-    private Integer sortOrder;
-
     @Schema(name = "status", description = "论坛状态 (0=正常, 1=关闭, 2=维护)")
     @Min(value = 0, message = "论坛状态输入不正确")
     @Max(value = 2, message = "论坛状态输入不正确")
     private Integer status;
-
-    @Schema(name = "rules", description = "论坛规则")
-    @Size(max = 1000, message = "论坛规则不能超过1000个字符")
-    private String rules;
 
     @Schema(name = "tags", description = "标签列表")
     private List<String> tags;

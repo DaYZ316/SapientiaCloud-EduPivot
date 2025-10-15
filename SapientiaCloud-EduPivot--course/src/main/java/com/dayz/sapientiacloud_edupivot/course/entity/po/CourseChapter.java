@@ -18,7 +18,7 @@ import java.util.UUID;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Document(collection = "course_chapters")
+@Document(collection = "mg_course_chapter")
 @EqualsAndHashCode(callSuper = true)
 @Schema(description = "课程章节持久化对象 (PO)")
 public class CourseChapter extends BaseEntity implements Serializable {

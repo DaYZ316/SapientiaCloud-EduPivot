@@ -1,0 +1,329 @@
+package com.dayz.sapientiacloud_edupivot.course.service.impl;
+
+import com.dayz.sapientiacloud_edupivot.course.common.enums.DeletedEnum;
+import com.dayz.sapientiacloud_edupivot.course.common.exception.BusinessException;
+import com.dayz.sapientiacloud_edupivot.course.constant.QuestionOptionConstants;
+import com.dayz.sapientiacloud_edupivot.course.entity.dto.QuestionOptionDTO;
+import com.dayz.sapientiacloud_edupivot.course.entity.po.QuestionOption;
+import com.dayz.sapientiacloud_edupivot.course.entity.vo.QuestionOptionVO;
+import java.math.BigDecimal;
+import com.dayz.sapientiacloud_edupivot.course.enums.QuestionOptionEnum;
+import com.dayz.sapientiacloud_edupivot.course.repository.QuestionOptionRepository;
+import com.dayz.sapientiacloud_edupivot.course.service.IQuestionOptionService;
+import com.github.f4b6a3.uuid.UuidCreator;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
+
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
+
+@Service
+@Slf4j
+@RequiredArgsConstructor
+public class QuestionOptionServiceImpl implements IQuestionOptionService {
+
+    private final QuestionOptionRepository questionOptionRepository;
+    private final MongoTemplate mongoTemplate;
+
+    @Override
+    @Transactional(readOnly = true)
+    @Cacheable(value = "QuestionOption", key = "'question:' + #p0", condition = "#p0 != null")
+    public List<QuestionOptionVO> listQuestionOptionByQuestionId(UUID questionId) {
+        if (questionId == null) {
+            throw new BusinessException(QuestionOptionEnum.QUESTION_ID_REQUIRED);
+        }
+
+        Query query = new Query();
+        Criteria criteria = new Criteria();
+        criteria.and(QuestionOptionConstants.FIELD_QUESTION_ID).is(questionId);
+        criteria.and(QuestionOptionConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode());
+        query.addCriteria(criteria);
+        query.with(Sort.by(Sort.Direction.ASC, QuestionOptionConstants.FIELD_OPTION_LABEL));
+
+        List<QuestionOption> options = mongoTemplate.find(query, QuestionOption.class);
+        return convertToVOList(options);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    @Cacheable(value = "QuestionOption", key = "#p0", condition = "#p0 != null")
+    public QuestionOptionVO getQuestionOptionById(UUID id) {
+        if (id == null) {
+            throw new BusinessException(QuestionOptionEnum.QUESTION_OPTION_ID_REQUIRED);
+        }
+
+        Query query = new Query();
+        Criteria criteria = new Criteria();
+        criteria.and(QuestionOptionConstants.FIELD_ID).is(id);
+        criteria.and(QuestionOptionConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode());
+        query.addCriteria(criteria);
+
+        QuestionOption option = mongoTemplate.findOne(query, QuestionOption.class);
+        if (option == null) {
+            throw new BusinessException(QuestionOptionEnum.QUESTION_OPTION_NOT_EXISTS);
+        }
+
+        return convertToVO(option);
+    }
+
+    @Override
+    @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "QuestionOption", key = "'question:' + #p0.questionId"),
+            @CacheEvict(value = "QuestionOption", allEntries = true)
+    })
+    public QuestionOptionVO addQuestionOption(QuestionOptionDTO questionOptionDTO) {
+        if (questionOptionDTO == null) {
+            throw new BusinessException(QuestionOptionEnum.QUESTION_OPTION_REQUIRED);
+        }
+
+        if (questionOptionDTO.getQuestionId() == null) {
+            throw new BusinessException(QuestionOptionEnum.QUESTION_ID_REQUIRED);
+        }
+
+        if (!StringUtils.hasText(questionOptionDTO.getOptionContent())) {
+            throw new BusinessException(QuestionOptionEnum.QUESTION_OPTION_CONTENT_REQUIRED);
+        }
+
+        if (!StringUtils.hasText(questionOptionDTO.getOptionLabel())) {
+            throw new BusinessException(QuestionOptionEnum.QUESTION_OPTION_LABEL_REQUIRED);
+        }
+
+        if (questionOptionDTO.getIsCorrect() == null) {
+            throw new BusinessException(QuestionOptionEnum.QUESTION_OPTION_IS_CORRECT_REQUIRED);
+        }
+
+        if (questionOptionDTO.getIsCorrect() < QuestionOptionConstants.IS_CORRECT_MIN || 
+            questionOptionDTO.getIsCorrect() > QuestionOptionConstants.IS_CORRECT_MAX) {
+            throw new BusinessException(QuestionOptionEnum.QUESTION_OPTION_IS_CORRECT_REQUIRED);
+        }
+
+        Query existingQuery = new Query();
+        Criteria existingCriteria = new Criteria();
+        existingCriteria.and(QuestionOptionConstants.FIELD_QUESTION_ID).is(questionOptionDTO.getQuestionId());
+        existingCriteria.and(QuestionOptionConstants.FIELD_OPTION_LABEL).is(questionOptionDTO.getOptionLabel());
+        existingCriteria.and(QuestionOptionConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode());
+        existingQuery.addCriteria(existingCriteria);
+
+        QuestionOption existingOption = mongoTemplate.findOne(existingQuery, QuestionOption.class);
+        if (existingOption != null) {
+            throw new BusinessException(QuestionOptionEnum.QUESTION_OPTION_LABEL_DUPLICATE);
+        }
+
+        QuestionOption option = new QuestionOption();
+        BeanUtils.copyProperties(questionOptionDTO, option);
+
+        option.setId(UuidCreator.getTimeOrderedEpoch());
+
+        if (option.getScore() == null) {
+            option.setScore(option.getIsCorrect() == QuestionOptionConstants.IS_CORRECT_CORRECT ? 
+                BigDecimal.valueOf(100) : BigDecimal.ZERO);
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        option.setCreateTime(now);
+        option.setUpdateTime(now);
+        option.setDeleted(DeletedEnum.NOT_DELETED.getCode());
+
+        QuestionOption savedOption = questionOptionRepository.save(option);
+
+        log.info(QuestionOptionConstants.LOG_ADD_SUCCESS, savedOption.getId());
+        return convertToVO(savedOption);
+    }
+
+    @Override
+    @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "QuestionOption", allEntries = true)
+    })
+    public List<QuestionOptionVO> addQuestionOptions(List<QuestionOptionDTO> questionOptionDTOList) {
+        if (CollectionUtils.isEmpty(questionOptionDTOList)) {
+            throw new BusinessException(QuestionOptionEnum.QUESTION_OPTION_REQUIRED);
+        }
+
+        List<QuestionOptionVO> result = new ArrayList<>();
+        for (QuestionOptionDTO dto : questionOptionDTOList) {
+            try {
+                QuestionOptionVO vo = addQuestionOption(dto);
+                result.add(vo);
+            } catch (Exception e) {
+                log.warn(QuestionOptionConstants.LOG_ADD_FAILED, dto.getQuestionId(), e.getMessage());
+            }
+        }
+
+        log.info(QuestionOptionConstants.LOG_BATCH_ADD_SUCCESS, result.size());
+        return result;
+    }
+
+    @Override
+    @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "QuestionOption", key = "#p0.id"),
+            @CacheEvict(value = "QuestionOption", key = "'question:' + #p0.questionId"),
+            @CacheEvict(value = "QuestionOption", allEntries = true)
+    })
+    public Boolean updateQuestionOption(QuestionOptionDTO questionOptionDTO) {
+        if (questionOptionDTO == null || questionOptionDTO.getId() == null) {
+            throw new BusinessException(QuestionOptionEnum.QUESTION_OPTION_INFO_OR_ID_REQUIRED);
+        }
+
+        Query query = new Query();
+        Criteria criteria = new Criteria();
+        criteria.and(QuestionOptionConstants.FIELD_ID).is(questionOptionDTO.getId());
+        criteria.and(QuestionOptionConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode());
+        query.addCriteria(criteria);
+
+        QuestionOption existingOption = mongoTemplate.findOne(query, QuestionOption.class);
+        if (existingOption == null) {
+            throw new BusinessException(QuestionOptionEnum.QUESTION_OPTION_NOT_EXISTS);
+        }
+
+        if (StringUtils.hasText(questionOptionDTO.getOptionContent())) {
+            existingOption.setOptionContent(questionOptionDTO.getOptionContent());
+        }
+        if (StringUtils.hasText(questionOptionDTO.getOptionLabel())) {
+            existingOption.setOptionLabel(questionOptionDTO.getOptionLabel());
+        }
+        if (questionOptionDTO.getIsCorrect() != null) {
+            existingOption.setIsCorrect(questionOptionDTO.getIsCorrect());
+        }
+        if (questionOptionDTO.getScore() != null) {
+            existingOption.setScore(questionOptionDTO.getScore());
+        }
+        if (questionOptionDTO.getImageUrls() != null) {
+            existingOption.setImageUrls(questionOptionDTO.getImageUrls());
+        }
+        if (StringUtils.hasText(questionOptionDTO.getExplanation())) {
+            existingOption.setExplanation(questionOptionDTO.getExplanation());
+        }
+
+        existingOption.setUpdateTime(LocalDateTime.now());
+
+        questionOptionRepository.save(existingOption);
+
+        log.info(QuestionOptionConstants.LOG_UPDATE_SUCCESS, existingOption.getId());
+        return true;
+    }
+
+    @Override
+    @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "QuestionOption", allEntries = true)
+    })
+    public Boolean removeQuestionOptionById(UUID id) {
+        if (id == null) {
+            throw new BusinessException(QuestionOptionEnum.QUESTION_OPTION_ID_REQUIRED);
+        }
+
+        Query query = new Query();
+        Criteria criteria = new Criteria();
+        criteria.and(QuestionOptionConstants.FIELD_ID).is(id);
+        criteria.and(QuestionOptionConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode());
+        query.addCriteria(criteria);
+
+        QuestionOption option = mongoTemplate.findOne(query, QuestionOption.class);
+        if (option == null) {
+            throw new BusinessException(QuestionOptionEnum.QUESTION_OPTION_NOT_EXISTS);
+        }
+
+        option.setDeleted(DeletedEnum.DELETED.getCode());
+        option.setUpdateTime(LocalDateTime.now());
+        questionOptionRepository.save(option);
+
+        log.info(QuestionOptionConstants.LOG_DELETE_SUCCESS, option.getId());
+        return true;
+    }
+
+    @Override
+    @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "QuestionOption", key = "'question:' + #p0"),
+            @CacheEvict(value = "QuestionOption", allEntries = true)
+    })
+    public Boolean removeQuestionOptionsByQuestionId(UUID questionId) {
+        if (questionId == null) {
+            throw new BusinessException(QuestionOptionEnum.QUESTION_ID_REQUIRED);
+        }
+
+        Query query = new Query();
+        Criteria criteria = new Criteria();
+        criteria.and(QuestionOptionConstants.FIELD_QUESTION_ID).is(questionId);
+        criteria.and(QuestionOptionConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode());
+        query.addCriteria(criteria);
+
+        List<QuestionOption> options = mongoTemplate.find(query, QuestionOption.class);
+        if (CollectionUtils.isEmpty(options)) {
+            return true;
+        }
+
+        for (QuestionOption option : options) {
+            option.setDeleted(DeletedEnum.DELETED.getCode());
+            option.setUpdateTime(LocalDateTime.now());
+        }
+
+        questionOptionRepository.saveAll(options);
+
+        log.info(QuestionOptionConstants.LOG_BATCH_DELETE_SUCCESS, options.size());
+        return true;
+    }
+
+    @Override
+    @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "QuestionOption", allEntries = true)
+    })
+    public Integer removeQuestionOptionsByIds(List<UUID> ids) {
+        if (CollectionUtils.isEmpty(ids)) {
+            throw new BusinessException(QuestionOptionEnum.QUESTION_OPTION_IDS_REQUIRED);
+        }
+
+        int deletedCount = 0;
+        for (UUID id : ids) {
+            try {
+                if (removeQuestionOptionById(id)) {
+                    deletedCount++;
+                }
+            } catch (Exception e) {
+                log.warn(QuestionOptionConstants.LOG_DELETE_FAILED, id, e.getMessage());
+            }
+        }
+
+        log.info(QuestionOptionConstants.LOG_BATCH_DELETE_SUCCESS, deletedCount);
+        return deletedCount;
+    }
+
+    private List<QuestionOptionVO> convertToVOList(List<QuestionOption> options) {
+        if (CollectionUtils.isEmpty(options)) {
+            return new ArrayList<>();
+        }
+
+        return options.stream()
+                .map(this::convertToVO)
+                .toList();
+    }
+
+    private QuestionOptionVO convertToVO(QuestionOption option) {
+        if (option == null) {
+            return null;
+        }
+
+        QuestionOptionVO vo = new QuestionOptionVO();
+        BeanUtils.copyProperties(option, vo);
+
+        return vo;
+    }
+}

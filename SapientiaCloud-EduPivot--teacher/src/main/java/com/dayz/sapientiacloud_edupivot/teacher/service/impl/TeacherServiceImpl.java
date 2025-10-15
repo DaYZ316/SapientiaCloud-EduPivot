@@ -95,6 +95,7 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
 
     @Override
     @Transactional(readOnly = true)
+    // TODO Cache
     public TeacherVO getTeacherByUserId(UUID sysUserId) {
         if (sysUserId == null) {
             return null;

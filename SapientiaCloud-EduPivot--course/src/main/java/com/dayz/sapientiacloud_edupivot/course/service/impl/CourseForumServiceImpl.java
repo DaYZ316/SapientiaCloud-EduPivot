@@ -49,57 +49,46 @@ public class CourseForumServiceImpl implements ICourseForumService {
             throw new BusinessException(CourseForumEnum.FORUM_REQUIRED);
         }
 
-        // 构建查询条件
         Query query = new Query();
         Criteria criteria = new Criteria();
 
-        // 课程ID
         if (courseForumQueryDTO.getCourseId() != null) {
             criteria.and(CourseForumConstants.FIELD_COURSE_ID).is(courseForumQueryDTO.getCourseId());
         }
 
-        // 论坛名称模糊查询
         if (StringUtils.hasText(courseForumQueryDTO.getForumName())) {
             criteria.and(CourseForumConstants.FIELD_FORUM_NAME).regex(courseForumQueryDTO.getForumName(), CourseForumConstants.REGEX_CASE_INSENSITIVE);
         }
 
-        // 论坛类型
         if (courseForumQueryDTO.getForumType() != null) {
             criteria.and(CourseForumConstants.FIELD_FORUM_TYPE).is(courseForumQueryDTO.getForumType());
         }
 
-        // 状态
         if (courseForumQueryDTO.getStatus() != null) {
             criteria.and(CourseForumConstants.FIELD_STATUS).is(courseForumQueryDTO.getStatus());
         }
 
-        // 逻辑删除
         criteria.and(CourseForumConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode());
 
         query.addCriteria(criteria);
-        query.with(Sort.by(Sort.Direction.ASC, CourseForumConstants.FIELD_SORT_ORDER, CourseForumConstants.FIELD_FORUM_NAME));
+        query.with(Sort.by(Sort.Direction.DESC, CourseForumConstants.FIELD_CREATED_TIME));
 
-        // 创建专门的count查询，不包含分页条件
         Query countQuery = new Query();
         countQuery.addCriteria(criteria);
 
-        // 分页
         Pageable pageable = PageRequest.of(
                 courseForumQueryDTO.getPageNum() - CourseForumConstants.PAGE_NUM_OFFSET,
                 courseForumQueryDTO.getPageSize()
         );
         query.with(pageable);
 
-        // 执行查询
         List<CourseForum> forums = mongoTemplate.find(query, CourseForum.class);
         long total = mongoTemplate.count(countQuery, CourseForum.class);
 
-        // 转换为VO
         List<CourseForumVO> forumVOList = forums.stream()
                 .map(this::convertToVO)
                 .toList();
 
-        // 构建分页信息
         PageInfo<CourseForumVO> pageInfo = new PageInfo<>(forumVOList);
         pageInfo.setTotal(total);
         pageInfo.setPageNum(courseForumQueryDTO.getPageNum());
@@ -117,13 +106,12 @@ public class CourseForumServiceImpl implements ICourseForumService {
             throw new BusinessException(CourseForumEnum.COURSE_ID_REQUIRED);
         }
 
-        // 构建查询条件
         Query query = new Query();
         Criteria criteria = new Criteria();
         criteria.and(CourseForumConstants.FIELD_COURSE_ID).is(courseId);
         criteria.and(CourseForumConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode());
         query.addCriteria(criteria);
-        query.with(Sort.by(Sort.Direction.ASC, CourseForumConstants.FIELD_SORT_ORDER, CourseForumConstants.FIELD_FORUM_NAME));
+        query.with(Sort.by(Sort.Direction.DESC, CourseForumConstants.FIELD_CREATED_TIME));
 
         List<CourseForum> forums = mongoTemplate.find(query, CourseForum.class);
         return forums.stream()
@@ -163,17 +151,14 @@ public class CourseForumServiceImpl implements ICourseForumService {
             throw new BusinessException(CourseForumEnum.FORUM_REQUIRED);
         }
 
-        // 验证课程ID
         if (courseForumDTO.getCourseId() == null) {
             throw new BusinessException(CourseForumEnum.COURSE_ID_REQUIRED);
         }
 
-        // 验证论坛名称
         if (!StringUtils.hasText(courseForumDTO.getForumName())) {
             throw new BusinessException(CourseForumEnum.FORUM_NAME_EXISTS);
         }
 
-        // 检查论坛名称是否重复
         Query query = new Query();
         Criteria criteria = new Criteria();
         criteria.and(CourseForumConstants.FIELD_COURSE_ID).is(courseForumDTO.getCourseId());
@@ -185,14 +170,11 @@ public class CourseForumServiceImpl implements ICourseForumService {
             throw new BusinessException(CourseForumEnum.FORUM_NAME_EXISTS);
         }
 
-        // 创建论坛实体
         CourseForum forum = new CourseForum();
         BeanUtils.copyProperties(courseForumDTO, forum);
 
-        // 设置ID
         forum.setId(UuidCreator.getTimeOrderedEpoch());
 
-        // 设置默认值
         if (forum.getStatus() == null) {
             forum.setStatus(StatusEnum.NORMAL.getCode());
         }
@@ -202,19 +184,14 @@ public class CourseForumServiceImpl implements ICourseForumService {
         if (forum.getReplyCount() == null) {
             forum.setReplyCount(CourseForumConstants.DEFAULT_REPLY_COUNT);
         }
-        if (forum.getSortOrder() == null) {
-            forum.setSortOrder(CourseForumConstants.DEFAULT_SORT_ORDER);
-        }
         if (forum.getDeleted() == null) {
             forum.setDeleted(DeletedEnum.NOT_DELETED.getCode());
         }
 
-        // 设置时间
         LocalDateTime now = LocalDateTime.now();
         forum.setCreateTime(now);
         forum.setUpdateTime(now);
 
-        // 保存论坛
         CourseForum savedForum = courseForumRepository.save(forum);
 
         log.info(CourseForumConstants.LOG_ADD_SUCCESS, savedForum.getForumName());
@@ -232,7 +209,6 @@ public class CourseForumServiceImpl implements ICourseForumService {
             throw new BusinessException(CourseForumEnum.FORUM_INFO_OR_ID_REQUIRED);
         }
 
-        // 检查论坛是否存在
         Query query = new Query();
         Criteria criteria = new Criteria();
         criteria.and(CourseForumConstants.FIELD_ID).is(courseForumDTO.getId());
@@ -244,7 +220,6 @@ public class CourseForumServiceImpl implements ICourseForumService {
             throw new BusinessException(CourseForumEnum.FORUM_NOT_EXISTS);
         }
 
-        // 验证论坛名称是否重复（排除自己）
         if (StringUtils.hasText(courseForumDTO.getForumName()) &&
                 !courseForumDTO.getForumName().equals(existingForum.getForumName())) {
             Query nameCheckQuery = new Query();
@@ -259,7 +234,6 @@ public class CourseForumServiceImpl implements ICourseForumService {
             }
         }
 
-        // 更新字段
         if (StringUtils.hasText(courseForumDTO.getForumName())) {
             existingForum.setForumName(courseForumDTO.getForumName());
         }
@@ -275,26 +249,15 @@ public class CourseForumServiceImpl implements ICourseForumService {
         if (courseForumDTO.getAllowAnonymous() != null) {
             existingForum.setAllowAnonymous(courseForumDTO.getAllowAnonymous());
         }
-        if (courseForumDTO.getModeratorIds() != null) {
-            existingForum.setModeratorIds(courseForumDTO.getModeratorIds());
-        }
-        if (courseForumDTO.getSortOrder() != null) {
-            existingForum.setSortOrder(courseForumDTO.getSortOrder());
-        }
         if (courseForumDTO.getStatus() != null) {
             existingForum.setStatus(courseForumDTO.getStatus());
-        }
-        if (courseForumDTO.getRules() != null) {
-            existingForum.setRules(courseForumDTO.getRules());
         }
         if (courseForumDTO.getTags() != null) {
             existingForum.setTags(courseForumDTO.getTags());
         }
 
-        // 更新时间
         existingForum.setUpdateTime(LocalDateTime.now());
 
-        // 保存更新
         courseForumRepository.save(existingForum);
 
         log.info(CourseForumConstants.LOG_UPDATE_SUCCESS, existingForum.getForumName());
@@ -309,7 +272,6 @@ public class CourseForumServiceImpl implements ICourseForumService {
             throw new BusinessException(CourseForumEnum.FORUM_ID_REQUIRED);
         }
 
-        // 检查论坛是否存在
         Query query = new Query();
         Criteria criteria = new Criteria();
         criteria.and(CourseForumConstants.FIELD_ID).is(id);
@@ -321,7 +283,6 @@ public class CourseForumServiceImpl implements ICourseForumService {
             throw new BusinessException(CourseForumEnum.FORUM_NOT_EXISTS);
         }
 
-        // 逻辑删除
         forum.setDeleted(DeletedEnum.DELETED.getCode());
         forum.setUpdateTime(LocalDateTime.now());
         courseForumRepository.save(forum);
@@ -364,7 +325,6 @@ public class CourseForumServiceImpl implements ICourseForumService {
             throw new BusinessException(CourseForumEnum.FORUM_STATUS_INVALID);
         }
 
-        // 检查论坛是否存在
         Query query = new Query();
         Criteria criteria = new Criteria();
         criteria.and(CourseForumConstants.FIELD_ID).is(id);
@@ -376,41 +336,11 @@ public class CourseForumServiceImpl implements ICourseForumService {
             throw new BusinessException(CourseForumEnum.FORUM_NOT_EXISTS);
         }
 
-        // 更新状态
         forum.setStatus(status);
         forum.setUpdateTime(LocalDateTime.now());
         courseForumRepository.save(forum);
 
         log.info(CourseForumConstants.LOG_UPDATE_STATUS_SUCCESS, forum.getForumName(), status);
-        return true;
-    }
-
-    @Override
-    @Transactional
-    @CacheEvict(value = "CourseForum", allEntries = true)
-    public Boolean setForumModerators(UUID id, List<UUID> moderatorIds) {
-        if (id == null) {
-            throw new BusinessException(CourseForumEnum.FORUM_ID_REQUIRED);
-        }
-
-        // 检查论坛是否存在
-        Query query = new Query();
-        Criteria criteria = new Criteria();
-        criteria.and(CourseForumConstants.FIELD_ID).is(id);
-        criteria.and(CourseForumConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode());
-        query.addCriteria(criteria);
-
-        CourseForum forum = mongoTemplate.findOne(query, CourseForum.class);
-        if (forum == null) {
-            throw new BusinessException(CourseForumEnum.FORUM_NOT_EXISTS);
-        }
-
-        // 设置版主
-        forum.setModeratorIds(moderatorIds);
-        forum.setUpdateTime(LocalDateTime.now());
-        courseForumRepository.save(forum);
-
-        log.info(CourseForumConstants.LOG_SET_MODERATORS_SUCCESS, forum.getForumName());
         return true;
     }
 

@@ -180,4 +180,15 @@ public class CourseStudentServiceImpl extends ServiceImpl<CourseStudentMapper, C
 
         return courseStudentMapper.removeCourseStudentByIds(courseId, studentIds);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    @Cacheable(value = "CourseStudent", key = "'courses_' + #p0.hashCode()", condition = "#p0 != null && !#p0.isEmpty()")
+    public List<CourseStudentVO> listAllCourseStudentByCourseIds(List<UUID> courseIds) {
+        if (courseIds == null || courseIds.isEmpty()) {
+            throw new BusinessException(CourseStudentEnum.COURSE_ID_REQUIRED);
+        }
+
+        return courseStudentMapper.listAllCourseStudentByCourseIds(courseIds);
+    }
 }

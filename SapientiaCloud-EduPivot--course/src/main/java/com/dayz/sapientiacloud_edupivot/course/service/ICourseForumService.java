@@ -26,7 +26,5 @@ public interface ICourseForumService {
 
     Boolean updateForumStatus(UUID id, Integer status);
 
-    Boolean setForumModerators(UUID id, List<UUID> moderatorIds);
-
     CourseForumVO getForumStatistics(UUID id);
 }

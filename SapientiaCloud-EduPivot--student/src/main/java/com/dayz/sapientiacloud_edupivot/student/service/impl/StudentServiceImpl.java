@@ -100,6 +100,7 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
 
     @Override
     @Transactional(readOnly = true)
+    // TODO Cache
     public StudentVO getStudentByUserId(UUID sysUserId) {
         if (sysUserId == null) {
             return null;

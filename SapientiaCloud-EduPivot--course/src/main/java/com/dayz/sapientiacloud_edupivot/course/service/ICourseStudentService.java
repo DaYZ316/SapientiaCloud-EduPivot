@@ -25,4 +25,6 @@ public interface ICourseStudentService {
     Boolean removeCourseStudentById(UUID courseId, UUID studentId);
 
     Integer removeCourseStudentByIds(UUID courseId, List<UUID> ids);
+
+    List<CourseStudentVO> listAllCourseStudentByCourseIds(List<UUID> courseIds);
 }

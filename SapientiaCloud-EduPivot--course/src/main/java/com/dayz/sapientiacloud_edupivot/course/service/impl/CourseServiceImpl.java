@@ -8,10 +8,12 @@ import com.dayz.sapientiacloud_edupivot.course.common.exception.BusinessExceptio
 import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseQueryDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.po.Course;
+import com.dayz.sapientiacloud_edupivot.course.entity.vo.CourseStudentVO;
 import com.dayz.sapientiacloud_edupivot.course.entity.vo.CourseVO;
 import com.dayz.sapientiacloud_edupivot.course.enums.CourseEnum;
 import com.dayz.sapientiacloud_edupivot.course.mapper.CourseMapper;
 import com.dayz.sapientiacloud_edupivot.course.service.ICourseService;
+import com.dayz.sapientiacloud_edupivot.course.service.ICourseStudentService;
 import com.github.f4b6a3.uuid.UuidCreator;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -35,6 +37,7 @@ import java.util.UUID;
 public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> implements ICourseService {
 
     private final CourseMapper courseMapper;
+    private final ICourseStudentService courseStudentService;
 
     @Override
     public PageInfo<CourseVO> listCoursePage(CourseQueryDTO courseQueryDTO) {
@@ -151,7 +154,10 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
             throw new BusinessException(CourseEnum.COURSE_NOT_EXISTS);
         }
 
-        // TODO 只要还有学生存在就不允许删除
+        List<CourseStudentVO> courseStudents = courseStudentService.listAllCourseStudentByCourseId(courseId);
+        if (courseStudents != null && !courseStudents.isEmpty()) {
+            throw new BusinessException(CourseEnum.COURSE_HAS_STUDENTS);
+        }
 
         return this.removeById(courseId);
     }
@@ -172,7 +178,10 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
             }
         });
 
-        // TODO 只要还有学生存在就不允许删除
+        List<CourseStudentVO> allCourseStudents = courseStudentService.listAllCourseStudentByCourseIds(courseIds);
+        if (allCourseStudents != null && !allCourseStudents.isEmpty()) {
+            throw new BusinessException(CourseEnum.COURSE_HAS_STUDENTS);
+        }
 
         boolean removeResult = this.removeBatchByIds(courseIds);
         return Math.toIntExact(removeResult ? courseIds.size() : 0);

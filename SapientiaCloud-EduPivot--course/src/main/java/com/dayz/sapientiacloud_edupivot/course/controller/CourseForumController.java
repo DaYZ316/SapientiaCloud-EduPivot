@@ -133,20 +133,6 @@ public class CourseForumController extends BaseController {
     }
 
     @HasPermission(
-            summary = "setForumModerators",
-            description = "设置论坛版主。",
-            permission = PermissionConstants.FORUM_EDIT
-    )
-    @PutMapping("/{id}/moderators")
-    public Result<Boolean> setForumModerators(
-            @Parameter(name = "id", description = "论坛ID", required = true) @PathVariable("id") UUID id,
-            @RequestBody List<UUID> moderatorIds
-    ) {
-        Boolean result = courseForumService.setForumModerators(id, moderatorIds);
-        return Result.success(result);
-    }
-
-    @HasPermission(
             summary = "getForumStatistics",
             description = "获取论坛统计信息（帖子数、回复数等）。",
             permission = PermissionConstants.FORUM_QUERY

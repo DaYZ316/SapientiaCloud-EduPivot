@@ -48,6 +48,43 @@ public class PermissionConstants {
     public static final String REPLY_EDIT = "manage:reply:edit";
     public static final String REPLY_DELETE = "manage:reply:delete";
 
+    // 课程任务权限
+    public static final String TASK_QUERY = "manage:task:query";
+    public static final String TASK_ADD = "manage:task:add";
+    public static final String TASK_EDIT = "manage:task:edit";
+    public static final String TASK_DELETE = "manage:task:delete";
+    public static final String TASK_PUBLISH = "manage:task:publish";
+    public static final String TASK_VIEW = "manage:task:view";
+
+    // 题库权限
+    public static final String QUESTION_BANK_QUERY = "manage:question-bank:query";
+    public static final String QUESTION_BANK_ADD = "manage:question-bank:add";
+    public static final String QUESTION_BANK_EDIT = "manage:question-bank:edit";
+    public static final String QUESTION_BANK_DELETE = "manage:question-bank:delete";
+    public static final String QUESTION_BANK_PUBLISH = "manage:question-bank:publish";
+    public static final String QUESTION_BANK_UNPUBLISH = "manage:question-bank:unpublish";
+
+    // 题目权限
+    public static final String QUESTION_QUERY = "manage:question:query";
+    public static final String QUESTION_ADD = "manage:question:add";
+    public static final String QUESTION_EDIT = "manage:question:edit";
+    public static final String QUESTION_DELETE = "manage:question:delete";
+    public static final String QUESTION_PUBLISH = "manage:question:publish";
+    public static final String QUESTION_UNPUBLISH = "manage:question:unpublish";
+    public static final String QUESTION_VIEW = "manage:question:view";
+
+    // 题目选项权限
+    public static final String QUESTION_OPTION_QUERY = "manage:question-option:query";
+    public static final String QUESTION_OPTION_ADD = "manage:question-option:add";
+    public static final String QUESTION_OPTION_EDIT = "manage:question-option:edit";
+    public static final String QUESTION_OPTION_DELETE = "manage:question-option:delete";
+
+    // 题目答案权限
+    public static final String QUESTION_ANSWER_QUERY = "manage:question-answer:query";
+    public static final String QUESTION_ANSWER_ADD = "manage:question-answer:add";
+    public static final String QUESTION_ANSWER_EDIT = "manage:question-answer:edit";
+    public static final String QUESTION_ANSWER_DELETE = "manage:question-answer:delete";
+
     private PermissionConstants() {
         // 禁止实例化
     }

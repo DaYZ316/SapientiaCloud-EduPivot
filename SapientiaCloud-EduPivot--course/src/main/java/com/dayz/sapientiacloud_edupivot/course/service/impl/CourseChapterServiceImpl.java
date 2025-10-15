@@ -87,7 +87,6 @@ public class CourseChapterServiceImpl implements ICourseChapterService {
         query.addCriteria(criteria);
         query.with(Sort.by(Sort.Direction.ASC, CourseChapterConstants.FIELD_SORT_ORDER));
 
-        // 创建专门的count查询，不包含分页条件
         Query countQuery = new Query();
         countQuery.addCriteria(criteria);
 
@@ -118,7 +117,6 @@ public class CourseChapterServiceImpl implements ICourseChapterService {
             throw new BusinessException(CourseChapterEnum.COURSE_ID_REQUIRED);
         }
 
-        // 使用 MongoTemplate 查询，过滤已删除的章节
         Query query = new Query();
         Criteria criteria = new Criteria();
         criteria.and(CourseChapterConstants.FIELD_COURSE_ID).is(courseId);
@@ -139,7 +137,6 @@ public class CourseChapterServiceImpl implements ICourseChapterService {
             throw new BusinessException(CourseChapterEnum.COURSE_ID_REQUIRED);
         }
 
-        // 使用 MongoTemplate 查询，过滤已删除的章节
         Query query = new Query();
         Criteria criteria = new Criteria();
         criteria.and(CourseChapterConstants.FIELD_COURSE_ID).is(courseId);
@@ -161,7 +158,6 @@ public class CourseChapterServiceImpl implements ICourseChapterService {
             throw new BusinessException(CourseChapterEnum.CHAPTER_ID_REQUIRED);
         }
 
-        // 使用 MongoTemplate 查询，过滤已删除的章节
         Query query = new Query();
         Criteria criteria = new Criteria();
         criteria.and(CourseChapterConstants.FIELD_ID).is(id);
@@ -188,12 +184,10 @@ public class CourseChapterServiceImpl implements ICourseChapterService {
             throw new BusinessException(CourseChapterEnum.CHAPTER_REQUIRED);
         }
 
-        // 验证课程ID
         if (courseChapterAddDTO.getCourseId() == null) {
             throw new BusinessException(CourseChapterEnum.COURSE_ID_REQUIRED);
         }
 
-        // 验证章节名称
         if (!StringUtils.hasText(courseChapterAddDTO.getChapterName())) {
             throw new BusinessException(CourseChapterEnum.CHAPTER_NAME_REQUIRED);
         }
@@ -214,10 +208,8 @@ public class CourseChapterServiceImpl implements ICourseChapterService {
         CourseChapter chapter = new CourseChapter();
         BeanUtils.copyProperties(courseChapterAddDTO, chapter);
 
-        // 设置ID
         chapter.setId(UuidCreator.getTimeOrderedEpoch());
 
-        // 设置默认值
         if (chapter.getStatus() == null) {
             chapter.setStatus(StatusEnum.NORMAL.getCode());
         }
@@ -240,12 +232,10 @@ public class CourseChapterServiceImpl implements ICourseChapterService {
             }
         }
 
-        // 设置时间
         LocalDateTime now = LocalDateTime.now();
         chapter.setCreateTime(now);
         chapter.setUpdateTime(now);
 
-        // 保存章节
         CourseChapter savedChapter = courseChapterRepository.save(chapter);
         return convertToVO(savedChapter);
     }
@@ -262,12 +252,9 @@ public class CourseChapterServiceImpl implements ICourseChapterService {
             throw new BusinessException(CourseChapterEnum.CHAPTER_INFO_OR_ID_REQUIRED);
         }
 
-        // 检查章节是否存在
         CourseChapter existingChapter = courseChapterRepository.findById(courseChapterDTO.getId())
                 .orElseThrow(() -> new BusinessException(CourseChapterEnum.CHAPTER_NOT_EXISTS));
 
-
-        // 验证章节名称是否重复（排除自己和已删除的章节）
         if (StringUtils.hasText(courseChapterDTO.getChapterName()) &&
                 !courseChapterDTO.getChapterName().equals(existingChapter.getChapterName())) {
             Query query = new Query();
@@ -285,7 +272,6 @@ public class CourseChapterServiceImpl implements ICourseChapterService {
         }
 
 
-        // 更新字段
         if (StringUtils.hasText(courseChapterDTO.getChapterName())) {
             existingChapter.setChapterName(courseChapterDTO.getChapterName());
         }
@@ -308,10 +294,8 @@ public class CourseChapterServiceImpl implements ICourseChapterService {
             existingChapter.setStatus(courseChapterDTO.getStatus());
         }
 
-        // 更新时间
         existingChapter.setUpdateTime(LocalDateTime.now());
 
-        // 保存更新
         courseChapterRepository.save(existingChapter);
         return true;
     }
@@ -327,11 +311,9 @@ public class CourseChapterServiceImpl implements ICourseChapterService {
             throw new BusinessException(CourseChapterEnum.CHAPTER_ID_REQUIRED);
         }
 
-        // 检查章节是否存在
         CourseChapter chapter = courseChapterRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(CourseChapterEnum.CHAPTER_NOT_EXISTS));
 
-        // 检查是否有子章节（排除已删除的章节）
         Query query = new Query();
         Criteria criteria = new Criteria();
         criteria.and(CourseChapterConstants.FIELD_PARENT_CHAPTER_ID).is(id);
@@ -344,7 +326,6 @@ public class CourseChapterServiceImpl implements ICourseChapterService {
             throw new BusinessException(CourseChapterEnum.CHAPTER_HAS_CHILDREN);
         }
 
-        // 逻辑删除
         chapter.setDeleted(DeletedEnum.DELETED.getCode());
         chapter.setUpdateTime(LocalDateTime.now());
         courseChapterRepository.save(chapter);
@@ -361,7 +342,6 @@ public class CourseChapterServiceImpl implements ICourseChapterService {
             throw new BusinessException(CourseChapterEnum.CHAPTER_ID_LIST_REQUIRED);
         }
 
-        // 批量逻辑删除
         Query query = new Query(Criteria.where(CourseChapterConstants.FIELD_ID).in(ids));
         Update update = new Update()
                 .set(CourseChapterConstants.FIELD_IS_DELETED, DeletedEnum.DELETED.getCode())
@@ -385,11 +365,9 @@ public class CourseChapterServiceImpl implements ICourseChapterService {
             throw new BusinessException(CourseChapterEnum.CHAPTER_STATUS_INVALID);
         }
 
-        // 检查章节是否存在
         CourseChapter chapter = courseChapterRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(CourseChapterEnum.CHAPTER_NOT_EXISTS));
 
-        // 更新状态
         chapter.setStatus(status);
         chapter.setUpdateTime(LocalDateTime.now());
         courseChapterRepository.save(chapter);
@@ -410,11 +388,9 @@ public class CourseChapterServiceImpl implements ICourseChapterService {
             throw new BusinessException(CourseChapterEnum.SORT_ORDER_INVALID);
         }
 
-        // 检查章节是否存在
         CourseChapter chapter = courseChapterRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(CourseChapterEnum.CHAPTER_NOT_EXISTS));
 
-        // 更新排序
         chapter.setSortOrder(sortOrder);
         chapter.setUpdateTime(LocalDateTime.now());
         courseChapterRepository.save(chapter);
@@ -431,7 +407,6 @@ public class CourseChapterServiceImpl implements ICourseChapterService {
             throw new BusinessException(CourseChapterEnum.CHAPTER_ID_LIST_REQUIRED);
         }
 
-        // 批量更新排序
         for (CourseChapterDTO dto : chapterSortList) {
             if (dto.getId() != null && dto.getSortOrder() != null) {
                 Query query = new Query(Criteria.where(CourseChapterConstants.FIELD_ID).is(dto.getId()));
@@ -503,7 +478,6 @@ public class CourseChapterServiceImpl implements ICourseChapterService {
             throw new BusinessException(CourseChapterEnum.CHAPTER_ID_REQUIRED);
         }
 
-        // 使用 MongoTemplate 查询，过滤已删除的章节
         Query query = new Query();
         Criteria criteria = new Criteria();
         criteria.and(CourseChapterConstants.FIELD_ID).is(id);
@@ -532,11 +506,9 @@ public class CourseChapterServiceImpl implements ICourseChapterService {
         for (CourseChapterVO chapter : allChapters) {
             UUID currentParentId = chapter.getParentChapterId();
 
-            // 判断是否为当前层级的章节
             if ((parentId == null && currentParentId == null) ||
                     (parentId != null && parentId.equals(currentParentId))) {
 
-                // 递归查找子章节
                 List<CourseChapterVO> children = buildChapterTree(allChapters, chapter.getId());
                 chapter.setChildren(children);
 

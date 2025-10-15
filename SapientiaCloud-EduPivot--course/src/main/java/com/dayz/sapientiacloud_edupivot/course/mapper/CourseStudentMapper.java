@@ -28,4 +28,6 @@ public interface CourseStudentMapper extends BaseMapper<CourseStudent> {
     Boolean removeCourseStudentById(@Param("studentId") UUID courseId, @Param("courseId") UUID studentId);
 
     Integer removeCourseStudentByIds(@Param("courseId") UUID courseId, @Param("studentIds") List<UUID> studentIds);
+
+    List<CourseStudentVO> listAllCourseStudentByCourseIds(@Param("courseIds") List<UUID> courseIds);
 }

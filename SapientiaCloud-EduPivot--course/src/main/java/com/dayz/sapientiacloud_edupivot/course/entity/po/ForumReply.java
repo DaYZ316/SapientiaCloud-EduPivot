@@ -18,7 +18,7 @@ import java.util.UUID;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Document(collection = "forum_replies")
+@Document(collection = "mg_forum_reply")
 @EqualsAndHashCode(callSuper = true)
 @Schema(description = "论坛回复持久化对象 (PO)")
 public class ForumReply extends BaseEntity implements Serializable {
@@ -46,7 +46,6 @@ public class ForumReply extends BaseEntity implements Serializable {
     @Field("sys_user_id")
     private UUID sysUserId;
 
-
     @Schema(name = "content", description = "回复内容")
     @Field("content")
     private String content;
@@ -58,7 +57,6 @@ public class ForumReply extends BaseEntity implements Serializable {
     @Schema(name = "replyToUserId", description = "回复目标用户ID")
     @Field("reply_to_user_id")
     private UUID replyToUserId;
-
 
     @Schema(name = "isAnonymous", description = "是否匿名回复 (0=实名, 1=匿名)")
     @Field("is_anonymous")

@@ -38,30 +38,14 @@ public class CourseForumVO implements Serializable {
     @Schema(name = "allowAnonymous", description = "是否允许匿名发帖 (0=不允许, 1=允许)")
     private Integer allowAnonymous;
 
-    @Schema(name = "moderatorIds", description = "版主ID列表")
-    private List<UUID> moderatorIds;
-
     @Schema(name = "postCount", description = "帖子总数")
     private Long postCount;
 
     @Schema(name = "replyCount", description = "回复总数")
     private Long replyCount;
 
-    @Schema(name = "lastPostId", description = "最新帖子ID")
-    private UUID lastPostId;
-
-    @Schema(name = "lastPostTime", description = "最新发帖时间")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime lastPostTime;
-
-    @Schema(name = "sortOrder", description = "排序权重")
-    private Integer sortOrder;
-
     @Schema(name = "status", description = "论坛状态 (0=正常, 1=关闭, 2=维护)")
     private Integer status;
-
-    @Schema(name = "rules", description = "论坛规则")
-    private String rules;
 
     @Schema(name = "tags", description = "标签列表")
     private List<String> tags;

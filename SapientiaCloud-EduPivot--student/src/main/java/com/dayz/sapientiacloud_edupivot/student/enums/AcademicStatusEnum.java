@@ -1,6 +1,8 @@
 package com.dayz.sapientiacloud_edupivot.student.enums;
 
+import com.baomidou.mybatisplus.annotation.EnumValue;
 import com.dayz.sapientiacloud_edupivot.student.common.enums.BaseEnum;
+import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -13,15 +15,13 @@ public enum AcademicStatusEnum implements BaseEnum {
     WITHDRAWAL(2, "退学"),
     GRADUATED(3, "毕业");
 
+    @EnumValue
     private final int code;
+
+    @JsonValue
     private final String message;
 
-    public static AcademicStatusEnum getByCode(Integer code) {
-        for (AcademicStatusEnum status : values()) {
-            if (status.getCode() == code) {
-                return status;
-            }
-        }
-        return null;
+    public static boolean isValidCode(Integer code) {
+        return code != null && code >= STUDYING.code && code <= GRADUATED.code;
     }
 }

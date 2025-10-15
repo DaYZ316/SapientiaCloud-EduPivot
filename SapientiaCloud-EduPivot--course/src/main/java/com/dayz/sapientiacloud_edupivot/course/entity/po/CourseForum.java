@@ -18,7 +18,7 @@ import java.util.UUID;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Document(collection = "course_forums")
+@Document(collection = "mg_course_forum")
 @EqualsAndHashCode(callSuper = true)
 @Schema(description = "课程论坛持久化对象 (PO)")
 public class CourseForum extends BaseEntity implements Serializable {
@@ -54,10 +54,6 @@ public class CourseForum extends BaseEntity implements Serializable {
     @Field("allow_anonymous")
     private Integer allowAnonymous;
 
-    @Schema(name = "moderatorIds", description = "版主ID列表")
-    @Field("moderator_ids")
-    private List<UUID> moderatorIds;
-
     @Schema(name = "postCount", description = "帖子总数")
     @Field("post_count")
     private Long postCount;
@@ -66,25 +62,9 @@ public class CourseForum extends BaseEntity implements Serializable {
     @Field("reply_count")
     private Long replyCount;
 
-    @Schema(name = "lastPostId", description = "最新帖子ID")
-    @Field("last_post_id")
-    private UUID lastPostId;
-
-    @Schema(name = "lastPostTime", description = "最新发帖时间")
-    @Field("last_post_time")
-    private String lastPostTime;
-
-    @Schema(name = "sortOrder", description = "排序权重")
-    @Field("sort_order")
-    private Integer sortOrder;
-
     @Schema(name = "status", description = "论坛状态 (0=正常, 1=关闭, 2=维护)")
     @Field("status")
     private Integer status;
-
-    @Schema(name = "rules", description = "论坛规则")
-    @Field("rules")
-    private String rules;
 
     @Schema(name = "tags", description = "标签列表")
     @Field("tags")

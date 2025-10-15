@@ -9,12 +9,10 @@ public class CourseForumConstants {
     public static final String FIELD_FORUM_TYPE = "forum_type";
     public static final String FIELD_STATUS = "status";
     public static final String FIELD_IS_DELETED = "is_deleted";
-    public static final String FIELD_SORT_ORDER = "sort_order";
     public static final String FIELD_POST_COUNT = "post_count";
     public static final String FIELD_REPLY_COUNT = "reply_count";
-    public static final String FIELD_LAST_POST_ID = "last_post_id";
-    public static final String FIELD_LAST_POST_TIME = "last_post_time";
-    public static final String FIELD_MODERATOR_IDS = "moderator_ids";
+    public static final String FIELD_CREATED_TIME = "created_time";
+    public static final String FIELD_UPDATED_TIME = "updated_time";
 
     // 排序相关
     public static final String SORT_ASC = "ASC";
@@ -40,9 +38,7 @@ public class CourseForumConstants {
     public static final String LOG_DELETE_SUCCESS = "成功删除论坛: {}";
     public static final String LOG_BATCH_DELETE_SUCCESS = "批量删除论坛完成，成功删除 {} 个论坛";
     public static final String LOG_UPDATE_STATUS_SUCCESS = "成功更新论坛状态: {} -> {}";
-    public static final String LOG_UPDATE_SORT_SUCCESS = "成功更新论坛排序: {} -> {}";
     public static final String LOG_BATCH_UPDATE_SORT_SUCCESS = "批量更新论坛排序完成，共更新 {} 个论坛";
-    public static final String LOG_SET_MODERATORS_SUCCESS = "成功设置论坛版主: {}";
     public static final String LOG_DELETE_FAILED = "删除论坛失败: {}, 错误: {}";
 
     // 正则表达式标志

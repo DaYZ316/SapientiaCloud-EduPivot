@@ -23,7 +23,7 @@ import java.time.LocalDateTime;
 public class FileInfoDTO implements Serializable {
 
     @Serial
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = -2783247409318597554L;
 
     @Schema(description = "文件对象名称", example = "2024/01/15/example.jpg")
     private String objectName;

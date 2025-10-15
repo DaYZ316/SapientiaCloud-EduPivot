@@ -41,7 +41,10 @@ public enum CourseEnum implements BaseEnum {
     PAGE_SIZE_REQUIRED(40020, "页面大小不能为空"),
 
     // 教师团队相关错误
-    TEACHER_ID_LIST_REQUIRED(40021, "教师ID列表不能为空");
+    TEACHER_ID_LIST_REQUIRED(40021, "教师ID列表不能为空"),
+
+    // 课程删除相关错误
+    COURSE_HAS_STUDENTS(40022, "课程中还有学生，无法删除");
 
     private final int code;
 

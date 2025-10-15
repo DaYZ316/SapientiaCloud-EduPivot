@@ -65,6 +65,10 @@ public class GlobalExceptionHandler {
         if (forumReplyEnum != null) {
             return Result.fail(forumReplyEnum.getMessage());
         }
+        CourseTaskEnum courseTaskEnum = EnumUtil.getByAttribute(CourseTaskEnum.class, e.getMessage(), CourseTaskEnum::getMessage);
+        if (courseTaskEnum != null) {
+            return Result.fail(courseTaskEnum.getMessage());
+        }
         ResultEnum resultEnum = EnumUtil.getByAttribute(ResultEnum.class, e.getMessage(), ResultEnum::getMessage);
         return Result.fail(Objects.requireNonNullElse(resultEnum, ResultEnum.SYSTEM_ERROR));
     }

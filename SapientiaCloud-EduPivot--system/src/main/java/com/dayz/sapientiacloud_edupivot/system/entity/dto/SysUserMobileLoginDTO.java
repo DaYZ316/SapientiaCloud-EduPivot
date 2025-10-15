@@ -14,7 +14,7 @@ import java.io.Serializable;
 public class SysUserMobileLoginDTO implements Serializable {
 
     @Serial
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = -2803816800267229756L;
 
     @Schema(name = "mobile", description = "手机号码", example = "13812345678", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank(message = "手机号码不能为空")

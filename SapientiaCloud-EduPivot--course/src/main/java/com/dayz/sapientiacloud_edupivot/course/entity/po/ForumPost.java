@@ -18,7 +18,7 @@ import java.util.UUID;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Document(collection = "forum_posts")
+@Document(collection = "mg_forum_post")
 @EqualsAndHashCode(callSuper = true)
 @Schema(description = "论坛帖子持久化对象 (PO)")
 public class ForumPost extends BaseEntity implements Serializable {
