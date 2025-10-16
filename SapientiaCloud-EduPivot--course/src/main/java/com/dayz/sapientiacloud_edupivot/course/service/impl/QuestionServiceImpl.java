@@ -13,6 +13,7 @@ import com.dayz.sapientiacloud_edupivot.course.entity.dto.QuestionDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.dto.QuestionOptionDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.dto.QuestionQueryDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.po.Question;
+import com.dayz.sapientiacloud_edupivot.course.entity.vo.QuestionAnswerVO;
 import com.dayz.sapientiacloud_edupivot.course.entity.vo.QuestionVO;
 import com.dayz.sapientiacloud_edupivot.course.enums.QuestionEnum;
 import com.dayz.sapientiacloud_edupivot.course.repository.QuestionRepository;
@@ -34,6 +35,7 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+import com.mongodb.client.result.UpdateResult;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -239,15 +241,8 @@ public class QuestionServiceImpl implements IQuestionService {
             // 为每个选项设置题目ID
             optionDTOs.forEach(option -> option.setQuestionId(savedQuestion.getId()));
             
-            try {
-                questionOptionService.addQuestionOptions(optionDTOs);
-                log.info("题目选项保存成功，题目ID: {}, 选项数量: {}", savedQuestion.getId(), optionDTOs.size());
-            } catch (Exception e) {
-                log.error("题目选项保存失败，题目ID: {}, 错误: {}", savedQuestion.getId(), e.getMessage());
-                // 如果选项保存失败，删除已保存的题目
-                questionRepository.delete(savedQuestion);
-                throw new BusinessException(QuestionEnum.QUESTION_OPTION_SAVE_FAILED);
-            }
+            questionOptionService.addQuestionOptions(optionDTOs);
+            log.info("题目选项保存成功，题目ID: {}, 选项数量: {}", savedQuestion.getId(), optionDTOs.size());
         }
 
         // 保存正确答案
@@ -256,18 +251,8 @@ public class QuestionServiceImpl implements IQuestionService {
             // 设置题目ID和用户ID
             answerDTO.setQuestionId(savedQuestion.getId());
             
-            try {
-                questionAnswerService.addQuestionAnswer(answerDTO);
-                log.info("题目答案保存成功，题目ID: {}", savedQuestion.getId());
-            } catch (Exception e) {
-                log.error("题目答案保存失败，题目ID: {}, 错误: {}", savedQuestion.getId(), e.getMessage());
-                // 如果答案保存失败，删除已保存的题目和选项
-                if (!CollectionUtils.isEmpty(questionAddDTO.getOptions())) {
-                    questionOptionService.removeQuestionOptionsByQuestionId(savedQuestion.getId());
-                }
-                questionRepository.delete(savedQuestion);
-                throw new BusinessException(QuestionEnum.QUESTION_ANSWER_SAVE_FAILED);
-            }
+            questionAnswerService.addQuestionAnswer(answerDTO);
+            log.info("题目答案保存成功，题目ID: {}", savedQuestion.getId());
         }
 
         log.info(QuestionConstants.LOG_ADD_SUCCESS, savedQuestion.getId());
@@ -374,16 +359,15 @@ public class QuestionServiceImpl implements IQuestionService {
             throw new BusinessException(QuestionEnum.QUESTION_IDS_REQUIRED);
         }
 
-        int deletedCount = 0;
-        for (UUID id : ids) {
-            try {
-                if (removeQuestionById(id)) {
-                    deletedCount++;
-                }
-            } catch (Exception e) {
-                log.warn(QuestionConstants.LOG_DELETE_FAILED, id, e.getMessage());
-            }
-        }
+        // 使用批量操作避免N+1问题
+        Query query = new Query(Criteria.where(QuestionConstants.FIELD_ID).in(ids)
+                .and(QuestionConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode()));
+        Update update = new Update()
+                .set(QuestionConstants.FIELD_IS_DELETED, DeletedEnum.DELETED.getCode())
+                .set(QuestionConstants.FIELD_UPDATE_TIME, LocalDateTime.now());
+
+        UpdateResult updateResult = mongoTemplate.updateMulti(query, update, Question.class);
+        int deletedCount = (int) updateResult.getModifiedCount();
 
         log.info(QuestionConstants.LOG_BATCH_DELETE_SUCCESS, deletedCount);
         return deletedCount;
@@ -500,19 +484,16 @@ public class QuestionServiceImpl implements IQuestionService {
         BeanUtils.copyProperties(question, vo);
 
         fillUserInfoWithMap(vo, question.getSysUserId(), userMap);
+        fillAnswerInfo(vo, question.getId());
 
         return vo;
     }
 
     private Map<UUID, SysUserVO> getUserMap() {
-        try {
-            Result<List<SysUserVO>> result = sysUserClient.listAllSysUser();
-            if (result != null && result.getData() != null) {
-                return result.getData().stream()
-                        .collect(Collectors.toMap(SysUserVO::getId, user -> user));
-            }
-        } catch (Exception e) {
-            log.warn("获取用户信息失败: error={}", e.getMessage());
+        Result<List<SysUserVO>> result = sysUserClient.listAllSysUser();
+        if (result != null && result.getData() != null) {
+            return result.getData().stream()
+                    .collect(Collectors.toMap(SysUserVO::getId, user -> user));
         }
         return new HashMap<>();
     }
@@ -525,6 +506,19 @@ public class QuestionServiceImpl implements IQuestionService {
         SysUserVO user = userMap.get(sysUserId);
         if (user != null) {
             vo.setSysUserName(user.getNickName() != null ? user.getNickName() : user.getUsername());
+        }
+    }
+
+    private void fillAnswerInfo(QuestionVO vo, UUID questionId) {
+        if (questionId == null) {
+            return;
+        }
+
+        // 获取题目的所有答案，通常取第一个作为标准答案
+        List<QuestionAnswerVO> answers = questionAnswerService.listAllQuestionAnswerByQuestionId(questionId);
+        if (!CollectionUtils.isEmpty(answers)) {
+            // 取第一个答案作为标准答案
+            vo.setAnswer(answers.get(0));
         }
     }
 

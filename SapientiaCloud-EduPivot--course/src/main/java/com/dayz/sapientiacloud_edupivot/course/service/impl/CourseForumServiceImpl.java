@@ -25,6 +25,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
+import com.mongodb.client.result.UpdateResult;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -71,7 +73,7 @@ public class CourseForumServiceImpl implements ICourseForumService {
         criteria.and(CourseForumConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode());
 
         query.addCriteria(criteria);
-        query.with(Sort.by(Sort.Direction.DESC, CourseForumConstants.FIELD_CREATED_TIME));
+        query.with(Sort.by(Sort.Direction.DESC, CourseForumConstants.FIELD_CREATE_TIME));
 
         Query countQuery = new Query();
         countQuery.addCriteria(criteria);
@@ -111,7 +113,7 @@ public class CourseForumServiceImpl implements ICourseForumService {
         criteria.and(CourseForumConstants.FIELD_COURSE_ID).is(courseId);
         criteria.and(CourseForumConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode());
         query.addCriteria(criteria);
-        query.with(Sort.by(Sort.Direction.DESC, CourseForumConstants.FIELD_CREATED_TIME));
+        query.with(Sort.by(Sort.Direction.DESC, CourseForumConstants.FIELD_CREATE_TIME));
 
         List<CourseForum> forums = mongoTemplate.find(query, CourseForum.class);
         return forums.stream()
@@ -299,16 +301,15 @@ public class CourseForumServiceImpl implements ICourseForumService {
             throw new BusinessException(CourseForumEnum.FORUM_ID_LIST_REQUIRED);
         }
 
-        int deletedCount = 0;
-        for (UUID id : ids) {
-            try {
-                if (removeCourseForumById(id)) {
-                    deletedCount++;
-                }
-            } catch (Exception e) {
-                log.warn(CourseForumConstants.LOG_DELETE_FAILED, id, e.getMessage());
-            }
-        }
+        // 使用批量操作避免N+1问题
+        Query query = new Query(Criteria.where(CourseForumConstants.FIELD_ID).in(ids)
+                .and(CourseForumConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode()));
+        Update update = new Update()
+                .set(CourseForumConstants.FIELD_IS_DELETED, DeletedEnum.DELETED.getCode())
+                .set(CourseForumConstants.FIELD_UPDATE_TIME, LocalDateTime.now());
+
+        UpdateResult updateResult = mongoTemplate.updateMulti(query, update, CourseForum.class);
+        int deletedCount = (int) updateResult.getModifiedCount();
 
         log.info(CourseForumConstants.LOG_BATCH_DELETE_SUCCESS, deletedCount);
         return deletedCount;

@@ -27,6 +27,7 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+import com.mongodb.client.result.UpdateResult;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -228,12 +229,8 @@ public class QuestionAnswerServiceImpl implements IQuestionAnswerService {
 
         List<QuestionAnswerVO> result = new ArrayList<>();
         for (QuestionAnswerDTO dto : questionAnswerDTOList) {
-            try {
-                QuestionAnswerVO vo = addQuestionAnswer(dto);
-                result.add(vo);
-            } catch (Exception e) {
-                log.warn(QuestionAnswerConstants.LOG_ADD_FAILED, dto.getQuestionId(), e.getMessage());
-            }
+            QuestionAnswerVO vo = addQuestionAnswer(dto);
+            result.add(vo);
         }
 
         log.info(QuestionAnswerConstants.LOG_BATCH_ADD_SUCCESS, result.size());
@@ -357,16 +354,15 @@ public class QuestionAnswerServiceImpl implements IQuestionAnswerService {
             throw new BusinessException(QuestionAnswerEnum.QUESTION_ANSWER_IDS_REQUIRED);
         }
 
-        int deletedCount = 0;
-        for (UUID id : ids) {
-            try {
-                if (removeQuestionAnswerById(id)) {
-                    deletedCount++;
-                }
-            } catch (Exception e) {
-                log.warn(QuestionAnswerConstants.LOG_DELETE_FAILED, id, e.getMessage());
-            }
-        }
+        // 使用批量操作避免N+1问题
+        Query query = new Query(Criteria.where(QuestionAnswerConstants.FIELD_ID).in(ids)
+                .and(QuestionAnswerConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode()));
+        Update update = new Update()
+                .set(QuestionAnswerConstants.FIELD_IS_DELETED, DeletedEnum.DELETED.getCode())
+                .set(QuestionAnswerConstants.FIELD_UPDATE_TIME, LocalDateTime.now());
+
+        UpdateResult updateResult = mongoTemplate.updateMulti(query, update, QuestionAnswer.class);
+        int deletedCount = (int) updateResult.getModifiedCount();
 
         log.info(QuestionAnswerConstants.LOG_BATCH_DELETE_SUCCESS, deletedCount);
         return deletedCount;
@@ -409,14 +405,10 @@ public class QuestionAnswerServiceImpl implements IQuestionAnswerService {
     }
 
     private Map<UUID, SysUserVO> getUserMap() {
-        try {
-            Result<List<SysUserVO>> result = sysUserClient.listAllSysUser();
-            if (result != null && result.getData() != null) {
-                return result.getData().stream()
-                        .collect(Collectors.toMap(SysUserVO::getId, user -> user));
-            }
-        } catch (Exception e) {
-            log.warn("获取用户信息失败: error={}", e.getMessage());
+        Result<List<SysUserVO>> result = sysUserClient.listAllSysUser();
+        if (result != null && result.getData() != null) {
+            return result.getData().stream()
+                    .collect(Collectors.toMap(SysUserVO::getId, user -> user));
         }
         return new HashMap<>();
     }

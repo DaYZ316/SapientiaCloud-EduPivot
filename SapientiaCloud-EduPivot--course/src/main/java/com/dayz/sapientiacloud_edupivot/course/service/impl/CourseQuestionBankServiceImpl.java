@@ -29,6 +29,7 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+import com.mongodb.client.result.UpdateResult;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -307,16 +308,15 @@ public class CourseQuestionBankServiceImpl implements ICourseQuestionBankService
             throw new BusinessException(CourseQuestionBankEnum.COURSE_QUESTION_BANK_IDS_REQUIRED);
         }
 
-        int deletedCount = 0;
-        for (UUID id : ids) {
-            try {
-                if (removeCourseQuestionBankById(id)) {
-                    deletedCount++;
-                }
-            } catch (Exception e) {
-                log.warn(CourseQuestionBankConstants.LOG_DELETE_FAILED, id, e.getMessage());
-            }
-        }
+        // 使用批量操作避免N+1问题
+        Query query = new Query(Criteria.where(CourseQuestionBankConstants.FIELD_ID).in(ids)
+                .and(CourseQuestionBankConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode()));
+        Update update = new Update()
+                .set(CourseQuestionBankConstants.FIELD_IS_DELETED, DeletedEnum.DELETED.getCode())
+                .set(CourseQuestionBankConstants.FIELD_UPDATE_TIME, LocalDateTime.now());
+
+        UpdateResult updateResult = mongoTemplate.updateMulti(query, update, CourseQuestionBank.class);
+        int deletedCount = (int) updateResult.getModifiedCount();
 
         log.info(CourseQuestionBankConstants.LOG_BATCH_DELETE_SUCCESS, deletedCount);
         return deletedCount;
@@ -358,14 +358,10 @@ public class CourseQuestionBankServiceImpl implements ICourseQuestionBankService
     }
 
     private Map<UUID, SysUserVO> getUserMap() {
-        try {
-            Result<List<SysUserVO>> result = sysUserClient.listAllSysUser();
-            if (result != null && result.getData() != null) {
-                return result.getData().stream()
-                        .collect(Collectors.toMap(SysUserVO::getId, user -> user));
-            }
-        } catch (Exception e) {
-            log.warn("获取用户信息失败: error={}", e.getMessage());
+        Result<List<SysUserVO>> result = sysUserClient.listAllSysUser();
+        if (result != null && result.getData() != null) {
+            return result.getData().stream()
+                    .collect(Collectors.toMap(SysUserVO::getId, user -> user));
         }
         return new HashMap<>();
     }

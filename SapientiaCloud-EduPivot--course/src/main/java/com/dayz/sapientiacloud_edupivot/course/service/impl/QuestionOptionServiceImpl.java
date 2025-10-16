@@ -22,6 +22,7 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+import com.mongodb.client.result.UpdateResult;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -157,12 +158,8 @@ public class QuestionOptionServiceImpl implements IQuestionOptionService {
 
         List<QuestionOptionVO> result = new ArrayList<>();
         for (QuestionOptionDTO dto : questionOptionDTOList) {
-            try {
-                QuestionOptionVO vo = addQuestionOption(dto);
-                result.add(vo);
-            } catch (Exception e) {
-                log.warn(QuestionOptionConstants.LOG_ADD_FAILED, dto.getQuestionId(), e.getMessage());
-            }
+            QuestionOptionVO vo = addQuestionOption(dto);
+            result.add(vo);
         }
 
         log.info(QuestionOptionConstants.LOG_BATCH_ADD_SUCCESS, result.size());
@@ -291,16 +288,15 @@ public class QuestionOptionServiceImpl implements IQuestionOptionService {
             throw new BusinessException(QuestionOptionEnum.QUESTION_OPTION_IDS_REQUIRED);
         }
 
-        int deletedCount = 0;
-        for (UUID id : ids) {
-            try {
-                if (removeQuestionOptionById(id)) {
-                    deletedCount++;
-                }
-            } catch (Exception e) {
-                log.warn(QuestionOptionConstants.LOG_DELETE_FAILED, id, e.getMessage());
-            }
-        }
+        // 使用批量操作避免N+1问题
+        Query query = new Query(Criteria.where(QuestionOptionConstants.FIELD_ID).in(ids)
+                .and(QuestionOptionConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode()));
+        Update update = new Update()
+                .set(QuestionOptionConstants.FIELD_IS_DELETED, DeletedEnum.DELETED.getCode())
+                .set(QuestionOptionConstants.FIELD_UPDATE_TIME, LocalDateTime.now());
+
+        UpdateResult updateResult = mongoTemplate.updateMulti(query, update, QuestionOption.class);
+        int deletedCount = (int) updateResult.getModifiedCount();
 
         log.info(QuestionOptionConstants.LOG_BATCH_DELETE_SUCCESS, deletedCount);
         return deletedCount;

@@ -78,6 +78,9 @@ public class QuestionVO implements Serializable {
     @Schema(name = "options", description = "选项列表")
     private List<QuestionOptionVO> options;
 
+    @Schema(name = "answer", description = "题目答案")
+    private QuestionAnswerVO answer;
+
     @Schema(name = "createTime", description = "创建时间")
     private LocalDateTime createTime;
 

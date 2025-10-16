@@ -11,8 +11,8 @@ public class CourseForumConstants {
     public static final String FIELD_IS_DELETED = "is_deleted";
     public static final String FIELD_POST_COUNT = "post_count";
     public static final String FIELD_REPLY_COUNT = "reply_count";
-    public static final String FIELD_CREATED_TIME = "created_time";
-    public static final String FIELD_UPDATED_TIME = "updated_time";
+    public static final String FIELD_CREATE_TIME = "create_time";
+    public static final String FIELD_UPDATE_TIME = "update_time";
 
     // 排序相关
     public static final String SORT_ASC = "ASC";
