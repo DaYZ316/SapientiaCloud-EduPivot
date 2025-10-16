@@ -6,11 +6,11 @@ import com.dayz.sapientiacloud_edupivot.course.constant.QuestionOptionConstants;
 import com.dayz.sapientiacloud_edupivot.course.entity.dto.QuestionOptionDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.po.QuestionOption;
 import com.dayz.sapientiacloud_edupivot.course.entity.vo.QuestionOptionVO;
-import java.math.BigDecimal;
 import com.dayz.sapientiacloud_edupivot.course.enums.QuestionOptionEnum;
 import com.dayz.sapientiacloud_edupivot.course.repository.QuestionOptionRepository;
 import com.dayz.sapientiacloud_edupivot.course.service.IQuestionOptionService;
 import com.github.f4b6a3.uuid.UuidCreator;
+import com.mongodb.client.result.UpdateResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -22,15 +22,16 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
-import com.mongodb.client.result.UpdateResult;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 @Service
 @Slf4j
@@ -108,8 +109,8 @@ public class QuestionOptionServiceImpl implements IQuestionOptionService {
             throw new BusinessException(QuestionOptionEnum.QUESTION_OPTION_IS_CORRECT_REQUIRED);
         }
 
-        if (questionOptionDTO.getIsCorrect() < QuestionOptionConstants.IS_CORRECT_MIN || 
-            questionOptionDTO.getIsCorrect() > QuestionOptionConstants.IS_CORRECT_MAX) {
+        if (questionOptionDTO.getIsCorrect() < QuestionOptionConstants.IS_CORRECT_MIN ||
+                questionOptionDTO.getIsCorrect() > QuestionOptionConstants.IS_CORRECT_MAX) {
             throw new BusinessException(QuestionOptionEnum.QUESTION_OPTION_IS_CORRECT_REQUIRED);
         }
 
@@ -131,8 +132,8 @@ public class QuestionOptionServiceImpl implements IQuestionOptionService {
         option.setId(UuidCreator.getTimeOrderedEpoch());
 
         if (option.getScore() == null) {
-            option.setScore(option.getIsCorrect() == QuestionOptionConstants.IS_CORRECT_CORRECT ? 
-                BigDecimal.valueOf(100) : BigDecimal.ZERO);
+            option.setScore(option.getIsCorrect() == QuestionOptionConstants.IS_CORRECT_CORRECT ?
+                    BigDecimal.valueOf(100) : BigDecimal.ZERO);
         }
 
         LocalDateTime now = LocalDateTime.now();

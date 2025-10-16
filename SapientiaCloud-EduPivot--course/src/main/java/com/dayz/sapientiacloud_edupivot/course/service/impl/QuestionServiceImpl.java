@@ -7,11 +7,7 @@ import com.dayz.sapientiacloud_edupivot.course.common.enums.StatusEnum;
 import com.dayz.sapientiacloud_edupivot.course.common.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.course.common.result.Result;
 import com.dayz.sapientiacloud_edupivot.course.constant.QuestionConstants;
-import com.dayz.sapientiacloud_edupivot.course.entity.dto.QuestionAddDTO;
-import com.dayz.sapientiacloud_edupivot.course.entity.dto.QuestionAnswerDTO;
-import com.dayz.sapientiacloud_edupivot.course.entity.dto.QuestionDTO;
-import com.dayz.sapientiacloud_edupivot.course.entity.dto.QuestionOptionDTO;
-import com.dayz.sapientiacloud_edupivot.course.entity.dto.QuestionQueryDTO;
+import com.dayz.sapientiacloud_edupivot.course.entity.dto.*;
 import com.dayz.sapientiacloud_edupivot.course.entity.po.Question;
 import com.dayz.sapientiacloud_edupivot.course.entity.vo.QuestionAnswerVO;
 import com.dayz.sapientiacloud_edupivot.course.entity.vo.QuestionVO;
@@ -22,6 +18,7 @@ import com.dayz.sapientiacloud_edupivot.course.service.IQuestionOptionService;
 import com.dayz.sapientiacloud_edupivot.course.service.IQuestionService;
 import com.github.f4b6a3.uuid.UuidCreator;
 import com.github.pagehelper.PageInfo;
+import com.mongodb.client.result.UpdateResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -35,7 +32,6 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
-import com.mongodb.client.result.UpdateResult;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -192,13 +188,13 @@ public class QuestionServiceImpl implements IQuestionService {
         }
 
 
-        if (questionAddDTO.getQuestionType() < QuestionConstants.QUESTION_TYPE_MIN || 
-            questionAddDTO.getQuestionType() > QuestionConstants.QUESTION_TYPE_MAX) {
+        if (questionAddDTO.getQuestionType() < QuestionConstants.QUESTION_TYPE_MIN ||
+                questionAddDTO.getQuestionType() > QuestionConstants.QUESTION_TYPE_MAX) {
             throw new BusinessException(QuestionEnum.QUESTION_TYPE_INVALID);
         }
 
-        if (questionAddDTO.getDifficulty() < QuestionConstants.DIFFICULTY_MIN || 
-            questionAddDTO.getDifficulty() > QuestionConstants.DIFFICULTY_MAX) {
+        if (questionAddDTO.getDifficulty() < QuestionConstants.DIFFICULTY_MIN ||
+                questionAddDTO.getDifficulty() > QuestionConstants.DIFFICULTY_MAX) {
             throw new BusinessException(QuestionEnum.QUESTION_DIFFICULTY_INVALID);
         }
 
@@ -240,7 +236,7 @@ public class QuestionServiceImpl implements IQuestionService {
             List<QuestionOptionDTO> optionDTOs = questionAddDTO.getOptions();
             // 为每个选项设置题目ID
             optionDTOs.forEach(option -> option.setQuestionId(savedQuestion.getId()));
-            
+
             questionOptionService.addQuestionOptions(optionDTOs);
             log.info("题目选项保存成功，题目ID: {}, 选项数量: {}", savedQuestion.getId(), optionDTOs.size());
         }
@@ -250,7 +246,7 @@ public class QuestionServiceImpl implements IQuestionService {
             QuestionAnswerDTO answerDTO = questionAddDTO.getQuestionAnswerDTO();
             // 设置题目ID和用户ID
             answerDTO.setQuestionId(savedQuestion.getId());
-            
+
             questionAnswerService.addQuestionAnswer(answerDTO);
             log.info("题目答案保存成功，题目ID: {}", savedQuestion.getId());
         }
@@ -529,13 +525,13 @@ public class QuestionServiceImpl implements IQuestionService {
      */
     private void validateQuestionOptionsAndAnswer(QuestionAddDTO questionAddDTO) {
         Integer questionType = questionAddDTO.getQuestionType();
-        
+
         // 选择题（单选题、多选题、判断题）需要选项
         if (questionType == 0 || questionType == 1 || questionType == 2) {
             if (CollectionUtils.isEmpty(questionAddDTO.getOptions())) {
                 throw new BusinessException(QuestionEnum.QUESTION_OPTION_SAVE_FAILED);
             }
-            
+
             // 验证选项数量
             if (questionType == 0 && questionAddDTO.getOptions().size() < 2) {
                 throw new BusinessException(QuestionEnum.QUESTION_OPTION_SAVE_FAILED);
@@ -546,7 +542,7 @@ public class QuestionServiceImpl implements IQuestionService {
             if (questionType == 2 && questionAddDTO.getOptions().size() != 2) {
                 throw new BusinessException(QuestionEnum.QUESTION_OPTION_SAVE_FAILED);
             }
-            
+
             // 验证是否有正确答案
             boolean hasCorrectOption = questionAddDTO.getOptions().stream()
                     .anyMatch(option -> option.getIsCorrect() != null && option.getIsCorrect() == 1);
@@ -554,12 +550,12 @@ public class QuestionServiceImpl implements IQuestionService {
                 throw new BusinessException(QuestionEnum.QUESTION_OPTION_SAVE_FAILED);
             }
         }
-        
+
         // 所有题目都需要正确答案
         if (questionAddDTO.getQuestionAnswerDTO() == null) {
             throw new BusinessException(QuestionEnum.QUESTION_ANSWER_SAVE_FAILED);
         }
-        
+
         // 填空题和简答题需要答案内容
         if (questionType == 3 || questionType == 4) {
             QuestionAnswerDTO answerDTO = questionAddDTO.getQuestionAnswerDTO();

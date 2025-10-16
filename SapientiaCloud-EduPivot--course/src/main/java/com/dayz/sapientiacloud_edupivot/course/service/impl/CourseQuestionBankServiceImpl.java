@@ -3,7 +3,6 @@ package com.dayz.sapientiacloud_edupivot.course.service.impl;
 import com.dayz.sapientiacloud_edupivot.course.common.clients.SysUserClient;
 import com.dayz.sapientiacloud_edupivot.course.common.entity.vo.SysUserVO;
 import com.dayz.sapientiacloud_edupivot.course.common.enums.DeletedEnum;
-import com.dayz.sapientiacloud_edupivot.course.common.enums.StatusEnum;
 import com.dayz.sapientiacloud_edupivot.course.common.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.course.common.result.Result;
 import com.dayz.sapientiacloud_edupivot.course.constant.CourseQuestionBankConstants;
@@ -16,6 +15,7 @@ import com.dayz.sapientiacloud_edupivot.course.repository.CourseQuestionBankRepo
 import com.dayz.sapientiacloud_edupivot.course.service.ICourseQuestionBankService;
 import com.github.f4b6a3.uuid.UuidCreator;
 import com.github.pagehelper.PageInfo;
+import com.mongodb.client.result.UpdateResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -29,7 +29,6 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
-import com.mongodb.client.result.UpdateResult;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -189,18 +188,18 @@ public class CourseQuestionBankServiceImpl implements ICourseQuestionBankService
             throw new BusinessException(CourseQuestionBankEnum.COURSE_QUESTION_BANK_IS_PUBLIC_REQUIRED);
         }
 
-        if (courseQuestionBankDTO.getBankType() < CourseQuestionBankConstants.BANK_TYPE_MIN || 
-            courseQuestionBankDTO.getBankType() > CourseQuestionBankConstants.BANK_TYPE_MAX) {
+        if (courseQuestionBankDTO.getBankType() < CourseQuestionBankConstants.BANK_TYPE_MIN ||
+                courseQuestionBankDTO.getBankType() > CourseQuestionBankConstants.BANK_TYPE_MAX) {
             throw new BusinessException(CourseQuestionBankEnum.COURSE_QUESTION_BANK_TYPE_REQUIRED);
         }
 
-        if (courseQuestionBankDTO.getDifficulty() < CourseQuestionBankConstants.DIFFICULTY_MIN || 
-            courseQuestionBankDTO.getDifficulty() > CourseQuestionBankConstants.DIFFICULTY_MAX) {
+        if (courseQuestionBankDTO.getDifficulty() < CourseQuestionBankConstants.DIFFICULTY_MIN ||
+                courseQuestionBankDTO.getDifficulty() > CourseQuestionBankConstants.DIFFICULTY_MAX) {
             throw new BusinessException(CourseQuestionBankEnum.COURSE_QUESTION_BANK_DIFFICULTY_REQUIRED);
         }
 
-        if (courseQuestionBankDTO.getIsPublic() < CourseQuestionBankConstants.IS_PUBLIC_MIN || 
-            courseQuestionBankDTO.getIsPublic() > CourseQuestionBankConstants.IS_PUBLIC_MAX) {
+        if (courseQuestionBankDTO.getIsPublic() < CourseQuestionBankConstants.IS_PUBLIC_MIN ||
+                courseQuestionBankDTO.getIsPublic() > CourseQuestionBankConstants.IS_PUBLIC_MAX) {
             throw new BusinessException(CourseQuestionBankEnum.COURSE_QUESTION_BANK_IS_PUBLIC_REQUIRED);
         }
 
