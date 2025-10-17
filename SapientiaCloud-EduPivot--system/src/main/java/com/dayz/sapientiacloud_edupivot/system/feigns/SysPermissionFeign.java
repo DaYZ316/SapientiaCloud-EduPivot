@@ -6,7 +6,6 @@ import com.dayz.sapientiacloud_edupivot.system.common.security.service.Permissio
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,7 +15,6 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/permission")
 @RequiredArgsConstructor
-@Slf4j
 public class SysPermissionFeign {
 
     private final PermissionService permissionService;
@@ -86,7 +84,6 @@ public class SysPermissionFeign {
             permissionService.clearUserPermissionCache(userId);
             return Result.success(true);
         } catch (Exception e) {
-            log.error("清除用户权限缓存失败, userId: {}", userId, e);
             return Result.success(false);
         }
     }
@@ -101,7 +98,6 @@ public class SysPermissionFeign {
             permissionService.clearAllPermissionCache();
             return Result.success(true);
         } catch (Exception e) {
-            log.error("清除所有权限缓存失败", e);
             return Result.success(false);
         }
     }

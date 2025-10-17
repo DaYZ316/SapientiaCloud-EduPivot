@@ -20,7 +20,6 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/student")
 @RequiredArgsConstructor
-@Slf4j
 public class StudentFeign {
 
     private final IStudentService studentService;

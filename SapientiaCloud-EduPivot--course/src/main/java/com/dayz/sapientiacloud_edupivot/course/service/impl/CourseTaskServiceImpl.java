@@ -43,7 +43,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
-@Slf4j
 @RequiredArgsConstructor
 public class CourseTaskServiceImpl implements ICourseTaskService {
 
@@ -349,7 +348,6 @@ public class CourseTaskServiceImpl implements ICourseTaskService {
 
         CourseTask savedTask = courseTaskRepository.save(task);
 
-        log.info(CourseTaskConstants.LOG_ADD_SUCCESS, savedTask.getTaskName());
         return convertToVO(savedTask);
     }
 
@@ -429,7 +427,6 @@ public class CourseTaskServiceImpl implements ICourseTaskService {
 
         courseTaskRepository.save(existingTask);
 
-        log.info(CourseTaskConstants.LOG_UPDATE_SUCCESS, existingTask.getTaskName());
         return true;
     }
 
@@ -459,7 +456,6 @@ public class CourseTaskServiceImpl implements ICourseTaskService {
         task.setUpdateTime(LocalDateTime.now());
         courseTaskRepository.save(task);
 
-        log.info(CourseTaskConstants.LOG_DELETE_SUCCESS, task.getTaskName());
         return true;
     }
 
@@ -483,7 +479,6 @@ public class CourseTaskServiceImpl implements ICourseTaskService {
         UpdateResult updateResult = mongoTemplate.updateMulti(query, update, CourseTask.class);
         int deletedCount = (int) updateResult.getModifiedCount();
 
-        log.info(CourseTaskConstants.LOG_BATCH_DELETE_SUCCESS, deletedCount);
         return deletedCount;
     }
 
@@ -516,7 +511,6 @@ public class CourseTaskServiceImpl implements ICourseTaskService {
         task.setUpdateTime(LocalDateTime.now());
         courseTaskRepository.save(task);
 
-        log.info(CourseTaskConstants.LOG_UPDATE_STATUS_SUCCESS, task.getTaskName(), status);
         return true;
     }
 
@@ -546,7 +540,6 @@ public class CourseTaskServiceImpl implements ICourseTaskService {
         task.setUpdateTime(LocalDateTime.now());
         courseTaskRepository.save(task);
 
-        log.info(CourseTaskConstants.LOG_PUBLISH_SUCCESS, task.getTaskName());
         return true;
     }
 
@@ -576,7 +569,6 @@ public class CourseTaskServiceImpl implements ICourseTaskService {
         task.setUpdateTime(LocalDateTime.now());
         courseTaskRepository.save(task);
 
-        log.info(CourseTaskConstants.LOG_UNPUBLISH_SUCCESS, task.getTaskName());
         return true;
     }
 
@@ -606,7 +598,6 @@ public class CourseTaskServiceImpl implements ICourseTaskService {
         task.setUpdateTime(LocalDateTime.now());
         courseTaskRepository.save(task);
 
-        log.info(CourseTaskConstants.LOG_START_SUCCESS, task.getTaskName());
         return true;
     }
 
@@ -636,7 +627,6 @@ public class CourseTaskServiceImpl implements ICourseTaskService {
         task.setUpdateTime(LocalDateTime.now());
         courseTaskRepository.save(task);
 
-        log.info(CourseTaskConstants.LOG_END_SUCCESS, task.getTaskName());
         return true;
     }
 
@@ -655,7 +645,6 @@ public class CourseTaskServiceImpl implements ICourseTaskService {
 
         mongoTemplate.updateFirst(query, update, CourseTask.class);
 
-        log.info(CourseTaskConstants.LOG_VIEW_SUCCESS, id);
         return true;
     }
 

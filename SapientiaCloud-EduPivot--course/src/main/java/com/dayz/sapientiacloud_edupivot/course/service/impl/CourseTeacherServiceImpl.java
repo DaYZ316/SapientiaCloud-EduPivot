@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-@Slf4j
 @RequiredArgsConstructor
 public class CourseTeacherServiceImpl extends ServiceImpl<CourseMapper, Course> implements ICourseTeacherService {
 

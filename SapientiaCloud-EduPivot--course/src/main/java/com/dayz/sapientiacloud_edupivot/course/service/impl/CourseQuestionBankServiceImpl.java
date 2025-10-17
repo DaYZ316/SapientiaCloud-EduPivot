@@ -39,7 +39,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
-@Slf4j
 @RequiredArgsConstructor
 public class CourseQuestionBankServiceImpl implements ICourseQuestionBankService {
 
@@ -215,7 +214,6 @@ public class CourseQuestionBankServiceImpl implements ICourseQuestionBankService
 
         CourseQuestionBank savedQuestionBank = courseQuestionBankRepository.save(questionBank);
 
-        log.info(CourseQuestionBankConstants.LOG_ADD_SUCCESS, savedQuestionBank.getId());
         return convertToVO(savedQuestionBank);
     }
 
@@ -264,7 +262,6 @@ public class CourseQuestionBankServiceImpl implements ICourseQuestionBankService
 
         courseQuestionBankRepository.save(existingQuestionBank);
 
-        log.info(CourseQuestionBankConstants.LOG_UPDATE_SUCCESS, existingQuestionBank.getId());
         return true;
     }
 
@@ -293,7 +290,6 @@ public class CourseQuestionBankServiceImpl implements ICourseQuestionBankService
         questionBank.setUpdateTime(LocalDateTime.now());
         courseQuestionBankRepository.save(questionBank);
 
-        log.info(CourseQuestionBankConstants.LOG_DELETE_SUCCESS, questionBank.getId());
         return true;
     }
 
@@ -317,7 +313,6 @@ public class CourseQuestionBankServiceImpl implements ICourseQuestionBankService
         UpdateResult updateResult = mongoTemplate.updateMulti(query, update, CourseQuestionBank.class);
         int deletedCount = (int) updateResult.getModifiedCount();
 
-        log.info(CourseQuestionBankConstants.LOG_BATCH_DELETE_SUCCESS, deletedCount);
         return deletedCount;
     }
 

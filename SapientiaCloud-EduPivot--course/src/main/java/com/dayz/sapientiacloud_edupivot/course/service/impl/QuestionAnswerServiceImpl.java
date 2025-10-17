@@ -16,7 +16,6 @@ import com.github.f4b6a3.uuid.UuidCreator;
 import com.github.pagehelper.PageInfo;
 import com.mongodb.client.result.UpdateResult;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -38,7 +37,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
-@Slf4j
 @RequiredArgsConstructor
 public class QuestionAnswerServiceImpl implements IQuestionAnswerService {
 
@@ -213,7 +211,6 @@ public class QuestionAnswerServiceImpl implements IQuestionAnswerService {
 
         QuestionAnswer savedAnswer = questionAnswerRepository.save(answer);
 
-        log.info(QuestionAnswerConstants.LOG_ADD_SUCCESS, savedAnswer.getId());
         return convertToVO(savedAnswer);
     }
 
@@ -233,7 +230,6 @@ public class QuestionAnswerServiceImpl implements IQuestionAnswerService {
             result.add(vo);
         }
 
-        log.info(QuestionAnswerConstants.LOG_BATCH_ADD_SUCCESS, result.size());
         return result;
     }
 
@@ -278,7 +274,6 @@ public class QuestionAnswerServiceImpl implements IQuestionAnswerService {
 
         questionAnswerRepository.save(existingAnswer);
 
-        log.info(QuestionAnswerConstants.LOG_UPDATE_SUCCESS, existingAnswer.getId());
         return true;
     }
 
@@ -307,7 +302,6 @@ public class QuestionAnswerServiceImpl implements IQuestionAnswerService {
         answer.setUpdateTime(LocalDateTime.now());
         questionAnswerRepository.save(answer);
 
-        log.info(QuestionAnswerConstants.LOG_DELETE_SUCCESS, answer.getId());
         return true;
     }
 
@@ -340,7 +334,6 @@ public class QuestionAnswerServiceImpl implements IQuestionAnswerService {
 
         questionAnswerRepository.saveAll(answers);
 
-        log.info(QuestionAnswerConstants.LOG_BATCH_DELETE_SUCCESS, answers.size());
         return true;
     }
 
@@ -364,7 +357,6 @@ public class QuestionAnswerServiceImpl implements IQuestionAnswerService {
         UpdateResult updateResult = mongoTemplate.updateMulti(query, update, QuestionAnswer.class);
         int deletedCount = (int) updateResult.getModifiedCount();
 
-        log.info(QuestionAnswerConstants.LOG_BATCH_DELETE_SUCCESS, deletedCount);
         return deletedCount;
     }
 

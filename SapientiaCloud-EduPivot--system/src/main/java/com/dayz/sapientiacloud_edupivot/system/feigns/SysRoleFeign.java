@@ -16,7 +16,6 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/role")
 @RequiredArgsConstructor
-@Slf4j
 public class SysRoleFeign {
 
     private final ISysRoleService sysRoleService;

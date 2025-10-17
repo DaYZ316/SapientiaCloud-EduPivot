@@ -2,6 +2,7 @@ package com.dayz.sapientiacloud_edupivot.minio.controller;
 
 import com.dayz.sapientiacloud_edupivot.minio.constant.MinIOConstants;
 import com.dayz.sapientiacloud_edupivot.minio.entity.dto.FileInfoDTO;
+import com.dayz.sapientiacloud_edupivot.minio.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.minio.result.Result;
 import com.dayz.sapientiacloud_edupivot.minio.utils.MinIOUtil;
 import io.minio.messages.Bucket;
@@ -11,7 +12,6 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -34,7 +34,6 @@ import java.util.Map;
 @RestController
 @RequestMapping("/file")
 @RequiredArgsConstructor
-@Slf4j
 public class MinIOController {
 
     private final MinIOUtil minIOUtil;
@@ -95,8 +94,7 @@ public class MinIOController {
 
             return Result.success(fileInfo);
         } catch (Exception e) {
-            log.error(MinIOConstants.FILE_UPLOAD_ERROR_LOG, e.getMessage(), e);
-            return Result.fail(MinIOConstants.FILE_UPLOAD_FAILED_MESSAGE);
+            throw new BusinessException(MinIOConstants.FILE_UPLOAD_FAILED_MESSAGE + ": " + e.getMessage());
         }
     }
 
@@ -117,8 +115,7 @@ public class MinIOController {
             String url = minIOUtil.getPresignedObjectUrl(objectName, expiry);
             return Result.success(url);
         } catch (Exception e) {
-            log.error(MinIOConstants.FILE_URL_ERROR_LOG, e.getMessage(), e);
-            return Result.fail(MinIOConstants.FILE_URL_GENERATION_FAILED_MESSAGE);
+            throw new BusinessException(MinIOConstants.FILE_URL_GENERATION_FAILED_MESSAGE + ": " + e.getMessage());
         }
     }
 
@@ -152,12 +149,7 @@ public class MinIOController {
                 response.flushBuffer();
             }
         } catch (Exception e) {
-            log.error(MinIOConstants.FILE_DOWNLOAD_ERROR_LOG, e.getMessage(), e);
-            try {
-                response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, MinIOConstants.FILE_DOWNLOAD_FAILED_MESSAGE + ": " + e.getMessage());
-            } catch (Exception ex) {
-                log.error(MinIOConstants.SEND_ERROR_RESPONSE_ERROR_LOG, ex);
-            }
+            throw new BusinessException(MinIOConstants.FILE_DOWNLOAD_FAILED_MESSAGE + ": " + e.getMessage());
         }
     }
 
@@ -219,15 +211,14 @@ public class MinIOController {
                             fileInfo.put("isDir", item.isDir());
                             fileInfo.put("etag", item.etag());
                         } catch (Exception e) {
-                            log.error(MinIOConstants.FILE_INFO_ERROR_LOG, e.getMessage(), e);
+                            throw new BusinessException(MinIOConstants.FILE_INFO_ERROR_LOG + ": " + e.getMessage());
                         }
                         return fileInfo;
                     })
                     .toList();
             return Result.success(fileList);
         } catch (Exception e) {
-            log.error(MinIOConstants.FILE_LIST_ERROR_LOG, e.getMessage(), e);
-            return Result.fail(MinIOConstants.FILE_LIST_FAILED_MESSAGE);
+            throw new BusinessException(MinIOConstants.FILE_LIST_FAILED_MESSAGE + ": " + e.getMessage());
         }
     }
 
@@ -246,8 +237,7 @@ public class MinIOController {
             FileInfoDTO fileInfo = minIOUtil.getFileInfo(objectName);
             return Result.success(fileInfo);
         } catch (Exception e) {
-            log.error(MinIOConstants.FILE_INFO_ERROR_LOG, e.getMessage(), e);
-            return Result.fail(MinIOConstants.FILE_INFO_FAILED_MESSAGE);
+            throw new BusinessException(MinIOConstants.FILE_INFO_FAILED_MESSAGE + ": " + e.getMessage());
         }
     }
 
@@ -266,8 +256,7 @@ public class MinIOController {
             FileInfoDTO fileInfo = minIOUtil.getFileInfoByPath(filePath);
             return Result.success(fileInfo);
         } catch (Exception e) {
-            log.error(MinIOConstants.FILE_INFO_BY_PATH_ERROR_LOG, e.getMessage(), e);
-            return Result.fail(MinIOConstants.FILE_INFO_FAILED_MESSAGE);
+            throw new BusinessException(MinIOConstants.FILE_INFO_FAILED_MESSAGE + ": " + e.getMessage());
         }
     }
 
@@ -286,8 +275,7 @@ public class MinIOController {
             List<FileInfoDTO> fileInfoList = minIOUtil.getBatchFileInfo(objectNames);
             return Result.success(fileInfoList);
         } catch (Exception e) {
-            log.error(MinIOConstants.FILE_INFO_BATCH_ERROR_LOG, e.getMessage(), e);
-            return Result.fail(MinIOConstants.FILE_INFO_FAILED_MESSAGE);
+            throw new BusinessException(MinIOConstants.FILE_INFO_FAILED_MESSAGE + ": " + e.getMessage());
         }
     }
 
@@ -306,8 +294,7 @@ public class MinIOController {
             List<FileInfoDTO> fileInfoList = minIOUtil.getBatchFileInfoByPath(filePaths);
             return Result.success(fileInfoList);
         } catch (Exception e) {
-            log.error(MinIOConstants.FILE_INFO_BATCH_BY_PATHS_ERROR_LOG, e.getMessage(), e);
-            return Result.fail(MinIOConstants.FILE_INFO_FAILED_MESSAGE);
+            throw new BusinessException(MinIOConstants.FILE_INFO_FAILED_MESSAGE + ": " + e.getMessage());
         }
     }
 
@@ -330,8 +317,7 @@ public class MinIOController {
                 return Result.fail(MinIOConstants.FILE_DELETE_FAILED_MESSAGE);
             }
         } catch (Exception e) {
-            log.error(MinIOConstants.FILE_DELETE_BY_URL_ERROR_LOG, e.getMessage(), e);
-            return Result.fail(MinIOConstants.FILE_DELETE_BY_URL_FAILED_MESSAGE + ": " + e.getMessage());
+            throw new BusinessException(MinIOConstants.FILE_DELETE_BY_URL_FAILED_MESSAGE + ": " + e.getMessage());
         }
     }
 
@@ -350,8 +336,7 @@ public class MinIOController {
             Map<String, String> result = minIOUtil.removeObjectsByPath(filePaths);
             return Result.success(result);
         } catch (Exception e) {
-            log.error(MinIOConstants.FILE_DELETE_BATCH_BY_URL_ERROR_LOG, e.getMessage(), e);
-            return Result.fail(MinIOConstants.FILE_DELETE_BATCH_BY_URL_FAILED_MESSAGE + ": " + e.getMessage());
+            throw new BusinessException(MinIOConstants.FILE_DELETE_BATCH_BY_URL_FAILED_MESSAGE + ": " + e.getMessage());
         }
     }
 } 

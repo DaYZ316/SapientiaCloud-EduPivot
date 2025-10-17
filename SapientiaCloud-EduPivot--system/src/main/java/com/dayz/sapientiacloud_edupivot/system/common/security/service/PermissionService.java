@@ -14,7 +14,6 @@ import java.util.*;
  * 权限服务类
  * 提供权限验证和管理功能
  */
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PermissionService {

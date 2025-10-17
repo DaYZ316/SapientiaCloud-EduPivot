@@ -69,6 +69,22 @@ public class GlobalExceptionHandler {
         if (courseTaskEnum != null) {
             return Result.fail(courseTaskEnum.getMessage());
         }
+        CourseQuestionBankEnum courseQuestionBankEnum = EnumUtil.getByAttribute(CourseQuestionBankEnum.class, e.getMessage(), CourseQuestionBankEnum::getMessage);
+        if (courseQuestionBankEnum != null) {
+            return Result.fail(courseQuestionBankEnum.getMessage());
+        }
+        QuestionEnum questionEnum = EnumUtil.getByAttribute(QuestionEnum.class, e.getMessage(), QuestionEnum::getMessage);
+        if (questionEnum != null) {
+            return Result.fail(questionEnum.getMessage());
+        }
+        QuestionAnswerEnum questionAnswerEnum = EnumUtil.getByAttribute(QuestionAnswerEnum.class, e.getMessage(), QuestionAnswerEnum::getMessage);
+        if (questionAnswerEnum != null) {
+            return Result.fail(questionAnswerEnum.getMessage());
+        }
+        QuestionOptionEnum questionOptionEnum = EnumUtil.getByAttribute(QuestionOptionEnum.class, e.getMessage(), QuestionOptionEnum::getMessage);
+        if (questionOptionEnum != null) {
+            return Result.fail(questionOptionEnum.getMessage());
+        }
         ResultEnum resultEnum = EnumUtil.getByAttribute(ResultEnum.class, e.getMessage(), ResultEnum::getMessage);
         return Result.fail(Objects.requireNonNullElse(resultEnum, ResultEnum.SYSTEM_ERROR));
     }

@@ -16,7 +16,6 @@ import java.util.UUID;
  * @author SapientiaCloud
  * @since 2024-01-01
  */
-@Slf4j
 @Configuration
 public class MongoConfig {
 
@@ -34,7 +33,6 @@ public class MongoConfig {
                     return null;
                 }
                 String uuidString = source.toString();
-                log.debug("Converting UUID to String: {}", uuidString);
                 return uuidString;
             }
         };

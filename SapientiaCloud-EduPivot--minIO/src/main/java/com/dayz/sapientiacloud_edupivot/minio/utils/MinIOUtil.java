@@ -12,7 +12,6 @@ import io.minio.messages.DeleteObject;
 import io.minio.messages.Item;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -31,7 +30,6 @@ import java.util.concurrent.TimeUnit;
  * @author LANDH
  */
 @Component
-@Slf4j
 public class MinIOUtil {
 
     @Resource
@@ -55,10 +53,8 @@ public class MinIOUtil {
                     .endpoint(endpoint)
                     .credentials(minioProperties.getAccessKey(), minioProperties.getSecretKey())
                     .build();
-            log.info("MinIO客户端初始化成功");
         } catch (Exception e) {
-            log.error("MinIO客户端初始化失败: {}", e.getMessage());
-            throw new BusinessException(FileEnum.MINIO_CLIENT_INIT_FAILED.getMessage());
+            throw new BusinessException(FileEnum.MINIO_CLIENT_INIT_FAILED.getMessage() + ": " + e.getMessage());
         }
     }
 
@@ -74,11 +70,9 @@ public class MinIOUtil {
                 minioClient.makeBucket(MakeBucketArgs.builder()
                         .bucket(minioProperties.getBucketName())
                         .build());
-                log.info("创建存储桶: {}", minioProperties.getBucketName());
             }
         } catch (Exception e) {
-            log.error("创建存储桶失败: {}", e.getMessage());
-            throw new BusinessException(FileEnum.MINIO_BUCKET_CREATE_FAILED.getMessage());
+            throw new BusinessException(FileEnum.MINIO_BUCKET_CREATE_FAILED.getMessage() + ": " + e.getMessage());
         }
     }
 
@@ -91,8 +85,7 @@ public class MinIOUtil {
         try {
             return minioClient.listBuckets();
         } catch (Exception e) {
-            log.error("获取存储桶列表失败: {}", e.getMessage());
-            throw new BusinessException(FileEnum.MINIO_GET_BUCKETS_FAILED.getMessage());
+            throw new BusinessException(FileEnum.MINIO_GET_BUCKETS_FAILED.getMessage() + ": " + e.getMessage());
         }
     }
 
@@ -130,13 +123,11 @@ public class MinIOUtil {
                     .contentType(fileContentType)
                     .build());
 
-            log.info("文件上传成功: {}", fileName);
             return fileName;
         } catch (BusinessException e) {
             throw e;
         } catch (Exception e) {
-            log.error("文件上传失败: {}", e.getMessage());
-            throw new BusinessException(FileEnum.FILE_UPLOAD_FAILED.getMessage());
+            throw new BusinessException(FileEnum.FILE_UPLOAD_FAILED.getMessage() + ": " + e.getMessage());
         }
     }
 
@@ -167,11 +158,9 @@ public class MinIOUtil {
                     .stream(bais, bytes.length, -1)
                     .contentType(contentType)
                     .build());
-            log.info("字节数组上传成功: {}", objectName);
             return objectName;
         } catch (Exception e) {
-            log.error("字节数组上传失败: {}", e.getMessage());
-            throw new BusinessException(FileEnum.BYTES_UPLOAD_FAILED.getMessage());
+            throw new BusinessException(FileEnum.BYTES_UPLOAD_FAILED.getMessage() + ": " + e.getMessage());
         }
     }
 
@@ -194,8 +183,7 @@ public class MinIOUtil {
         } catch (BusinessException e) {
             throw e;
         } catch (Exception e) {
-            log.error("文件下载失败: {}", e.getMessage());
-            throw new BusinessException(FileEnum.FILE_DOWNLOAD_FAILED.getMessage());
+            throw new BusinessException(FileEnum.FILE_DOWNLOAD_FAILED.getMessage() + ": " + e.getMessage());
         }
     }
 
@@ -222,8 +210,7 @@ public class MinIOUtil {
         } catch (BusinessException e) {
             throw e;
         } catch (Exception e) {
-            log.error("获取文件URL失败: {}", e.getMessage());
-            throw new BusinessException(FileEnum.FILE_URL_GENERATION_FAILED.getMessage());
+            throw new BusinessException(FileEnum.FILE_URL_GENERATION_FAILED.getMessage() + ": " + e.getMessage());
         }
     }
 
@@ -255,8 +242,7 @@ public class MinIOUtil {
                     .build());
             return true;
         } catch (Exception e) {
-            log.error("删除文件失败: {}", e.getMessage());
-            return false;
+            throw new BusinessException("删除文件失败: " + e.getMessage());
         }
     }
 
@@ -288,8 +274,7 @@ public class MinIOUtil {
                 result.put(error.objectName(), "失败: " + error.message());
             }
         } catch (Exception e) {
-            log.error("批量删除文件失败: {}", e.getMessage());
-            throw new BusinessException(FileEnum.BATCH_FILE_DELETE_FAILED.getMessage());
+            throw new BusinessException(FileEnum.BATCH_FILE_DELETE_FAILED.getMessage() + ": " + e.getMessage());
         }
 
         return result;
@@ -332,8 +317,7 @@ public class MinIOUtil {
             }
             return items;
         } catch (Exception e) {
-            log.error("列出对象失败: {}", e.getMessage());
-            throw new BusinessException(FileEnum.FILE_LIST_FAILED.getMessage());
+            throw new BusinessException(FileEnum.FILE_LIST_FAILED.getMessage() + ": " + e.getMessage());
         }
     }
 
@@ -415,8 +399,7 @@ public class MinIOUtil {
         } catch (BusinessException e) {
             throw e;
         } catch (Exception e) {
-            log.error("获取文件信息失败: {}", e.getMessage());
-            throw new BusinessException(FileEnum.FILE_INFO_FAILED.getMessage());
+            throw new BusinessException(FileEnum.FILE_INFO_FAILED.getMessage() + ": " + e.getMessage());
         }
     }
 
@@ -457,7 +440,6 @@ public class MinIOUtil {
                 FileInfoDTO fileInfo = getFileInfo(objectName);
                 fileInfoList.add(fileInfo);
             } catch (Exception e) {
-                log.warn("获取文件信息失败: {}, 错误: {}", input, e.getMessage());
                 // 创建一个包含错误信息的FileInfoDTO
                 FileInfoDTO errorFileInfo = new FileInfoDTO();
                 errorFileInfo.setObjectName(input);
@@ -493,7 +475,6 @@ public class MinIOUtil {
                 FileInfoDTO fileInfo = getFileInfoByPath(objectName);
                 fileInfoList.add(fileInfo);
             } catch (Exception e) {
-                log.warn("通过路径获取文件信息失败: {}, 错误: {}", input, e.getMessage());
                 // 创建一个包含错误信息的FileInfoDTO
                 FileInfoDTO errorFileInfo = new FileInfoDTO();
                 errorFileInfo.setObjectName(input);
@@ -577,7 +558,6 @@ public class MinIOUtil {
 
             return result;
         } catch (Exception e) {
-            log.warn("解析URL失败: {}, 错误: {}", url, e.getMessage());
             return url; // 如果解析失败，返回原始URL
         }
     }
@@ -613,7 +593,6 @@ public class MinIOUtil {
         } catch (BusinessException e) {
             throw e;
         } catch (Exception e) {
-            log.error("根据文件路径删除文件失败: {}", e.getMessage());
             throw new BusinessException("根据文件路径删除文件失败: " + e.getMessage());
         }
     }
@@ -679,7 +658,6 @@ public class MinIOUtil {
 
             return finalResult;
         } catch (Exception e) {
-            log.error("根据文件路径批量删除文件失败: {}", e.getMessage());
             throw new BusinessException("根据文件路径批量删除文件失败: " + e.getMessage());
         }
     }

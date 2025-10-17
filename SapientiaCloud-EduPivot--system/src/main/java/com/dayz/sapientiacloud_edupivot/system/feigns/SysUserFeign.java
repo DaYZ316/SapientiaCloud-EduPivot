@@ -23,7 +23,6 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/user")
 @RequiredArgsConstructor
-@Slf4j
 public class SysUserFeign {
 
     private final ISysUserService sysUserService;

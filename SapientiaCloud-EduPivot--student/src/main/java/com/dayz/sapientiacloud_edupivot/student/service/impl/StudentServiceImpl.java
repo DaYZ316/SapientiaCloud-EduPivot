@@ -33,7 +33,6 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-@Slf4j
 @RequiredArgsConstructor
 public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> implements IStudentService {
 
@@ -77,21 +76,17 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
 
         // 获取用户信息（除了密码）
         if (student.getSysUserId() != null) {
-            try {
-                Result<SysUserInternalVO> userResult = sysUserClient.getUserInfoById(student.getSysUserId());
-                if (userResult.isSuccess() && userResult.getData() != null) {
-                    SysUserInternalVO userInfo = userResult.getData();
-                    studentVO.setAvatar(userInfo.getAvatar());
-                    studentVO.setUsername(userInfo.getUsername());
-                    studentVO.setNickName(userInfo.getNickName());
-                    studentVO.setEmail(userInfo.getEmail());
-                    studentVO.setMobile(userInfo.getMobile());
-                    studentVO.setGender(userInfo.getGender());
-                    studentVO.setStatus(userInfo.getStatus());
-                    studentVO.setLastLoginTime(userInfo.getLastLoginTime());
-                }
-            } catch (Exception e) {
-                log.warn("获取学生用户信息失败: studentId={}, sysUserId={}", student.getId(), student.getSysUserId(), e);
+            Result<SysUserInternalVO> userResult = sysUserClient.getUserInfoById(student.getSysUserId());
+            if (userResult.isSuccess() && userResult.getData() != null) {
+                SysUserInternalVO userInfo = userResult.getData();
+                studentVO.setAvatar(userInfo.getAvatar());
+                studentVO.setUsername(userInfo.getUsername());
+                studentVO.setNickName(userInfo.getNickName());
+                studentVO.setEmail(userInfo.getEmail());
+                studentVO.setMobile(userInfo.getMobile());
+                studentVO.setGender(userInfo.getGender());
+                studentVO.setStatus(userInfo.getStatus());
+                studentVO.setLastLoginTime(userInfo.getLastLoginTime());
             }
         }
 

@@ -22,7 +22,6 @@ import java.util.UUID;
  * 权限检查切面
  * 拦截标记了@HasPermission注解的方法，检查当前用户是否拥有所需权限
  */
-@Slf4j
 @Aspect
 @Component
 @RequiredArgsConstructor
@@ -58,7 +57,6 @@ public class PermissionCheckAspect {
 
         // 检查是否有所需权限
         if (!permissionKeys.contains(hasPermission.permission())) {
-            log.warn("用户 {} 没有所需权限 {}", UserContextUtil.getCurrentUsername(), hasPermission.permission());
             throw new BusinessException(ResultEnum.FORBIDDEN.getMessage());
         }
     }

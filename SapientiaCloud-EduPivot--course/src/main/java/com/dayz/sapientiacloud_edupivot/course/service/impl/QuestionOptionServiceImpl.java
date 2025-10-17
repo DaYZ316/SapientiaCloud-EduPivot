@@ -34,7 +34,6 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-@Slf4j
 @RequiredArgsConstructor
 public class QuestionOptionServiceImpl implements IQuestionOptionService {
 
@@ -143,7 +142,6 @@ public class QuestionOptionServiceImpl implements IQuestionOptionService {
 
         QuestionOption savedOption = questionOptionRepository.save(option);
 
-        log.info(QuestionOptionConstants.LOG_ADD_SUCCESS, savedOption.getId());
         return convertToVO(savedOption);
     }
 
@@ -163,7 +161,6 @@ public class QuestionOptionServiceImpl implements IQuestionOptionService {
             result.add(vo);
         }
 
-        log.info(QuestionOptionConstants.LOG_BATCH_ADD_SUCCESS, result.size());
         return result;
     }
 
@@ -213,7 +210,6 @@ public class QuestionOptionServiceImpl implements IQuestionOptionService {
 
         questionOptionRepository.save(existingOption);
 
-        log.info(QuestionOptionConstants.LOG_UPDATE_SUCCESS, existingOption.getId());
         return true;
     }
 
@@ -242,7 +238,6 @@ public class QuestionOptionServiceImpl implements IQuestionOptionService {
         option.setUpdateTime(LocalDateTime.now());
         questionOptionRepository.save(option);
 
-        log.info(QuestionOptionConstants.LOG_DELETE_SUCCESS, option.getId());
         return true;
     }
 
@@ -275,7 +270,6 @@ public class QuestionOptionServiceImpl implements IQuestionOptionService {
 
         questionOptionRepository.saveAll(options);
 
-        log.info(QuestionOptionConstants.LOG_BATCH_DELETE_SUCCESS, options.size());
         return true;
     }
 
@@ -299,7 +293,6 @@ public class QuestionOptionServiceImpl implements IQuestionOptionService {
         UpdateResult updateResult = mongoTemplate.updateMulti(query, update, QuestionOption.class);
         int deletedCount = (int) updateResult.getModifiedCount();
 
-        log.info(QuestionOptionConstants.LOG_BATCH_DELETE_SUCCESS, deletedCount);
         return deletedCount;
     }
 

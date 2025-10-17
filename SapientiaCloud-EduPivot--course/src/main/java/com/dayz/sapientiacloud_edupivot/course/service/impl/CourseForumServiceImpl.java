@@ -37,7 +37,6 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-@Slf4j
 @RequiredArgsConstructor
 public class CourseForumServiceImpl implements ICourseForumService {
 
@@ -196,7 +195,6 @@ public class CourseForumServiceImpl implements ICourseForumService {
 
         CourseForum savedForum = courseForumRepository.save(forum);
 
-        log.info(CourseForumConstants.LOG_ADD_SUCCESS, savedForum.getForumName());
         return convertToVO(savedForum);
     }
 
@@ -262,7 +260,6 @@ public class CourseForumServiceImpl implements ICourseForumService {
 
         courseForumRepository.save(existingForum);
 
-        log.info(CourseForumConstants.LOG_UPDATE_SUCCESS, existingForum.getForumName());
         return true;
     }
 
@@ -289,7 +286,6 @@ public class CourseForumServiceImpl implements ICourseForumService {
         forum.setUpdateTime(LocalDateTime.now());
         courseForumRepository.save(forum);
 
-        log.info(CourseForumConstants.LOG_DELETE_SUCCESS, forum.getForumName());
         return true;
     }
 
@@ -311,7 +307,6 @@ public class CourseForumServiceImpl implements ICourseForumService {
         UpdateResult updateResult = mongoTemplate.updateMulti(query, update, CourseForum.class);
         int deletedCount = (int) updateResult.getModifiedCount();
 
-        log.info(CourseForumConstants.LOG_BATCH_DELETE_SUCCESS, deletedCount);
         return deletedCount;
     }
 
@@ -341,7 +336,6 @@ public class CourseForumServiceImpl implements ICourseForumService {
         forum.setUpdateTime(LocalDateTime.now());
         courseForumRepository.save(forum);
 
-        log.info(CourseForumConstants.LOG_UPDATE_STATUS_SUCCESS, forum.getForumName(), status);
         return true;
     }
 

@@ -16,7 +16,6 @@ import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
 
-@Slf4j
 @Component
 public class JwtAuthenticationEntryPoint implements ServerAuthenticationEntryPoint {
 

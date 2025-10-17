@@ -41,7 +41,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
-@Slf4j
 @RequiredArgsConstructor
 public class ForumReplyServiceImpl implements IForumReplyService {
 
@@ -262,7 +261,6 @@ public class ForumReplyServiceImpl implements IForumReplyService {
 
         ForumReply savedReply = forumReplyRepository.save(reply);
 
-        log.info(ForumReplyConstants.LOG_ADD_SUCCESS, savedReply.getId());
         return convertToVO(savedReply);
     }
 
@@ -311,7 +309,6 @@ public class ForumReplyServiceImpl implements IForumReplyService {
 
         forumReplyRepository.save(existingReply);
 
-        log.info(ForumReplyConstants.LOG_UPDATE_SUCCESS, existingReply.getId());
         return true;
     }
 
@@ -340,7 +337,6 @@ public class ForumReplyServiceImpl implements IForumReplyService {
         reply.setUpdateTime(LocalDateTime.now());
         forumReplyRepository.save(reply);
 
-        log.info(ForumReplyConstants.LOG_DELETE_SUCCESS, reply.getId());
         return true;
     }
 
@@ -364,7 +360,6 @@ public class ForumReplyServiceImpl implements IForumReplyService {
         UpdateResult updateResult = mongoTemplate.updateMulti(query, update, ForumReply.class);
         int deletedCount = (int) updateResult.getModifiedCount();
 
-        log.info(ForumReplyConstants.LOG_BATCH_DELETE_SUCCESS, deletedCount);
         return deletedCount;
     }
 
@@ -396,7 +391,6 @@ public class ForumReplyServiceImpl implements IForumReplyService {
         reply.setUpdateTime(LocalDateTime.now());
         forumReplyRepository.save(reply);
 
-        log.info(ForumReplyConstants.LOG_UPDATE_STATUS_SUCCESS, reply.getId(), status);
         return true;
     }
 
@@ -416,7 +410,6 @@ public class ForumReplyServiceImpl implements IForumReplyService {
 
         mongoTemplate.updateFirst(query, update, ForumReply.class);
 
-        log.info(ForumReplyConstants.LOG_LIKE_SUCCESS, id);
         return true;
     }
 
@@ -436,7 +429,6 @@ public class ForumReplyServiceImpl implements IForumReplyService {
 
         mongoTemplate.updateFirst(query, update, ForumReply.class);
 
-        log.info(ForumReplyConstants.LOG_UNLIKE_SUCCESS, id);
         return true;
     }
 
@@ -465,7 +457,6 @@ public class ForumReplyServiceImpl implements IForumReplyService {
         reply.setUpdateTime(LocalDateTime.now());
         forumReplyRepository.save(reply);
 
-        log.info(ForumReplyConstants.LOG_ACCEPT_SUCCESS, reply.getId());
         return true;
     }
 
@@ -494,7 +485,6 @@ public class ForumReplyServiceImpl implements IForumReplyService {
         reply.setUpdateTime(LocalDateTime.now());
         forumReplyRepository.save(reply);
 
-        log.info(ForumReplyConstants.LOG_UNACCEPT_SUCCESS, reply.getId());
         return true;
     }
 
@@ -579,7 +569,6 @@ public class ForumReplyServiceImpl implements IForumReplyService {
 
         while (currentParentId != null) {
             if (visitedIds.contains(currentParentId)) {
-                log.warn("检测到循环引用，停止深度计算。当前父回复ID: {}", currentParentId);
                 break;
             }
             visitedIds.add(currentParentId);

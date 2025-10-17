@@ -40,7 +40,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
-@Slf4j
 @RequiredArgsConstructor
 public class ForumPostServiceImpl implements IForumPostService {
 
@@ -258,7 +257,6 @@ public class ForumPostServiceImpl implements IForumPostService {
 
         ForumPost savedPost = forumPostRepository.save(post);
 
-        log.info(ForumPostConstants.LOG_ADD_SUCCESS, savedPost.getTitle());
         return convertToVO(savedPost);
     }
 
@@ -317,7 +315,6 @@ public class ForumPostServiceImpl implements IForumPostService {
 
         forumPostRepository.save(existingPost);
 
-        log.info(ForumPostConstants.LOG_UPDATE_SUCCESS, existingPost.getTitle());
         return true;
     }
 
@@ -344,7 +341,6 @@ public class ForumPostServiceImpl implements IForumPostService {
         post.setUpdateTime(LocalDateTime.now());
         forumPostRepository.save(post);
 
-        log.info(ForumPostConstants.LOG_DELETE_SUCCESS, post.getTitle());
         return true;
     }
 
@@ -366,7 +362,6 @@ public class ForumPostServiceImpl implements IForumPostService {
         UpdateResult updateResult = mongoTemplate.updateMulti(query, update, ForumPost.class);
         int deletedCount = (int) updateResult.getModifiedCount();
 
-        log.info(ForumPostConstants.LOG_BATCH_DELETE_SUCCESS, deletedCount);
         return deletedCount;
     }
 
@@ -396,7 +391,6 @@ public class ForumPostServiceImpl implements IForumPostService {
         post.setUpdateTime(LocalDateTime.now());
         forumPostRepository.save(post);
 
-        log.info(ForumPostConstants.LOG_UPDATE_STATUS_SUCCESS, post.getTitle(), status);
         return true;
     }
 
@@ -426,7 +420,6 @@ public class ForumPostServiceImpl implements IForumPostService {
         post.setUpdateTime(LocalDateTime.now());
         forumPostRepository.save(post);
 
-        log.info(ForumPostConstants.LOG_SET_TOP_SUCCESS, post.getTitle(), isTop);
         return true;
     }
 
@@ -456,7 +449,6 @@ public class ForumPostServiceImpl implements IForumPostService {
         post.setUpdateTime(LocalDateTime.now());
         forumPostRepository.save(post);
 
-        log.info(ForumPostConstants.LOG_SET_ESSENCE_SUCCESS, post.getTitle(), isEssence);
         return true;
     }
 
@@ -486,7 +478,6 @@ public class ForumPostServiceImpl implements IForumPostService {
         post.setUpdateTime(LocalDateTime.now());
         forumPostRepository.save(post);
 
-        log.info(ForumPostConstants.LOG_SET_LOCK_SUCCESS, post.getTitle(), isLocked);
         return true;
     }
 
@@ -503,7 +494,6 @@ public class ForumPostServiceImpl implements IForumPostService {
 
         mongoTemplate.updateFirst(query, update, ForumPost.class);
 
-        log.info(ForumPostConstants.LOG_LIKE_SUCCESS, id);
         return true;
     }
 
@@ -520,7 +510,6 @@ public class ForumPostServiceImpl implements IForumPostService {
 
         mongoTemplate.updateFirst(query, update, ForumPost.class);
 
-        log.info(ForumPostConstants.LOG_UNLIKE_SUCCESS, id);
         return true;
     }
 
@@ -537,7 +526,6 @@ public class ForumPostServiceImpl implements IForumPostService {
 
         mongoTemplate.updateFirst(query, update, ForumPost.class);
 
-        log.info(ForumPostConstants.LOG_SHARE_SUCCESS, id);
         return true;
     }
 
@@ -554,7 +542,6 @@ public class ForumPostServiceImpl implements IForumPostService {
 
         mongoTemplate.updateFirst(query, update, ForumPost.class);
 
-        log.info(ForumPostConstants.LOG_VIEW_SUCCESS, id);
         return true;
     }
 
@@ -682,7 +669,6 @@ public class ForumPostServiceImpl implements IForumPostService {
         Update update = new Update().set(ForumPostConstants.FIELD_REPLY_COUNT, replyCount);
         mongoTemplate.updateFirst(query, update, ForumPost.class);
 
-        log.info("更新帖子回复数量成功: postId={}, replyCount={}", postId, replyCount);
         return true;
     }
 }

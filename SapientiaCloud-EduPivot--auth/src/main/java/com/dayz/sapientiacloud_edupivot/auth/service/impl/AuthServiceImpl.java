@@ -26,7 +26,6 @@ import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
@@ -57,15 +56,12 @@ public class AuthServiceImpl implements AuthService {
 
         SysUserInternalVO sysUserInternalVO = userResult.getData();
         if (sysUserInternalVO == null) {
-            log.error("用户登录失败: 用户不存在, 用户名: {}", sysUserLoginDTO.getUsername());
             throw new BusinessException(SysUserEnum.USERNAME_OR_PASSWORD_ERROR);
         }
         if (sysUserInternalVO.getStatus() != null && sysUserInternalVO.getStatus() == StatusEnum.DISABLED.getCode()) {
-            log.error("用户登录失败: 用户已被禁用, 用户名: {}", sysUserLoginDTO.getUsername());
             throw new BusinessException(SysUserEnum.USER_ACCOUNT_DISABLED);
         }
         if (!passwordEncoder.matches(sysUserLoginDTO.getPassword(), sysUserInternalVO.getPassword())) {
-            log.error("用户登录失败: 密码错误, 用户名: {}", sysUserLoginDTO.getUsername());
             throw new BusinessException(SysUserEnum.USERNAME_OR_PASSWORD_ERROR);
         }
 
@@ -75,7 +71,6 @@ public class AuthServiceImpl implements AuthService {
         BeanUtils.copyProperties(sysUserInternalVO, sysUserDTO);
         Result<Boolean> booleanResult = sysUserClient.updateUserInternal(sysUserDTO);
         if (!booleanResult.isSuccess()) {
-            log.error("用户登录失败: 更新用户信息失败, 用户名: {}", sysUserLoginDTO.getUsername());
             throw new BusinessException(SysUserEnum.USER_LOGIN_FAILED);
         }
 
@@ -85,7 +80,6 @@ public class AuthServiceImpl implements AuthService {
         loginVO.setAccessToken(token);
         BeanUtils.copyProperties(sysUserInternalVO, loginVO);
 
-        log.info("用户登录成功: 用户名: {}", sysUserInternalVO.getUsername());
         return loginVO;
     }
 
@@ -98,8 +92,7 @@ public class AuthServiceImpl implements AuthService {
         try {
             return !jwtUtil.isTokenExpired(token);
         } catch (Exception e) {
-            log.error("令牌验证失败", e);
-            return false;
+            throw new BusinessException("令牌验证失败: " + e.getMessage());
         }
     }
 
@@ -165,11 +158,9 @@ public class AuthServiceImpl implements AuthService {
 
         SysUserInternalVO sysUserInternalVO = userResult.getData();
         if (sysUserInternalVO == null) {
-            log.error("手机验证码登录失败: 用户不存在, 手机号: {}", sysUserMobileLoginDTO.getMobile());
             throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
         }
         if (sysUserInternalVO.getStatus() != null && sysUserInternalVO.getStatus() == StatusEnum.DISABLED.getCode()) {
-            log.error("手机验证码登录失败: 用户已被禁用, 手机号: {}", sysUserMobileLoginDTO.getMobile());
             throw new BusinessException(SysUserEnum.USER_ACCOUNT_DISABLED);
         }
 
@@ -184,7 +175,6 @@ public class AuthServiceImpl implements AuthService {
         loginVO.setAccessToken(token);
         BeanUtils.copyProperties(sysUserInternalVO, loginVO);
 
-        log.info("手机验证码登录成功: 手机号: {}", sysUserMobileLoginDTO.getMobile());
         return loginVO;
     }
 
@@ -202,21 +192,17 @@ public class AuthServiceImpl implements AuthService {
             if (username != null) {
                 boolean invalidated = jwtUtil.invalidateToken(token);
                 if (invalidated) {
-                    log.info("用户 {} 已成功登出", username);
                     return true;
                 } else {
-                    log.error("用户 {} 登出失败: 无法使令牌失效", username);
-                    return false;
+                    throw new BusinessException("用户 " + username + " 登出失败: 无法使令牌失效");
                 }
             } else {
-                log.error("登出失败: 无法从令牌获取用户信息");
-                return false;
+                throw new BusinessException("登出失败: 无法从令牌获取用户信息");
             }
         } catch (BusinessException e) {
             throw e;
         } catch (Exception e) {
-            log.error("登出过程发生错误", e);
-            throw new BusinessException(SysUserEnum.USER_LOGOUT_FAILED);
+            throw new BusinessException("登出过程发生错误: " + e.getMessage());
         }
     }
 }

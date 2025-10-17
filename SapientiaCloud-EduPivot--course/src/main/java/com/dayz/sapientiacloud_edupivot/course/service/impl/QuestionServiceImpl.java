@@ -20,7 +20,6 @@ import com.github.f4b6a3.uuid.UuidCreator;
 import com.github.pagehelper.PageInfo;
 import com.mongodb.client.result.UpdateResult;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -42,7 +41,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
-@Slf4j
 @RequiredArgsConstructor
 public class QuestionServiceImpl implements IQuestionService {
 
@@ -238,7 +236,6 @@ public class QuestionServiceImpl implements IQuestionService {
             optionDTOs.forEach(option -> option.setQuestionId(savedQuestion.getId()));
 
             questionOptionService.addQuestionOptions(optionDTOs);
-            log.info("题目选项保存成功，题目ID: {}, 选项数量: {}", savedQuestion.getId(), optionDTOs.size());
         }
 
         // 保存正确答案
@@ -248,10 +245,8 @@ public class QuestionServiceImpl implements IQuestionService {
             answerDTO.setQuestionId(savedQuestion.getId());
 
             questionAnswerService.addQuestionAnswer(answerDTO);
-            log.info("题目答案保存成功，题目ID: {}", savedQuestion.getId());
         }
 
-        log.info(QuestionConstants.LOG_ADD_SUCCESS, savedQuestion.getId());
         return convertToVO(savedQuestion);
     }
 
@@ -312,7 +307,6 @@ public class QuestionServiceImpl implements IQuestionService {
 
         questionRepository.save(existingQuestion);
 
-        log.info(QuestionConstants.LOG_UPDATE_SUCCESS, existingQuestion.getId());
         return true;
     }
 
@@ -341,7 +335,6 @@ public class QuestionServiceImpl implements IQuestionService {
         question.setUpdateTime(LocalDateTime.now());
         questionRepository.save(question);
 
-        log.info(QuestionConstants.LOG_DELETE_SUCCESS, question.getId());
         return true;
     }
 
@@ -365,7 +358,6 @@ public class QuestionServiceImpl implements IQuestionService {
         UpdateResult updateResult = mongoTemplate.updateMulti(query, update, Question.class);
         int deletedCount = (int) updateResult.getModifiedCount();
 
-        log.info(QuestionConstants.LOG_BATCH_DELETE_SUCCESS, deletedCount);
         return deletedCount;
     }
 
@@ -395,7 +387,6 @@ public class QuestionServiceImpl implements IQuestionService {
         question.setUpdateTime(LocalDateTime.now());
         questionRepository.save(question);
 
-        log.info(QuestionConstants.LOG_PUBLISH_SUCCESS, question.getId());
         return true;
     }
 
@@ -425,7 +416,6 @@ public class QuestionServiceImpl implements IQuestionService {
         question.setUpdateTime(LocalDateTime.now());
         questionRepository.save(question);
 
-        log.info(QuestionConstants.LOG_UNPUBLISH_SUCCESS, question.getId());
         return true;
     }
 
@@ -445,7 +435,6 @@ public class QuestionServiceImpl implements IQuestionService {
 
         mongoTemplate.updateFirst(query, update, Question.class);
 
-        log.info(QuestionConstants.LOG_QUERY_SUCCESS, id);
         return true;
     }
 

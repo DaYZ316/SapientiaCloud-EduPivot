@@ -17,7 +17,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
-@Slf4j
 @RestController
 @RequestMapping
 @RequiredArgsConstructor
@@ -30,7 +29,6 @@ public class AuthController {
     @PostMapping("/login")
     @Operation(summary = "login", description = "通过用户名和密码登录系统")
     public Result<SysUserLoginVO> login(@RequestBody SysUserLoginDTO sysUserLoginDTO) {
-        log.info("用户登录请求: 用户名: {}", sysUserLoginDTO.getUsername());
         SysUserLoginVO loginVO = authService.login(sysUserLoginDTO);
         return Result.success(loginVO);
     }
@@ -38,7 +36,6 @@ public class AuthController {
     @PostMapping("/mobile-login")
     @Operation(summary = "mobileLogin", description = "通过手机号和验证码登录系统")
     public Result<SysUserLoginVO> mobileLogin(@Valid @RequestBody SysUserMobileLoginDTO sysUserMobileLoginDTO) {
-        log.info("手机验证码登录请求: 手机号: {}", sysUserMobileLoginDTO.getMobile());
         SysUserLoginVO loginVO = authService.mobileLogin(sysUserMobileLoginDTO);
         return Result.success(loginVO);
     }
