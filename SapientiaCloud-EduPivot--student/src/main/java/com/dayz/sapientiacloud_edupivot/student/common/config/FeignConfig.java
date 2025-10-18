@@ -4,10 +4,12 @@ import com.dayz.sapientiacloud_edupivot.student.common.security.utils.UserContex
 import feign.RequestInterceptor;
 import feign.RequestTemplate;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import io.micrometer.tracing.Tracer;
 
 import java.util.List;
 import java.util.UUID;
@@ -15,6 +17,9 @@ import java.util.UUID;
 @Slf4j
 @Configuration
 public class FeignConfig {
+
+    @Autowired
+    private Tracer tracer;
 
     // Feign请求头标识
     private static final String FEIGN_REQUEST_HEADER = "X-Feign-Client";
@@ -24,6 +29,10 @@ public class FeignConfig {
     private static final String X_USER_NAME = "X-User-Name";
     private static final String X_USER_ROLES = "X-User-Roles";
 
+    // 链路追踪请求头
+    private static final String X_B3_TRACE_ID = "X-B3-TraceId";
+    private static final String X_B3_SPAN_ID = "X-B3-SpanId";
+
     @Bean
     public RequestInterceptor feignRequestInterceptor() {
         return new RequestInterceptor() {
@@ -31,6 +40,25 @@ public class FeignConfig {
             public void apply(RequestTemplate requestTemplate) {
                 // 添加Feign标识头
                 requestTemplate.header(FEIGN_REQUEST_HEADER, "true");
+
+                // 添加链路追踪信息到请求头
+                try {
+                    if (tracer != null && tracer.currentSpan() != null) {
+                        String traceId = tracer.currentSpan().context().traceId();
+                        String spanId = tracer.currentSpan().context().spanId();
+                        
+                        if (traceId != null) {
+                            requestTemplate.header(X_B3_TRACE_ID, traceId);
+                        }
+                        if (spanId != null) {
+                            requestTemplate.header(X_B3_SPAN_ID, spanId);
+                        }
+                        
+                        log.debug("Feign请求添加链路追踪信息: traceId={}, spanId={}", traceId, spanId);
+                    }
+                } catch (Exception e) {
+                    log.debug("添加链路追踪信息到Feign请求头失败: {}", e.getMessage());
+                }
 
                 // 添加用户信息到请求头
                 try {

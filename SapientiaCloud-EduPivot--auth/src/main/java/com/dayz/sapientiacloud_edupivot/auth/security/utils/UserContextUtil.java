@@ -23,6 +23,7 @@ import java.util.UUID;
  * 用户上下文工具类
  * 用于获取当前登录用户信息
  */
+@Slf4j
 @Component
 public class UserContextUtil {
 
@@ -48,6 +49,7 @@ public class UserContextUtil {
                         }
                         return null;
                     } catch (IllegalArgumentException e) {
+                        log.error("转换用户ID为UUID失败: {}", e.getMessage());
                         throw new BusinessException("用户ID格式不正确");
                     }
                 })

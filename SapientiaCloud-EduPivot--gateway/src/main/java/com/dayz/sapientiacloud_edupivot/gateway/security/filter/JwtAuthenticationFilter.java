@@ -91,10 +91,9 @@ public class JwtAuthenticationFilter implements WebFilter {
                                 .header(X_USER_ROLES, String.join(",", roleKeys))
                                 .build();
 
-                        log.info("传递授权头到下游服务");
-                        log.info("X_USER_ID: {}", userId);
-                        log.info("X_USER_NAME: {}", username);
-                        log.info("X_USER_ROLES: {}", String.join(",", roleKeys));
+                        log.debug("传递授权头到下游服务 - X_USER_ID: {}, X_USER_NAME: {}, X_USER_ROLES: {}",
+                                  userId, username, String.join(",", roleKeys));
+
 
                         exchange = exchange.mutate().request(mutatedRequest).build();
 

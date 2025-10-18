@@ -23,13 +23,11 @@ import java.util.stream.Collectors;
 /**
  * 全局异常处理器
  */
-@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(BusinessException.class)
     public Result<Void> handleBusinessException(BusinessException e) {
-        log.error("业务异常: {}", e.getMessage());
         FileEnum fileEnum = EnumUtil.getByAttribute(FileEnum.class, e.getMessage(), FileEnum::getMessage);
         if (fileEnum != null) {
             return Result.fail(fileEnum.getMessage());
@@ -39,9 +37,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    public Result<Void> handleException(Exception e) {
-        log.error("系统异常: {}", e.getMessage());
-        return Result.fail(ResultEnum.SYSTEM_ERROR.getCode(), ResultEnum.SYSTEM_ERROR.getMessage() + ": " + e.getMessage());
+    public Result<Void> handleException() {
+        return Result.fail(ResultEnum.SYSTEM_ERROR);
     }
 
     /**
@@ -49,8 +46,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(AccessDeniedException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
-    public Result<String> handleAccessDeniedException(AccessDeniedException e) {
-        log.warn("权限异常: {}", e.getMessage());
+    public Result<String> handleAccessDeniedException() {
         return Result.fail(ResultEnum.FORBIDDEN);
     }
 
@@ -60,16 +56,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Result<Map<String, String>> handleValidationException(MethodArgumentNotValidException e) {
-        Map<String, String> errors = e.getBindingResult()
-                .getFieldErrors()
-                .stream()
-                .collect(Collectors.toMap(
-                        FieldError::getField,
-                        fieldError -> fieldError.getDefaultMessage() == null ? "验证失败" : fieldError.getDefaultMessage(),
-                        (existing, replacement) -> existing + "; " + replacement
-                ));
-        log.warn("参数验证异常: {}", errors);
-        return Result.fail("参数验证失败");
+        return Result.fail("参数验证失败: " + e.getMessage());
     }
 
     /**
@@ -78,25 +65,16 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BindException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Result<Map<String, String>> handleBindException(BindException e) {
-        Map<String, String> errors = e.getBindingResult()
-                .getFieldErrors()
-                .stream()
-                .collect(Collectors.toMap(
-                        FieldError::getField,
-                        fieldError -> fieldError.getDefaultMessage() == null ? "验证失败" : fieldError.getDefaultMessage(),
-                        (existing, replacement) -> existing + "; " + replacement
-                ));
-        log.warn("参数绑定异常: {}", errors);
-        return Result.fail(FileEnum.FILE_BIND_FAILED.getMessage());
+        return Result.fail("参数绑定失败:" + e.getMessage());
     }
+    
 
     /**
      * 处理文件上传大小超限异常
      */
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Result<Void> handleMaxUploadSizeExceededException(MaxUploadSizeExceededException e) {
-        log.warn("文件上传大小超限: {}", e.getMessage());
+    public Result<Void> handleMaxUploadSizeExceededException() {
         return Result.fail(FileEnum.FILE_SIZE_LIMIT_EXCEEDED.getMessage());
     }
 
@@ -105,8 +83,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(MultipartException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Result<Void> handleMultipartException(MultipartException e) {
-        log.warn("文件上传异常: {}", e.getMessage());
+    public Result<Void> handleMultipartException() {
         return Result.fail(FileEnum.FILE_UPLOAD_FAILED.getMessage());
     }
 } 

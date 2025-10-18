@@ -24,15 +24,11 @@ import java.util.stream.Collectors;
 /**
  * 全局异常处理器
  */
-@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    private static final String USER = "user";
-
     @ExceptionHandler(BusinessException.class)
     public Result<Void> handleBusinessException(BusinessException e) {
-        log.error("业务异常: {}", e.getMessage());
         SysUserEnum sysUserEnum = EnumUtil.getByAttribute(SysUserEnum.class, e.getMessage(), SysUserEnum::getMessage);
         if (sysUserEnum != null) {
             return Result.fail(sysUserEnum.getMessage());
@@ -54,16 +50,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    public Result<Void> handleException(Exception e) {
-        log.error("系统异常: {}", e.getMessage());
-        if (e.getMessage().contains(USER)) {
-            if (e.getMessage().contains(SysUserEnum.USER_NOT_FOUND.getMessage())) {
-                return Result.fail(SysUserEnum.USER_NOT_FOUND.getMessage());
-            } else {
-                return Result.fail(SysUserEnum.USER_SERVICE_ERROR.getMessage());
-            }
-        }
-        return Result.fail(ResultEnum.SYSTEM_ERROR.getCode(), ResultEnum.SYSTEM_ERROR.getMessage() + ": " + e.getMessage());
+    public Result<Void> handleException() {
+        return Result.fail(ResultEnum.SYSTEM_ERROR);
     }
 
     /**
@@ -71,8 +59,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(AccessDeniedException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
-    public Result<String> handleAccessDeniedException(AccessDeniedException e) {
-        log.warn("权限异常: {}", e.getMessage());
+    public Result<String> handleAccessDeniedException() {
         return Result.fail(ResultEnum.FORBIDDEN);
     }
 
@@ -82,16 +69,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Result<Map<String, String>> handleValidationException(MethodArgumentNotValidException e) {
-        Map<String, String> errors = e.getBindingResult()
-                .getFieldErrors()
-                .stream()
-                .collect(Collectors.toMap(
-                        FieldError::getField,
-                        fieldError -> fieldError.getDefaultMessage() == null ? "验证失败" : fieldError.getDefaultMessage(),
-                        (existing, replacement) -> existing + "; " + replacement
-                ));
-        log.warn("参数验证异常: {}", errors);
-        return Result.fail("参数验证失败");
+        return Result.fail("参数验证失败: " + e.getMessage());
     }
 
     /**
@@ -100,15 +78,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BindException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Result<Map<String, String>> handleBindException(BindException e) {
-        Map<String, String> errors = e.getBindingResult()
-                .getFieldErrors()
-                .stream()
-                .collect(Collectors.toMap(
-                        FieldError::getField,
-                        fieldError -> fieldError.getDefaultMessage() == null ? "验证失败" : fieldError.getDefaultMessage(),
-                        (existing, replacement) -> existing + "; " + replacement
-                ));
-        log.warn("参数绑定异常: {}", errors);
-        return Result.fail("参数绑定失败");
+        return Result.fail("参数绑定失败:" + e.getMessage());
     }
 } 

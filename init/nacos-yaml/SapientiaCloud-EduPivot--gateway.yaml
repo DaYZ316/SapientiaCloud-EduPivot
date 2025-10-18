@@ -64,9 +64,21 @@ cache:
   caffeine:
     spec: maximumSize=500,expireAfterWrite=10m
 
+management:
+  tracing:
+    enabled: true
+    sampling:
+      probability: 1.0
+  zipkin:
+    tracing:
+      endpoint: http://localhost:9411/api/v2/spans
+
 logging:
   level:
-    org.springframework.cloud.gateway: DEBUG
+    root: INFO
+    com.dayz: INFO
+  # pattern:
+  #   console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [${spring.application.name:},%X{traceId:-},%X{spanId:-}] [%15.15t] %-40.40logger{39} : %m%n"
 
 REDIS_HOST: 127.0.0.1
 REDIS_PORT: 6379

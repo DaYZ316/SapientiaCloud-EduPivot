@@ -35,11 +35,21 @@ knife4j:
     username: ${KNIFE4J_USERNAME}
     password: ${KNIFE4J_PASSWORD}
 
+management:
+  tracing:
+    enabled: true
+    sampling:
+      probability: 1.0
+  zipkin:
+    tracing:
+      endpoint: http://localhost:9411/api/v2/spans
+
 logging:
   level:
-    com.dayz.sapientiacloud_edupivot.*.mapper: DEBUG
-    org.springframework.http.server.reactive: DEBUG
-    org.springframework.web.reactive: DEBUG
+    root: INFO
+    com.dayz: INFO
+#  pattern:
+#    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [${spring.application.name:},%X{traceId:-},%X{spanId:-}] [%15.15t] %-40.40logger{39} : %m%n"
 
 
 MYSQL_HOST: 127.0.0.1
