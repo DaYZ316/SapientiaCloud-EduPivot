@@ -5,7 +5,7 @@ import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseQueryDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseTeacherQueryDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.po.Course;
 import com.dayz.sapientiacloud_edupivot.course.entity.vo.CourseVO;
-import com.dayz.sapientiacloud_edupivot.course.entity.vo.TeacherVO;
+import com.dayz.sapientiacloud_edupivot.course.common.entity.vo.TeacherVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 

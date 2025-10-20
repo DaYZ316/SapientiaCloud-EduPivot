@@ -7,7 +7,7 @@ import com.dayz.sapientiacloud_edupivot.course.common.security.annotation.HasPer
 import com.dayz.sapientiacloud_edupivot.course.constant.PermissionConstants;
 import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseTeacherQueryDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.vo.CourseVO;
-import com.dayz.sapientiacloud_edupivot.course.entity.vo.TeacherVO;
+import com.dayz.sapientiacloud_edupivot.course.common.entity.vo.TeacherVO;
 import com.dayz.sapientiacloud_edupivot.course.service.ICourseTeacherService;
 import com.github.pagehelper.PageInfo;
 import io.swagger.v3.oas.annotations.Parameter;

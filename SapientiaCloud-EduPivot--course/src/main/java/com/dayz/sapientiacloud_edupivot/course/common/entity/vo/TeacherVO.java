@@ -1,4 +1,4 @@
-package com.dayz.sapientiacloud_edupivot.course.entity.vo;
+package com.dayz.sapientiacloud_edupivot.course.common.entity.vo;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;

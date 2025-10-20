@@ -2,7 +2,7 @@ package com.dayz.sapientiacloud_edupivot.course.service;
 
 import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseTeacherQueryDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.vo.CourseVO;
-import com.dayz.sapientiacloud_edupivot.course.entity.vo.TeacherVO;
+import com.dayz.sapientiacloud_edupivot.course.common.entity.vo.TeacherVO;
 import com.github.pagehelper.PageInfo;
 
 import java.util.List;

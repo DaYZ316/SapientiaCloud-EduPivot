@@ -20,7 +20,7 @@
         <result column="update_time" property="updateTime"/>
     </resultMap>
 
-    <resultMap id="TeacherVOMap" type="com.dayz.sapientiacloud_edupivot.course.entity.vo.TeacherVO">
+    <resultMap id="TeacherVOMap" type="com.dayz.sapientiacloud_edupivot.course.common.entity.vo.TeacherVO">
         <id column="id" property="id"/>
         <result column="teacher_code" property="teacherCode"/>
         <result column="real_name" property="realName"/>

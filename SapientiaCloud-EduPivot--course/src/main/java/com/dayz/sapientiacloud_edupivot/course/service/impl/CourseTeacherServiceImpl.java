@@ -5,14 +5,13 @@ import com.dayz.sapientiacloud_edupivot.course.common.exception.BusinessExceptio
 import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseTeacherQueryDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.po.Course;
 import com.dayz.sapientiacloud_edupivot.course.entity.vo.CourseVO;
-import com.dayz.sapientiacloud_edupivot.course.entity.vo.TeacherVO;
+import com.dayz.sapientiacloud_edupivot.course.common.entity.vo.TeacherVO;
 import com.dayz.sapientiacloud_edupivot.course.enums.CourseEnum;
 import com.dayz.sapientiacloud_edupivot.course.mapper.CourseMapper;
 import com.dayz.sapientiacloud_edupivot.course.service.ICourseTeacherService;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
