@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dayz.sapientiacloud_edupivot.system.mapper.SysUserRoleMapper">
+
+    <select id="getUserRoles" resultType="com.dayz.sapientiacloud_edupivot.system.entity.vo.SysRoleVO">
+        SELECT r.id,
+               r.role_name,
+               r.role_key,
+               r.sort,
+               r.status,
+               r.description,
+               r.create_time,
+               r.update_time
+        FROM sys_role r
+                 JOIN
+             sys_user_role ur ON r.id = ur.role_id
+        WHERE ur.user_id = #{userId}
+    </select>
+
+    <insert id="addUserRoles">
+        INSERT INTO sys_user_role (user_id, role_id) VALUES
+        <foreach item="roleId" collection="roleIds" separator=",">
+            (#{userId}, #{roleId})
+        </foreach>
+    </insert>
+
+    <delete id="removeUserRoles">
+        DELETE FROM sys_user_role WHERE user_id = #{userId}
+        AND role_id IN
+        <foreach item="roleId" collection="roleIds" separator="," open="(" close=")">
+            #{roleId}
+        </foreach>
+    </delete>
+
+    <delete id="removeRolesByUserIds">
+        DELETE FROM sys_user_role
+        WHERE user_id IN
+        <foreach item="userId" collection="userIds" separator="," open="(" close=")">
+            #{userId}
+        </foreach>
+    </delete>
+
+    <select id="getRolesByUserIds" resultType="com.dayz.sapientiacloud_edupivot.system.entity.po.SysRole">
+        SELECT
+        r.id, r.role_name, r.role_key, r.sort, r.status, r.description, r.create_time, r.update_time
+        FROM
+        sys_role r
+        JOIN
+        sys_user_role ur ON r.id = ur.role_id
+        WHERE
+        ur.user_id IN
+        <foreach item="userId" collection="userIds" separator="," open="(" close=")">
+            #{userId}
+        </foreach>
+    </select>
+
+    <delete id="removeRolesByRoleIds">
+        DELETE FROM sys_user_role
+        WHERE role_id IN
+        <foreach item="roleId" collection="roleIds" separator="," open="(" close=")">
+            #{roleId}
+        </foreach>
+    </delete>
+
+</mapper>

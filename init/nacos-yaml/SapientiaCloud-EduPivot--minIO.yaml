@@ -1,0 +1,33 @@
+minio:
+  config:
+    ip: ${MINIO_IP}
+    port: ${MINIO_PORT}
+    accessKey: ${MINIO_USERNAME}
+    secretKey: ${MINIO_PASSWORD}
+    bucketName: ${MINIO_BUCKET_NAME}
+
+spring:
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 50MB
+      max-request-size: 100MB
+      file-size-threshold: 2MB
+
+logging:
+  level:
+    com.dayz.sapientiacloud_edupivot.minio: DEBUG
+
+
+MINIO_IP: 127.0.0.1
+MINIO_PORT: 31589
+MINIO_USERNAME: root
+MINIO_PASSWORD: zhaosheng123
+MINIO_BUCKET_NAME: sapientiacloud-edupivot
+
+# 服务器
+#MINIO_IP: 117.72.***.***(服务器地址)
+#MINIO_PORT: 31589
+#MINIO_USERNAME: root
+#MINIO_PASSWORD: zhaosheng123
+#MINIO_BUCKET_NAME: sapientiacloud-edupivot

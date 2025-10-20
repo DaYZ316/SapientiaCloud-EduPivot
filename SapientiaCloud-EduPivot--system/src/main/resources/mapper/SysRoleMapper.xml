@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dayz.sapientiacloud_edupivot.system.mapper.SysRoleMapper">
+
+    <resultMap id="SysRole" type="com.dayz.sapientiacloud_edupivot.system.entity.po.SysRole">
+        <id column="id" property="id"/>
+    </resultMap>
+
+    <select id="listSysRole" resultType="com.dayz.sapientiacloud_edupivot.system.entity.vo.SysRoleVO">
+        SELECT
+        id, role_name, role_key, sort, status, description, create_time, update_time
+        FROM
+        sys_role
+        <where>
+            <if test="roleName != null and roleName != ''">
+                AND role_name LIKE CONCAT('%', #{roleName}, '%')
+            </if>
+            <if test="roleKey != null and roleKey != ''">
+                AND role_key LIKE CONCAT('%', #{roleKey}, '%')
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+            <if test="startTime != null or endTime != null">
+                <choose>
+                    <when test="startTime != null and endTime == null">
+                        AND create_time &gt;= #{startTime}
+                    </when>
+                    <when test="startTime == null and endTime != null">
+                        AND create_time &lt;= #{endTime}
+                    </when>
+                    <otherwise>
+                        AND create_time BETWEEN #{startTime} AND #{endTime}
+                    </otherwise>
+                </choose>
+            </if>
+            AND is_deleted = 0
+        </where>
+        <if test="orderByColumn != null and orderByColumn != ''">
+            ORDER BY ${orderByColumn} ${isAsc == 'asc' ? 'ASC' : 'DESC'}
+        </if>
+        <if test="orderByColumn == null or orderByColumn == ''">
+            ORDER BY create_time DESC
+        </if>
+    </select>
+
+    <select id="getRolesByIds" resultType="com.dayz.sapientiacloud_edupivot.system.entity.vo.SysRoleVO">
+        SELECT
+        id, role_name, role_key, sort, status, description, create_time, update_time
+        FROM
+        sys_role
+        <where>
+            id IN
+            <foreach item="item" index="index" collection="roleIds" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+            AND is_deleted = 0
+        </where>
+    </select>
+
+</mapper> 

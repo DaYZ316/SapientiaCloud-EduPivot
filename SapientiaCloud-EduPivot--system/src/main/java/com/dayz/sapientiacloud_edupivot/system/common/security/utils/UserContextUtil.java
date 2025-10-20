@@ -1,0 +1,155 @@
+package com.dayz.sapientiacloud_edupivot.system.common.security.utils;
+
+import com.dayz.sapientiacloud_edupivot.system.common.enums.ResultEnum;
+import com.dayz.sapientiacloud_edupivot.system.common.exception.BusinessException;
+import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysUserInternalVO;
+import com.dayz.sapientiacloud_edupivot.system.enums.SysUserEnum;
+import com.dayz.sapientiacloud_edupivot.system.service.ISysUserService;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+
+/**
+ * 用户上下文工具类
+ * 用于获取当前登录用户信息
+ */
+@Component
+public class UserContextUtil {
+
+    private static final String ADMIN_ROLE_KEY = "ADMIN";
+
+    private static ISysUserService sysUserService;
+
+    /**
+     * 获取当前登录用户ID
+     *
+     * @return 当前登录用户ID (UUID类型)
+     */
+    public static UUID getCurrentUserId() {
+        return Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication())
+                .map(Authentication::getPrincipal)
+                .map(principal -> {
+                    try {
+                        if (principal instanceof Map) {
+                            Object userId = ((Map<?, ?>) principal).get("userId");
+                            if (userId != null) {
+                                return UUID.fromString(userId.toString());
+                            }
+                        }
+                        return null;
+                    } catch (IllegalArgumentException e) {
+                        throw new BusinessException("用户ID格式不正确");
+                    }
+                })
+                .orElseThrow(() -> new BusinessException(ResultEnum.UNAUTHORIZED));
+    }
+
+    /**
+     * 获取当前登录用户名
+     *
+     * @return 当前登录用户名
+     */
+    public static String getCurrentUsername() {
+        return Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication())
+                .map(Authentication::getPrincipal)
+                .map(principal -> {
+                    if (principal instanceof UserDetails) {
+                        return ((UserDetails) principal).getUsername();
+                    }
+                    if (principal instanceof Map) {
+                        return (String) ((Map<?, ?>) principal).get("username");
+                    }
+                    if (principal instanceof String) {
+                        return (String) principal;
+                    }
+                    return null;
+                })
+                .orElseThrow(() -> new BusinessException(ResultEnum.UNAUTHORIZED));
+    }
+
+    /**
+     * 获取当前登录用户的角色列表
+     *
+     * @return 当前登录用户的角色列表
+     */
+    public static List<String> getCurrentUserRoles() {
+        return Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication())
+                .map(Authentication::getAuthorities)
+                .map(authorities -> authorities.stream()
+                        .map(GrantedAuthority::getAuthority)
+                        .toList())
+                .orElseThrow(() -> new BusinessException(ResultEnum.UNAUTHORIZED));
+    }
+
+    /**
+     * 获取当前登录用户信息
+     *
+     * @return 当前登录用户信息
+     */
+    public static SysUserInternalVO getCurrentUser() {
+        String username = getCurrentUsername();
+        if (username == null) {
+            throw new BusinessException(SysUserEnum.USERNAME_CANNOT_BE_EMPTY);
+        }
+
+        SysUserInternalVO sysUserInternalVO = sysUserService.selectUserByUsername(username);
+        if (sysUserInternalVO == null) {
+            throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
+        }
+
+        return sysUserInternalVO;
+    }
+
+    /**
+     * 判断当前用户是否已认证
+     *
+     * @return 是否已认证
+     */
+    public static boolean isAuthenticated() {
+        Authentication authentication = getAuthentication();
+        return authentication != null && authentication.isAuthenticated();
+    }
+
+    /**
+     * 判断当前用户是否拥有指定角色
+     *
+     * @param roleKey 角色标识
+     * @return 是否拥有该角色
+     */
+    public static boolean hasRole(String roleKey) {
+        Authentication authentication = getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return false;
+        }
+
+        return authentication.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals(roleKey));
+    }
+
+    /**
+     * 判断当前用户是否为管理员
+     *
+     * @return 是否为管理员
+     */
+    public static boolean isAdmin() {
+        return hasRole(ADMIN_ROLE_KEY);
+    }
+
+    private static Authentication getAuthentication() {
+        return SecurityContextHolder.getContext().getAuthentication();
+    }
+
+    @Autowired
+    public void setSysUserService(ISysUserService sysUserService) {
+        UserContextUtil.sysUserService = sysUserService;
+    }
+}

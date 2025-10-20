@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dayz.sapientiacloud_edupivot.course.mapper.CourseStudentMapper">
+
+    <resultMap id="CourseStudentVOMap" type="com.dayz.sapientiacloud_edupivot.course.entity.vo.CourseStudentVO">
+        <id column="student_id" property="studentId"/>
+        <id column="course_id" property="courseId"/>
+        <result column="grade" property="grade"/>
+        <result column="status" property="status"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="real_name" property="realName"/>
+        <result column="avatar" property="avatar"/>
+        <result column="sys_user_id" property="sysUserId"/>
+    </resultMap>
+
+    <select id="listCourseStudent" resultMap="CourseStudentVOMap"
+            parameterType="com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseStudentQueryDTO">
+        SELECT
+        cs.student_id,
+        cs.course_id,
+        cs.grade,
+        cs.status,
+        cs.create_time,
+        cs.update_time,
+        s.real_name,
+        s.sys_user_id,
+        u.avatar
+        FROM mg_course_student cs
+        LEFT JOIN mg_student s ON cs.student_id = s.id AND s.is_deleted = 0
+        LEFT JOIN sys_user u ON s.sys_user_id = u.id AND u.is_deleted = 0
+        <where>
+            <if test="studentId != null">
+                AND cs.student_id = #{studentId}
+            </if>
+            <if test="courseId != null">
+                AND cs.course_id = #{courseId}
+            </if>
+            <if test="realName != null and realName != ''">
+                AND s.real_name LIKE CONCAT('%', #{realName}, '%')
+            </if>
+        </where>
+        <if test="orderByColumn != null and orderByColumn != ''">
+            ORDER BY ${orderByColumn} ${isAsc == 'asc' ? 'ASC' : 'DESC'}
+        </if>
+        <if test="orderByColumn == null or orderByColumn == ''">
+            ORDER BY cs.create_time DESC
+        </if>
+    </select>
+
+    <select id="listAllCourseStudentByCourseId" resultMap="CourseStudentVOMap">
+        SELECT
+        cs.student_id,
+        cs.course_id,
+        cs.grade,
+        cs.status,
+        cs.create_time,
+        cs.update_time,
+        s.real_name,
+        s.sys_user_id,
+        u.avatar
+        FROM mg_course_student cs
+        LEFT JOIN mg_student s ON cs.student_id = s.id AND s.is_deleted = 0
+        LEFT JOIN sys_user u ON s.sys_user_id = u.id AND u.is_deleted = 0
+        <where>
+            cs.course_id = #{courseId}
+        </where>
+        ORDER BY cs.create_time DESC
+    </select>
+
+    <select id="listAllCourseStudentByStudentId" resultMap="CourseStudentVOMap">
+        SELECT
+        cs.student_id,
+        cs.course_id,
+        cs.grade,
+        cs.status,
+        cs.create_time,
+        cs.update_time,
+        s.real_name,
+        s.sys_user_id,
+        u.avatar
+        FROM mg_course_student cs
+        LEFT JOIN mg_student s ON cs.student_id = s.id AND s.is_deleted = 0
+        LEFT JOIN sys_user u ON s.sys_user_id = u.id AND u.is_deleted = 0
+        <where>
+            cs.student_id = #{studentId}
+        </where>
+        ORDER BY cs.create_time DESC
+    </select>
+
+    <select id="getStudentCourseById" resultMap="CourseStudentVOMap">
+        SELECT
+        cs.student_id,
+        cs.course_id,
+        cs.grade,
+        cs.status,
+        cs.create_time,
+        cs.update_time,
+        s.real_name,
+        s.sys_user_id,
+        u.avatar
+        FROM mg_course_student cs
+        LEFT JOIN mg_student s ON cs.student_id = s.id AND s.is_deleted = 0
+        LEFT JOIN sys_user u ON s.sys_user_id = u.id AND u.is_deleted = 0
+        <where>
+            cs.student_id = #{studentId} AND cs.course_id = #{courseId}
+        </where>
+    </select>
+
+    <insert id="addCourseStudent" parameterType="com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseStudentDTO">
+        INSERT INTO mg_course_student (student_id,
+                                       course_id,
+                                       grade,
+                                       status,
+                                       create_time,
+                                       update_time)
+        VALUES (#{studentId},
+                #{courseId},
+                #{grade},
+                #{status},
+                NOW(),
+                NOW())
+    </insert>
+
+    <update id="updateCourseStudent"
+            parameterType="com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseStudentDTO">
+        UPDATE mg_course_student
+        <set>
+            <if test="grade != null">
+                grade = #{grade},
+            </if>
+            <if test="status != null">
+                status = #{status},
+            </if>
+            update_time = NOW()
+        </set>
+        <where>
+            student_id = #{studentId} AND course_id = #{courseId}
+        </where>
+    </update>
+
+    <delete id="removeCourseStudentById">
+        DELETE FROM mg_course_student
+        <where>
+            student_id = #{studentId} AND course_id = #{courseId}
+        </where>
+    </delete>
+
+    <delete id="removeCourseStudentByIds">
+        DELETE FROM mg_course_student
+        <where>
+            course_id = #{courseId}
+            AND student_id IN
+            <foreach item="item" index="index" collection="studentIds" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </where>
+    </delete>
+
+    <select id="listAllCourseStudentByCourseIds" resultMap="CourseStudentVOMap">
+        SELECT
+        cs.student_id,
+        cs.course_id,
+        cs.grade,
+        cs.status,
+        cs.create_time,
+        cs.update_time,
+        s.real_name,
+        s.sys_user_id,
+        u.avatar
+        FROM mg_course_student cs
+        LEFT JOIN mg_student s ON cs.student_id = s.id AND s.is_deleted = 0
+        LEFT JOIN sys_user u ON s.sys_user_id = u.id AND u.is_deleted = 0
+        <where>
+            cs.course_id IN
+            <foreach item="item" index="index" collection="courseIds" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </where>
+        ORDER BY cs.create_time DESC
+    </select>
+
+</mapper>

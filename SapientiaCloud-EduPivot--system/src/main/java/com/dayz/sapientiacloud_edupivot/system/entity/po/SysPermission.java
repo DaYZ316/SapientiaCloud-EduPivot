@@ -1,0 +1,47 @@
+package com.dayz.sapientiacloud_edupivot.system.entity.po;
+
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+import com.dayz.sapientiacloud_edupivot.system.common.entity.BaseEntity;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+import java.io.Serial;
+import java.io.Serializable;
+import java.util.UUID;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@TableName("sys_permission")
+@EqualsAndHashCode(callSuper = true)
+@Schema(description = "系统权限持久化对象 (PO)")
+public class SysPermission extends BaseEntity implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 8437350580466345040L;
+
+    @Schema(name = "id", description = "权限ID")
+    @TableId(value = "id")
+    private UUID id;
+
+    @Schema(name = "parentId", description = "父级权限ID")
+    @TableField("parent_id")
+    private UUID parentId;
+
+    @Schema(name = "permissionName", description = "权限名称")
+    @TableField("permission_name")
+    private String permissionName;
+
+    @Schema(name = "permissionKey", description = "权限标识")
+    @TableField("permission_key")
+    private String permissionKey;
+
+    @Schema(name = "sort", description = "排序")
+    @TableField("sort")
+    private Integer sort;
+} 
