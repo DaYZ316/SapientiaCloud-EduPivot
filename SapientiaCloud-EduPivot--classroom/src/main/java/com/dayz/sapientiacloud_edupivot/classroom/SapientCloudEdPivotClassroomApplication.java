@@ -10,10 +10,10 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 @EnableConfigurationProperties
 @EnableFeignClients
 @SpringBootApplication
-public class SapientiaCloudEduPivotClassroomApplication {
+public class SapientCloudEdPivotClassroomApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(SapientiaCloudEduPivotClassroomApplication.class, args);
+        SpringApplication.run(SapientCloudEdPivotClassroomApplication.class, args);
     }
 
 }
