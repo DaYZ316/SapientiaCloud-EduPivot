@@ -146,7 +146,7 @@ public class CourseRecordStudentServiceImpl extends ServiceImpl<CourseRecordStud
             student.setSeatStatus("occupied");
         }
         if (student.getAttendanceStatus() == null) {
-            student.setAttendanceStatus(1); // 已签到
+            student.setAttendanceStatus(1);
         }
 
         this.save(student);
@@ -232,13 +232,13 @@ public class CourseRecordStudentServiceImpl extends ServiceImpl<CourseRecordStud
                     count++;
                 }
             } catch (BusinessException e) {
-                String msg = String.format("recordId=%s, studentId=%s: %s", 
+                String msg = String.format("recordId=%s, studentId=%s: %s",
                         dto.getRecordId(), dto.getStudentId(), e.getMessage());
                 errorMsg.append(msg).append("; ");
                 log.warn("删除学生座位失败: {}", msg);
             }
         }
-        
+
         // 如果全部删除失败，抛出异常，确保前后端响应一致
         if (count == 0 && !dtoList.isEmpty()) {
             throw new BusinessException("批量删除学生座位失败: " + errorMsg.toString());

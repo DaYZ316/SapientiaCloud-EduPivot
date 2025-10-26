@@ -5,8 +5,8 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.dayz.sapientiacloud_edupivot.classroom.common.config.JsonTypeHandler;
 import com.dayz.sapientiacloud_edupivot.classroom.common.config.UuidListTypeHandler;
-import com.dayz.sapientiacloud_edupivot.classroom.entity.bo.LayoutConfig;
 import com.dayz.sapientiacloud_edupivot.classroom.common.entity.base.BaseEntity;
+import com.dayz.sapientiacloud_edupivot.classroom.entity.bo.LayoutConfig;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -14,7 +14,6 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.io.Serial;
-import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -25,11 +24,11 @@ import java.util.UUID;
 @TableName("mg_course_record")
 @EqualsAndHashCode(callSuper = true)
 @Schema(description = "课程教学记录持久化对象 (PO)")
-public class CourseRecord extends BaseEntity  {
-
+public class CourseRecord extends BaseEntity {
 
     @Serial
     private static final long serialVersionUID = -989239423882115364L;
+
     @Schema(description = "课程记录ID")
     @TableId(value = "id")
     private UUID id;

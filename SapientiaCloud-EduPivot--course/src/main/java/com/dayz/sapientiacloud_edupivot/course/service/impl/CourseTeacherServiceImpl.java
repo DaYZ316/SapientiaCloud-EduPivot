@@ -1,11 +1,11 @@
 package com.dayz.sapientiacloud_edupivot.course.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.dayz.sapientiacloud_edupivot.course.common.entity.vo.TeacherVO;
 import com.dayz.sapientiacloud_edupivot.course.common.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseTeacherQueryDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.po.Course;
 import com.dayz.sapientiacloud_edupivot.course.entity.vo.CourseVO;
-import com.dayz.sapientiacloud_edupivot.course.common.entity.vo.TeacherVO;
 import com.dayz.sapientiacloud_edupivot.course.enums.CourseEnum;
 import com.dayz.sapientiacloud_edupivot.course.mapper.CourseMapper;
 import com.dayz.sapientiacloud_edupivot.course.service.ICourseTeacherService;

@@ -1,7 +1,6 @@
 package com.dayz.sapientiacloud_edupivot.classroom.entity.vo;
 
 import com.dayz.sapientiacloud_edupivot.classroom.entity.bo.LayoutConfig;
-
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -17,7 +16,7 @@ import java.util.UUID;
 public class CourseRecordVO implements Serializable {
 
     @Serial
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 5787126666907488112L;
 
     @Schema(description = "课程记录ID")
     private UUID id;

@@ -1,4 +1,4 @@
-package com.dayz.sapientiacloud_edupivot.classroom;
+package com.dayz.sapientiacloud_edupivot.celestial_hub;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -10,10 +10,10 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 @EnableConfigurationProperties
 @EnableFeignClients
 @SpringBootApplication
-public class SapientCloudEdPivotClassroomApplication {
+public class SapientiaCloudEdPivotCelestialHubApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(SapientCloudEdPivotClassroomApplication.class, args);
+        SpringApplication.run(SapientiaCloudEdPivotCelestialHubApplication.class, args);
     }
 
 }

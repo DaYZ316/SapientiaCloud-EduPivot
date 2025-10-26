@@ -14,21 +14,22 @@ import java.util.Objects;
 
 /**
  * 通用JSON类型处理器，用于将Java对象与数据库JSON字符串之间自动转换
+ *
  * @param <T> 泛型参数，指定要处理的对象类型
  */
 @MappedTypes(value = {Object.class}) // 可以处理任何对象类型
 public class JsonTypeHandler<T> extends BaseTypeHandler<T> {
-    
+
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private final Class<T> type;
-    
+
     public JsonTypeHandler(Class<T> type) {
         if (type == null) {
             throw new IllegalArgumentException("Type argument cannot be null");
         }
         this.type = type;
     }
-    
+
     @Override
     public void setNonNullParameter(PreparedStatement ps, int i, T parameter, JdbcType jdbcType) throws SQLException {
         try {
@@ -38,25 +39,25 @@ public class JsonTypeHandler<T> extends BaseTypeHandler<T> {
             throw new SQLException("Error converting object to JSON string", e);
         }
     }
-    
+
     @Override
     public T getNullableResult(ResultSet rs, String columnName) throws SQLException {
         String json = rs.getString(columnName);
         return parseJson(json);
     }
-    
+
     @Override
     public T getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
         String json = rs.getString(columnIndex);
         return parseJson(json);
     }
-    
+
     @Override
     public T getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
         String json = cs.getString(columnIndex);
         return parseJson(json);
     }
-    
+
     private T parseJson(String json) {
         if (Objects.isNull(json) || json.isEmpty()) {
             return null;

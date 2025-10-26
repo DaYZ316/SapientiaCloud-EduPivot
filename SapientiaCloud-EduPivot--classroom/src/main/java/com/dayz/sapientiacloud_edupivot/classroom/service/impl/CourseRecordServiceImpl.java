@@ -1,6 +1,5 @@
 package com.dayz.sapientiacloud_edupivot.classroom.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dayz.sapientiacloud_edupivot.classroom.common.enums.DeletedEnum;
 import com.dayz.sapientiacloud_edupivot.classroom.common.exception.BusinessException;
@@ -96,7 +95,7 @@ public class CourseRecordServiceImpl extends ServiceImpl<CourseRecordMapper, Cou
         BeanUtils.copyProperties(dto, courseRecord);
 
         courseRecord.setId(UuidCreator.getTimeOrderedEpoch());
-        courseRecord.setStatus(0); // 未开始
+        courseRecord.setStatus(0);
         courseRecord.setDeleted(DeletedEnum.NOT_DELETED.getCode());
         courseRecord.setCreateTime(LocalDateTime.now());
         courseRecord.setUpdateTime(LocalDateTime.now());
@@ -194,7 +193,7 @@ public class CourseRecordServiceImpl extends ServiceImpl<CourseRecordMapper, Cou
                 log.warn("删除课程记录失败: {}", msg);
             }
         }
-        
+
         // 如果全部删除失败，抛出异常，确保前后端响应一致
         if (count == 0 && !ids.isEmpty()) {
             throw new BusinessException("批量删除失败: " + errorMsg.toString());

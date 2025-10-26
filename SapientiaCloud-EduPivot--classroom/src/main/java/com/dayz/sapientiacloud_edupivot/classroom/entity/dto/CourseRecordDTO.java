@@ -1,7 +1,6 @@
 package com.dayz.sapientiacloud_edupivot.classroom.entity.dto;
 
 import com.dayz.sapientiacloud_edupivot.classroom.entity.bo.LayoutConfig;
-
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import lombok.Data;
@@ -17,7 +16,7 @@ import java.util.UUID;
 public class CourseRecordDTO implements Serializable {
 
     @Serial
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1323839615699644389L;
 
     @Schema(description = "课程记录ID，更新时必须提供")
     private UUID id;

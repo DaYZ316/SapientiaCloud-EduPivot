@@ -20,11 +20,9 @@ import java.util.UUID;
 @Schema(description = "课程教学学生参与持久化对象 (PO)")
 public class CourseRecordStudent extends BaseEntity {
 
-    @TableField(exist = false)
-    private Integer deleted;
-
     @Serial
     private static final long serialVersionUID = 1246892565502037842L;
+
     @Schema(description = "课程记录ID")
     @TableField(value = "record_id")
     private UUID recordId;
@@ -69,5 +67,6 @@ public class CourseRecordStudent extends BaseEntity {
     @TableField("participation_score")
     private Float participationScore;
 
-    // createTime和updateTime字段已从BaseEntity继承
+    @TableField(exist = false)
+    private Integer deleted;
 }

@@ -118,7 +118,8 @@ public class CourseRecordStudentController extends BaseController {
             summary = "批量删除学生座位",
             description = "批量移除学生座位",
             permission = PermissionConstants.COURSE_RECORD_STUDENT_DELETE
-    )@Operation(summary = "批量删除学生座位")
+    )
+    @Operation(summary = "批量删除学生座位")
     @DeleteMapping("/batch")
     public Result<Integer> removeStudentSeatBatch(@RequestBody List<StudentSeatDeleteDTO> dtoList) {
         return Result.success(courseRecordStudentService.removeStudentSeatBatch(dtoList));

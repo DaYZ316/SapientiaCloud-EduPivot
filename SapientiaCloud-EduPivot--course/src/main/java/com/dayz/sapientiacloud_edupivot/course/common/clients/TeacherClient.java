@@ -4,8 +4,8 @@ import com.dayz.sapientiacloud_edupivot.course.common.config.FeignConfig;
 import com.dayz.sapientiacloud_edupivot.course.common.entity.dto.TeacherAddDTO;
 import com.dayz.sapientiacloud_edupivot.course.common.entity.dto.TeacherDTO;
 import com.dayz.sapientiacloud_edupivot.course.common.entity.dto.TeacherQueryDTO;
-import com.dayz.sapientiacloud_edupivot.course.common.result.Result;
 import com.dayz.sapientiacloud_edupivot.course.common.entity.vo.TeacherVO;
+import com.dayz.sapientiacloud_edupivot.course.common.result.Result;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
 

@@ -5,7 +5,6 @@ import com.dayz.sapientiacloud_edupivot.system.common.exception.BusinessExceptio
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysUserInternalVO;
 import com.dayz.sapientiacloud_edupivot.system.enums.SysUserEnum;
 import com.dayz.sapientiacloud_edupivot.system.service.ISysUserService;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
