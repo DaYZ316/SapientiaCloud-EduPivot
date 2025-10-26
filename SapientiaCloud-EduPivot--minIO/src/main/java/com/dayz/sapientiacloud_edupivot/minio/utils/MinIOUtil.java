@@ -389,7 +389,7 @@ public class MinIOUtil {
                     .contentType(statObject.contentType())
                     .lastModified(lastModified)
                     .etag(statObject.etag())
-                    .isDir(false) // 文件对象不是目录
+                    .isDir(false)
                     .url(url)
                     .extension(extension)
                     .path(path)
@@ -558,7 +558,7 @@ public class MinIOUtil {
 
             return result;
         } catch (Exception e) {
-            return url; // 如果解析失败，返回原始URL
+            return url;
         }
     }
 

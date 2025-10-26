@@ -27,6 +27,13 @@ spring:
       key-prefix: SapientiaCloud-EduPivot
     caffeine:
       spec: maximumSize=500,expireAfterWrite=10m
+  ai:
+    vectorstore:
+      redis:
+        initialize-schema: true
+        index-name: knowledge-vector-index
+        prefix:
+          vector:
 
 knife4j:
   enable: true

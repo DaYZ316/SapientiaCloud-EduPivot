@@ -6,7 +6,6 @@ import com.dayz.sapientiacloud_edupivot.student.common.enums.ResultEnum;
 import com.dayz.sapientiacloud_edupivot.student.common.enums.SysUserEnum;
 import com.dayz.sapientiacloud_edupivot.student.common.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.student.common.result.Result;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;

@@ -1,11 +1,11 @@
 package com.dayz.sapientiacloud_edupivot.classroom.common.clients;
 
 import com.dayz.sapientiacloud_edupivot.classroom.common.config.FeignConfig;
-import com.dayz.sapientiacloud_edupivot.classroom.common.result.Result;
 import com.dayz.sapientiacloud_edupivot.classroom.common.entity.dto.StudentAddDTO;
 import com.dayz.sapientiacloud_edupivot.classroom.common.entity.dto.StudentDTO;
 import com.dayz.sapientiacloud_edupivot.classroom.common.entity.dto.StudentQueryDTO;
 import com.dayz.sapientiacloud_edupivot.classroom.common.entity.vo.StudentVO;
+import com.dayz.sapientiacloud_edupivot.classroom.common.result.Result;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
 

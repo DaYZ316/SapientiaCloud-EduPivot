@@ -28,7 +28,7 @@ public class CourseRecordController extends BaseController {
 
     private final ICourseRecordService courseRecordService;
 
-    /*@HasPermission(
+    @HasPermission(
             summary = "分页查询课程记录",
             description = "根据条件分页查询课程记录列表，支持按课程、教师、状态等条件筛选",
             permission = PermissionConstants.COURSE_RECORD_QUERY
@@ -38,7 +38,7 @@ public class CourseRecordController extends BaseController {
         startPage();
         PageInfo<CourseRecordVO> pageInfo = courseRecordService.listCourseRecordPage(dto);
         return getDataTable(pageInfo.getList());
-    }*/
+    }
 
     @HasPermission(
             summary = "查询所有课程记录",

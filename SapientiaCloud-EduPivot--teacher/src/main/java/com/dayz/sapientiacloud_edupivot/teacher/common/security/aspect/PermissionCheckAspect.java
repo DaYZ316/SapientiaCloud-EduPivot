@@ -6,7 +6,6 @@ import com.dayz.sapientiacloud_edupivot.teacher.common.exception.BusinessExcepti
 import com.dayz.sapientiacloud_edupivot.teacher.common.security.annotation.HasPermission;
 import com.dayz.sapientiacloud_edupivot.teacher.common.security.utils.UserContextUtil;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;

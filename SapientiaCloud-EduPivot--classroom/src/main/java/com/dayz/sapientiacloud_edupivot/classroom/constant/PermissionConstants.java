@@ -15,6 +15,6 @@ public class PermissionConstants {
     public static final String COURSE_RECORD_STUDENT_DELETE = "classroom:record:student:delete";
 
     private PermissionConstants() {
-        throw new IllegalStateException("Constant class");
+        // 禁止实例化
     }
 }

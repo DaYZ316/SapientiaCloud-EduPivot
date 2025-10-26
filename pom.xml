@@ -20,6 +20,7 @@
         <module>SapientiaCloud-EduPivot--student</module>
         <module>SapientiaCloud-EduPivot--course</module>
         <module>SapientiaCloud-EduPivot--classroom</module>
+        <module>SapientiaCloud-EduPivot--celestial-hub</module>
     </modules>
 
 </project>

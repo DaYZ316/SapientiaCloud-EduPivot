@@ -13,13 +13,16 @@ services:
       - mysql_data:/var/lib/mysql
 
   redis:
-    image: redis:5.0.14
+    image: redis/redis-stack:7.2.0-v10
     container_name: redis
-    command: redis-server --requirepass zhaosheng123
+    environment:
+      - REDIS_ARGS=--requirepass zhaosheng123
     ports:
       - "6379:6379"
+      - "8001:8001"
     volumes:
       - redis_data:/data
+    restart: always
 
   nacos:
     image: nacos/nacos-server:v2.1.1

@@ -19,9 +19,9 @@ public class QuestionAnswerConstants {
     public static final String SORT_DESC = "DESC";
 
     // 答案正确性范围
-    public static final int IS_CORRECT_WRONG = 0; // 错误
-    public static final int IS_CORRECT_CORRECT = 1; // 正确
-    public static final int IS_CORRECT_PARTIAL = 2; // 部分正确
+    public static final int IS_CORRECT_WRONG = 0;
+    public static final int IS_CORRECT_CORRECT = 1;
+    public static final int IS_CORRECT_PARTIAL = 2;
     public static final int IS_CORRECT_MIN = IS_CORRECT_WRONG;
     public static final int IS_CORRECT_MAX = IS_CORRECT_PARTIAL;
 
@@ -77,9 +77,9 @@ public class QuestionAnswerConstants {
     public static final String AUTO_GRADE_SHORT_ANSWER = "short_answer";
 
     // 评分规则
-    public static final String SCORE_RULE_FULL = "full"; // 全对得分
-    public static final String SCORE_RULE_PARTIAL = "partial"; // 部分得分
-    public static final String SCORE_RULE_NONE = "none"; // 不得分
+    public static final String SCORE_RULE_FULL = "full";
+    public static final String SCORE_RULE_PARTIAL = "partial";
+    public static final String SCORE_RULE_NONE = "none";
 
     // 验证相关
     public static final int MIN_SCORE = 0;
@@ -91,7 +91,7 @@ public class QuestionAnswerConstants {
     public static final String CACHE_PREFIX_ANSWER = "question_answer:";
     public static final String CACHE_PREFIX_USER_ANSWER = "user_answer:";
     public static final String CACHE_PREFIX_QUESTION_ANSWER = "question_answers:";
-    public static final int CACHE_EXPIRE_TIME = 3600; // 1小时
+    public static final int CACHE_EXPIRE_TIME = 3600;
 
     // 批量操作相关
     public static final int BATCH_SIZE = 100;

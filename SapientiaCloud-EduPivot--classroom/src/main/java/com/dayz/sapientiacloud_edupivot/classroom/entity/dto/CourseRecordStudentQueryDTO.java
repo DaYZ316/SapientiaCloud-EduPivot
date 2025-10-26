@@ -15,7 +15,7 @@ import java.util.UUID;
 public class CourseRecordStudentQueryDTO extends PageEntity implements Serializable {
 
     @Serial
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = -487207050366788845L;
 
     @Schema(description = "课程记录ID")
     private UUID recordId;

@@ -1,0 +1,68 @@
+pagehelper:
+  helper-dialect: mysql
+  reasonable: true
+  support-methods-arguments: true
+  params: count=countSql
+
+mybatis-plus:
+  type-aliases-package: com.dayz.sapientiacloud_edupivot.celestial_hub.entity
+  mapper-locations: classpath:mapper/**/*.xml
+  configuration:
+    cache-enabled: false
+    map-underscore-to-camel-case: true
+  global-config:
+    db-config:
+      id-type: assign_id
+      update-strategy: not_null
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 5000
+        readTimeout: 5000
+        loggerLevel: full
+  httpclient:
+    enabled: true
+
+spring:
+  jpa:
+    open-in-view: false
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+  data:
+    mongodb:
+      host: ${MONGODB_HOST}
+      port: ${MONGODB_PORT}
+      database: ${MONGODB_DATABASE}
+      username: ${MONGODB_USERNAME}
+      password: ${MONGODB_PASSWORD}
+      authentication-database: ${MONGODB_AUTH_DATABASE}
+      type-mapper: none
+  ai:
+    dashscope:
+      api-key: ${TONGYI_API_KEY}
+      chat:
+        options:
+          model: qwen3-max
+          temperature: 0.7
+      embedding:
+        options:
+          model: text-embedding-v1
+    vectorstore:
+      redis:
+        initialize-schema: true
+        index-name: knowledge-vector-index
+        prefix:
+          vector:
+
+MONGODB_HOST: localhost
+MONGODB_PORT: 27017
+MONGODB_DATABASE: sapientiacloud_edupivot
+MONGODB_USERNAME: root
+MONGODB_PASSWORD: zhaosheng123
+MONGODB_AUTH_DATABASE: admin
