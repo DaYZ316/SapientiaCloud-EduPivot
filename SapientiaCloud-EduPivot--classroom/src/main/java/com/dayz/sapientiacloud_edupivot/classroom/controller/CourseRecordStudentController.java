@@ -71,10 +71,10 @@ public class CourseRecordStudentController extends BaseController {
             description = "查询具体学生在某课程记录中的座位信息",
             permission = PermissionConstants.COURSE_RECORD_STUDENT_QUERY
     )
-    @GetMapping("/{recordId}/{studentId}")
+    @GetMapping("/student-seat/{recordId}")
     public Result<CourseRecordStudentVO> getStudentSeat(
             @Parameter(name = "recordId", description = "课程记录ID", required = true) @PathVariable("recordId") UUID recordId,
-            @Parameter(name = "studentId", description = "学生ID", required = true) @PathVariable("studentId") UUID studentId
+            @Parameter(name = "studentId", description = "学生ID", required = true) @RequestParam("studentId") UUID studentId
     ) {
         CourseRecordStudentVO studentSeat = courseRecordStudentService.getStudentSeat(recordId, studentId);
         return Result.success(studentSeat);

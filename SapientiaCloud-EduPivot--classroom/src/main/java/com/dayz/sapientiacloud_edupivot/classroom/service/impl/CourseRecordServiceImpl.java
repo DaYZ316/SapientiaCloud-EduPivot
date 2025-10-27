@@ -8,6 +8,7 @@ import com.dayz.sapientiacloud_edupivot.classroom.entity.dto.CourseRecordQueryDT
 import com.dayz.sapientiacloud_edupivot.classroom.entity.po.CourseRecord;
 import com.dayz.sapientiacloud_edupivot.classroom.entity.vo.CourseRecordVO;
 import com.dayz.sapientiacloud_edupivot.classroom.enums.CourseRecordEnum;
+import com.dayz.sapientiacloud_edupivot.classroom.enums.CourseRecordStatusEnum;
 import com.dayz.sapientiacloud_edupivot.classroom.mapper.CourseRecordMapper;
 import com.dayz.sapientiacloud_edupivot.classroom.mapper.CourseRecordStudentMapper;
 import com.dayz.sapientiacloud_edupivot.classroom.service.ICourseRecordService;
@@ -95,7 +96,7 @@ public class CourseRecordServiceImpl extends ServiceImpl<CourseRecordMapper, Cou
         BeanUtils.copyProperties(dto, courseRecord);
 
         courseRecord.setId(UuidCreator.getTimeOrderedEpoch());
-        courseRecord.setStatus(0);
+        courseRecord.setStatus(CourseRecordStatusEnum.NOT_STARTED.getCode());
         courseRecord.setDeleted(DeletedEnum.NOT_DELETED.getCode());
         courseRecord.setCreateTime(LocalDateTime.now());
         courseRecord.setUpdateTime(LocalDateTime.now());
@@ -127,7 +128,7 @@ public class CourseRecordServiceImpl extends ServiceImpl<CourseRecordMapper, Cou
         }
 
         // 检查状态：已结束的课程不允许修改
-        if (existingRecord.getStatus() != null && existingRecord.getStatus() == 2) {
+        if (existingRecord.getStatus() != null && existingRecord.getStatus() == CourseRecordStatusEnum.ENDED.getCode()) {
             throw new BusinessException(CourseRecordEnum.COURSE_RECORD_ALREADY_ENDED);
         }
 
@@ -164,7 +165,7 @@ public class CourseRecordServiceImpl extends ServiceImpl<CourseRecordMapper, Cou
         }
 
         // 检查状态：进行中的课程不允许删除
-        if (courseRecord.getStatus() != null && courseRecord.getStatus() == 1) {
+        if (courseRecord.getStatus() != null && courseRecord.getStatus() == CourseRecordStatusEnum.IN_PROGRESS.getCode()) {
             throw new BusinessException(CourseRecordEnum.COURSE_RECORD_IN_PROGRESS);
         }
 
@@ -240,12 +241,12 @@ public class CourseRecordServiceImpl extends ServiceImpl<CourseRecordMapper, Cou
         }
 
         // 检查状态：只有进行中的课程才能结束
-        if (courseRecord.getStatus() == null || courseRecord.getStatus() != 1) {
+        if (courseRecord.getStatus() == null || courseRecord.getStatus() != CourseRecordStatusEnum.IN_PROGRESS.getCode()) {
             throw new BusinessException(CourseRecordEnum.COURSE_RECORD_NOT_STARTED);
         }
 
         // 更新状态为已结束
-        courseRecord.setStatus(2);
+        courseRecord.setStatus(CourseRecordStatusEnum.ENDED.getCode());
         courseRecord.setOverTime(LocalDateTime.now());
         courseRecord.setUpdateTime(LocalDateTime.now());
 

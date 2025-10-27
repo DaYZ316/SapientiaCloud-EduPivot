@@ -2,6 +2,8 @@ package com.dayz.sapientiacloud_edupivot.classroom.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.dayz.sapientiacloud_edupivot.classroom.enums.AttendanceStatusEnum;
+import com.dayz.sapientiacloud_edupivot.classroom.enums.CourseRecordStatusEnum;
 import com.dayz.sapientiacloud_edupivot.classroom.common.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.classroom.entity.dto.CourseRecordStudentDTO;
 import com.dayz.sapientiacloud_edupivot.classroom.entity.dto.CourseRecordStudentQueryDTO;
@@ -111,13 +113,13 @@ public class CourseRecordStudentServiceImpl extends ServiceImpl<CourseRecordStud
         }
 
         // 检查课程状态
-        if (courseRecordVO.getStatus() == null || courseRecordVO.getStatus() == 0) {
+        if (courseRecordVO.getStatus() == null || courseRecordVO.getStatus() == CourseRecordStatusEnum.NOT_STARTED.getCode()) {
             throw new BusinessException(CourseRecordStudentEnum.COURSE_RECORD_NOT_STARTED);
         }
-        if (courseRecordVO.getStatus() == 2) {
+        if (courseRecordVO.getStatus() == CourseRecordStatusEnum.ENDED.getCode()) {
             throw new BusinessException(CourseRecordStudentEnum.COURSE_RECORD_ENDED);
         }
-        if (courseRecordVO.getStatus() == 3) {
+        if (courseRecordVO.getStatus() == CourseRecordStatusEnum.CANCELLED.getCode()) {
             throw new BusinessException(CourseRecordStudentEnum.COURSE_RECORD_CANCELLED);
         }
 
@@ -146,7 +148,7 @@ public class CourseRecordStudentServiceImpl extends ServiceImpl<CourseRecordStud
             student.setSeatStatus("occupied");
         }
         if (student.getAttendanceStatus() == null) {
-            student.setAttendanceStatus(1);
+            student.setAttendanceStatus(AttendanceStatusEnum.SIGNED_IN.getCode());
         }
 
         this.save(student);
