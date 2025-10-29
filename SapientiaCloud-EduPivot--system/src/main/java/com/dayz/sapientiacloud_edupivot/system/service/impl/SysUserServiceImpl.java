@@ -28,6 +28,7 @@ import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
+import java.util.Collections;
 import org.springframework.beans.BeanUtils;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -48,6 +49,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> implements ISysUserService, UserDetailsService {
 
     private final static int DEFAULT_USERNAME_LENGTH = 8;
@@ -498,6 +500,87 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
                 .eq(SysUser::getDeleted, DeletedEnum.NOT_DELETED.getCode());
 
         return sysUserMapper.selectCount(queryWrapper) > 0;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(value = "SysUser", key = "#result.id", condition = "#result != null")
+    public SysUserInternalVO findOrCreateByThirdParty(String provider, String providerId, String username, String email, String name, String avatarUrl) {
+        if (!StringUtils.hasText(provider) || !StringUtils.hasText(providerId) || !StringUtils.hasText(username)) {
+            throw new BusinessException(SysUserEnum.USERNAME_CANNOT_BE_EMPTY);
+        }
+
+        // 首先尝试通过用户名查找用户
+        SysUser existingUser = sysUserMapper.selectByUsername(username);
+        if (existingUser != null) {
+            // 用户已存在，返回用户信息
+            SysUserInternalVO userVO = new SysUserInternalVO();
+            BeanUtils.copyProperties(existingUser, userVO);
+            // 确保 roles 字段不为 null
+            if (userVO.getRoles() == null) {
+                userVO.setRoles(Collections.emptyList());
+            }
+            return userVO;
+        }
+
+        // 用户不存在，创建新用户
+        SysUser newUser = new SysUser();
+        newUser.setId(UuidCreator.getTimeOrderedEpoch());
+        newUser.setUsername(username);
+        newUser.setNickName(StringUtils.hasText(name) ? name : username);
+        newUser.setEmail(email);
+        newUser.setAvatar(avatarUrl);
+        
+        // 设置默认密码（第三方登录用户）
+        newUser.setPassword(passwordEncoder.encode("THIRD_PARTY_USER_" + providerId));
+        
+        // 设置用户状态
+        newUser.setStatus(StatusEnum.NORMAL.getCode());
+        newUser.setGender(GenderEnum.UNKNOWN.getCode());
+        newUser.setCreateTime(LocalDateTime.now());
+        newUser.setUpdateTime(LocalDateTime.now());
+        newUser.setDeleted(DeletedEnum.NOT_DELETED.getCode());
+
+        // 保存用户
+        this.save(newUser);
+
+        // 为新用户分配学生角色
+        assignStudentRoleToUser(newUser.getId());
+
+        // 返回用户信息
+        SysUserInternalVO userVO = new SysUserInternalVO();
+        BeanUtils.copyProperties(newUser, userVO);
+        // 确保 roles 字段不为 null
+        if (userVO.getRoles() == null) {
+            userVO.setRoles(Collections.emptyList());
+        }
+        return userVO;
+    }
+
+    /**
+     * 为新用户分配学生角色
+     */
+    private void assignStudentRoleToUser(UUID userId) {
+        try {
+            // 查找学生角色
+            LambdaQueryWrapper<SysRole> roleQuery = new LambdaQueryWrapper<>();
+            roleQuery.eq(SysRole::getRoleKey, "STUDENT")
+                    .eq(SysRole::getStatus, StatusEnum.NORMAL.getCode())
+                    .eq(SysRole::getDeleted, DeletedEnum.NOT_DELETED.getCode());
+            
+            SysRole studentRole = sysRoleMapper.selectOne(roleQuery);
+            if (studentRole != null) {
+                // 分配角色给用户
+                List<UUID> roleIds = List.of(studentRole.getId());
+                sysUserRoleMapper.addUserRoles(userId, roleIds);
+                log.info("已为用户 {} 分配学生角色", userId);
+            } else {
+                log.warn("未找到学生角色，无法为新用户分配角色");
+            }
+        } catch (Exception e) {
+            log.error("为新用户分配学生角色失败: " + e.getMessage(), e);
+            // 不抛出异常，避免影响用户创建流程
+        }
     }
 
     @Override

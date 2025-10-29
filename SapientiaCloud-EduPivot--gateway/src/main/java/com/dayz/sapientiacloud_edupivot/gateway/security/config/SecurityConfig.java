@@ -22,6 +22,12 @@ public class SecurityConfig {
             "/api/auth/mobile-login",
             "/api/auth/validate",
             "/api/auth/register",
+            "/api/auth/github/**", // GitHub OAuth相关路径
+            "/github/**", // 简化版GitHub登录路径
+            "/oauth2/**", // OAuth2授权相关路径
+            "/login/oauth2/**", // OAuth2登录回调路径
+            "/api/auth/test/**", // 测试控制器路径
+            "/test/**", // 测试控制器路径
             "/api/*/v3/api-docs/**",
             "/v3/api-docs/**",
             "/doc.html",
@@ -62,4 +68,4 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-} 
+}

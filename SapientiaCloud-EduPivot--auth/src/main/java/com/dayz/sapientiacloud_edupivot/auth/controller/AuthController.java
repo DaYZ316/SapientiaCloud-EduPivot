@@ -70,4 +70,5 @@ public class AuthController {
     public Result<Boolean> updatePassword(HttpServletRequest request, @Valid @RequestBody SysUserPasswordDTO sysUserPasswordDTO) {
         return Result.success(authService.updatePassword(request, sysUserPasswordDTO));
     }
+    
 }

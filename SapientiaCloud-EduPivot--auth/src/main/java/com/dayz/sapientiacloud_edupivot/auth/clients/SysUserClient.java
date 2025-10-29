@@ -34,4 +34,14 @@ public interface SysUserClient {
 
     @PostMapping("/mobile-login")
     Result<SysUserInternalVO> mobileLogin(@RequestBody SysUserMobileLoginDTO mobileLoginDTO);
+
+    @GetMapping("/internal/third-party/find-or-create")
+    Result<SysUserInternalVO> findOrCreateByThirdParty(
+            @RequestParam("provider") String provider,
+            @RequestParam("providerId") String providerId,
+            @RequestParam("username") String username,
+            @RequestParam(value = "email", required = false) String email,
+            @RequestParam(value = "name", required = false) String name,
+            @RequestParam(value = "avatarUrl", required = false) String avatarUrl
+    );
 }
