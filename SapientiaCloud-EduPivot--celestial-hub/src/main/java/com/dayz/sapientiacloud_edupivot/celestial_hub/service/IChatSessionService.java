@@ -15,7 +15,7 @@ public interface IChatSessionService {
 
     ChatSessionVO getChatSessionById(UUID id);
 
-    ChatSessionVO addChatSession(UUID sysUserId, UUID courseId, Integer sessionType, String title);
+    ChatSessionVO addChatSession(UUID courseId, Integer sessionType, String title);
 
     Boolean updateChatSessionTitle(UUID id, String title);
 

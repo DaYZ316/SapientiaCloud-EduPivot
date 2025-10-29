@@ -169,7 +169,7 @@ public class ChatMessageServiceImpl implements IChatMessageService {
         }
 
         UUID userId = UserContextUtil.getCurrentUserId();
-        return chatSessionService.addChatSession(userId, request.getCourseId(), request.getSessionType(), null);
+        return chatSessionService.addChatSession(request.getCourseId(), request.getSessionType(), null);
     }
 
     private List<Message> buildContext(UUID sessionId, ChatRequestDTO request) {

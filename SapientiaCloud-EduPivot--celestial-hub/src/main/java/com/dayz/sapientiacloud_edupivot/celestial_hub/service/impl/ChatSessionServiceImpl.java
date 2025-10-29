@@ -1,6 +1,8 @@
 package com.dayz.sapientiacloud_edupivot.celestial_hub.service.impl;
 
+import com.dayz.sapientiacloud_edupivot.celestial_hub.common.enums.CourseEnum;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.common.exception.BusinessException;
+import com.dayz.sapientiacloud_edupivot.celestial_hub.common.security.utils.UserContextUtil;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.constant.AIChatConstants;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.ChatSessionQueryDTO;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.po.ChatMessage;
@@ -137,14 +139,10 @@ public class ChatSessionServiceImpl implements IChatSessionService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public ChatSessionVO addChatSession(UUID sysUserId, UUID courseId, Integer sessionType, String title) {
-        if (sysUserId == null) {
-            throw new BusinessException(AIChatEnum.SESSION_USER_ID_REQUIRED);
-        }
-
+    public ChatSessionVO addChatSession(UUID courseId, Integer sessionType, String title) {
         ChatSession session = new ChatSession();
         session.setId(UuidCreator.getTimeOrderedEpoch());
-        session.setSysUserId(sysUserId);
+        session.setSysUserId(UserContextUtil.getCurrentUserId());
         session.setSessionTitle(StringUtils.hasText(title) ? title : AIChatConstants.DEFAULT_SESSION_TITLE);
         session.setSessionType(sessionType != null ? sessionType : SessionTypeEnum.GENERAL.getCode());
         session.setIsPinned(AIChatConstants.PINNED_FALSE);
@@ -233,7 +231,6 @@ public class ChatSessionServiceImpl implements IChatSessionService {
 
         session.setIsPinned(Boolean.TRUE.equals(isPinned) ?
                 AIChatConstants.PINNED_TRUE : AIChatConstants.PINNED_FALSE);
-        session.setUpdateTime(LocalDateTime.now());
         chatSessionRepository.save(session);
 
         return true;
@@ -251,7 +248,6 @@ public class ChatSessionServiceImpl implements IChatSessionService {
 
         session.setIsFavorite(Boolean.TRUE.equals(isFavorite) ?
                 AIChatConstants.FAVORITE_TRUE : AIChatConstants.FAVORITE_FALSE);
-        session.setUpdateTime(LocalDateTime.now());
         chatSessionRepository.save(session);
 
         return true;
