@@ -84,9 +84,9 @@ public class ChatSessionController extends BaseController {
     )
     @PostMapping
     public Result<ChatSessionVO> addChatSession(
-            @Parameter(name = "courseId", description = "课程ID") @RequestParam(required = false) UUID courseId,
-            @Parameter(name = "sessionType", description = "会话类型") @RequestParam(required = false) Integer sessionType,
-            @Parameter(name = "title", description = "会话标题") @RequestParam(required = false) String title
+            @Parameter(name = "courseId", description = "课程ID") @RequestParam(value = "courseId", required = false) UUID courseId,
+            @Parameter(name = "sessionType", description = "会话类型") @RequestParam(value = "sessionType", required = false) Integer sessionType,
+            @Parameter(name = "title", description = "会话标题") @RequestParam(value = "title", required = false) String title
     ) {
         UUID userId = UserContextUtil.getCurrentUserId();
         ChatSessionVO chatSessionVO = chatSessionService.addChatSession(userId, courseId, sessionType, title);

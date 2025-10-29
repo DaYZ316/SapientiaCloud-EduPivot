@@ -56,7 +56,7 @@ public class ChatMessageController extends BaseController {
     @GetMapping("/session/{sessionId}")
     public Result<List<ChatMessage>> listMessagesBySessionId(
             @Parameter(name = "sessionId", description = "会话ID", required = true) @PathVariable("sessionId") UUID sessionId,
-            @Parameter(name = "limit", description = "限制数量") @RequestParam(required = false) Integer limit
+            @Parameter(name = "limit", description = "限制数量") @RequestParam(value = "limit", required = false) Integer limit
     ) {
         List<ChatMessage> messages = chatMessageService.listMessagesBySessionId(sessionId, limit);
         return Result.success(messages);

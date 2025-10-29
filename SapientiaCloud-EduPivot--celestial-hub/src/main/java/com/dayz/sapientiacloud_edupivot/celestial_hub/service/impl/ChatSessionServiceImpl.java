@@ -233,7 +233,6 @@ public class ChatSessionServiceImpl implements IChatSessionService {
 
         session.setIsPinned(Boolean.TRUE.equals(isPinned) ?
                 AIChatConstants.PINNED_TRUE : AIChatConstants.PINNED_FALSE);
-        session.setUpdateTime(LocalDateTime.now());
         chatSessionRepository.save(session);
 
         return true;
@@ -251,7 +250,6 @@ public class ChatSessionServiceImpl implements IChatSessionService {
 
         session.setIsFavorite(Boolean.TRUE.equals(isFavorite) ?
                 AIChatConstants.FAVORITE_TRUE : AIChatConstants.FAVORITE_FALSE);
-        session.setUpdateTime(LocalDateTime.now());
         chatSessionRepository.save(session);
 
         return true;
