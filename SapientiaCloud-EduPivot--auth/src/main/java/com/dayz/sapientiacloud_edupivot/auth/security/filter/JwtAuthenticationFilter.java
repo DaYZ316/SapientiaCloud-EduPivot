@@ -40,6 +40,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "/doc.html",
             "/webjars/**",
             "/v3/api-docs",
+            "/v3/api-docs/**",
+            "/oauth2/**",
+            "/login/oauth2/**",
+            "/mobile-login",
+            "/test/**" // 测试路径
     };
     private static final String USERID_CLAIM = "userId";
     private static final String USERNAME_CLAIM = "username";

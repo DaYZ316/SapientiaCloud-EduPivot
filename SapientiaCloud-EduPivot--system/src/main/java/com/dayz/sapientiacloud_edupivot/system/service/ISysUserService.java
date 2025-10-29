@@ -45,4 +45,6 @@ public interface ISysUserService {
     Boolean isMobileExists(String mobile);
 
     SysUserInternalVO mobileLogin(SysUserMobileLoginDTO mobileLoginDTO);
+
+    SysUserInternalVO findOrCreateByThirdParty(String provider, String providerId, String username, String email, String name, String avatarUrl);
 }

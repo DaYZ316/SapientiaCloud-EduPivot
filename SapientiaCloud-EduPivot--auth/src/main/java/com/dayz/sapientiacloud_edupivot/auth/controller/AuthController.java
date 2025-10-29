@@ -14,12 +14,14 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping
 @RequiredArgsConstructor
 @Tag(name = "认证接口", description = "用户登录相关接口")
+@Slf4j
 public class AuthController {
 
     private final AuthService authService;
@@ -70,4 +72,5 @@ public class AuthController {
     public Result<Boolean> updatePassword(HttpServletRequest request, @Valid @RequestBody SysUserPasswordDTO sysUserPasswordDTO) {
         return Result.success(authService.updatePassword(request, sysUserPasswordDTO));
     }
+    
 }

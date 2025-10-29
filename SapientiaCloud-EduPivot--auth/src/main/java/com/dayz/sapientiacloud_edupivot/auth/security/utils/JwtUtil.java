@@ -32,6 +32,7 @@ import java.util.concurrent.TimeUnit;
 public class JwtUtil {
 
     private static final String TOKEN_BLACKLIST_PREFIX = "jwt:blacklist:";
+    private static final String REFRESH_TOKEN_PREFIX = "jwt:refresh:";
     private final JwtConfig jwtConfig;
     private final RedisTemplate<String, Object> redisTemplate;
 
@@ -46,13 +47,38 @@ public class JwtUtil {
                 .withJWTId(UUID.randomUUID().toString())
                 .withClaim("userId", sysUserInternalVO.getId().toString())
                 .withSubject(sysUserInternalVO.getUsername())
-                .withClaim("roleKeys", sysUserInternalVO.getRoles().stream()
-                        .filter(Objects::nonNull)
-                        .map(SysRoleVO::getRoleKey)
-                        .toList())
+                .withClaim("roleKeys", sysUserInternalVO.getRoles() != null ? 
+                        sysUserInternalVO.getRoles().stream()
+                                .filter(Objects::nonNull)
+                                .map(SysRoleVO::getRoleKey)
+                                .toList() : List.of())
                 .withIssuedAt(now)
                 .withExpiresAt(expiryDate)
                 .sign(Algorithm.HMAC256(jwtConfig.getSecret()));
+    }
+
+    public String generateRefreshToken(SysUserInternalVO sysUserInternalVO) {
+        if (sysUserInternalVO == null) {
+            throw new BusinessException(SysUserEnum.USER_NOT_FOUND.getMessage());
+        }
+        
+        // 生成刷新令牌，有效期设置为7天
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000L); // 7天
+        
+        String refreshToken = JWT.create()
+                .withJWTId(UUID.randomUUID().toString())
+                .withClaim("userId", sysUserInternalVO.getId().toString())
+                .withSubject(sysUserInternalVO.getUsername())
+                .withIssuedAt(now)
+                .withExpiresAt(expiryDate)
+                .sign(Algorithm.HMAC256(jwtConfig.getSecret() + "-refresh"));
+        
+        // 保存刷新令牌到Redis，用于验证
+        String refreshTokenKey = REFRESH_TOKEN_PREFIX + sysUserInternalVO.getId();
+        redisTemplate.opsForValue().set(refreshTokenKey, refreshToken, 7, TimeUnit.DAYS);
+        
+        return refreshToken;
     }
 
     public DecodedJWT validateToken(String token) throws JWTVerificationException {

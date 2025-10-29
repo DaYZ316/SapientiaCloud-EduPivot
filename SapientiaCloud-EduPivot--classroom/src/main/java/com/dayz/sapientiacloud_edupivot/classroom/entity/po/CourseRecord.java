@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.dayz.sapientiacloud_edupivot.classroom.common.config.JsonTypeHandler;
 import com.dayz.sapientiacloud_edupivot.classroom.common.config.UuidListTypeHandler;
 import com.dayz.sapientiacloud_edupivot.classroom.common.entity.base.BaseEntity;
+import com.dayz.sapientiacloud_edupivot.classroom.entity.bo.LayoutConfig;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
