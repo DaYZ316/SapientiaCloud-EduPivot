@@ -107,4 +107,20 @@ public class SysUserFeign {
     public Result<Boolean> updatePassword(@RequestBody SysUserPasswordDTO sysUserPasswordDTO) {
         return Result.success(sysUserService.updatePassword(sysUserPasswordDTO));
     }
+
+    @HasPermission(
+            summary = "findOrCreateByThirdParty",
+            description = "通过第三方账号查找或创建用户"
+    )
+    @GetMapping("/internal/third-party/find-or-create")
+    public Result<SysUserInternalVO> findOrCreateByThirdParty(
+            @RequestParam("provider") String provider,
+            @RequestParam("providerId") String providerId,
+            @RequestParam("username") String username,
+            @RequestParam(value = "email", required = false) String email,
+            @RequestParam(value = "name", required = false) String name,
+            @RequestParam(value = "avatarUrl", required = false) String avatarUrl
+    ) {
+        return Result.success(sysUserService.findOrCreateByThirdParty(provider, providerId, username, email, name, avatarUrl));
+    }
 }

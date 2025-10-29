@@ -14,6 +14,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class SaaLLMConfig {
     private final String QWEN_MODEL = "qwen3-max";
+
     @Value("${spring.ai.dashscope.api-key}")
     private String apiKey;
 
