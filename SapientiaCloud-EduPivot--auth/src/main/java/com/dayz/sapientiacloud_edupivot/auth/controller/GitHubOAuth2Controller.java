@@ -32,15 +32,15 @@ public class GitHubOAuth2Controller {
     private final JwtUtil jwtUtil;
     private final org.springframework.web.client.RestTemplate restTemplate;
 
-    @Value("${GITHUB_CLIENT_ID}")
+    @Value("${spring.security.oauth2.client.registration.github.client-id}")
     private String githubClientId;
 
-    @Value("${GITHUB_CLIENT_SECRET}")
+    @Value("${spring.security.oauth2.client.registration.github.client-secret}")
     private String githubClientSecret;
 
     @GetMapping("/oauth2/authorize/github")
     public void githubAuthorize(jakarta.servlet.http.HttpServletResponse response) throws Exception {
-        log.info("开始GitHub OAuth2授权流程");
+        log.debug("开始GitHub OAuth2授权流程");
         
         // 生成state参数用于防止CSRF攻击
         String state = UUID.randomUUID().toString();
@@ -53,23 +53,23 @@ public class GitHubOAuth2Controller {
                 state
         );
         
-        log.info("重定向到GitHub授权页面: {}", authUrl);
+        log.debug("重定向到GitHub授权页面: {}", authUrl);
         response.sendRedirect(authUrl);
     }
 
     @GetMapping("/login/oauth2/code/github")
     public Result<Map<String, Object>> githubCallback(@RequestParam("code") String code, 
                                                       @RequestParam("state") String state) {
-        log.info("收到GitHub OAuth2回调: code={}, state={}", code, state);
+        log.debug("收到GitHub OAuth2回调: code={}, state={}", code, state);
         
         try {
 
             String accessToken = getAccessToken(code);
-            log.info("获取到GitHub access_token: {}", accessToken);
+            log.debug("获取到GitHub access_token: {}", accessToken);
             Map<String, Object> userInfo = getGitHubUserInfo(accessToken);
-            log.info("获取到GitHub用户信息: {}", userInfo);
+            log.debug("获取到GitHub用户信息: {}", userInfo);
             SysUserInternalVO user = findOrCreateUser(userInfo);
-            log.info("用户处理完成: {}", user.getUsername());
+            log.debug("用户处理完成: {}", user.getUsername());
             String token = jwtUtil.generateToken(user);
             String refreshToken = jwtUtil.generateRefreshToken(user);
             Map<String, Object> result = Map.of(
@@ -101,7 +101,7 @@ public class GitHubOAuth2Controller {
         int maxRetries = 3;
         for (int i = 0; i < maxRetries; i++) {
             try {
-                log.info("尝试获取access_token，第{}次", i + 1);
+                log.debug("尝试获取access_token，第{}次", i + 1);
                 ResponseEntity<Map> response = restTemplate.postForEntity(url, request, Map.class);
 
                 Map<String, Object> responseBody = response.getBody();
@@ -138,7 +138,7 @@ public class GitHubOAuth2Controller {
         int maxRetries = 3;
         for (int i = 0; i < maxRetries; i++) {
             try {
-                log.info("尝试获取GitHub用户信息，第{}次", i + 1);
+                log.debug("尝试获取GitHub用户信息，第{}次", i + 1);
                 ResponseEntity<Map> response = restTemplate.exchange(url, HttpMethod.GET, request, Map.class);
                 return response.getBody();
             } catch (Exception e) {

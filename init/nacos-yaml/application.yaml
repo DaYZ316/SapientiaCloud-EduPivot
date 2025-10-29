@@ -44,6 +44,8 @@ knife4j:
 
 logging:
   level:
+    root: INFO
+    com.dayz: DEBUG
     com.dayz.sapientiacloud_edupivot.*.mapper: DEBUG
     org.springframework.http.server.reactive: DEBUG
     org.springframework.web.reactive: DEBUG
