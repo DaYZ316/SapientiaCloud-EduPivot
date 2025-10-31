@@ -1,7 +1,7 @@
 package com.dayz.sapientiacloud_edupivot.auth.service.impl;
 
 import com.dayz.sapientiacloud_edupivot.auth.clients.SysUserClient;
-import com.dayz.sapientiacloud_edupivot.auth.config.GitHubOAuth2Properties;
+import com.dayz.sapientiacloud_edupivot.auth.security.config.OAuth2Config;
 import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysUserInternalVO;
 import com.dayz.sapientiacloud_edupivot.auth.result.Result;
 import com.dayz.sapientiacloud_edupivot.auth.security.utils.JwtUtil;
@@ -31,7 +31,7 @@ public class GitHubOAuth2ServiceImpl implements IGitHubOAuth2Service {
     private final SysUserClient sysUserClient;
     private final JwtUtil jwtUtil;
     private final RestTemplate restTemplate;
-    private final GitHubOAuth2Properties gitHubOAuth2Properties;
+    private final OAuth2Config OAuth2Config;
 
     @Override
     public String generateState() {
@@ -42,9 +42,9 @@ public class GitHubOAuth2ServiceImpl implements IGitHubOAuth2Service {
     public String buildAuthorizeUrl(String state) {
         return String.format(
                 "https://github.com/login/oauth/authorize?client_id=%s&redirect_uri=%s&scope=%s&state=%s",
-                gitHubOAuth2Properties.getClientId(),
-                gitHubOAuth2Properties.getRedirectUri(),
-                gitHubOAuth2Properties.getScope(),
+                OAuth2Config.getClientId(),
+                OAuth2Config.getRedirectUri(),
+                OAuth2Config.getScope(),
                 state
         );
     }
@@ -80,12 +80,12 @@ public class GitHubOAuth2ServiceImpl implements IGitHubOAuth2Service {
         HttpHeaders headers = new HttpHeaders();
         headers.set("Accept", "application/json");
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-        params.add("client_id", gitHubOAuth2Properties.getClientId());
-        params.add("client_secret", gitHubOAuth2Properties.getClientSecret());
+        params.add("client_id", OAuth2Config.getClientId());
+        params.add("client_secret", OAuth2Config.getClientSecret());
         params.add("code", code);
-        params.add("redirect_uri", gitHubOAuth2Properties.getRedirectUri());
+        params.add("redirect_uri", OAuth2Config.getRedirectUri());
         
-        log.debug("请求GitHub获取access_token，redirect_uri: {}", gitHubOAuth2Properties.getRedirectUri());
+        log.debug("请求GitHub获取access_token，redirect_uri: {}", OAuth2Config.getRedirectUri());
         
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
         try {

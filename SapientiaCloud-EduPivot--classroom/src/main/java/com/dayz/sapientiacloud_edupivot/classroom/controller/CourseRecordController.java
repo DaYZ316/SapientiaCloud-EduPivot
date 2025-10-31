@@ -29,7 +29,7 @@ public class CourseRecordController extends BaseController {
     private final ICourseRecordService courseRecordService;
 
     @HasPermission(
-            summary = "分页查询课程记录",
+            summary = "listCourseRecord",
             description = "根据条件分页查询课程记录列表，支持按课程、教师、状态等条件筛选",
             permission = PermissionConstants.COURSE_RECORD_QUERY
     )
@@ -41,7 +41,7 @@ public class CourseRecordController extends BaseController {
     }
 
     @HasPermission(
-            summary = "查询所有课程记录",
+            summary = "listAllCourseRecord",
             description = "获取所有课程记录列表",
             permission = PermissionConstants.COURSE_RECORD_QUERY
     )
@@ -52,7 +52,7 @@ public class CourseRecordController extends BaseController {
     }
 
     @HasPermission(
-            summary = "查询课程记录详情",
+            summary = "getCourseRecordById",
             description = "根据ID查询课程记录详细信息",
             permission = PermissionConstants.COURSE_RECORD_QUERY
     )
@@ -65,7 +65,7 @@ public class CourseRecordController extends BaseController {
     }
 
     @HasPermission(
-            summary = "创建课程记录",
+            summary = "addCourseRecord",
             description = "教师开课，创建课程教学记录",
             permission = PermissionConstants.COURSE_RECORD_ADD
     )
@@ -76,7 +76,7 @@ public class CourseRecordController extends BaseController {
     }
 
     @HasPermission(
-            summary = "更新课程记录",
+            summary = "updateCourseRecord",
             description = "修改课程记录信息",
             permission = PermissionConstants.COURSE_RECORD_EDIT
     )
@@ -86,7 +86,7 @@ public class CourseRecordController extends BaseController {
     }
 
     @HasPermission(
-            summary = "删除课程记录",
+            summary = "removeCourseRecordById",
             description = "根据ID删除课程记录",
             permission = PermissionConstants.COURSE_RECORD_DELETE
     )
@@ -98,7 +98,7 @@ public class CourseRecordController extends BaseController {
     }
 
     @HasPermission(
-            summary = "批量删除课程记录",
+            summary = "removeCourseRecordByIds",
             description = "根据ID列表批量删除课程记录",
             permission = PermissionConstants.COURSE_RECORD_DELETE
     )
@@ -110,7 +110,7 @@ public class CourseRecordController extends BaseController {
     }
 
     @HasPermission(
-            summary = "结束课程",
+            summary = "endCourseRecord",
             description = "教师下课，结束课程记录",
             permission = PermissionConstants.COURSE_RECORD_EDIT
     )
@@ -122,7 +122,7 @@ public class CourseRecordController extends BaseController {
     }
 
     @HasPermission(
-            summary = "查询课程的所有记录",
+            summary = "listCourseRecordByCourseId",
             description = "根据课程ID查询该课程的所有教学记录",
             permission = PermissionConstants.COURSE_RECORD_QUERY
     )
@@ -135,7 +135,7 @@ public class CourseRecordController extends BaseController {
     }
 
     @HasPermission(
-            summary = "查询教师的所有记录",
+            summary = "listCourseRecordByTeacherId",
             description = "根据教师ID查询该教师的所有教学记录",
             permission = PermissionConstants.COURSE_RECORD_QUERY
     )
