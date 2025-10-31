@@ -14,18 +14,6 @@ spring:
             - Path=/api/auth/**
           filters:
             - StripPrefix=2
-        - id: SapientiaCloud-EduPivot--auth-oauth2
-          uri: lb://SapientiaCloud-EduPivot--auth
-          predicates:
-            - Path=/oauth2/**
-          filters:
-            - StripPrefix=1
-        - id: SapientiaCloud-EduPivot--auth-login-oauth2
-          uri: lb://SapientiaCloud-EduPivot--auth
-          predicates:
-            - Path=/login/oauth2/**
-          filters:
-            - StripPrefix=2
         - id: SapientiaCloud-EduPivot--minIO
           uri: lb://SapientiaCloud-EduPivot--minIO
           predicates:

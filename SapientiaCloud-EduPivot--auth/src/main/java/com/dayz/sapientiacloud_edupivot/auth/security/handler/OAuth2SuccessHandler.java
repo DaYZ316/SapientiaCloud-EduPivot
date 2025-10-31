@@ -85,16 +85,13 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         try {
             // 从GitHub获取用户信息
             Map<String, Object> attributes = oauth2User.getAttributes();
-            String githubId = String.valueOf(attributes.get("id"));
-            String username = (String) attributes.get("login");
-            String email = (String) attributes.get("email");
-            String name = (String) attributes.get("name");
-            String avatarUrl = (String) attributes.get("avatar_url");
+            Map<String, String> userInfo = com.dayz.sapientiacloud_edupivot.auth.common.security.utils.GitHubUserInfoUtil.extractUserInfo(attributes);
             
-            // 确保username不为空
-            if (username == null || username.isEmpty()) {
-                throw new BusinessException("GitHub用户名获取失败");
-            }
+            String githubId = userInfo.get("githubId");
+            String username = userInfo.get("username");
+            String email = userInfo.get("email");
+            String name = userInfo.get("name");
+            String avatarUrl = userInfo.get("avatarUrl");
             
             // 查找或创建用户
             SysUserInternalVO user = findOrCreateUser(githubId, username, email, name, avatarUrl);

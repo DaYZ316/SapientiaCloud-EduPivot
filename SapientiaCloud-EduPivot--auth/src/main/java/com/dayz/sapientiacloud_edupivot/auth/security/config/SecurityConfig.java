@@ -1,7 +1,6 @@
 package com.dayz.sapientiacloud_edupivot.auth.security.config;
 
 import com.dayz.sapientiacloud_edupivot.auth.security.filter.JwtAuthenticationFilter;
-import com.dayz.sapientiacloud_edupivot.auth.security.handler.OAuth2SuccessHandler;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,12 +15,8 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
-import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
-import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.authentication.www.BasicAuthenticationEntryPoint;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
@@ -36,15 +31,15 @@ import java.util.Collections;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    private final OAuth2SuccessHandler oAuth2SuccessHandler;
-    private final ClientRegistrationRepository clientRegistrationRepository;
+    // 仅保留 JWT 过滤相关依赖
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 // 禁用基本配置
                 .csrf(AbstractHttpConfigurer::disable)
-                .formLogin(login -> login.permitAll()) // 允许表单登录，为了支持OAuth2的登录页面
+                // 允许表单登录，为了支持OAuth2的登录页面
+                .formLogin(login -> login.permitAll())
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .logout(AbstractHttpConfigurer::disable)
                 // 为了OAuth2流程，暂时允许会话状态
@@ -52,17 +47,18 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                 )
                 .authorizeHttpRequests(authorize -> authorize
-                        // 所有认证和OAuth2相关路径都允许访问
                         .requestMatchers(
-                            "/login", 
-                            "/mobile-login", 
-                            "/validate", 
+                            "/login",
+                            "/mobile-login",
+                            "/validate",
                             "/register",
-                            "/oauth2/**", 
+                            "/api/auth/**",
+                            "/v3/api-docs/**",
+                            "/doc.html",
+                            "/webjars/**",
+                            "/oauth2/**",
                             "/login/oauth2/**",
-                            "/v3/api-docs/**", 
-                            "/doc.html", 
-                            "/webjars/**"
+                            "/oauth2/authorization/**"
                         ).permitAll()
                         // 允许OPTIONS请求
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
@@ -94,14 +90,7 @@ public class SecurityConfig {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
-    @Bean
-    public OAuth2AuthorizationRequestResolver oauth2AuthorizationRequestResolver() {
-        DefaultOAuth2AuthorizationRequestResolver resolver = 
-                new DefaultOAuth2AuthorizationRequestResolver(
-                        clientRegistrationRepository, "/oauth2/authorize");
-        
-        return resolver;
-    }
+    // 手动控制 OAuth2 流程后，默认的 AuthorizationRequestResolver 不再需要。
 
     @Bean
     public CorsFilter corsFilter() {
@@ -111,10 +100,8 @@ public class SecurityConfig {
         corsConfig.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         corsConfig.setAllowedHeaders(Arrays.asList("Origin", "Content-Type", "Accept", "Authorization"));
         corsConfig.setExposedHeaders(Arrays.asList("Content-Length", "Authorization"));
-
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", corsConfig);
-
         return new CorsFilter(source);
     }
     
@@ -123,8 +110,8 @@ public class SecurityConfig {
         // 配置HTTP客户端超时设置
         org.springframework.http.client.SimpleClientHttpRequestFactory factory = 
             new org.springframework.http.client.SimpleClientHttpRequestFactory();
-        factory.setConnectTimeout(10000); // 连接超时10秒
-        factory.setReadTimeout(30000);    // 读取超时30秒
+        factory.setConnectTimeout(10000);
+        factory.setReadTimeout(30000);
         
         org.springframework.web.client.RestTemplate restTemplate = 
             new org.springframework.web.client.RestTemplate(factory);
