@@ -31,7 +31,7 @@ public class CourseRecordStudentController extends BaseController {
     private final ICourseRecordStudentService courseRecordStudentService;
 
     @HasPermission(
-            summary = "分页查询学生座位",
+            summary = "listCourseRecordStudent",
             description = "根据条件分页查询学生座位记录列表",
             permission = PermissionConstants.COURSE_RECORD_STUDENT_QUERY
     )
@@ -43,7 +43,7 @@ public class CourseRecordStudentController extends BaseController {
     }
 
     @HasPermission(
-            summary = "查询所有学生座位",
+            summary = "listAllCourseRecordStudent",
             description = "获取所有学生座位记录列表",
             permission = PermissionConstants.COURSE_RECORD_STUDENT_QUERY
     )
@@ -54,7 +54,7 @@ public class CourseRecordStudentController extends BaseController {
     }
 
     @HasPermission(
-            summary = "查询课程记录的所有学生",
+            summary = "listStudentsByRecordId",
             description = "根据课程记录ID查询该课程的所有学生座位信息",
             permission = PermissionConstants.COURSE_RECORD_STUDENT_QUERY
     )
@@ -67,7 +67,7 @@ public class CourseRecordStudentController extends BaseController {
     }
 
     @HasPermission(
-            summary = "查询学生座位详情",
+            summary = "getStudentSeat",
             description = "查询具体学生在某课程记录中的座位信息",
             permission = PermissionConstants.COURSE_RECORD_STUDENT_QUERY
     )
@@ -81,7 +81,7 @@ public class CourseRecordStudentController extends BaseController {
     }
 
     @HasPermission(
-            summary = "学生选座",
+            summary = "addStudentSeat",
             description = "学生选择座位并入座",
             permission = PermissionConstants.COURSE_RECORD_STUDENT_ADD
     )
@@ -92,7 +92,7 @@ public class CourseRecordStudentController extends BaseController {
     }
 
     @HasPermission(
-            summary = "更新学生座位",
+            summary = "updateStudentSeat",
             description = "更新学生座位信息（换座、更新状态等）",
             permission = PermissionConstants.COURSE_RECORD_STUDENT_EDIT
     )
@@ -102,7 +102,7 @@ public class CourseRecordStudentController extends BaseController {
     }
 
     @HasPermission(
-            summary = "删除学生座位",
+            summary = "removeStudentSeat",
             description = "移除学生座位（学生离开教室）",
             permission = PermissionConstants.COURSE_RECORD_STUDENT_DELETE
     )
@@ -115,18 +115,18 @@ public class CourseRecordStudentController extends BaseController {
     }
 
     @HasPermission(
-            summary = "批量删除学生座位",
+            summary = "removeStudentSeatBatch",
             description = "批量移除学生座位",
             permission = PermissionConstants.COURSE_RECORD_STUDENT_DELETE
     )
-    @Operation(summary = "批量删除学生座位")
+    @Operation(summary = "removeStudentSeatBatch")
     @DeleteMapping("/batch")
     public Result<Integer> removeStudentSeatBatch(@RequestBody List<StudentSeatDeleteDTO> dtoList) {
         return Result.success(courseRecordStudentService.removeStudentSeatBatch(dtoList));
     }
 
     @HasPermission(
-            summary = "检查座位是否被占用",
+            summary = "checkSeatOccupied",
             description = "检查指定座位是否已被其他学生占用",
             permission = PermissionConstants.COURSE_RECORD_STUDENT_QUERY
     )
@@ -140,7 +140,7 @@ public class CourseRecordStudentController extends BaseController {
     }
 
     @HasPermission(
-            summary = "统计实到人数",
+            summary = "countStudentsByRecordId",
             description = "统计某课程记录的实际到课人数",
             permission = PermissionConstants.COURSE_RECORD_STUDENT_QUERY
     )

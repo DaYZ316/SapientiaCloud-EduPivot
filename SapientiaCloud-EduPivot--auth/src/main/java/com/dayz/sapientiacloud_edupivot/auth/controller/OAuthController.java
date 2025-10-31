@@ -14,10 +14,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.util.Map;
 import java.util.UUID;
 
-/**
- * 统一的第三方登录控制器。
- * 路径规范为 /api/auth/oauth2/**，便于网关与安全白名单统一管理。
- */
+
 @RestController
 @RequestMapping
 @RequiredArgsConstructor

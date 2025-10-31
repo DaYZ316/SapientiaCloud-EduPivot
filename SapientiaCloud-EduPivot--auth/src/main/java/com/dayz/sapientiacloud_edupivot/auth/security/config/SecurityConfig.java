@@ -22,7 +22,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
 import java.util.Arrays;
-import java.util.Collections;
 
 @Configuration
 @EnableWebSecurity
@@ -38,8 +37,9 @@ public class SecurityConfig {
         http
                 // 禁用基本配置
                 .csrf(AbstractHttpConfigurer::disable)
-                // 允许表单登录，为了支持OAuth2的登录页面
-                .formLogin(login -> login.permitAll())
+                // 禁用表单登录，避免触发默认认证流程导致循环调用
+                // OAuth2 使用 OAuth2LoginConfigurer，不需要表单登录
+                .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .logout(AbstractHttpConfigurer::disable)
                 // 为了OAuth2流程，暂时允许会话状态
@@ -85,6 +85,12 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
+    /**
+     * 配置 AuthenticationManager
+     * 注意：由于使用 JWT 认证，实际上不需要这个 Bean
+     * 但如果其他组件需要，可以保留
+     * 由于禁用了表单登录，不会触发默认认证流程，因此不会导致循环调用
+     */
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
@@ -95,11 +101,12 @@ public class SecurityConfig {
     @Bean
     public CorsFilter corsFilter() {
         CorsConfiguration corsConfig = new CorsConfiguration();
+        corsConfig.addAllowedOriginPattern("*");
         corsConfig.setAllowCredentials(true);
-        corsConfig.setAllowedOrigins(Collections.singletonList("*"));
         corsConfig.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         corsConfig.setAllowedHeaders(Arrays.asList("Origin", "Content-Type", "Accept", "Authorization"));
         corsConfig.setExposedHeaders(Arrays.asList("Content-Length", "Authorization"));
+        corsConfig.setMaxAge(3600L);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", corsConfig);
         return new CorsFilter(source);
