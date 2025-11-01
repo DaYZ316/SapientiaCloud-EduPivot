@@ -39,6 +39,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "/login",
             "/validate",
             "/register",
+            "/send-code",
             "/doc.html",
             "/webjars/**",
             "/v3/api-docs",

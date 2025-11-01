@@ -34,7 +34,8 @@ public enum SysUserEnum implements BaseEnum {
     ADMIN_OPERATION_FORBIDDEN(1302, "超级管理员用户禁止操作"),
     PHONE_NUMBER_CANNOT_BE_EMPTY(1303, "手机号码不能为空"),
     VERIFICATION_CODE_CANNOT_BE_EMPTY(1304, "验证码不能为空"),
-    VERIFICATION_CODE_ERROR(1305, "验证码错误");
+    VERIFICATION_CODE_ERROR(1305, "验证码错误"),
+    VERIFICATION_CODE_SEND_TOO_FREQUENT(1306, "验证码发送过于频繁，请稍后再试");
 
     private final int code;
 

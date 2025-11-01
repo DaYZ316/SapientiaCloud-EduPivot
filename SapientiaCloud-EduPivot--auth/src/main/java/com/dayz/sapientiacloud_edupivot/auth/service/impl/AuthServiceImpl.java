@@ -5,6 +5,7 @@ import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserLoginDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserMobileLoginDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserPasswordDTO;
+import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserRegisterDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysUserInternalVO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysUserLoginVO;
 import com.dayz.sapientiacloud_edupivot.auth.enums.ResultEnum;
@@ -15,6 +16,8 @@ import com.dayz.sapientiacloud_edupivot.auth.result.Result;
 import com.dayz.sapientiacloud_edupivot.auth.security.utils.JwtUtil;
 import com.dayz.sapientiacloud_edupivot.auth.security.utils.UserContextUtil;
 import com.dayz.sapientiacloud_edupivot.auth.service.AuthService;
+import com.dayz.sapientiacloud_edupivot.auth.service.VerificationCodeService;
+import com.dayz.sapientiacloud_edupivot.auth.utils.EnumUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
@@ -34,12 +37,13 @@ public class AuthServiceImpl implements AuthService {
     private final SysUserClient sysUserClient;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final VerificationCodeService verificationCodeService;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public SysUserLoginVO login(SysUserLoginDTO sysUserLoginDTO) {
         if (sysUserLoginDTO == null) {
-            throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
+            throw new BusinessException(SysUserEnum.DATA_CANNOT_BE_EMPTY);
         }
         if (!StringUtils.hasText(sysUserLoginDTO.getUsername())) {
             throw new BusinessException(SysUserEnum.USERNAME_CANNOT_BE_EMPTY);
@@ -69,7 +73,7 @@ public class AuthServiceImpl implements AuthService {
         SysUserDTO sysUserDTO = new SysUserDTO();
         BeanUtils.copyProperties(sysUserInternalVO, sysUserDTO);
         Result<Boolean> booleanResult = sysUserClient.updateUserInternal(sysUserDTO);
-        if (!booleanResult.isSuccess()) {
+        if (booleanResult == null || !booleanResult.isSuccess()) {
             throw new BusinessException(SysUserEnum.USER_LOGIN_FAILED);
         }
 
@@ -91,7 +95,7 @@ public class AuthServiceImpl implements AuthService {
         try {
             return !jwtUtil.isTokenExpired(token);
         } catch (Exception e) {
-            throw new BusinessException("令牌验证失败: " + e.getMessage());
+            throw new BusinessException(ResultEnum.TOKEN_NOT_FOUND);
         }
     }
 
@@ -104,7 +108,21 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public Result<SysUserInternalVO> getUserInfo(HttpServletRequest request) {
         String token = jwtUtil.extractTokenFromRequest(request);
-        return sysUserClient.getUserInfoByUsername(jwtUtil.getUsernameFromToken(token));
+        if (!StringUtils.hasText(token)) {
+            throw new BusinessException(ResultEnum.TOKEN_NOT_FOUND);
+        }
+        
+        String username = jwtUtil.getUsernameFromToken(token);
+        if (!StringUtils.hasText(username)) {
+            throw new BusinessException(ResultEnum.TOKEN_NOT_FOUND);
+        }
+        
+        Result<SysUserInternalVO> result = sysUserClient.getUserInfoByUsername(username);
+        if (result == null || !result.isSuccess()) {
+            throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
+        }
+        
+        return result;
     }
 
     @Override
@@ -115,7 +133,6 @@ public class AuthServiceImpl implements AuthService {
         }
 
         if (!sysUserPasswordDTO.getNewPassword().equals(sysUserPasswordDTO.getConfirmPassword())) {
-
             throw new BusinessException(SysUserEnum.NEW_AND_CONFIRM_PASSWORD_NOT_MATCH);
         }
         if (sysUserPasswordDTO.getCurrentPassword().equals(sysUserPasswordDTO.getNewPassword())) {
@@ -149,7 +166,13 @@ public class AuthServiceImpl implements AuthService {
             throw new BusinessException(SysUserEnum.VERIFICATION_CODE_CANNOT_BE_EMPTY);
         }
 
-        // 调用system模块的手机验证码登录接口
+        // 第一步：先校验验证码（安全设计规范：验证码校验必须在最前面）
+        verificationCodeService.verifyCode(
+            sysUserMobileLoginDTO.getMobile(),
+            sysUserMobileLoginDTO.getVerificationCode()
+        );
+
+        // 第二步：验证码校验通过后，才调用system模块查询用户
         Result<SysUserInternalVO> userResult = sysUserClient.mobileLogin(sysUserMobileLoginDTO);
         if (userResult == null || !userResult.isSuccess()) {
             throw new BusinessException(SysUserEnum.USER_LOGIN_FAILED);
@@ -163,10 +186,6 @@ public class AuthServiceImpl implements AuthService {
             throw new BusinessException(SysUserEnum.USER_ACCOUNT_DISABLED);
         }
 
-        if (!sysUserMobileLoginDTO.getVerificationCode().equals(INIT_VERIFICATION_CODE)) {
-            throw new BusinessException(SysUserEnum.VERIFICATION_CODE_ERROR);
-        }
-
         // 生成JWT令牌
         String token = jwtUtil.generateToken(sysUserInternalVO);
 
@@ -175,6 +194,51 @@ public class AuthServiceImpl implements AuthService {
         BeanUtils.copyProperties(sysUserInternalVO, loginVO);
 
         return loginVO;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Boolean register(SysUserRegisterDTO sysUserRegisterDTO) {
+        if (sysUserRegisterDTO == null) {
+            throw new BusinessException(SysUserEnum.DATA_CANNOT_BE_EMPTY);
+        }
+        if (!StringUtils.hasText(sysUserRegisterDTO.getMobile())) {
+            throw new BusinessException(SysUserEnum.PHONE_NUMBER_CANNOT_BE_EMPTY);
+        }
+        if (!StringUtils.hasText(sysUserRegisterDTO.getVerificationCode())) {
+            throw new BusinessException(SysUserEnum.VERIFICATION_CODE_CANNOT_BE_EMPTY);
+        }
+
+        // 第一步：先校验验证码（安全设计规范：验证码校验必须在最前面）
+        verificationCodeService.verifyCode(
+            sysUserRegisterDTO.getMobile(), 
+            sysUserRegisterDTO.getVerificationCode()
+        );
+
+        // 第二步：验证码校验通过后，才调用system模块进行用户注册
+        Result<Boolean> result = sysUserClient.registerUser(sysUserRegisterDTO);
+        if (result == null || !result.isSuccess()) {
+            // 尝试根据返回的错误信息匹配对应的错误枚举
+            if (result != null && StringUtils.hasText(result.getMessage())) {
+                SysUserEnum sysUserEnum = EnumUtil.getByAttribute(
+                    SysUserEnum.class, 
+                    result.getMessage(), 
+                    SysUserEnum::getMessage
+                );
+                if (sysUserEnum != null) {
+                    throw new BusinessException(sysUserEnum);
+                }
+            }
+            // 如果无法匹配具体错误，则抛出通用错误
+            throw new BusinessException(SysUserEnum.USER_SERVICE_ERROR);
+        }
+
+        Boolean registerResult = result.getData();
+        if (registerResult == null || !registerResult) {
+            throw new BusinessException(SysUserEnum.USER_SERVICE_ERROR);
+        }
+
+        return registerResult;
     }
 
     private boolean processLogout(String token) {
@@ -193,15 +257,15 @@ public class AuthServiceImpl implements AuthService {
                 if (invalidated) {
                     return true;
                 } else {
-                    throw new BusinessException("用户 " + username + " 登出失败: 无法使令牌失效");
+                    throw new BusinessException(SysUserEnum.USER_LOGOUT_FAILED);
                 }
             } else {
-                throw new BusinessException("登出失败: 无法从令牌获取用户信息");
+                throw new BusinessException(ResultEnum.TOKEN_NOT_FOUND);
             }
         } catch (BusinessException e) {
             throw e;
         } catch (Exception e) {
-            throw new BusinessException("登出过程发生错误: " + e.getMessage());
+            throw new BusinessException(SysUserEnum.USER_LOGOUT_FAILED);
         }
     }
 }

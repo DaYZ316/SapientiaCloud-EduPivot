@@ -1,6 +1,6 @@
 package com.dayz.sapientiacloud_edupivot.auth.controller;
 
-import com.dayz.sapientiacloud_edupivot.auth.clients.SysUserClient;
+import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SendVerificationCodeDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserLoginDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserMobileLoginDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserPasswordDTO;
@@ -9,6 +9,7 @@ import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysUserInternalVO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysUserLoginVO;
 import com.dayz.sapientiacloud_edupivot.auth.result.Result;
 import com.dayz.sapientiacloud_edupivot.auth.service.AuthService;
+import com.dayz.sapientiacloud_edupivot.auth.service.VerificationCodeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,7 +24,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
-    private final SysUserClient sysUserClient;
+    private final VerificationCodeService verificationCodeService;
 
     @PostMapping("/login")
     @Operation(summary = "login", description = "通过用户名和密码登录系统")
@@ -56,7 +57,8 @@ public class AuthController {
     @PostMapping("/register")
     @Operation(summary = "register", description = "注册一个新的用户")
     public Result<Boolean> register(@Valid @RequestBody SysUserRegisterDTO sysUserRegisterDTO) {
-        return sysUserClient.registerUser(sysUserRegisterDTO);
+        Boolean result = authService.register(sysUserRegisterDTO);
+        return Result.success(result);
     }
 
     @GetMapping("/info")
@@ -69,6 +71,13 @@ public class AuthController {
     @Operation(summary = "updatePassword", description = "更新当前登录用户的密码")
     public Result<Boolean> updatePassword(HttpServletRequest request, @Valid @RequestBody SysUserPasswordDTO sysUserPasswordDTO) {
         return Result.success(authService.updatePassword(request, sysUserPasswordDTO));
+    }
+
+    @PostMapping("/send-code")
+    @Operation(summary = "sendVerificationCode", description = "发送手机验证码")
+    public Result<Boolean> sendVerificationCode(@Valid @RequestBody SendVerificationCodeDTO sendVerificationCodeDTO) {
+        boolean result = verificationCodeService.sendVerificationCode(sendVerificationCodeDTO);
+        return Result.success(result);
     }
     
 }
