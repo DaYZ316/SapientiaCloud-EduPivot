@@ -497,6 +497,25 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public Boolean isUsernameAvailable(String username) {
+        if (!StringUtils.hasText(username)) {
+            return false;
+        }
+        
+        // 用户名长度校验：4-20位（与注册时的校验保持一致）
+        if (username.length() < 4 || username.length() > 20) {
+            return false;
+        }
+        
+        // 检查用户名是否已存在
+        SysUser existingUser = sysUserMapper.selectByUsername(username);
+        
+        // 如果用户不存在，则用户名可用（返回 true）
+        return existingUser == null;
+    }
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
     @CacheEvict(value = "SysUser", key = "#result.id", condition = "#result != null")
     public SysUserInternalVO findOrCreateByThirdParty(String provider, String providerId, String username, String email, String name, String avatarUrl) {

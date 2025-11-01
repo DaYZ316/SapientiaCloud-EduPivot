@@ -79,5 +79,12 @@ public class AuthController {
         boolean result = verificationCodeService.sendVerificationCode(sendVerificationCodeDTO);
         return Result.success(result);
     }
+
+    @GetMapping("/check-username")
+    @Operation(summary = "checkUsername", description = "检查用户名是否可用")
+    public Result<Boolean> checkUsername(@RequestParam("username") String username) {
+        Boolean available = authService.checkUsernameAvailable(username);
+        return Result.success(available);
+    }
     
 }

@@ -123,4 +123,17 @@ public class SysUserFeign {
     ) {
         return Result.success(sysUserService.findOrCreateByThirdParty(provider, providerId, username, email, name, avatarUrl));
     }
+
+    @HasPermission(
+            summary = "checkUsernameAvailable",
+            description = "检查用户名是否可用"
+    )
+    @GetMapping("/internal/check-username")
+    public Result<Boolean> checkUsernameAvailable(
+            @Parameter(name = "username", description = "用户名", required = true) 
+            @RequestParam("username") String username
+    ) {
+        Boolean available = sysUserService.isUsernameAvailable(username);
+        return Result.success(available);
+    }
 }

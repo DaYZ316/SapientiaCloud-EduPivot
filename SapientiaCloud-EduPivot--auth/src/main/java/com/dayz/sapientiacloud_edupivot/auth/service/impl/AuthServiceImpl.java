@@ -241,6 +241,29 @@ public class AuthServiceImpl implements AuthService {
         return registerResult;
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public Boolean checkUsernameAvailable(String username) {
+        if (!StringUtils.hasText(username)) {
+            return false;
+        }
+        
+        // 用户名长度校验：4-20位（与注册时的校验保持一致）
+        if (username.length() < 4 || username.length() > 20) {
+            return false;
+        }
+        
+        // 调用 system 模块检查用户名是否可用
+        Result<Boolean> result = sysUserClient.checkUsernameAvailable(username);
+        if (result == null || !result.isSuccess()) {
+            // 如果调用失败，为了安全起见，返回 false（不可用）
+            return false;
+        }
+        
+        Boolean available = result.getData();
+        return available != null && available;
+    }
+
     private boolean processLogout(String token) {
         if (!StringUtils.hasText(token)) {
             throw new BusinessException(ResultEnum.TOKEN_NOT_FOUND);

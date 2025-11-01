@@ -27,4 +27,6 @@ public interface AuthService {
     SysUserLoginVO mobileLogin(SysUserMobileLoginDTO sysUserMobileLoginDTO);
 
     Boolean register(SysUserRegisterDTO sysUserRegisterDTO);
+
+    Boolean checkUsernameAvailable(String username);
 }

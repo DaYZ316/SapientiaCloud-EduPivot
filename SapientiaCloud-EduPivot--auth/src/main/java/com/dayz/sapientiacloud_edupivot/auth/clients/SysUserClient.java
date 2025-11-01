@@ -44,4 +44,7 @@ public interface SysUserClient {
             @RequestParam(value = "name", required = false) String name,
             @RequestParam(value = "avatarUrl", required = false) String avatarUrl
     );
+
+    @GetMapping("/internal/check-username")
+    Result<Boolean> checkUsernameAvailable(@RequestParam("username") String username);
 }
