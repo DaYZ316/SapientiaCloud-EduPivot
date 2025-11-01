@@ -15,6 +15,6 @@ public class SysUserLoginVO extends SysUserInternalVO implements Serializable {
     @Serial
     private static final long serialVersionUID = -3412795250372765420L;
 
-    @Schema(name = "access_token", description = "访问令牌")
+    @Schema(name = "accessToken", description = "访问令牌")
     private String accessToken;
 }
