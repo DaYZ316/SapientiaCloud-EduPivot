@@ -1,30 +1,22 @@
 package com.dayz.sapientiacloud_edupivot.auth.security.handler;
 
-import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson2.JSON;
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.algorithms.Algorithm;
 import com.dayz.sapientiacloud_edupivot.auth.clients.SysUserClient;
-import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysRoleVO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysUserInternalVO;
 import com.dayz.sapientiacloud_edupivot.auth.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.auth.result.Result;
 import com.dayz.sapientiacloud_edupivot.auth.security.config.JwtConfig;
+import com.dayz.sapientiacloud_edupivot.auth.security.utils.GitHubUserInfoUtil;
 import com.dayz.sapientiacloud_edupivot.auth.security.utils.JwtUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
-import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
@@ -33,7 +25,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 /**
  * OAuth2认证成功处理器
@@ -85,7 +76,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         try {
             // 从GitHub获取用户信息
             Map<String, Object> attributes = oauth2User.getAttributes();
-            Map<String, String> userInfo = com.dayz.sapientiacloud_edupivot.auth.common.security.utils.GitHubUserInfoUtil.extractUserInfo(attributes);
+            Map<String, String> userInfo = GitHubUserInfoUtil.extractUserInfo(attributes);
             
             String githubId = userInfo.get("githubId");
             String username = userInfo.get("username");

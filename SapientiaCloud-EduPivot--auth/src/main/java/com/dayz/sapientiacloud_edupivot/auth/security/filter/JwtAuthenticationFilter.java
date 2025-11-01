@@ -2,9 +2,9 @@ package com.dayz.sapientiacloud_edupivot.auth.security.filter;
 
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.dayz.sapientiacloud_edupivot.auth.clients.SysUserClient;
-import com.dayz.sapientiacloud_edupivot.auth.common.security.constants.JwtConstants;
-import com.dayz.sapientiacloud_edupivot.auth.common.security.utils.TokenExtractionUtil;
-import com.dayz.sapientiacloud_edupivot.auth.common.security.utils.WhitelistUtil;
+import com.dayz.sapientiacloud_edupivot.auth.security.constants.JwtConstants;
+import com.dayz.sapientiacloud_edupivot.auth.security.utils.TokenExtractionUtil;
+import com.dayz.sapientiacloud_edupivot.auth.security.utils.WhitelistUtil;
 import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysRoleVO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysUserInternalVO;
 import com.dayz.sapientiacloud_edupivot.auth.enums.SysUserEnum;
@@ -39,6 +39,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "/login",
             "/validate",
             "/register",
+            "/send-code",
             "/doc.html",
             "/webjars/**",
             "/v3/api-docs",

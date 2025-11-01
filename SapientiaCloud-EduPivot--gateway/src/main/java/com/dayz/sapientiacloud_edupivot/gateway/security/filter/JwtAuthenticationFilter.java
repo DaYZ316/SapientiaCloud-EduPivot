@@ -35,6 +35,7 @@ public class JwtAuthenticationFilter implements WebFilter {
             "/api/auth/mobile-login",
             "/api/auth/validate",
             "/api/auth/register",
+            "/api/auth/send-code",
             "/api/auth/github/**",
             "/github/**",
             "/oauth2/**",

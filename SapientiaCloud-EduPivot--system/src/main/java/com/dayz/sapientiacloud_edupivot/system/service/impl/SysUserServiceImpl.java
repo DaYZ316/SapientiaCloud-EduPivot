@@ -55,7 +55,6 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
     private final static int DEFAULT_USERNAME_LENGTH = 8;
     private final static String INIT_PASSWORD = "123456";
-    private final static String INIT_VERIFICATION_CODE = "123456";
     private static final String STUDENT = "STUDENT";
     private static final String TEACHER = "TEACHER";
 
@@ -117,6 +116,8 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Boolean registerUser(SysUserRegisterDTO sysUserRegisterDTO) {
+        // 注意：验证码校验已在 auth 模块的 Controller 层完成，此处不再重复校验
+        
         if (sysUserRegisterDTO == null || !StringUtils.hasText(sysUserRegisterDTO.getUsername())) {
             throw new BusinessException(SysUserEnum.USERNAME_CANNOT_BE_EMPTY);
         }
@@ -132,19 +133,11 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             throw new BusinessException(SysUserEnum.PHONE_NUMBER_ALREADY_EXISTS);
         }
 
-        if (!StringUtils.hasText(sysUserRegisterDTO.getVerificationCode())) {
-            throw new BusinessException(SysUserEnum.VERIFICATION_CODE_CANNOT_BE_EMPTY);
-        }
-
         SysUser sysUser = checkSysUserInfo(sysUserRegisterDTO);
         sysUser.setId(UuidCreator.getTimeOrderedEpoch());
 
         if (!StringUtils.hasText(sysUserRegisterDTO.getNickName())) {
             sysUser.setNickName(sysUser.getId().toString());
-        }
-
-        if (!sysUserRegisterDTO.getVerificationCode().equals(INIT_VERIFICATION_CODE)) {
-            throw new BusinessException(SysUserEnum.VERIFICATION_CODE_ERROR);
         }
 
         return this.save(sysUser);
@@ -591,15 +584,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             throw new BusinessException(SysUserEnum.MOBILE_CANNOT_BE_EMPTY);
         }
 
-        if (!StringUtils.hasText(mobileLoginDTO.getVerificationCode())) {
-            throw new BusinessException(SysUserEnum.VERIFICATION_CODE_ERROR);
-        }
-
-        // TODO 验证验证码（这里使用固定验证码，实际项目中应该从缓存或数据库中验证）
-        if (!INIT_VERIFICATION_CODE.equals(mobileLoginDTO.getVerificationCode())) {
-            throw new BusinessException(SysUserEnum.VERIFICATION_CODE_ERROR);
-        }
-
+        // 注意：验证码校验已在 auth 模块完成，此处不再重复校验
         // 根据手机号查找用户
         LambdaQueryWrapper<SysUser> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(SysUser::getMobile, mobileLoginDTO.getMobile())

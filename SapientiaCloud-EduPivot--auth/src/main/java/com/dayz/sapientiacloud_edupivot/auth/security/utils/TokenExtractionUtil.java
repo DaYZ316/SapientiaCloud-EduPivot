@@ -1,4 +1,4 @@
-package com.dayz.sapientiacloud_edupivot.auth.common.security.utils;
+package com.dayz.sapientiacloud_edupivot.auth.security.utils;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpHeaders;
@@ -7,7 +7,7 @@ import org.springframework.util.StringUtils;
 
 import java.util.List;
 
-import static com.dayz.sapientiacloud_edupivot.auth.common.security.constants.JwtConstants.*;
+import static com.dayz.sapientiacloud_edupivot.auth.security.constants.JwtConstants.*;
 
 /**
  * Token提取工具类

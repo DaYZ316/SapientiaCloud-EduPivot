@@ -10,6 +10,7 @@ import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysUserInternalVO;
 import com.dayz.sapientiacloud_edupivot.auth.enums.SysUserEnum;
 import com.dayz.sapientiacloud_edupivot.auth.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.auth.security.config.JwtConfig;
+import com.dayz.sapientiacloud_edupivot.auth.security.constants.JwtConstants;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,8 +32,8 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class JwtUtil {
 
-    private static final String TOKEN_BLACKLIST_PREFIX = com.dayz.sapientiacloud_edupivot.auth.common.security.constants.JwtConstants.TOKEN_BLACKLIST_PREFIX;
-    private static final String REFRESH_TOKEN_PREFIX = com.dayz.sapientiacloud_edupivot.auth.common.security.constants.JwtConstants.REFRESH_TOKEN_PREFIX;
+    private static final String TOKEN_BLACKLIST_PREFIX = JwtConstants.TOKEN_BLACKLIST_PREFIX;
+    private static final String REFRESH_TOKEN_PREFIX = JwtConstants.REFRESH_TOKEN_PREFIX;
     private final JwtConfig jwtConfig;
     private final RedisTemplate<String, Object> redisTemplate;
 
@@ -166,6 +167,6 @@ public class JwtUtil {
 
     private String extractActualToken(String token) {
         // 使用工具类提取实际token
-        return com.dayz.sapientiacloud_edupivot.auth.common.security.utils.TokenExtractionUtil.extractActualToken(token);
+        return TokenExtractionUtil.extractActualToken(token);
     }
 }

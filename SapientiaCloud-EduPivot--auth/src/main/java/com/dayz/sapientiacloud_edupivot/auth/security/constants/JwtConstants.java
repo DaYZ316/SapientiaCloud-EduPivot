@@ -1,4 +1,4 @@
-package com.dayz.sapientiacloud_edupivot.auth.common.security.constants;
+package com.dayz.sapientiacloud_edupivot.auth.security.constants;
 
 /**
  * JWT相关常量

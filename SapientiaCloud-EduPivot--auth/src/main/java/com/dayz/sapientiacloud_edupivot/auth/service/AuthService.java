@@ -3,6 +3,7 @@ package com.dayz.sapientiacloud_edupivot.auth.service;
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserLoginDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserMobileLoginDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserPasswordDTO;
+import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserRegisterDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysUserInternalVO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysUserLoginVO;
 import com.dayz.sapientiacloud_edupivot.auth.result.Result;
@@ -24,4 +25,6 @@ public interface AuthService {
     Boolean updatePassword(HttpServletRequest request, SysUserPasswordDTO sysUserPasswordDTO);
 
     SysUserLoginVO mobileLogin(SysUserMobileLoginDTO sysUserMobileLoginDTO);
+
+    Boolean register(SysUserRegisterDTO sysUserRegisterDTO);
 }

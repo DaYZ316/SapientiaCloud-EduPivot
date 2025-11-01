@@ -1,4 +1,4 @@
-package com.dayz.sapientiacloud_edupivot.auth.common.security.utils;
+package com.dayz.sapientiacloud_edupivot.auth.security.utils;
 
 import com.dayz.sapientiacloud_edupivot.auth.exception.BusinessException;
 

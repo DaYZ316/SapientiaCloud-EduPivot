@@ -4,6 +4,7 @@ import com.dayz.sapientiacloud_edupivot.auth.clients.SysUserClient;
 import com.dayz.sapientiacloud_edupivot.auth.security.config.OAuth2Config;
 import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysUserInternalVO;
 import com.dayz.sapientiacloud_edupivot.auth.result.Result;
+import com.dayz.sapientiacloud_edupivot.auth.security.utils.GitHubUserInfoUtil;
 import com.dayz.sapientiacloud_edupivot.auth.security.utils.JwtUtil;
 import com.dayz.sapientiacloud_edupivot.auth.service.IGitHubOAuth2Service;
 import lombok.RequiredArgsConstructor;
@@ -152,7 +153,7 @@ public class GitHubOAuth2ServiceImpl implements IGitHubOAuth2Service {
 
     @Override
     public SysUserInternalVO findOrCreateUser(Map<String, Object> githubUserInfo) {
-        Map<String, String> userInfo = com.dayz.sapientiacloud_edupivot.auth.common.security.utils.GitHubUserInfoUtil.extractUserInfo(githubUserInfo);
+        Map<String, String> userInfo = GitHubUserInfoUtil.extractUserInfo(githubUserInfo);
         String githubId = userInfo.get("githubId");
         String username = userInfo.get("username");
         String email = userInfo.get("email");

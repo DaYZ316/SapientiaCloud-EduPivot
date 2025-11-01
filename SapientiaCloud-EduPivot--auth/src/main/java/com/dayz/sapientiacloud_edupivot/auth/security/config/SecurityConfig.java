@@ -51,6 +51,7 @@ public class SecurityConfig {
                             "/mobile-login",
                             "/validate",
                             "/register",
+                            "/send-code",
                             "/api/auth/**",
                             "/v3/api-docs/**",
                             "/doc.html",
