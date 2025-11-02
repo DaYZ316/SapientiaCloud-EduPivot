@@ -1,4 +1,4 @@
-package com.dayz.sapientiacloud_edupivot.auth.service.provider;
+package com.dayz.sapientiacloud_edupivot.auth.service;
 
 import java.util.Map;
 

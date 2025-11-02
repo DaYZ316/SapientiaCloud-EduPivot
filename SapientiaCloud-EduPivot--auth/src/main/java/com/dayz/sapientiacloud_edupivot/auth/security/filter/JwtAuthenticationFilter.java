@@ -40,6 +40,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "/validate",
             "/register",
             "/send-code",
+            "/check-username",
+            "/check-mobile",
             "/doc.html",
             "/webjars/**",
             "/v3/api-docs",

@@ -1,7 +1,9 @@
 package com.dayz.sapientiacloud_edupivot.auth.service;
 
+import com.dayz.sapientiacloud_edupivot.auth.entity.dto.BindMobileDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserLoginDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserMobileLoginDTO;
+import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserMobilePasswordDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserPasswordDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserRegisterDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysUserInternalVO;
@@ -24,9 +26,15 @@ public interface AuthService {
 
     Boolean updatePassword(HttpServletRequest request, SysUserPasswordDTO sysUserPasswordDTO);
 
+    Boolean updatePasswordByMobile(SysUserMobilePasswordDTO sysUserMobilePasswordDTO);
+
     SysUserLoginVO mobileLogin(SysUserMobileLoginDTO sysUserMobileLoginDTO);
 
     Boolean register(SysUserRegisterDTO sysUserRegisterDTO);
 
     Boolean checkUsernameAvailable(String username);
+
+    Boolean checkMobileAvailable(String mobile);
+
+    Boolean bindMobile(BindMobileDTO bindMobileDTO);
 }

@@ -1,8 +1,10 @@
 package com.dayz.sapientiacloud_edupivot.auth.service.impl;
 
 import com.dayz.sapientiacloud_edupivot.auth.clients.SysUserClient;
+import com.dayz.sapientiacloud_edupivot.auth.enums.OAuth2Enum;
+import com.dayz.sapientiacloud_edupivot.auth.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.auth.security.config.OAuth2Config;
-import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysUserInternalVO;
+import com.dayz.sapientiacloud_edupivot.auth.entity.vo.ThirdPartyLoginResultVO;
 import com.dayz.sapientiacloud_edupivot.auth.result.Result;
 import com.dayz.sapientiacloud_edupivot.auth.security.utils.GitHubUserInfoUtil;
 import com.dayz.sapientiacloud_edupivot.auth.security.utils.JwtUtil;
@@ -19,7 +21,6 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Map;
-import java.util.UUID;
 
 /**
  * GitHub OAuth2服务实现类
@@ -35,19 +36,18 @@ public class GitHubOAuth2ServiceImpl implements IGitHubOAuth2Service {
     private final OAuth2Config OAuth2Config;
 
     @Override
-    public String generateState() {
-        return UUID.randomUUID().toString();
-    }
-
-    @Override
     public String buildAuthorizeUrl(String state) {
-        return String.format(
+        String clientId = OAuth2Config.getClientId();
+        String redirectUri = OAuth2Config.getRedirectUri();
+        String scope = OAuth2Config.getScope();
+        
+        // 配置已在 OAuth2Config.validate() 中验证，此处直接使用
+        String url = String.format(
                 "https://github.com/login/oauth/authorize?client_id=%s&redirect_uri=%s&scope=%s&state=%s",
-                OAuth2Config.getClientId(),
-                OAuth2Config.getRedirectUri(),
-                OAuth2Config.getScope(),
-                state
+                clientId, redirectUri, scope, state
         );
+        log.debug("构建GitHub授权URL: {}", url.replace(clientId, "***"));
+        return url;
     }
 
     @Override
@@ -57,15 +57,26 @@ public class GitHubOAuth2ServiceImpl implements IGitHubOAuth2Service {
             String accessToken = getAccessToken(code);
             // 获取GitHub用户信息
             Map<String, Object> userInfo = getGitHubUserInfo(accessToken);
-            // 查找或创建系统用户
-            SysUserInternalVO user = findOrCreateUser(userInfo);
-            // 生成token
-            String token = jwtUtil.generateToken(user);
-            String refreshToken = jwtUtil.generateRefreshToken(user);
+            // 查找或创建系统用户（返回注册状态）
+            ThirdPartyLoginResultVO loginResult = findOrCreateUserWithStatus(userInfo);
+            // 生成token（即使未完成注册也生成，用于后续接口认证）
+            String token = jwtUtil.generateToken(loginResult.getUser());
+            String refreshToken = jwtUtil.generateRefreshToken(loginResult.getUser());
+            
+            // 在返回之前将密码字段置空，避免密码泄露
+            loginResult.getUser().setPassword(null);
+            
             Map<String, Object> result = Map.of(
                     "accessToken", token,
                     "refreshToken", refreshToken,
-                    "user", user
+                    "user", loginResult.getUser(),
+                    "registrationStatus", Map.of(
+                            "isNewUser", loginResult.getIsNewUser(),
+                            "needBindMobile", loginResult.getNeedBindMobile(),
+                            "needSelectIdentity", loginResult.getNeedSelectIdentity(),
+                            "needCompleteInfo", loginResult.getNeedCompleteInfo(),
+                            "currentStep", loginResult.getCurrentStep()
+                    )
             );
             return Result.success(result);
         } catch (Exception e) {
@@ -89,36 +100,67 @@ public class GitHubOAuth2ServiceImpl implements IGitHubOAuth2Service {
         log.debug("请求GitHub获取access_token，redirect_uri: {}", OAuth2Config.getRedirectUri());
         
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
-        try {
-            ResponseEntity<Map<String, Object>> response = restTemplate.postForEntity(url, request, (Class<Map<String, Object>>)(Class<?>)Map.class);
-            Map<String, Object> responseBody = response.getBody();
-            
-            if (responseBody != null && responseBody.containsKey("access_token")) {
-                log.debug("成功获取access_token");
-                return (String) responseBody.get("access_token");
-            } else {
-                // GitHub返回业务错误，不应该重试（因为code只能使用一次）
-                String error = (String) responseBody.get("error");
-                String errorDescription = (String) responseBody.get("error_description");
-                log.error("GitHub返回错误 - error: {}, error_description: {}, 完整响应: {}", error, errorDescription, responseBody);
+        
+        // 添加重试机制（仅针对网络错误）
+        int maxRetries = 3;
+        for (int i = 0; i < maxRetries; i++) {
+            try {
+                log.debug("尝试获取access_token，第{}次", i + 1);
+                ResponseEntity<Map<String, Object>> response = restTemplate.postForEntity(url, request, (Class<Map<String, Object>>)(Class<?>)Map.class);
+                Map<String, Object> responseBody = response.getBody();
                 
-                // 对于bad_verification_code等错误，提供更友好的错误信息
-                if ("bad_verification_code".equals(error)) {
-                    throw new RuntimeException("授权码已过期或已被使用，请重新登录: " + errorDescription);
+                if (responseBody != null && responseBody.containsKey("access_token")) {
+                    log.debug("成功获取access_token");
+                    return (String) responseBody.get("access_token");
+                } else {
+                    // GitHub返回业务错误，不应该重试（因为code可能已被消费）
+                    String error = (String) responseBody.get("error");
+                    String errorDescription = (String) responseBody.get("error_description");
+                    log.error("GitHub返回错误 - error: {}, error_description: {}, 完整响应: {}", error, errorDescription, responseBody);
+                    
+                    if ("bad_verification_code".equals(error)) {
+                        throw new BusinessException(OAuth2Enum.AUTHORIZATION_CODE_EXPIRED);
+                    }
+                    throw new BusinessException(OAuth2Enum.OAUTH2_CALLBACK_FAILED);
                 }
-                throw new RuntimeException("获取access_token失败: " + error + " - " + errorDescription);
+            } catch (org.springframework.web.client.ResourceAccessException e) {
+                // 网络异常（连接超时、读取超时等），可以重试
+                log.warn("网络异常，获取access_token失败，第{}次尝试: {}", i + 1, e.getMessage());
+                if (i == maxRetries - 1) {
+                    log.error("网络异常，获取access_token失败，已重试{}次: {}", maxRetries, e.getMessage(), e);
+                    throw new BusinessException(OAuth2Enum.OAUTH2_CALLBACK_FAILED);
+                }
+                try {
+                    Thread.sleep(1000 * (i + 1));
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    throw new BusinessException(OAuth2Enum.OAUTH2_CALLBACK_FAILED);
+                }
+            } catch (org.springframework.web.client.HttpClientErrorException e) {
+                // HTTP客户端错误（4xx），通常是业务错误，不重试
+                log.error("GitHub API返回客户端错误: {} {}", e.getStatusCode(), e.getResponseBodyAsString());
+                if (e.getStatusCode().value() == 400) {
+                    // 可能是bad_verification_code等
+                    throw new BusinessException(OAuth2Enum.AUTHORIZATION_CODE_EXPIRED);
+                }
+                throw new BusinessException(OAuth2Enum.OAUTH2_CALLBACK_FAILED);
+            } catch (BusinessException e) {
+                // 业务异常，直接抛出（不重试）
+                throw e;
+            } catch (Exception e) {
+                log.error("获取access_token时发生未知异常，第{}次尝试: {}", i + 1, e.getMessage(), e);
+                if (i == maxRetries - 1) {
+                    throw new BusinessException(OAuth2Enum.OAUTH2_CALLBACK_FAILED);
+                }
+                try {
+                    Thread.sleep(1000 * (i + 1));
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    throw new BusinessException(OAuth2Enum.OAUTH2_CALLBACK_FAILED);
+                }
             }
-        } catch (org.springframework.web.client.RestClientException e) {
-            // 网络异常，可以重试
-            log.error("网络异常，获取access_token失败: {}", e.getMessage(), e);
-            throw new RuntimeException("网络异常，获取access_token失败: " + e.getMessage(), e);
-        } catch (RuntimeException e) {
-            // 业务异常，直接抛出
-            throw e;
-        } catch (Exception e) {
-            log.error("获取access_token时发生未知异常: {}", e.getMessage(), e);
-            throw new RuntimeException("获取access_token失败: " + e.getMessage(), e);
         }
+        throw new BusinessException(OAuth2Enum.OAUTH2_CALLBACK_FAILED);
     }
 
     @Override
@@ -138,33 +180,52 @@ public class GitHubOAuth2ServiceImpl implements IGitHubOAuth2Service {
             } catch (Exception e) {
                 log.warn("获取GitHub用户信息失败，第{}次尝试: {}", i + 1, e.getMessage());
                 if (i == maxRetries - 1) {
-                    throw new RuntimeException("获取GitHub用户信息失败，已重试" + maxRetries + "次: " + e.getMessage(), e);
+                    throw new BusinessException(OAuth2Enum.OAUTH2_CALLBACK_FAILED);
                 }
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException ie) {
                     Thread.currentThread().interrupt();
-                    throw new RuntimeException("重试被中断", ie);
+                    throw new BusinessException(OAuth2Enum.OAUTH2_CALLBACK_FAILED);
                 }
             }
         }
-        throw new RuntimeException("获取GitHub用户信息失败");
+        throw new BusinessException(OAuth2Enum.OAUTH2_CALLBACK_FAILED);
     }
 
-    @Override
-    public SysUserInternalVO findOrCreateUser(Map<String, Object> githubUserInfo) {
+    /**
+     * 查找或创建用户并返回注册状态
+     */
+    private ThirdPartyLoginResultVO findOrCreateUserWithStatus(Map<String, Object> githubUserInfo) {
         Map<String, String> userInfo = GitHubUserInfoUtil.extractUserInfo(githubUserInfo);
         String githubId = userInfo.get("githubId");
         String username = userInfo.get("username");
         String email = userInfo.get("email");
         String name = userInfo.get("name");
         String avatarUrl = userInfo.get("avatarUrl");
-        Result<SysUserInternalVO> result = sysUserClient.findOrCreateByThirdParty("github", githubId, username, email, name, avatarUrl);
-        if (result.isSuccess() && result.getData() != null) {
-            return result.getData();
-        } else {
-            throw new RuntimeException("查找或创建用户失败: " + result.getMessage());
+        try {
+            Result<ThirdPartyLoginResultVO> result = sysUserClient.findOrCreateByThirdParty("github", githubId, username, email, name, avatarUrl);
+            log.info("Feign 调用结果: success={}, message={}", result.isSuccess(), result.getMessage());
+            
+            if (result.isSuccess() && result.getData() != null) {
+                ThirdPartyLoginResultVO loginResult = result.getData();
+                log.info("用户查找/创建成功: userId={}, username={}, isNewUser={}, currentStep={}", 
+                        loginResult.getUser().getId(), loginResult.getUser().getUsername(), 
+                        loginResult.getIsNewUser(), loginResult.getCurrentStep());
+                return loginResult;
+            } else {
+                log.error("查找或创建用户失败: success={}, message={}, code={}", 
+                        result.isSuccess(), result.getMessage(), result.getCode());
+                throw new BusinessException(OAuth2Enum.OAUTH2_CALLBACK_FAILED);
+            }
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Feign 调用异常: {}", e.getMessage(), e);
+            throw new BusinessException(OAuth2Enum.OAUTH2_CALLBACK_FAILED);
         }
     }
 }
+
+
 

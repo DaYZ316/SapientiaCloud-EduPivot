@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.dayz.sapientiacloud_edupivot.system.common.entity.BaseEntity;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -67,4 +68,12 @@ public class SysUser extends BaseEntity implements Serializable {
     @TableField("last_login_time")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime lastLoginTime;
+
+    @Schema(name = "githubId", description = "GitHub用户ID")
+    @TableField("github_id")
+    private String githubId;
+
+    @Schema(name = "wechatId", description = "微信OpenID")
+    @TableField("wechat_id")
+    private String wechatId;
 }

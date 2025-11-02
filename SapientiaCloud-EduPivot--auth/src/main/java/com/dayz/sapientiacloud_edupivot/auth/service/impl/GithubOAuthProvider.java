@@ -1,7 +1,10 @@
-package com.dayz.sapientiacloud_edupivot.auth.service.provider;
+package com.dayz.sapientiacloud_edupivot.auth.service.impl;
 
+import com.dayz.sapientiacloud_edupivot.auth.enums.OAuth2Enum;
+import com.dayz.sapientiacloud_edupivot.auth.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.auth.result.Result;
 import com.dayz.sapientiacloud_edupivot.auth.service.IGitHubOAuth2Service;
+import com.dayz.sapientiacloud_edupivot.auth.service.OAuthProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -32,7 +35,11 @@ public class GithubOAuthProvider implements OAuthProvider {
         if (result != null && result.isSuccess()) {
             return result.getData();
         }
-        throw new IllegalStateException(result == null ? "GitHub 登录失败" : result.getMessage());
+        // 如果result有具体的错误码和消息，使用它们；否则使用通用的OAuth2回调失败错误
+        if (result != null && result.getCode() != 0) {
+            throw new BusinessException(result.getCode(), result.getMessage());
+        }
+        throw new BusinessException(OAuth2Enum.OAUTH2_CALLBACK_FAILED);
     }
 }
 

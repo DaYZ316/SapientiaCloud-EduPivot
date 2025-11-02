@@ -1,8 +1,10 @@
 package com.dayz.sapientiacloud_edupivot.auth.controller;
 
+import com.dayz.sapientiacloud_edupivot.auth.entity.dto.BindMobileDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SendVerificationCodeDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserLoginDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserMobileLoginDTO;
+import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserMobilePasswordDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserPasswordDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserRegisterDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysUserInternalVO;
@@ -73,6 +75,12 @@ public class AuthController {
         return Result.success(authService.updatePassword(request, sysUserPasswordDTO));
     }
 
+    @PutMapping("/mobile-password")
+    @Operation(summary = "updatePasswordByMobile", description = "通过手机验证码修改密码")
+    public Result<Boolean> updatePasswordByMobile(@Valid @RequestBody SysUserMobilePasswordDTO sysUserMobilePasswordDTO) {
+        return Result.success(authService.updatePasswordByMobile(sysUserMobilePasswordDTO));
+    }
+
     @PostMapping("/send-code")
     @Operation(summary = "sendVerificationCode", description = "发送手机验证码")
     public Result<Boolean> sendVerificationCode(@Valid @RequestBody SendVerificationCodeDTO sendVerificationCodeDTO) {
@@ -85,6 +93,20 @@ public class AuthController {
     public Result<Boolean> checkUsername(@RequestParam("username") String username) {
         Boolean available = authService.checkUsernameAvailable(username);
         return Result.success(available);
+    }
+
+    @GetMapping("/check-mobile")
+    @Operation(summary = "checkMobile", description = "检查手机号是否可用")
+    public Result<Boolean> checkMobile(@RequestParam("mobile") String mobile) {
+        Boolean available = authService.checkMobileAvailable(mobile);
+        return Result.success(available);
+    }
+
+    @PostMapping("/bind-mobile")
+    @Operation(summary = "bindMobile", description = "绑定手机号（验证码校验成功后更新用户手机号，支持通过userId参数或当前登录用户）")
+    public Result<Boolean> bindMobile(@Valid @RequestBody BindMobileDTO bindMobileDTO) {
+        Boolean result = authService.bindMobile(bindMobileDTO);
+        return Result.success(result);
     }
     
 }

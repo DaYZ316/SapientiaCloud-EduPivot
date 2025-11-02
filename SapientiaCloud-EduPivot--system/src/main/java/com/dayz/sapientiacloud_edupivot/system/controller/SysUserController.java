@@ -138,4 +138,16 @@ public class SysUserController extends BaseController {
     public Result<SysUserInternalVO> mobileLogin(@Valid @RequestBody SysUserMobileLoginDTO mobileLoginDTO) {
         return Result.success(sysUserService.mobileLogin(mobileLoginDTO));
     }
+
+    @HasPermission(
+            summary = "resetPassword",
+            description = "重置指定用户的密码为123456",
+            permission = PermissionConstants.USER_EDIT
+    )
+    @PutMapping("/{id}/reset-password")
+    public Result<Boolean> resetPassword(
+            @Parameter(name = "id", description = "用户ID", required = true) @PathVariable("id") UUID id
+    ) {
+        return Result.success(sysUserService.resetPassword(id));
+    }
 }

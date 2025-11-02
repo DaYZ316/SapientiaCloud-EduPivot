@@ -2,6 +2,7 @@ package com.dayz.sapientiacloud_edupivot.auth.entity.po;
 
 import com.dayz.sapientiacloud_edupivot.auth.entity.base.BaseEntity;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -5,6 +5,7 @@ import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserQueryDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.po.SysUser;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysUserVO;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -14,4 +15,10 @@ public interface SysUserMapper extends BaseMapper<SysUser> {
     List<SysUserVO> listSysUser(SysUserQueryDTO sysUserQueryDTO);
 
     SysUser selectByUsername(String username);
+
+    SysUser selectByGithubId(String githubId);
+
+    SysUser selectByWechatId(String wechatId);
+
+    SysUser selectByThirdPartyId(@Param("provider") String provider, @Param("providerId") String providerId);
 }

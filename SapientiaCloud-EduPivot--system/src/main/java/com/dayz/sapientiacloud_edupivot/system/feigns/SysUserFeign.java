@@ -9,6 +9,7 @@ import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysPermissionVO;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysRoleVO;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysUserInternalVO;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysUserVO;
+import com.dayz.sapientiacloud_edupivot.system.entity.vo.ThirdPartyLoginResultVO;
 import com.dayz.sapientiacloud_edupivot.system.service.ISysUserService;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -109,11 +110,23 @@ public class SysUserFeign {
     }
 
     @HasPermission(
+            summary = "updatePasswordByUserId",
+            description = "通过用户ID更新密码"
+    )
+    @PutMapping("/internal/password/{userId}")
+    public Result<Boolean> updatePasswordByUserId(
+            @Parameter(name = "userId", description = "用户ID", required = true) @PathVariable("userId") UUID userId,
+            @Parameter(name = "newPassword", description = "新密码", required = true) @RequestParam("newPassword") String newPassword
+    ) {
+        return Result.success(sysUserService.updatePasswordByUserId(userId, newPassword));
+    }
+
+    @HasPermission(
             summary = "findOrCreateByThirdParty",
-            description = "通过第三方账号查找或创建用户"
+            description = "通过第三方账号查找或创建用户，返回注册状态"
     )
     @GetMapping("/internal/third-party/find-or-create")
-    public Result<SysUserInternalVO> findOrCreateByThirdParty(
+    public Result<ThirdPartyLoginResultVO> findOrCreateByThirdParty(
             @RequestParam("provider") String provider,
             @RequestParam("providerId") String providerId,
             @RequestParam("username") String username,
@@ -134,6 +147,21 @@ public class SysUserFeign {
             @RequestParam("username") String username
     ) {
         Boolean available = sysUserService.isUsernameAvailable(username);
+        return Result.success(available);
+    }
+
+    @HasPermission(
+            summary = "checkMobileAvailable",
+            description = "检查手机号是否可用"
+    )
+    @GetMapping("/internal/check-mobile")
+    public Result<Boolean> checkMobileAvailable(
+            @Parameter(name = "mobile", description = "手机号", required = true) 
+            @RequestParam("mobile") String mobile
+    ) {
+        Boolean exists = sysUserService.isMobileExists(mobile);
+        // isMobileExists 返回 true 表示已被使用，所以 available = !exists
+        Boolean available = !exists;
         return Result.success(available);
     }
 }
