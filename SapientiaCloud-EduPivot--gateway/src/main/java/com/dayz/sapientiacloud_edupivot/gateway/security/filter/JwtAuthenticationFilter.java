@@ -40,6 +40,7 @@ public class JwtAuthenticationFilter implements WebFilter {
             "/api/auth/check-mobile",
             "/api/auth/bind-mobile",
             "/api/auth/github/**",
+            "/api/auth/oauth2/**",
             "/github/**",
             "/oauth2/**",
             "/login/oauth2/**",

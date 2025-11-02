@@ -31,7 +31,6 @@ public class SysUser extends BaseEntity implements Serializable {
     private String username;
 
     @Schema(name = "password", description = "密码", hidden = true)
-    @JsonIgnore
     private String password;
 
     @Schema(name = "nickName", description = "用户昵称")
