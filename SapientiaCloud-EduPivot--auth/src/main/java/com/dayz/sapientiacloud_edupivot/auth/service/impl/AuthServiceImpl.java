@@ -1,6 +1,7 @@
 package com.dayz.sapientiacloud_edupivot.auth.service.impl;
 
 import com.dayz.sapientiacloud_edupivot.auth.clients.SysUserClient;
+import com.dayz.sapientiacloud_edupivot.auth.entity.dto.BindMobileDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserLoginDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserMobileLoginDTO;
@@ -262,6 +263,106 @@ public class AuthServiceImpl implements AuthService {
         
         Boolean available = result.getData();
         return available != null && available;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Boolean checkMobileAvailable(String mobile) {
+        if (!StringUtils.hasText(mobile)) {
+            return false;
+        }
+        
+        // 手机号格式校验：11位数字，以1开头
+        if (!mobile.matches("^1[3-9]\\d{9}$")) {
+            return false;
+        }
+        
+        // 调用 system 模块检查手机号是否可用
+        Result<Boolean> result = sysUserClient.checkMobileAvailable(mobile);
+        if (result == null || !result.isSuccess()) {
+            // 如果调用失败，为了安全起见，返回 false（不可用）
+            return false;
+        }
+        
+        Boolean available = result.getData();
+        return available != null && available;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Boolean bindMobile(BindMobileDTO bindMobileDTO) {
+        if (bindMobileDTO == null) {
+            throw new BusinessException(SysUserEnum.DATA_CANNOT_BE_EMPTY);
+        }
+        if (!StringUtils.hasText(bindMobileDTO.getMobile())) {
+            throw new BusinessException(SysUserEnum.PHONE_NUMBER_CANNOT_BE_EMPTY);
+        }
+        if (!StringUtils.hasText(bindMobileDTO.getVerificationCode())) {
+            throw new BusinessException(SysUserEnum.VERIFICATION_CODE_CANNOT_BE_EMPTY);
+        }
+
+        // 第一步：先校验验证码（安全设计规范：验证码校验必须在最前面）
+        verificationCodeService.verifyCode(
+            bindMobileDTO.getMobile(),
+            bindMobileDTO.getVerificationCode()
+        );
+
+        // 第二步：获取目标用户信息（支持通过userId或当前登录用户）
+        SysUserInternalVO targetUser = null;
+        
+        if (bindMobileDTO.getUserId() != null) {
+            // 如果提供了userId，通过userId获取用户信息（用于第三方登录场景）
+            Result<SysUserInternalVO> userResult = sysUserClient.getUserInfoById(bindMobileDTO.getUserId());
+            if (userResult == null || !userResult.isSuccess() || userResult.getData() == null) {
+                throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
+            }
+            targetUser = userResult.getData();
+        } else {
+            // 如果没有提供userId，尝试从当前登录用户获取（兼容原有逻辑）
+            try {
+                targetUser = UserContextUtil.getCurrentUser();
+            } catch (Exception e) {
+                // 如果获取当前用户失败，说明用户未登录且未提供userId
+                throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
+            }
+        }
+
+        if (targetUser == null) {
+            throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
+        }
+
+        // 第三步：如果目标用户已经绑定该手机号，直接返回成功
+        if (StringUtils.hasText(targetUser.getMobile()) && targetUser.getMobile().equals(bindMobileDTO.getMobile())) {
+            return true;
+        }
+
+        // 第四步：检查手机号是否已被其他用户使用
+        Result<Boolean> checkResult = sysUserClient.checkMobileAvailable(bindMobileDTO.getMobile());
+        if (checkResult == null || !checkResult.isSuccess()) {
+            throw new BusinessException(SysUserEnum.USER_SERVICE_ERROR);
+        }
+        Boolean available = checkResult.getData();
+        if (available == null || !available) {
+            throw new BusinessException(SysUserEnum.PHONE_NUMBER_ALREADY_EXISTS);
+        }
+
+        // 第五步：构建更新DTO（保留其他信息，只更新手机号）
+        SysUserDTO sysUserDTO = new SysUserDTO();
+        BeanUtils.copyProperties(targetUser, sysUserDTO);
+        sysUserDTO.setMobile(bindMobileDTO.getMobile());
+
+        // 第六步：调用system模块更新用户手机号
+        Result<Boolean> updateResult = sysUserClient.updateUserInternal(sysUserDTO);
+        if (updateResult == null || !updateResult.isSuccess()) {
+            throw new BusinessException(SysUserEnum.USER_SERVICE_ERROR);
+        }
+
+        Boolean updateSuccess = updateResult.getData();
+        if (updateSuccess == null || !updateSuccess) {
+            throw new BusinessException(SysUserEnum.USER_SERVICE_ERROR);
+        }
+
+        return true;
     }
 
     private boolean processLogout(String token) {

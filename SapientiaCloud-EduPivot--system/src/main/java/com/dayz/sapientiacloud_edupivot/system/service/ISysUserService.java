@@ -5,6 +5,7 @@ import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysPermissionVO;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysRoleVO;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysUserInternalVO;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysUserVO;
+import com.dayz.sapientiacloud_edupivot.system.entity.vo.ThirdPartyLoginResultVO;
 import com.github.pagehelper.PageInfo;
 
 import java.util.List;
@@ -48,5 +49,5 @@ public interface ISysUserService {
 
     SysUserInternalVO mobileLogin(SysUserMobileLoginDTO mobileLoginDTO);
 
-    SysUserInternalVO findOrCreateByThirdParty(String provider, String providerId, String username, String email, String name, String avatarUrl);
+    ThirdPartyLoginResultVO findOrCreateByThirdParty(String provider, String providerId, String username, String email, String name, String avatarUrl);
 }

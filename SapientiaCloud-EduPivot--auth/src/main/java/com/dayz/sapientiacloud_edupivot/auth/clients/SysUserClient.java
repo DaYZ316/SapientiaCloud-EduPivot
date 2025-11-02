@@ -7,6 +7,7 @@ import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserPasswordDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserRegisterDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysRoleVO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysUserInternalVO;
+import com.dayz.sapientiacloud_edupivot.auth.entity.vo.ThirdPartyLoginResultVO;
 import com.dayz.sapientiacloud_edupivot.auth.result.Result;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +20,9 @@ public interface SysUserClient {
 
     @GetMapping("/internal/info/{username}")
     Result<SysUserInternalVO> getUserInfoByUsername(@PathVariable("username") String username);
+
+    @GetMapping("/internal/info/id/{userId}")
+    Result<SysUserInternalVO> getUserInfoById(@PathVariable("userId") UUID userId);
 
     @GetMapping("/internal/{userId}/role")
     Result<List<SysRoleVO>> getUserRoles(@PathVariable("userId") UUID userId);
@@ -36,7 +40,7 @@ public interface SysUserClient {
     Result<SysUserInternalVO> mobileLogin(@RequestBody SysUserMobileLoginDTO mobileLoginDTO);
 
     @GetMapping("/internal/third-party/find-or-create")
-    Result<SysUserInternalVO> findOrCreateByThirdParty(
+    Result<ThirdPartyLoginResultVO> findOrCreateByThirdParty(
             @RequestParam("provider") String provider,
             @RequestParam("providerId") String providerId,
             @RequestParam("username") String username,
@@ -47,4 +51,7 @@ public interface SysUserClient {
 
     @GetMapping("/internal/check-username")
     Result<Boolean> checkUsernameAvailable(@RequestParam("username") String username);
+
+    @GetMapping("/internal/check-mobile")
+    Result<Boolean> checkMobileAvailable(@RequestParam("mobile") String mobile);
 }

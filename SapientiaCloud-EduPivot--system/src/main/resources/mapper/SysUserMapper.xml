@@ -4,6 +4,7 @@
 
     <resultMap id="SysUser" type="com.dayz.sapientiacloud_edupivot.system.entity.po.SysUser">
         <id column="id" property="id"/>
+        <result column="is_deleted" property="deleted"/>
     </resultMap>
 
     <select id="listSysUser" resultType="com.dayz.sapientiacloud_edupivot.system.entity.vo.SysUserVO">
@@ -52,6 +53,38 @@
         FROM sys_user
         <where>
             username = #{username}
+            AND is_deleted = 0
+        </where>
+    </select>
+
+    <select id="selectByGithubId" resultMap="SysUser">
+        SELECT *
+        FROM sys_user
+        <where>
+            github_id = #{githubId}
+            AND is_deleted = 0
+        </where>
+    </select>
+
+    <select id="selectByWechatId" resultMap="SysUser">
+        SELECT *
+        FROM sys_user
+        <where>
+            wechat_id = #{wechatId}
+            AND is_deleted = 0
+        </where>
+    </select>
+
+    <select id="selectByThirdPartyId" resultMap="SysUser">
+        SELECT *
+        FROM sys_user
+        <where>
+            <if test="provider == 'github'">
+                github_id = #{providerId}
+            </if>
+            <if test="provider == 'wechat'">
+                wechat_id = #{providerId}
+            </if>
             AND is_deleted = 0
         </where>
     </select>

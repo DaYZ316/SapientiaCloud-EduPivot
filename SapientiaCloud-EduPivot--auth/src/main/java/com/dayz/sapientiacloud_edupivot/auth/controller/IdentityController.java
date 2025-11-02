@@ -1,6 +1,7 @@
 package com.dayz.sapientiacloud_edupivot.auth.controller;
 
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SelectIdentityDTO;
+import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysUserLoginVO;
 import com.dayz.sapientiacloud_edupivot.auth.result.Result;
 import com.dayz.sapientiacloud_edupivot.auth.service.IdentityService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -21,9 +22,9 @@ public class IdentityController {
     private final IdentityService identityService;
 
     @PostMapping("/select")
-    @Operation(summary = "selectIdentity", description = "选择身份并创建对应的学生或教师记录")
-    public Result<Boolean> selectIdentity(@Valid @RequestBody SelectIdentityDTO selectIdentityDTO) {
-        Boolean result = identityService.selectIdentity(selectIdentityDTO);
+    @Operation(summary = "selectIdentity", description = "选择身份并创建对应的学生或教师记录，完成后返回token")
+    public Result<SysUserLoginVO> selectIdentity(@Valid @RequestBody SelectIdentityDTO selectIdentityDTO) {
+        SysUserLoginVO result = identityService.selectIdentity(selectIdentityDTO);
         return Result.success(result);
     }
 }

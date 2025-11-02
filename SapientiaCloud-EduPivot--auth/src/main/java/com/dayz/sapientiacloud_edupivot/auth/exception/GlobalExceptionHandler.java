@@ -1,5 +1,6 @@
 package com.dayz.sapientiacloud_edupivot.auth.exception;
 
+import com.dayz.sapientiacloud_edupivot.auth.enums.OAuth2Enum;
 import com.dayz.sapientiacloud_edupivot.auth.enums.ResultEnum;
 import com.dayz.sapientiacloud_edupivot.auth.enums.SysUserEnum;
 import com.dayz.sapientiacloud_edupivot.auth.result.Result;
@@ -18,10 +19,24 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BusinessException.class)
     public Result<Void> handleBusinessException(BusinessException e) {
         log.error("业务异常: {}", e.getMessage());
+        // 如果BusinessException已经包含code和message，直接使用
+        if (e.getCode() != ResultEnum.FAIL.getCode() || !Objects.equals(e.getMessage(), ResultEnum.FAIL.getMessage())) {
+            return Result.fail(e.getCode(), e.getMessage());
+        }
+        
+        // 尝试匹配SysUserEnum
         SysUserEnum sysUserEnum = EnumUtil.getByAttribute(SysUserEnum.class, e.getMessage(), SysUserEnum::getMessage);
         if (sysUserEnum != null) {
             return Result.fail(sysUserEnum.getMessage());
         }
+        
+        // 尝试匹配OAuth2Enum
+        OAuth2Enum oAuth2Enum = EnumUtil.getByAttribute(OAuth2Enum.class, e.getMessage(), OAuth2Enum::getMessage);
+        if (oAuth2Enum != null) {
+            return Result.fail(oAuth2Enum.getCode(), oAuth2Enum.getMessage());
+        }
+        
+        // 尝试匹配ResultEnum
         ResultEnum resultEnum = EnumUtil.getByAttribute(ResultEnum.class, e.getMessage(), ResultEnum::getMessage);
         return Result.fail(Objects.requireNonNullElse(resultEnum, ResultEnum.SYSTEM_ERROR));
     }

@@ -17,11 +17,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.filter.CorsFilter;
-
-import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
@@ -41,9 +36,9 @@ public class SecurityConfig {
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .logout(AbstractHttpConfigurer::disable)
-                // 为了OAuth2流程，暂时允许会话状态
+                .oauth2Login(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(
@@ -52,13 +47,14 @@ public class SecurityConfig {
                             "/validate",
                             "/register",
                             "/send-code",
+                            "/check-username",
+                            "/check-mobile",
+                            "/bind-mobile",
                             "/api/auth/**",
                             "/v3/api-docs/**",
                             "/doc.html",
                             "/webjars/**",
-                            "/oauth2/**",
-                            "/login/oauth2/**",
-                            "/oauth2/authorization/**"
+                            "/oauth2/**"
                         ).permitAll()
                         // 允许OPTIONS请求
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
