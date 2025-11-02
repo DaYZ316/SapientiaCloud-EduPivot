@@ -46,7 +46,8 @@ public class JwtAuthenticationFilter implements WebFilter {
             "/api/*/v3/api-docs/**",
             "/v3/api-docs/**",
             "/doc.html",
-            "/webjars/**"
+            "/webjars/**",
+            "/favicon.ico"
     };
     private final JwtUtil jwtUtil;
 
