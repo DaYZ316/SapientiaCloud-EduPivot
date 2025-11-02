@@ -32,7 +32,7 @@ public class FeignConfig {
                 // 添加Feign标识头
                 requestTemplate.header(FEIGN_REQUEST_HEADER, "true");
 
-                // 添加用户信息到请求头
+                // 添加用户信息到请求头（可选，失败不影响请求）
                 try {
                     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
                     if (authentication != null && authentication.isAuthenticated()) {
@@ -43,7 +43,8 @@ public class FeignConfig {
                                 requestTemplate.header(X_USER_ID, userId.toString());
                             }
                         } catch (Exception e) {
-                            log.debug("获取用户ID失败: {}", e.getMessage());
+                            // 静默失败，这是正常的（如 OAuth2 回调时用户还未登录）
+                            log.debug("Feign 请求添加用户ID失败（可忽略）: {}", e.getMessage());
                         }
 
                         // 获取当前用户名
@@ -53,7 +54,7 @@ public class FeignConfig {
                                 requestTemplate.header(X_USER_NAME, username);
                             }
                         } catch (Exception e) {
-                            log.debug("获取用户名失败: {}", e.getMessage());
+                            log.debug("Feign 请求添加用户名失败（可忽略）: {}", e.getMessage());
                         }
 
                         // 获取当前用户角色
@@ -63,13 +64,13 @@ public class FeignConfig {
                                 requestTemplate.header(X_USER_ROLES, String.join(",", roles));
                             }
                         } catch (Exception e) {
-                            log.debug("获取用户角色失败: {}", e.getMessage());
+                            log.debug("Feign 请求添加用户角色失败（可忽略）: {}", e.getMessage());
                         }
-
-                        log.debug("Feign请求添加用户信息请求头成功");
+                    } else {
+                        log.debug("Feign 请求时用户未认证（这是正常的，如 OAuth2 回调）");
                     }
                 } catch (Exception e) {
-                    log.warn("添加用户信息到Feign请求头失败: {}", e.getMessage());
+                    log.debug("Feign 请求添加用户信息失败（可忽略）: {}", e.getMessage());
                 }
             }
         };

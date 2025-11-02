@@ -14,6 +14,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.util.Arrays;
 
 /**
@@ -42,6 +44,11 @@ public class WebConfig {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(30000);
         factory.setReadTimeout(30000);
+        
+        // 配置代理：端口7890，通常用于本地代理服务（如Clash、V2Ray等）
+        Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("localhost", 7890));
+        factory.setProxy(proxy);
+        log.info("已配置OAuth请求代理: localhost:7890");
 
         RestTemplate restTemplate = new RestTemplate(factory);
 
