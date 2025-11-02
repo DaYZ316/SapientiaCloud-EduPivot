@@ -205,11 +205,11 @@ public class GitHubOAuth2ServiceImpl implements IGitHubOAuth2Service {
         String avatarUrl = userInfo.get("avatarUrl");
         try {
             Result<ThirdPartyLoginResultVO> result = sysUserClient.findOrCreateByThirdParty("github", githubId, username, email, name, avatarUrl);
-            log.info("Feign 调用结果: success={}, message={}", result.isSuccess(), result.getMessage());
+            log.debug("Feign 调用结果: success={}, message={}", result.isSuccess(), result.getMessage());
             
             if (result.isSuccess() && result.getData() != null) {
                 ThirdPartyLoginResultVO loginResult = result.getData();
-                log.info("用户查找/创建成功: userId={}, username={}, isNewUser={}, currentStep={}", 
+                log.debug("用户查找/创建成功: userId={}, username={}, isNewUser={}, currentStep={}", 
                         loginResult.getUser().getId(), loginResult.getUser().getUsername(), 
                         loginResult.getIsNewUser(), loginResult.getCurrentStep());
                 return loginResult;

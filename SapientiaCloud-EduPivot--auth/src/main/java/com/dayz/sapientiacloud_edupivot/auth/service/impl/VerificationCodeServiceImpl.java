@@ -103,7 +103,7 @@ public class VerificationCodeServiceImpl implements VerificationCodeService {
         try {
             // TODO: 集成阿里云短信服务
             // 这里暂时只存储到Redis，实际生产环境需要调用阿里云短信API发送
-            log.info("发送短信验证码到手机号: {}, 验证码: {}", mobile, code);
+            log.debug("发送短信验证码到手机号: {}, 验证码: {}", mobile, code);
             
             // 存储验证码到Redis，设置过期时间
             String key = SMS_CODE_PREFIX + mobile;

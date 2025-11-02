@@ -4,7 +4,7 @@ import com.dayz.sapientiacloud_edupivot.auth.enums.OAuth2Enum;
 import com.dayz.sapientiacloud_edupivot.auth.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.auth.result.Result;
 import com.dayz.sapientiacloud_edupivot.auth.service.OAuth2StateService;
-import com.dayz.sapientiacloud_edupivot.auth.service.OAuthProvider;
+import com.dayz.sapientiacloud_edupivot.auth.provider.OAuthProvider;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;

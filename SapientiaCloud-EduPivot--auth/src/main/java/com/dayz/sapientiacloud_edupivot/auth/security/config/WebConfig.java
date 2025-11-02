@@ -25,6 +25,9 @@ import java.util.Arrays;
 @Slf4j
 public class WebConfig {
 
+    private static final String IP = "localhost";
+    private static final int PORT = 7890;
+
     @Bean
     public CorsFilter corsFilter() {
         CorsConfiguration corsConfig = new CorsConfiguration();
@@ -44,11 +47,9 @@ public class WebConfig {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(30000);
         factory.setReadTimeout(30000);
-        
-        // 配置代理：端口7890，通常用于本地代理服务（如Clash、V2Ray等）
-        Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("localhost", 7890));
+
+        Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(IP, PORT));
         factory.setProxy(proxy);
-        log.info("已配置OAuth请求代理: localhost:7890");
 
         RestTemplate restTemplate = new RestTemplate(factory);
 

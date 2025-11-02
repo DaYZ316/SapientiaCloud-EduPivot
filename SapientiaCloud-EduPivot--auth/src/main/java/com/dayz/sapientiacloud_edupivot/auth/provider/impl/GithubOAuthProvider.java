@@ -1,10 +1,10 @@
-package com.dayz.sapientiacloud_edupivot.auth.service.impl;
+package com.dayz.sapientiacloud_edupivot.auth.provider.impl;
 
 import com.dayz.sapientiacloud_edupivot.auth.enums.OAuth2Enum;
 import com.dayz.sapientiacloud_edupivot.auth.exception.BusinessException;
+import com.dayz.sapientiacloud_edupivot.auth.provider.OAuthProvider;
 import com.dayz.sapientiacloud_edupivot.auth.result.Result;
 import com.dayz.sapientiacloud_edupivot.auth.service.IGitHubOAuth2Service;
-import com.dayz.sapientiacloud_edupivot.auth.service.OAuthProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

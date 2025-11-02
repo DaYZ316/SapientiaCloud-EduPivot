@@ -80,10 +80,6 @@ public class QuestionAddDTO implements Serializable {
     @Max(value = 2, message = "题目状态输入不正确")
     private Integer status;
 
-    @Schema(name = "questionAnswerDTO", description = "题目答案")
-    @Valid
-    private QuestionAnswerDTO questionAnswerDTO;
-
     @Schema(name = "options", description = "选项列表 (选择题、判断题使用)")
     @Valid
     private List<QuestionOptionDTO> options;

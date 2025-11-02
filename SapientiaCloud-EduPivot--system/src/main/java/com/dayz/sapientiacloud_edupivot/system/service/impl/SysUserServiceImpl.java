@@ -611,9 +611,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             if (StringUtils.hasText(username) && !Objects.equals(existingUser.getUsername(), username)) {
                 // 检查新用户名是否已被其他用户使用
                 SysUser userByUsername = sysUserMapper.selectByUsername(username);
-                if (userByUsername != null && !userByUsername.getId().equals(existingUser.getId())) {
-                    throw new BusinessException(SysUserEnum.USERNAME_ALREADY_EXISTS);
-                } else {
+                if (userByUsername == null || userByUsername.getId().equals(existingUser.getId())) {
                     existingUser.setUsername(username);
                     needUpdate = true;
                 }
@@ -671,12 +669,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             log.error("用户保存失败: userId={}, username={}", newUser.getId(), finalUsername);
             throw new BusinessException("创建第三方用户失败");
         }
-        log.info("用户保存成功: userId={}, username={}", newUser.getId(), finalUsername);
-
-        // 为新用户分配学生角色
-        assignStudentRoleToUser(newUser.getId());
-
-        log.info("第三方用户创建完成: userId={}, username={}", newUser.getId(), finalUsername);
+        log.debug("用户保存成功: userId={}, username={}", newUser.getId(), finalUsername);
         
         // 构建返回结果
         return buildThirdPartyLoginResult(newUser, true);
@@ -732,7 +725,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
                 .currentStep(currentStep)
                 .build();
         
-        log.info("第三方登录结果构建完成: userId={}, isNewUser={}, currentStep={}", 
+        log.debug("第三方登录结果构建完成: userId={}, isNewUser={}, currentStep={}", 
                 user.getId(), isNewUser, currentStep);
         
         return result;

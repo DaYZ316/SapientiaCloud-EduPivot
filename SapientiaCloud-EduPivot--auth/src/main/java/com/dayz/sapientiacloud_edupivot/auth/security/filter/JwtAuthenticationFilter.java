@@ -37,17 +37,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private static final String[] WHITELIST = {
             "/login",
+            "/mobile-login",
             "/validate",
             "/register",
             "/send-code",
             "/check-username",
             "/check-mobile",
+            "/bind-mobile",
+            "/oauth2/**",
+            "/api/auth/**",
+            "/v3/api-docs/**",
             "/doc.html",
             "/webjars/**",
-            "/v3/api-docs",
-            "/v3/api-docs/**",
-            "/api/auth/**",
-            "/mobile-login"
+            "/oauth2/**"
     };
     private final JwtUtil jwtUtil;
     private final SysUserClient sysUserClient;
