@@ -1,6 +1,8 @@
 package com.dayz.sapientiacloud_edupivot.auth.provider.impl;
 
+import com.dayz.sapientiacloud_edupivot.auth.constant.OAuth2Constants;
 import com.dayz.sapientiacloud_edupivot.auth.enums.OAuth2Enum;
+import com.dayz.sapientiacloud_edupivot.auth.entity.vo.OAuth2CallbackResultDTO;
 import com.dayz.sapientiacloud_edupivot.auth.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.auth.provider.OAuthProvider;
 import com.dayz.sapientiacloud_edupivot.auth.result.Result;
@@ -8,12 +10,10 @@ import com.dayz.sapientiacloud_edupivot.auth.service.IGitHubOAuth2Service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.util.Map;
-
 /**
  * GitHub 登录提供方实现。
  */
-@Component("github")
+@Component(OAuth2Constants.PROVIDER_GITHUB)
 @RequiredArgsConstructor
 public class GithubOAuthProvider implements OAuthProvider {
 
@@ -21,7 +21,7 @@ public class GithubOAuthProvider implements OAuthProvider {
 
     @Override
     public String getProviderId() {
-        return "github";
+        return OAuth2Constants.PROVIDER_GITHUB;
     }
 
     @Override
@@ -30,12 +30,11 @@ public class GithubOAuthProvider implements OAuthProvider {
     }
 
     @Override
-    public Map<String, Object> handleCallback(String code, String state) {
-        Result<Map<String, Object>> result = gitHubOAuth2Service.handleOAuthCallback(code, state);
-        if (result != null && result.isSuccess()) {
+    public OAuth2CallbackResultDTO handleCallback(String code, String state) {
+        Result<OAuth2CallbackResultDTO> result = gitHubOAuth2Service.handleOAuthCallback(code, state);
+        if (result != null && result.isSuccess() && result.getData() != null) {
             return result.getData();
         }
-        // 如果result有具体的错误码和消息，使用它们；否则使用通用的OAuth2回调失败错误
         if (result != null && result.getCode() != 0) {
             throw new BusinessException(result.getCode(), result.getMessage());
         }

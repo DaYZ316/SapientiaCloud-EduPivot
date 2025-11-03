@@ -1,12 +1,12 @@
 package com.dayz.sapientiacloud_edupivot.auth.security.utils;
 
+import com.dayz.sapientiacloud_edupivot.auth.constant.OAuth2Constants;
+import com.dayz.sapientiacloud_edupivot.auth.enums.OAuth2Enum;
 import com.dayz.sapientiacloud_edupivot.auth.exception.BusinessException;
 
 import java.util.Map;
 
-/**
- * GitHub用户信息提取工具类
- */
+
 public class GitHubUserInfoUtil {
 
     /**
@@ -16,23 +16,26 @@ public class GitHubUserInfoUtil {
      * @return GitHub用户信息Map，包含githubId, username, email, name, avatarUrl
      */
     public static Map<String, String> extractUserInfo(Map<String, Object> attributes) {
-        String githubId = String.valueOf(attributes.get("id"));
-        String username = (String) attributes.get("login");
-        String email = (String) attributes.get("email");
-        String name = (String) attributes.get("name");
-        String avatarUrl = (String) attributes.get("avatar_url");
+        if (attributes == null || attributes.isEmpty()) {
+            throw new BusinessException(OAuth2Enum.OAUTH2_USER_INFO_INVALID);
+        }
 
-        // 确保username不为空
+        String githubId = String.valueOf(attributes.get(OAuth2Constants.GITHUB_API_USER_ID));
+        String username = (String) attributes.get(OAuth2Constants.GITHUB_API_USER_LOGIN);
+        String email = (String) attributes.get(OAuth2Constants.GITHUB_API_USER_EMAIL);
+        String name = (String) attributes.get(OAuth2Constants.GITHUB_API_USER_NAME);
+        String avatarUrl = (String) attributes.get(OAuth2Constants.GITHUB_API_USER_AVATAR_URL);
+
         if (username == null || username.isEmpty()) {
-            throw new BusinessException("GitHub用户名获取失败");
+            throw new BusinessException(OAuth2Enum.OAUTH2_USER_INFO_INVALID);
         }
 
         return Map.of(
-                "githubId", githubId != null ? githubId : "",
-                "username", username,
-                "email", email != null ? email : "",
-                "name", name != null ? name : "",
-                "avatarUrl", avatarUrl != null ? avatarUrl : ""
+                OAuth2Constants.USER_INFO_GITHUB_ID, githubId != null ? githubId : "",
+                OAuth2Constants.USER_INFO_USERNAME, username,
+                OAuth2Constants.USER_INFO_EMAIL, email != null ? email : "",
+                OAuth2Constants.USER_INFO_NAME, name != null ? name : "",
+                OAuth2Constants.USER_INFO_AVATAR_URL, avatarUrl != null ? avatarUrl : ""
         );
     }
 
