@@ -16,7 +16,6 @@ public class SelectIdentityDTO implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @Schema(name = "identityType", description = "身份类型 (student=学生, teacher=教师)", example = "student", requiredMode = Schema.RequiredMode.REQUIRED)
-    @NotBlank(message = "身份类型不能为空")
     private String identityType;
 
     @Schema(name = "studentInfo", description = "学生信息（当身份类型为student时必填）")

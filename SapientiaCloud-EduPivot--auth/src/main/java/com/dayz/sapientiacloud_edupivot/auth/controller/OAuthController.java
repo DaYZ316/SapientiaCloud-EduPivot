@@ -1,5 +1,6 @@
 package com.dayz.sapientiacloud_edupivot.auth.controller;
 
+import com.dayz.sapientiacloud_edupivot.auth.entity.vo.OAuth2CallbackResultDTO;
 import com.dayz.sapientiacloud_edupivot.auth.enums.OAuth2Enum;
 import com.dayz.sapientiacloud_edupivot.auth.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.auth.result.Result;
@@ -51,12 +52,11 @@ public class OAuthController {
 
     @GetMapping("/callback/{provider}")
     @Operation(summary = "callback", description = "处理授权回调")
-    public Result<Map<String, Object>> callback(
+    public Result<OAuth2CallbackResultDTO> callback(
             @Parameter(name = "provider", description = "第三方登录提供商名称") @PathVariable("provider") String provider,
             @Parameter(name = "code", description = "授权码") @RequestParam("code") String code,
             @Parameter(name = "state", description = "状态参数") @RequestParam("state") String state) {
         
-        // 验证参数不为空
         if (!StringUtils.hasText(code)) {
             throw new BusinessException(OAuth2Enum.OAUTH2_CALLBACK_FAILED);
         }
@@ -64,14 +64,11 @@ public class OAuthController {
             throw new BusinessException(OAuth2Enum.STATE_INVALID);
         }
         
-        // 验证provider是否支持并获取OAuthProvider实例
         OAuthProvider oAuthProvider = resolveProvider(provider);
         
-        // 验证state参数（防止CSRF攻击）
         oAuth2StateService.validateState(state, provider);
         
-        // 处理回调
-        Map<String, Object> data = oAuthProvider.handleCallback(code, state);
+        OAuth2CallbackResultDTO data = oAuthProvider.handleCallback(code, state);
         
         log.debug("OAuth2回调处理成功: provider={}", provider);
         return Result.success(data);
