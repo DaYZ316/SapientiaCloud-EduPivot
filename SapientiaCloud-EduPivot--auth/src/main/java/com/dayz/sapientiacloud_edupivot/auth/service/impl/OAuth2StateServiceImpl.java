@@ -1,5 +1,6 @@
 package com.dayz.sapientiacloud_edupivot.auth.service.impl;
 
+import com.dayz.sapientiacloud_edupivot.auth.constant.OAuth2Constants;
 import com.dayz.sapientiacloud_edupivot.auth.enums.OAuth2Enum;
 import com.dayz.sapientiacloud_edupivot.auth.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.auth.service.OAuth2StateService;
@@ -22,16 +23,6 @@ public class OAuth2StateServiceImpl implements OAuth2StateService {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
-    /**
-     * Redis key前缀
-     */
-    private static final String STATE_KEY_PREFIX = "oauth2:state:";
-
-    /**
-     * State过期时间（分钟）
-     */
-    private static final int STATE_EXPIRE_MINUTES = 10;
-
     @Override
     public String generateAndStoreState(String provider) {
         if (!StringUtils.hasText(provider)) {
@@ -39,9 +30,8 @@ public class OAuth2StateServiceImpl implements OAuth2StateService {
         }
         String state = UuidCreator.getTimeOrderedEpoch().toString();
         
-        // 存储到Redis，key: oauth2:state:{state}, value: provider, 过期时间10分钟
-        String key = STATE_KEY_PREFIX + state;
-        redisTemplate.opsForValue().set(key, provider, STATE_EXPIRE_MINUTES, TimeUnit.MINUTES);
+        String key = OAuth2Constants.REDIS_STATE_KEY_PREFIX + state;
+        redisTemplate.opsForValue().set(key, provider, OAuth2Constants.STATE_EXPIRE_MINUTES, TimeUnit.MINUTES);
         
         log.debug("生成并存储OAuth2 state: provider={}, state={}", provider, state);
         
@@ -58,24 +48,22 @@ public class OAuth2StateServiceImpl implements OAuth2StateService {
             throw new BusinessException(OAuth2Enum.PROVIDER_NOT_SUPPORTED);
         }
 
-        String key = STATE_KEY_PREFIX + state;
-        Object storedProvider = redisTemplate.opsForValue().get(key);
+        String key = OAuth2Constants.REDIS_STATE_KEY_PREFIX + state;
         
-        // state不存在或已过期
+        Object storedProvider = redisTemplate.opsForValue().getAndDelete(key);
+        
         if (storedProvider == null) {
-            log.warn("OAuth2 state验证失败: state不存在或已过期, state={}, provider={}", state, provider);
+            log.warn("OAuth2 state验证失败: state不存在、已过期或已被使用, state={}, provider={}", state, provider);
             throw new BusinessException(OAuth2Enum.STATE_NOT_FOUND);
         }
         
-        // provider不匹配
         if (!provider.equals(storedProvider.toString())) {
             log.warn("OAuth2 state验证失败: provider不匹配, state={}, expected={}, actual={}", 
                     state, provider, storedProvider);
             throw new BusinessException(OAuth2Enum.STATE_INVALID);
         }
         
-        // 验证成功，删除state（一次性使用，防止重放攻击）
-        redisTemplate.delete(key);
+        // 验证成功，state已通过原子操作删除，防止重放攻击
         log.debug("OAuth2 state验证成功并已删除: state={}, provider={}", state, provider);
     }
 }

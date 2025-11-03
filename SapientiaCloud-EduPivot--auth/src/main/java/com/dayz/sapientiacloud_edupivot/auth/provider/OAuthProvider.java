@@ -1,6 +1,6 @@
 package com.dayz.sapientiacloud_edupivot.auth.provider;
 
-import java.util.Map;
+import com.dayz.sapientiacloud_edupivot.auth.entity.vo.OAuth2CallbackResultDTO;
 
 /**
  * 第三方登录提供方统一接口。
@@ -12,7 +12,7 @@ public interface OAuthProvider {
 
     String buildAuthorizeUrl(String state);
 
-    Map<String, Object> handleCallback(String code, String state);
+    OAuth2CallbackResultDTO handleCallback(String code, String state);
 }
 
 

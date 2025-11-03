@@ -1,5 +1,6 @@
 package com.dayz.sapientiacloud_edupivot.auth.service;
 
+import com.dayz.sapientiacloud_edupivot.auth.entity.vo.OAuth2CallbackResultDTO;
 import com.dayz.sapientiacloud_edupivot.auth.result.Result;
 
 import java.util.Map;
@@ -12,7 +13,7 @@ public interface IGitHubOAuth2Service {
 
     String buildAuthorizeUrl(String state);
 
-    Result<Map<String, Object>> handleOAuthCallback(String code, String state);
+    Result<OAuth2CallbackResultDTO> handleOAuthCallback(String code, String state);
 
     String getAccessToken(String code);
 
