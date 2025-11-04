@@ -13,12 +13,12 @@ public enum AttendanceStatusEnum implements BaseEnum {
 
 
     NOT_SIGNED_IN(0, "未签到"),
-    
+
 
     SIGNED_IN(1, "已签到"),
 
     ABSENT(2, "缺席");
-    
+
     private final Integer code;
     private final String message;
 

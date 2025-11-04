@@ -15,6 +15,10 @@ import static com.dayz.sapientiacloud_edupivot.auth.security.constants.JwtConsta
  */
 public class TokenExtractionUtil {
 
+    private TokenExtractionUtil() {
+        // 禁止实例化
+    }
+
     /**
      * 从 Servlet 请求中提取 Token
      *
@@ -69,9 +73,5 @@ public class TokenExtractionUtil {
             return token.substring(BEARER_PREFIX_LENGTH);
         }
         return token;
-    }
-
-    private TokenExtractionUtil() {
-        // 禁止实例化
     }
 }

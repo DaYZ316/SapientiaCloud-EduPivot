@@ -1,11 +1,7 @@
 package com.dayz.sapientiacloud_edupivot.system.service;
 
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.*;
-import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysPermissionVO;
-import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysRoleVO;
-import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysUserInternalVO;
-import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysUserVO;
-import com.dayz.sapientiacloud_edupivot.system.entity.vo.ThirdPartyLoginResultVO;
+import com.dayz.sapientiacloud_edupivot.system.entity.vo.*;
 import com.github.pagehelper.PageInfo;
 
 import java.util.List;

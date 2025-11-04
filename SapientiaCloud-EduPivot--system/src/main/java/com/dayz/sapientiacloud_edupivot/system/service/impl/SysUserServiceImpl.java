@@ -10,11 +10,7 @@ import com.dayz.sapientiacloud_edupivot.system.common.security.utils.UserContext
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.*;
 import com.dayz.sapientiacloud_edupivot.system.entity.po.SysRole;
 import com.dayz.sapientiacloud_edupivot.system.entity.po.SysUser;
-import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysPermissionVO;
-import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysRoleVO;
-import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysUserInternalVO;
-import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysUserVO;
-import com.dayz.sapientiacloud_edupivot.system.entity.vo.ThirdPartyLoginResultVO;
+import com.dayz.sapientiacloud_edupivot.system.entity.vo.*;
 import com.dayz.sapientiacloud_edupivot.system.enums.GenderEnum;
 import com.dayz.sapientiacloud_edupivot.system.enums.SysRoleEnum;
 import com.dayz.sapientiacloud_edupivot.system.enums.SysUserEnum;
@@ -30,7 +26,6 @@ import com.github.pagehelper.PageInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
-import java.util.Collections;
 import org.springframework.beans.BeanUtils;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -119,7 +114,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     @Transactional(rollbackFor = Exception.class)
     public Boolean registerUser(SysUserRegisterDTO sysUserRegisterDTO) {
         // 注意：验证码校验已在 auth 模块的 Controller 层完成，此处不再重复校验
-        
+
         if (sysUserRegisterDTO == null || !StringUtils.hasText(sysUserRegisterDTO.getUsername())) {
             throw new BusinessException(SysUserEnum.USERNAME_CANNOT_BE_EMPTY);
         }
@@ -564,15 +559,15 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         if (!StringUtils.hasText(username)) {
             return false;
         }
-        
+
         // 用户名长度校验：4-20位（与注册时的校验保持一致）
         if (username.length() < 4 || username.length() > 20) {
             return false;
         }
-        
+
         // 检查用户名是否已存在
         SysUser existingUser = sysUserMapper.selectByUsername(username);
-        
+
         // 如果用户不存在，则用户名可用（返回 true）
         return existingUser == null;
     }
@@ -591,7 +586,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
         // 优先通过第三方平台ID查找用户
         SysUser existingUser = sysUserMapper.selectByThirdPartyId(provider, providerId);
-        
+
         if (existingUser != null) {
             // 用户已存在，可能需要更新信息（如用户名、头像等）
             boolean needUpdate = false;
@@ -616,46 +611,46 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
                     needUpdate = true;
                 }
             }
-            
+
             // 检查是否需要补充第三方平台ID（兼容旧数据）
             if (!hasThirdPartyId(existingUser, provider, providerId)) {
                 setThirdPartyId(existingUser, provider, providerId);
                 needUpdate = true;
             }
-            
+
             if (needUpdate) {
                 existingUser.setUpdateTime(LocalDateTime.now());
                 this.updateById(existingUser);
             }
-            
+
             // 构建返回结果
             return buildThirdPartyLoginResult(existingUser, false);
         }
 
-        
+
         // 检查用户名是否已存在，如果存在则生成唯一用户名
         String finalUsername = username;
         SysUser userByUsername = sysUserMapper.selectByUsername(username);
         if (userByUsername != null) {
             // 生成唯一用户名：原用户名 + "_" + provider + "_" + providerId的后8位
-            String suffix = provider.toLowerCase() + "_" + 
+            String suffix = provider.toLowerCase() + "_" +
                     (providerId.length() > 8 ? providerId.substring(providerId.length() - 8) : providerId);
             finalUsername = username + "_" + suffix;
         }
-        
+
         SysUser newUser = new SysUser();
         newUser.setId(UuidCreator.getTimeOrderedEpoch());
         newUser.setUsername(finalUsername);
         newUser.setNickName(StringUtils.hasText(name) ? name : finalUsername);
         newUser.setEmail(email);
         newUser.setAvatar(avatarUrl);
-        
+
         // 保存第三方平台ID
         setThirdPartyId(newUser, provider, providerId);
-        
+
         // 设置默认密码（第三方登录用户）
         newUser.setPassword(passwordEncoder.encode("THIRD_PARTY_USER_" + providerId));
-        
+
         // 设置用户状态
         newUser.setStatus(StatusEnum.NORMAL.getCode());
         newUser.setGender(GenderEnum.UNKNOWN.getCode());
@@ -670,7 +665,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             throw new BusinessException("创建第三方用户失败");
         }
         log.debug("用户保存成功: userId={}, username={}", newUser.getId(), finalUsername);
-        
+
         // 构建返回结果
         return buildThirdPartyLoginResult(newUser, true);
     }
@@ -682,27 +677,27 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         // 构建用户VO
         SysUserInternalVO userVO = new SysUserInternalVO();
         BeanUtils.copyProperties(user, userVO);
-        
+
         // 获取用户角色
         List<SysRoleVO> roles = sysUserRoleMapper.getUserRoles(user.getId());
         if (roles == null) {
             roles = Collections.emptyList();
         }
         userVO.setRoles(roles);
-        
+
         // 判断是否需要绑定手机号
         boolean needBindMobile = !StringUtils.hasText(user.getMobile());
-        
+
         // 判断是否需要选择身份（检查是否同时有学生和教师角色，或者都没有）
         boolean hasStudentRole = roles.stream().anyMatch(role -> STUDENT.equals(role.getRoleKey()));
         boolean hasTeacherRole = roles.stream().anyMatch(role -> TEACHER.equals(role.getRoleKey()));
         // 对于新用户，如果只分配了学生角色，则认为已选择身份；否则需要选择
         boolean needSelectIdentity = !isNewUser && (!hasStudentRole && !hasTeacherRole);
-        
+
         // 判断是否需要完善信息（检查基本信息是否完整）
         // TODO 这里可以根据实际需求调整判断逻辑
         boolean needCompleteInfo = false;
-        
+
         // 确定当前步骤
         String currentStep;
         if (needBindMobile) {
@@ -714,7 +709,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         } else {
             currentStep = "completed";
         }
-        
+
         // 构建结果对象
         ThirdPartyLoginResultVO result = ThirdPartyLoginResultVO.builder()
                 .user(userVO)
@@ -724,10 +719,10 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
                 .needCompleteInfo(needCompleteInfo)
                 .currentStep(currentStep)
                 .build();
-        
-        log.debug("第三方登录结果构建完成: userId={}, isNewUser={}, currentStep={}", 
+
+        log.debug("第三方登录结果构建完成: userId={}, isNewUser={}, currentStep={}",
                 user.getId(), isNewUser, currentStep);
-        
+
         return result;
     }
 
@@ -787,7 +782,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             roleQuery.eq(SysRole::getRoleKey, "STUDENT")
                     .eq(SysRole::getStatus, StatusEnum.NORMAL.getCode())
                     .eq(SysRole::getDeleted, DeletedEnum.NOT_DELETED.getCode());
-            
+
             SysRole studentRole = sysRoleMapper.selectOne(roleQuery);
             if (studentRole != null) {
                 // 分配角色给用户

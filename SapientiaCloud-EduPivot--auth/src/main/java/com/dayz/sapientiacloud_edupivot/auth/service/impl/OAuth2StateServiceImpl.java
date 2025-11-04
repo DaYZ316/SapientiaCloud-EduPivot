@@ -29,12 +29,12 @@ public class OAuth2StateServiceImpl implements OAuth2StateService {
             throw new BusinessException(OAuth2Enum.PROVIDER_NOT_SUPPORTED);
         }
         String state = UuidCreator.getTimeOrderedEpoch().toString();
-        
+
         String key = OAuth2Constants.REDIS_STATE_KEY_PREFIX + state;
         redisTemplate.opsForValue().set(key, provider, OAuth2Constants.STATE_EXPIRE_MINUTES, TimeUnit.MINUTES);
-        
+
         log.debug("生成并存储OAuth2 state: provider={}, state={}", provider, state);
-        
+
         return state;
     }
 
@@ -43,26 +43,26 @@ public class OAuth2StateServiceImpl implements OAuth2StateService {
         if (!StringUtils.hasText(state)) {
             throw new BusinessException(OAuth2Enum.STATE_INVALID);
         }
-        
+
         if (!StringUtils.hasText(provider)) {
             throw new BusinessException(OAuth2Enum.PROVIDER_NOT_SUPPORTED);
         }
 
         String key = OAuth2Constants.REDIS_STATE_KEY_PREFIX + state;
-        
+
         Object storedProvider = redisTemplate.opsForValue().getAndDelete(key);
-        
+
         if (storedProvider == null) {
             log.warn("OAuth2 state验证失败: state不存在、已过期或已被使用, state={}, provider={}", state, provider);
             throw new BusinessException(OAuth2Enum.STATE_NOT_FOUND);
         }
-        
+
         if (!provider.equals(storedProvider.toString())) {
-            log.warn("OAuth2 state验证失败: provider不匹配, state={}, expected={}, actual={}", 
+            log.warn("OAuth2 state验证失败: provider不匹配, state={}, expected={}, actual={}",
                     state, provider, storedProvider);
             throw new BusinessException(OAuth2Enum.STATE_INVALID);
         }
-        
+
         // 验证成功，state已通过原子操作删除，防止重放攻击
         log.debug("OAuth2 state验证成功并已删除: state={}, provider={}", state, provider);
     }

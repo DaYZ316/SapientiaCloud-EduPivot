@@ -43,7 +43,7 @@ public class OAuth2Config {
             log.error("GitHub OAuth2 scope 未配置！请检查配置文件中的 oauth2.github.scope");
             throw new BusinessException(OAuth2Enum.OAUTH2_CONFIG_ERROR);
         }
-        log.info("GitHub OAuth2配置加载完成: clientId={}, redirectUri={}, scope={}", 
+        log.info("GitHub OAuth2配置加载完成: clientId={}, redirectUri={}, scope={}",
                 clientId.substring(0, Math.min(10, clientId.length())) + "...",
                 redirectUri, scope);
     }

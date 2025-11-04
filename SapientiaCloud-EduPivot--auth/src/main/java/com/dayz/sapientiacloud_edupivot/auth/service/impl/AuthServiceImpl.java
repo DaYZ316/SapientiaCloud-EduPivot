@@ -1,13 +1,7 @@
 package com.dayz.sapientiacloud_edupivot.auth.service.impl;
 
 import com.dayz.sapientiacloud_edupivot.auth.clients.SysUserClient;
-import com.dayz.sapientiacloud_edupivot.auth.entity.dto.BindMobileDTO;
-import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserDTO;
-import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserLoginDTO;
-import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserMobileLoginDTO;
-import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserMobilePasswordDTO;
-import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserPasswordDTO;
-import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserRegisterDTO;
+import com.dayz.sapientiacloud_edupivot.auth.entity.dto.*;
 import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysUserInternalVO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysUserLoginVO;
 import com.dayz.sapientiacloud_edupivot.auth.enums.ResultEnum;
@@ -119,17 +113,17 @@ public class AuthServiceImpl implements AuthService {
         if (!StringUtils.hasText(token)) {
             throw new BusinessException(ResultEnum.TOKEN_NOT_FOUND);
         }
-        
+
         String username = jwtUtil.getUsernameFromToken(token);
         if (!StringUtils.hasText(username)) {
             throw new BusinessException(ResultEnum.TOKEN_NOT_FOUND);
         }
-        
+
         Result<SysUserInternalVO> result = sysUserClient.getUserInfoByUsername(username);
         if (result == null || !result.isSuccess()) {
             throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
         }
-        
+
         return result;
     }
 
@@ -190,8 +184,8 @@ public class AuthServiceImpl implements AuthService {
 
         // 第一步：先校验验证码（安全设计规范：验证码校验必须在最前面）
         verificationCodeService.verifyCode(
-            sysUserMobilePasswordDTO.getMobile(),
-            sysUserMobilePasswordDTO.getVerificationCode()
+                sysUserMobilePasswordDTO.getMobile(),
+                sysUserMobilePasswordDTO.getVerificationCode()
         );
 
         // 第二步：根据手机号查找用户（验证码已在前一步验证，这里仅需传入手机号）
@@ -199,7 +193,7 @@ public class AuthServiceImpl implements AuthService {
         mobileLoginDTO.setMobile(sysUserMobilePasswordDTO.getMobile());
         // 验证码字段仍然需要传入，但 system 模块不会再次验证（已在注释中说明）
         mobileLoginDTO.setVerificationCode(sysUserMobilePasswordDTO.getVerificationCode());
-        
+
         Result<SysUserInternalVO> userResult = sysUserClient.mobileLogin(mobileLoginDTO);
         if (userResult == null || !userResult.isSuccess()) {
             throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
@@ -219,8 +213,8 @@ public class AuthServiceImpl implements AuthService {
 
         // 第三步：通过用户ID更新密码
         Result<Boolean> result = sysUserClient.updatePasswordByUserId(
-            sysUserInternalVO.getId(),
-            sysUserMobilePasswordDTO.getNewPassword()
+                sysUserInternalVO.getId(),
+                sysUserMobilePasswordDTO.getNewPassword()
         );
         if (result == null || !result.isSuccess()) {
             throw new BusinessException(SysUserEnum.PASSWORD_UPDATE_FAILED);
@@ -244,8 +238,8 @@ public class AuthServiceImpl implements AuthService {
 
         // 第一步：先校验验证码（安全设计规范：验证码校验必须在最前面）
         verificationCodeService.verifyCode(
-            sysUserMobileLoginDTO.getMobile(),
-            sysUserMobileLoginDTO.getVerificationCode()
+                sysUserMobileLoginDTO.getMobile(),
+                sysUserMobileLoginDTO.getVerificationCode()
         );
 
         // 第二步：验证码校验通过后，才调用system模块查询用户
@@ -289,8 +283,8 @@ public class AuthServiceImpl implements AuthService {
 
         // 第一步：先校验验证码（安全设计规范：验证码校验必须在最前面）
         verificationCodeService.verifyCode(
-            sysUserRegisterDTO.getMobile(), 
-            sysUserRegisterDTO.getVerificationCode()
+                sysUserRegisterDTO.getMobile(),
+                sysUserRegisterDTO.getVerificationCode()
         );
 
         // 第二步：验证码校验通过后，才调用system模块进行用户注册
@@ -299,9 +293,9 @@ public class AuthServiceImpl implements AuthService {
             // 尝试根据返回的错误信息匹配对应的错误枚举
             if (result != null && StringUtils.hasText(result.getMessage())) {
                 SysUserEnum sysUserEnum = EnumUtil.getByAttribute(
-                    SysUserEnum.class, 
-                    result.getMessage(), 
-                    SysUserEnum::getMessage
+                        SysUserEnum.class,
+                        result.getMessage(),
+                        SysUserEnum::getMessage
                 );
                 if (sysUserEnum != null) {
                     throw new BusinessException(sysUserEnum);
@@ -325,19 +319,19 @@ public class AuthServiceImpl implements AuthService {
         if (!StringUtils.hasText(username)) {
             return false;
         }
-        
+
         // 用户名长度校验：4-20位（与注册时的校验保持一致）
         if (username.length() < 4 || username.length() > 20) {
             return false;
         }
-        
+
         // 调用 system 模块检查用户名是否可用
         Result<Boolean> result = sysUserClient.checkUsernameAvailable(username);
         if (result == null || !result.isSuccess()) {
             // 如果调用失败，为了安全起见，返回 false（不可用）
             return false;
         }
-        
+
         Boolean available = result.getData();
         return available != null && available;
     }
@@ -348,19 +342,19 @@ public class AuthServiceImpl implements AuthService {
         if (!StringUtils.hasText(mobile)) {
             return false;
         }
-        
+
         // 手机号格式校验：11位数字，以1开头
         if (!mobile.matches("^1[3-9]\\d{9}$")) {
             return false;
         }
-        
+
         // 调用 system 模块检查手机号是否可用
         Result<Boolean> result = sysUserClient.checkMobileAvailable(mobile);
         if (result == null || !result.isSuccess()) {
             // 如果调用失败，为了安全起见，返回 false（不可用）
             return false;
         }
-        
+
         Boolean available = result.getData();
         return available != null && available;
     }
@@ -380,13 +374,13 @@ public class AuthServiceImpl implements AuthService {
 
         // 第一步：先校验验证码（安全设计规范：验证码校验必须在最前面）
         verificationCodeService.verifyCode(
-            bindMobileDTO.getMobile(),
-            bindMobileDTO.getVerificationCode()
+                bindMobileDTO.getMobile(),
+                bindMobileDTO.getVerificationCode()
         );
 
         // 第二步：获取目标用户信息（支持通过userId或当前登录用户）
         SysUserInternalVO targetUser = null;
-        
+
         if (bindMobileDTO.getUserId() != null) {
             // 如果提供了userId，通过userId获取用户信息（用于第三方登录场景）
             Result<SysUserInternalVO> userResult = sysUserClient.getUserInfoById(bindMobileDTO.getUserId());

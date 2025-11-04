@@ -1,6 +1,5 @@
 package com.dayz.sapientiacloud_edupivot.celestial_hub.service.impl;
 
-import com.dayz.sapientiacloud_edupivot.celestial_hub.common.enums.CourseEnum;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.common.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.common.security.utils.UserContextUtil;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.constant.AIChatConstants;

@@ -3,22 +3,18 @@ package com.dayz.sapientiacloud_edupivot.auth.controller;
 import com.dayz.sapientiacloud_edupivot.auth.entity.vo.OAuth2CallbackResultDTO;
 import com.dayz.sapientiacloud_edupivot.auth.enums.OAuth2Enum;
 import com.dayz.sapientiacloud_edupivot.auth.exception.BusinessException;
+import com.dayz.sapientiacloud_edupivot.auth.provider.OAuthProvider;
 import com.dayz.sapientiacloud_edupivot.auth.result.Result;
 import com.dayz.sapientiacloud_edupivot.auth.service.OAuth2StateService;
-import com.dayz.sapientiacloud_edupivot.auth.provider.OAuthProvider;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import jakarta.servlet.http.HttpServletResponse;
 import java.util.Map;
 
 @Slf4j
@@ -39,13 +35,13 @@ public class OAuthController {
     ) throws Exception {
         // 验证provider是否支持并获取OAuthProvider实例
         OAuthProvider oAuthProvider = resolveProvider(provider);
-        
+
         // 生成并存储state（防止CSRF攻击）
         String state = oAuth2StateService.generateAndStoreState(provider);
-        
+
         // 构建授权URL并重定向
         String authorizeUrl = oAuthProvider.buildAuthorizeUrl(state);
-        
+
         log.debug("OAuth2授权请求: provider={}, state={}", provider, state);
         response.sendRedirect(authorizeUrl);
     }
@@ -56,20 +52,20 @@ public class OAuthController {
             @Parameter(name = "provider", description = "第三方登录提供商名称") @PathVariable("provider") String provider,
             @Parameter(name = "code", description = "授权码") @RequestParam("code") String code,
             @Parameter(name = "state", description = "状态参数") @RequestParam("state") String state) {
-        
+
         if (!StringUtils.hasText(code)) {
             throw new BusinessException(OAuth2Enum.OAUTH2_CALLBACK_FAILED);
         }
         if (!StringUtils.hasText(state)) {
             throw new BusinessException(OAuth2Enum.STATE_INVALID);
         }
-        
+
         OAuthProvider oAuthProvider = resolveProvider(provider);
-        
+
         oAuth2StateService.validateState(state, provider);
-        
+
         OAuth2CallbackResultDTO data = oAuthProvider.handleCallback(code, state);
-        
+
         log.debug("OAuth2回调处理成功: provider={}", provider);
         return Result.success(data);
     }
@@ -78,7 +74,7 @@ public class OAuthController {
         if (!StringUtils.hasText(provider)) {
             throw new BusinessException(OAuth2Enum.PROVIDER_NOT_SUPPORTED);
         }
-        
+
         OAuthProvider oAuthProvider = oAuthProviderMap.get(provider);
         if (oAuthProvider == null) {
             log.error("不支持的第三方登录提供商: {}，当前map内容: {}", provider, oAuthProviderMap.keySet());

@@ -5,11 +5,7 @@ import com.dayz.sapientiacloud_edupivot.system.common.security.annotation.HasPer
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserPasswordDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserRegisterDTO;
-import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysPermissionVO;
-import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysRoleVO;
-import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysUserInternalVO;
-import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysUserVO;
-import com.dayz.sapientiacloud_edupivot.system.entity.vo.ThirdPartyLoginResultVO;
+import com.dayz.sapientiacloud_edupivot.system.entity.vo.*;
 import com.dayz.sapientiacloud_edupivot.system.service.ISysUserService;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -143,7 +139,7 @@ public class SysUserFeign {
     )
     @GetMapping("/internal/check-username")
     public Result<Boolean> checkUsernameAvailable(
-            @Parameter(name = "username", description = "用户名", required = true) 
+            @Parameter(name = "username", description = "用户名", required = true)
             @RequestParam("username") String username
     ) {
         Boolean available = sysUserService.isUsernameAvailable(username);
@@ -156,7 +152,7 @@ public class SysUserFeign {
     )
     @GetMapping("/internal/check-mobile")
     public Result<Boolean> checkMobileAvailable(
-            @Parameter(name = "mobile", description = "手机号", required = true) 
+            @Parameter(name = "mobile", description = "手机号", required = true)
             @RequestParam("mobile") String mobile
     ) {
         Boolean exists = sysUserService.isMobileExists(mobile);

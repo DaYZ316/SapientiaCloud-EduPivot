@@ -48,7 +48,7 @@ public class JwtUtil {
                 .withJWTId(UUID.randomUUID().toString())
                 .withClaim("userId", sysUserInternalVO.getId().toString())
                 .withSubject(sysUserInternalVO.getUsername())
-                .withClaim("roleKeys", sysUserInternalVO.getRoles() != null ? 
+                .withClaim("roleKeys", sysUserInternalVO.getRoles() != null ?
                         sysUserInternalVO.getRoles().stream()
                                 .filter(Objects::nonNull)
                                 .map(SysRoleVO::getRoleKey)

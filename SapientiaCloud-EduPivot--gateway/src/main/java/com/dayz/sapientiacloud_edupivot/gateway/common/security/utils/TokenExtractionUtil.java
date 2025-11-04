@@ -6,13 +6,18 @@ import org.springframework.util.StringUtils;
 
 import java.util.List;
 
-import static com.dayz.sapientiacloud_edupivot.gateway.common.security.constants.JwtConstants.*;
+import static com.dayz.sapientiacloud_edupivot.gateway.common.security.constants.JwtConstants.BEARER_PREFIX;
+import static com.dayz.sapientiacloud_edupivot.gateway.common.security.constants.JwtConstants.BEARER_PREFIX_LENGTH;
 
 /**
  * Token提取工具类
  * 支持 Reactive 方式
  */
 public class TokenExtractionUtil {
+
+    private TokenExtractionUtil() {
+        // 禁止实例化
+    }
 
     /**
      * 从 Reactive 请求中提取 Token
@@ -57,9 +62,5 @@ public class TokenExtractionUtil {
             return token.substring(BEARER_PREFIX_LENGTH);
         }
         return token;
-    }
-
-    private TokenExtractionUtil() {
-        // 禁止实例化
     }
 }

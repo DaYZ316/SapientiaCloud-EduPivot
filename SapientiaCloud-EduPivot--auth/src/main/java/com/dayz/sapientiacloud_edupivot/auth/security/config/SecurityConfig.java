@@ -42,20 +42,20 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(
-                            "/login",
-                            "/mobile-login",
-                            "/validate",
-                            "/register",
-                            "/send-code",
-                            "/check-username",
-                            "/check-mobile",
-                            "/bind-mobile",
-                            "/oauth2/**",
-                            "/api/auth/**",
-                            "/v3/api-docs/**",
-                            "/doc.html",
-                            "/webjars/**",
-                            "/oauth2/**"
+                                "/login",
+                                "/mobile-login",
+                                "/validate",
+                                "/register",
+                                "/send-code",
+                                "/check-username",
+                                "/check-mobile",
+                                "/bind-mobile",
+                                "/oauth2/**",
+                                "/api/auth/**",
+                                "/v3/api-docs/**",
+                                "/doc.html",
+                                "/webjars/**",
+                                "/oauth2/**"
                         ).permitAll()
                         // 允许OPTIONS请求
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()

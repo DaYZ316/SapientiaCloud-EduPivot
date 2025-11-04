@@ -18,34 +18,29 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class VerificationCodeServiceImpl implements VerificationCodeService {
 
+    private static final String SMS_CODE_PREFIX = "sms:code:";
+    private static final String CODE_SEND_LIMIT_PREFIX = "code:send:limit:";
+    /**
+     * 验证码过期时间（分钟）
+     */
+    private static final int CODE_EXPIRE_MINUTES = 5;
+    /**
+     * 验证码发送间隔（秒），防止频繁发送
+     */
+    private static final int SEND_INTERVAL_SECONDS = 60;
+    /**
+     * 验证码长度
+     */
+    private static final int CODE_LENGTH = 6;
+    /**
+     * 初始验证码（开发环境固定验证码）
+     */
+    private static final String INIT_VERIFICATION_CODE = "123456";
     private final RedisTemplate<String, Object> redisTemplate;
 
     public VerificationCodeServiceImpl(RedisTemplate<String, Object> redisTemplate) {
         this.redisTemplate = redisTemplate;
     }
-
-    private static final String SMS_CODE_PREFIX = "sms:code:";
-    private static final String CODE_SEND_LIMIT_PREFIX = "code:send:limit:";
-    
-    /**
-     * 验证码过期时间（分钟）
-     */
-    private static final int CODE_EXPIRE_MINUTES = 5;
-    
-    /**
-     * 验证码发送间隔（秒），防止频繁发送
-     */
-    private static final int SEND_INTERVAL_SECONDS = 60;
-    
-    /**
-     * 验证码长度
-     */
-    private static final int CODE_LENGTH = 6;
-    
-    /**
-     * 初始验证码（开发环境固定验证码）
-     */
-    private static final String INIT_VERIFICATION_CODE = "123456";
 
     @Override
     public boolean sendVerificationCode(SendVerificationCodeDTO sendVerificationCodeDTO) {
@@ -56,7 +51,7 @@ public class VerificationCodeServiceImpl implements VerificationCodeService {
         if (!StringUtils.hasText(sendVerificationCodeDTO.getMobile())) {
             throw new BusinessException(SysUserEnum.PHONE_NUMBER_CANNOT_BE_EMPTY);
         }
-        
+
         return sendSmsCode(sendVerificationCodeDTO.getMobile());
     }
 
@@ -104,14 +99,14 @@ public class VerificationCodeServiceImpl implements VerificationCodeService {
             // TODO: 集成阿里云短信服务
             // 这里暂时只存储到Redis，实际生产环境需要调用阿里云短信API发送
             log.debug("发送短信验证码到手机号: {}, 验证码: {}", mobile, code);
-            
+
             // 存储验证码到Redis，设置过期时间
             String key = SMS_CODE_PREFIX + mobile;
             redisTemplate.opsForValue().set(key, code, CODE_EXPIRE_MINUTES, TimeUnit.MINUTES);
-            
+
             // 设置发送频率限制
             redisTemplate.opsForValue().set(limitKey, "1", SEND_INTERVAL_SECONDS, TimeUnit.SECONDS);
-            
+
             return true;
         } catch (Exception e) {
             log.error("发送短信验证码失败: {}", e.getMessage(), e);
@@ -128,7 +123,7 @@ public class VerificationCodeServiceImpl implements VerificationCodeService {
     private String generateCode() {
         // 临时使用固定验证码（开发环境）
         return INIT_VERIFICATION_CODE;
-        
+
         // 原有的随机生成逻辑（已暂时注释）
         // Random random = new Random();
         // StringBuilder code = new StringBuilder();

@@ -68,9 +68,9 @@ public class IdentityServiceImpl implements IdentityService {
             if (result == null || !result.isSuccess()) {
                 if (result != null && StringUtils.hasText(result.getMessage())) {
                     SysUserEnum sysUserEnum = EnumUtil.getByAttribute(
-                        SysUserEnum.class,
-                        result.getMessage(),
-                        SysUserEnum::getMessage
+                            SysUserEnum.class,
+                            result.getMessage(),
+                            SysUserEnum::getMessage
                     );
                     if (sysUserEnum != null) {
                         throw new BusinessException(sysUserEnum);
@@ -96,9 +96,9 @@ public class IdentityServiceImpl implements IdentityService {
             if (result == null || !result.isSuccess()) {
                 if (result != null && StringUtils.hasText(result.getMessage())) {
                     SysUserEnum sysUserEnum = EnumUtil.getByAttribute(
-                        SysUserEnum.class,
-                        result.getMessage(),
-                        SysUserEnum::getMessage
+                            SysUserEnum.class,
+                            result.getMessage(),
+                            SysUserEnum::getMessage
                     );
                     if (sysUserEnum != null) {
                         throw new BusinessException(sysUserEnum);

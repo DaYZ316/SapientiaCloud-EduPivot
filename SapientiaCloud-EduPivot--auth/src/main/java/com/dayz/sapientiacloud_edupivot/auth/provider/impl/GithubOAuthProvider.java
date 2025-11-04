@@ -1,8 +1,8 @@
 package com.dayz.sapientiacloud_edupivot.auth.provider.impl;
 
 import com.dayz.sapientiacloud_edupivot.auth.constant.OAuth2Constants;
-import com.dayz.sapientiacloud_edupivot.auth.enums.OAuth2Enum;
 import com.dayz.sapientiacloud_edupivot.auth.entity.vo.OAuth2CallbackResultDTO;
+import com.dayz.sapientiacloud_edupivot.auth.enums.OAuth2Enum;
 import com.dayz.sapientiacloud_edupivot.auth.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.auth.provider.OAuthProvider;
 import com.dayz.sapientiacloud_edupivot.auth.result.Result;

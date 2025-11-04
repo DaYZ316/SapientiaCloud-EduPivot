@@ -9,6 +9,10 @@ import java.util.Map;
 
 public class GitHubUserInfoUtil {
 
+    private GitHubUserInfoUtil() {
+        // 禁止实例化
+    }
+
     /**
      * 从GitHub用户属性中提取用户信息
      *
@@ -37,9 +41,5 @@ public class GitHubUserInfoUtil {
                 OAuth2Constants.USER_INFO_NAME, name != null ? name : "",
                 OAuth2Constants.USER_INFO_AVATAR_URL, avatarUrl != null ? avatarUrl : ""
         );
-    }
-
-    private GitHubUserInfoUtil() {
-        // 禁止实例化
     }
 }

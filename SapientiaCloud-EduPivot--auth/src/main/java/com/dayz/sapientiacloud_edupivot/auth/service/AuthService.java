@@ -1,11 +1,6 @@
 package com.dayz.sapientiacloud_edupivot.auth.service;
 
-import com.dayz.sapientiacloud_edupivot.auth.entity.dto.BindMobileDTO;
-import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserLoginDTO;
-import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserMobileLoginDTO;
-import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserMobilePasswordDTO;
-import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserPasswordDTO;
-import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserRegisterDTO;
+import com.dayz.sapientiacloud_edupivot.auth.entity.dto.*;
 import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysUserInternalVO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysUserLoginVO;
 import com.dayz.sapientiacloud_edupivot.auth.result.Result;

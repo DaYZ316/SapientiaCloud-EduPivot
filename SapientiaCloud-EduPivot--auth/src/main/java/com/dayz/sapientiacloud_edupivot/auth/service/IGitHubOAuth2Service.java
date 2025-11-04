@@ -7,6 +7,7 @@ import java.util.Map;
 
 /**
  * GitHub OAuth2服务接口
+ *
  * @author 34571
  */
 public interface IGitHubOAuth2Service {

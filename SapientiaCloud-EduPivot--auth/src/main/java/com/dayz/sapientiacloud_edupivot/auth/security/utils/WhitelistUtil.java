@@ -9,6 +9,10 @@ public class WhitelistUtil {
 
     private static final AntPathMatcher PATH_MATCHER = new AntPathMatcher();
 
+    private WhitelistUtil() {
+        // 禁止实例化
+    }
+
     /**
      * 判断请求路径是否在白名单中
      *
@@ -23,9 +27,5 @@ public class WhitelistUtil {
             }
         }
         return false;
-    }
-
-    private WhitelistUtil() {
-        // 禁止实例化
     }
 }

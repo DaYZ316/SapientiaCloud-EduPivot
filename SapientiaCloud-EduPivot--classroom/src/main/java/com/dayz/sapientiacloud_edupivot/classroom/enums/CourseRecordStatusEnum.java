@@ -14,13 +14,13 @@ public enum CourseRecordStatusEnum implements BaseEnum {
     NOT_STARTED(0, "未开始"),
 
     IN_PROGRESS(1, "进行中"),
-    
+
 
     ENDED(2, "已结束"),
-    
+
 
     CANCELLED(3, "已取消");
-    
+
     private final Integer code;
     private final String message;
 
@@ -33,6 +33,6 @@ public enum CourseRecordStatusEnum implements BaseEnum {
     public String getMessage() {
         return message;
     }
-    
+
 
 }
