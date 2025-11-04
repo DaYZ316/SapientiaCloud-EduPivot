@@ -90,16 +90,23 @@ public class AuthController {
     }
 
     @GetMapping("/check-mobile")
-    @Operation(summary = "checkMobile", description = "检查手机号是否可用")
-    public Result<Boolean> checkMobile(@RequestParam("mobile") String mobile) {
-        Boolean available = authService.checkMobileAvailable(mobile);
-        return Result.success(available);
+    @Operation(summary = "checkMobile", description = "检查手机号是否可用，如果已被使用则返回已存在用户的基本信息")
+    public Result<BindMobileResultDTO> checkMobile(@RequestParam("mobile") String mobile) {
+        BindMobileResultDTO result = authService.checkMobileAvailable(mobile);
+        return Result.success(result);
     }
 
     @PostMapping("/bind-mobile")
     @Operation(summary = "bindMobile", description = "绑定手机号（验证码校验成功后更新用户手机号，支持通过userId参数或当前登录用户）")
-    public Result<Boolean> bindMobile(@Valid @RequestBody BindMobileDTO bindMobileDTO) {
-        Boolean result = authService.bindMobile(bindMobileDTO);
+    public Result<BindMobileResultDTO> bindMobile(@Valid @RequestBody BindMobileDTO bindMobileDTO) {
+        BindMobileResultDTO result = authService.bindMobile(bindMobileDTO);
+        return Result.success(result);
+    }
+
+    @PostMapping("/bind-mobile/confirm")
+    @Operation(summary = "bindMobileConfirm", description = "确认绑定手机号（当手机号已被使用时，用户确认是否为同一账户）")
+    public Result<BindMobileResultDTO> bindMobileConfirm(@Valid @RequestBody BindMobileConfirmDTO bindMobileConfirmDTO) {
+        BindMobileResultDTO result = authService.bindMobileConfirm(bindMobileConfirmDTO);
         return Result.success(result);
     }
 

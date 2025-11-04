@@ -57,4 +57,16 @@ public interface SysUserClient {
 
     @GetMapping("/internal/check-mobile")
     Result<Boolean> checkMobileAvailable(@RequestParam("mobile") String mobile);
+
+    @GetMapping("/internal/info/mobile/{mobile}")
+    Result<com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysUserBasicInfoVO> getUserInfoByMobile(@PathVariable("mobile") String mobile);
+
+    @PutMapping("/internal/soft-delete/{userId}")
+    Result<Boolean> softDeleteUserById(@PathVariable("userId") UUID userId);
+
+    @PutMapping("/internal/github-id/{userId}")
+    Result<Boolean> updateGithubId(@PathVariable("userId") UUID userId, @RequestParam("githubId") String githubId);
+
+    @DeleteMapping("/internal/{userId}")
+    Result<Boolean> removeUserById(@PathVariable("userId") UUID userId);
 }

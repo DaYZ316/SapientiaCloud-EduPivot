@@ -50,4 +50,10 @@ public interface ISysUserService {
     SysUserInternalVO mobileLogin(SysUserMobileLoginDTO mobileLoginDTO);
 
     ThirdPartyLoginResultVO findOrCreateByThirdParty(String provider, String providerId, String username, String email, String name, String avatarUrl);
+
+    SysUserBasicInfoVO getUserInfoByMobile(String mobile);
+
+    Boolean softDeleteUserById(UUID userId);
+
+    Boolean updateGithubId(UUID userId, String githubId);
 }

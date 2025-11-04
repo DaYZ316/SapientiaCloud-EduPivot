@@ -2,6 +2,7 @@ package com.dayz.sapientiacloud_edupivot.auth.service.impl;
 
 import com.dayz.sapientiacloud_edupivot.auth.clients.SysUserClient;
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.*;
+import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysUserBasicInfoVO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysUserInternalVO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysUserLoginVO;
 import com.dayz.sapientiacloud_edupivot.auth.enums.ResultEnum;
@@ -338,30 +339,60 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional(readOnly = true)
-    public Boolean checkMobileAvailable(String mobile) {
+    public BindMobileResultDTO checkMobileAvailable(String mobile) {
+        BindMobileResultDTO result = new BindMobileResultDTO();
+
+        // 1. 基本校验
         if (!StringUtils.hasText(mobile)) {
-            return false;
+            result.setSuccess(false);
+            result.setNeedConfirm(false);
+            return result;
         }
 
-        // 手机号格式校验：11位数字，以1开头
+        // 2. 手机号格式校验：11位数字，以1开头
         if (!mobile.matches("^1[3-9]\\d{9}$")) {
-            return false;
+            result.setSuccess(false);
+            result.setNeedConfirm(false);
+            return result;
         }
 
-        // 调用 system 模块检查手机号是否可用
-        Result<Boolean> result = sysUserClient.checkMobileAvailable(mobile);
-        if (result == null || !result.isSuccess()) {
-            // 如果调用失败，为了安全起见，返回 false（不可用）
-            return false;
+        // 3. 调用 system 模块检查手机号是否可用
+        Result<Boolean> checkResult = sysUserClient.checkMobileAvailable(mobile);
+        if (checkResult == null || !checkResult.isSuccess()) {
+            // 如果调用失败，为了安全起见，返回不可用
+            result.setSuccess(false);
+            result.setNeedConfirm(false);
+            return result;
         }
 
-        Boolean available = result.getData();
-        return available != null && available;
+        Boolean available = checkResult.getData();
+
+        // 4. 如果手机号可用
+        if (available != null && available) {
+            result.setSuccess(true);
+            result.setNeedConfirm(false);
+            result.setExistingUserInfo(null);
+            return result;
+        }
+
+        // 5. 如果手机号已被使用，获取已存在用户信息
+        Result<SysUserBasicInfoVO> existingUserResult = sysUserClient.getUserInfoByMobile(mobile);
+        if (existingUserResult != null && existingUserResult.isSuccess() && existingUserResult.getData() != null) {
+            result.setSuccess(false);  // 手机号不可用
+            result.setNeedConfirm(true);  // 需要用户确认
+            result.setExistingUserInfo(existingUserResult.getData());  // 返回已存在用户信息
+            return result;
+        }
+
+        // 6. 如果获取已存在用户信息失败，返回不可用但不需确认
+        result.setSuccess(false);
+        result.setNeedConfirm(false);
+        return result;
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Boolean bindMobile(BindMobileDTO bindMobileDTO) {
+    public BindMobileResultDTO bindMobile(BindMobileDTO bindMobileDTO) {
         if (bindMobileDTO == null) {
             throw new BusinessException(SysUserEnum.DATA_CANNOT_BE_EMPTY);
         }
@@ -372,53 +403,50 @@ public class AuthServiceImpl implements AuthService {
             throw new BusinessException(SysUserEnum.VERIFICATION_CODE_CANNOT_BE_EMPTY);
         }
 
-        // 第一步：先校验验证码（安全设计规范：验证码校验必须在最前面）
         verificationCodeService.verifyCode(
                 bindMobileDTO.getMobile(),
                 bindMobileDTO.getVerificationCode()
         );
 
-        // 第二步：获取目标用户信息（支持通过userId或当前登录用户）
         SysUserInternalVO targetUser = null;
 
         if (bindMobileDTO.getUserId() != null) {
-            // 如果提供了userId，通过userId获取用户信息（用于第三方登录场景）
             Result<SysUserInternalVO> userResult = sysUserClient.getUserInfoById(bindMobileDTO.getUserId());
             if (userResult == null || !userResult.isSuccess() || userResult.getData() == null) {
                 throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
             }
             targetUser = userResult.getData();
         } else {
-            // 如果没有提供userId，尝试从当前登录用户获取（兼容原有逻辑）
             try {
                 targetUser = UserContextUtil.getCurrentUser();
             } catch (Exception e) {
-                // 如果获取当前用户失败，说明用户未登录且未提供userId
                 throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
             }
         }
 
-        // 第三步：如果目标用户已经绑定该手机号，直接返回成功
         if (StringUtils.hasText(targetUser.getMobile()) && targetUser.getMobile().equals(bindMobileDTO.getMobile())) {
-            return true;
+            BindMobileResultDTO result = new BindMobileResultDTO();
+            result.setSuccess(true);
+            result.setNeedConfirm(false);
+            return result;
         }
 
-        // 第四步：检查手机号是否已被其他用户使用
-        Result<Boolean> checkResult = sysUserClient.checkMobileAvailable(bindMobileDTO.getMobile());
-        if (checkResult == null || !checkResult.isSuccess()) {
-            throw new BusinessException(SysUserEnum.USER_SERVICE_ERROR);
-        }
-        Boolean available = checkResult.getData();
-        if (available == null || !available) {
-            throw new BusinessException(SysUserEnum.PHONE_NUMBER_ALREADY_EXISTS);
+        // 检查手机号是否可用
+        BindMobileResultDTO checkResult = this.checkMobileAvailable(bindMobileDTO.getMobile());
+        if (!checkResult.getSuccess()) {
+            if (checkResult.getNeedConfirm() != null && checkResult.getNeedConfirm()) {
+                // 手机号已被使用，返回需要确认
+                return checkResult;
+            } else {
+                // 手机号格式错误或其他错误
+                throw new BusinessException(SysUserEnum.PHONE_NUMBER_CANNOT_BE_EMPTY);
+            }
         }
 
-        // 第五步：构建更新DTO（保留其他信息，只更新手机号）
         SysUserDTO sysUserDTO = new SysUserDTO();
         BeanUtils.copyProperties(targetUser, sysUserDTO);
         sysUserDTO.setMobile(bindMobileDTO.getMobile());
 
-        // 第六步：调用system模块更新用户手机号
         Result<Boolean> updateResult = sysUserClient.updateUserInternal(sysUserDTO);
         if (updateResult == null || !updateResult.isSuccess()) {
             throw new BusinessException(SysUserEnum.USER_SERVICE_ERROR);
@@ -429,7 +457,91 @@ public class AuthServiceImpl implements AuthService {
             throw new BusinessException(SysUserEnum.USER_SERVICE_ERROR);
         }
 
-        return true;
+        BindMobileResultDTO result = new BindMobileResultDTO();
+        result.setSuccess(true);
+        result.setNeedConfirm(false);
+        return result;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public BindMobileResultDTO bindMobileConfirm(BindMobileConfirmDTO bindMobileConfirmDTO) {
+        if (bindMobileConfirmDTO == null) {
+            throw new BusinessException(SysUserEnum.DATA_CANNOT_BE_EMPTY);
+        }
+        if (!StringUtils.hasText(bindMobileConfirmDTO.getMobile())) {
+            throw new BusinessException(SysUserEnum.PHONE_NUMBER_CANNOT_BE_EMPTY);
+        }
+        if (bindMobileConfirmDTO.getUserId() == null) {
+            throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
+        }
+        if (bindMobileConfirmDTO.getIsSameAccount() == null) {
+            throw new BusinessException(SysUserEnum.DATA_CANNOT_BE_EMPTY);
+        }
+
+        Result<SysUserInternalVO> tempUserResult = sysUserClient.getUserInfoById(bindMobileConfirmDTO.getUserId());
+        if (tempUserResult == null || !tempUserResult.isSuccess() || tempUserResult.getData() == null) {
+            throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
+        }
+        SysUserInternalVO tempUser = tempUserResult.getData();
+
+        if (bindMobileConfirmDTO.getIsSameAccount()) {
+            Result<SysUserBasicInfoVO> existingUserResult = sysUserClient.getUserInfoByMobile(bindMobileConfirmDTO.getMobile());
+            if (existingUserResult == null || !existingUserResult.isSuccess() || existingUserResult.getData() == null) {
+                throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
+            }
+
+            if (!StringUtils.hasText(tempUser.getGithubId())) {
+                throw new BusinessException(SysUserEnum.USER_SERVICE_ERROR);
+            }
+
+            Result<Boolean> updateGithubResult = sysUserClient.updateGithubId(
+                    existingUserResult.getData().getId(),
+                    tempUser.getGithubId()
+            );
+            if (updateGithubResult == null || !updateGithubResult.isSuccess()) {
+                throw new BusinessException(SysUserEnum.USER_SERVICE_ERROR);
+            }
+
+            Result<Boolean> removeResult = sysUserClient.removeUserById(bindMobileConfirmDTO.getUserId());
+            if (removeResult == null || !removeResult.isSuccess()) {
+                throw new BusinessException(SysUserEnum.USER_SERVICE_ERROR);
+            }
+
+            Result<SysUserInternalVO> mergedUserResult = sysUserClient.getUserInfoById(existingUserResult.getData().getId());
+            if (mergedUserResult == null || !mergedUserResult.isSuccess() || mergedUserResult.getData() == null) {
+                throw new BusinessException(SysUserEnum.USER_SERVICE_ERROR);
+            }
+
+            BindMobileResultDTO result = new BindMobileResultDTO();
+            result.setSuccess(true);
+            result.setNeedConfirm(false);
+            return result;
+        } else {
+            Result<SysUserBasicInfoVO> existingUserResult = sysUserClient.getUserInfoByMobile(bindMobileConfirmDTO.getMobile());
+            if (existingUserResult == null || !existingUserResult.isSuccess() || existingUserResult.getData() == null) {
+                throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
+            }
+
+            Result<Boolean> softDeleteResult = sysUserClient.softDeleteUserById(existingUserResult.getData().getId());
+            if (softDeleteResult == null || !softDeleteResult.isSuccess()) {
+                throw new BusinessException(SysUserEnum.USER_SERVICE_ERROR);
+            }
+
+            SysUserDTO sysUserDTO = new SysUserDTO();
+            BeanUtils.copyProperties(tempUser, sysUserDTO);
+            sysUserDTO.setMobile(bindMobileConfirmDTO.getMobile());
+
+            Result<Boolean> updateResult = sysUserClient.updateUserInternal(sysUserDTO);
+            if (updateResult == null || !updateResult.isSuccess()) {
+                throw new BusinessException(SysUserEnum.USER_SERVICE_ERROR);
+            }
+
+            BindMobileResultDTO result = new BindMobileResultDTO();
+            result.setSuccess(true);
+            result.setNeedConfirm(false);
+            return result;
+        }
     }
 
     private boolean processLogout(String token) {

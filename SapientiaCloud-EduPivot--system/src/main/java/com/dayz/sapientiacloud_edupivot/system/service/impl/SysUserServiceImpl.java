@@ -826,4 +826,75 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
         return sysUserInternalVO;
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public SysUserBasicInfoVO getUserInfoByMobile(String mobile) {
+        if (!StringUtils.hasText(mobile)) {
+            throw new BusinessException(SysUserEnum.MOBILE_CANNOT_BE_EMPTY);
+        }
+
+        LambdaQueryWrapper<SysUser> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(SysUser::getMobile, mobile)
+                .eq(SysUser::getDeleted, DeletedEnum.NOT_DELETED.getCode());
+
+        SysUser sysUser = sysUserMapper.selectOne(queryWrapper);
+        if (sysUser == null) {
+            throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
+        }
+
+        SysUserBasicInfoVO sysUserBasicInfoVO = new SysUserBasicInfoVO();
+        sysUserBasicInfoVO.setId(sysUser.getId());
+        sysUserBasicInfoVO.setUsername(sysUser.getUsername());
+        sysUserBasicInfoVO.setNickName(sysUser.getNickName());
+        sysUserBasicInfoVO.setAvatar(sysUser.getAvatar());
+        sysUserBasicInfoVO.setCreateTime(sysUser.getCreateTime());
+
+        return sysUserBasicInfoVO;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(value = "SysUser", key = "#p0", condition = "#p0 != null")
+    public Boolean softDeleteUserById(UUID userId) {
+        if (userId == null) {
+            throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
+        }
+
+        SysUser sysUser = this.getById(userId);
+        if (sysUser == null) {
+            throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
+        }
+
+        List<SysRoleVO> roles = sysUserRoleMapper.getUserRoles(userId);
+        roles.forEach(role -> {
+            if (role.isAdmin()) {
+                throw new BusinessException(SysUserEnum.ADMIN_OPERATION_FORBIDDEN);
+            }
+        });
+
+        sysUser.setDeleted(DeletedEnum.DELETED.getCode());
+        sysUser.setUpdateTime(LocalDateTime.now());
+
+        return this.updateById(sysUser);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(value = "SysUser", key = "#p0", condition = "#p0 != null")
+    public Boolean updateGithubId(UUID userId, String githubId) {
+        if (userId == null) {
+            throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
+        }
+
+        SysUser sysUser = this.getById(userId);
+        if (sysUser == null) {
+            throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
+        }
+
+        sysUser.setGithubId(githubId);
+        sysUser.setUpdateTime(LocalDateTime.now());
+
+        return this.updateById(sysUser);
+    }
 }

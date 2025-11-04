@@ -29,7 +29,9 @@ public interface AuthService {
 
     Boolean checkUsernameAvailable(String username);
 
-    Boolean checkMobileAvailable(String mobile);
+    BindMobileResultDTO checkMobileAvailable(String mobile);
 
-    Boolean bindMobile(BindMobileDTO bindMobileDTO);
+    BindMobileResultDTO bindMobile(BindMobileDTO bindMobileDTO);
+
+    BindMobileResultDTO bindMobileConfirm(BindMobileConfirmDTO bindMobileConfirmDTO);
 }

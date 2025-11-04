@@ -156,8 +156,58 @@ public class SysUserFeign {
             @RequestParam("mobile") String mobile
     ) {
         Boolean exists = sysUserService.isMobileExists(mobile);
-        // isMobileExists 返回 true 表示已被使用，所以 available = !exists
         Boolean available = !exists;
         return Result.success(available);
+    }
+
+    @HasPermission(
+            summary = "getUserInfoByMobile",
+            description = "通过手机号获取用户基本信息"
+    )
+    @GetMapping("/internal/info/mobile/{mobile}")
+    public Result<com.dayz.sapientiacloud_edupivot.system.entity.vo.SysUserBasicInfoVO> getUserInfoByMobile(
+            @Parameter(name = "mobile", description = "手机号", required = true)
+            @PathVariable("mobile") String mobile
+    ) {
+        com.dayz.sapientiacloud_edupivot.system.entity.vo.SysUserBasicInfoVO userInfo = sysUserService.getUserInfoByMobile(mobile);
+        return Result.success(userInfo);
+    }
+
+    @HasPermission(
+            summary = "softDeleteUserById",
+            description = "软删除用户"
+    )
+    @PutMapping("/internal/soft-delete/{userId}")
+    public Result<Boolean> softDeleteUserById(
+            @Parameter(name = "userId", description = "用户ID", required = true)
+            @PathVariable("userId") UUID userId
+    ) {
+        return Result.success(sysUserService.softDeleteUserById(userId));
+    }
+
+    @HasPermission(
+            summary = "updateGithubId",
+            description = "更新用户的GitHub ID"
+    )
+    @PutMapping("/internal/github-id/{userId}")
+    public Result<Boolean> updateGithubId(
+            @Parameter(name = "userId", description = "用户ID", required = true)
+            @PathVariable("userId") UUID userId,
+            @Parameter(name = "githubId", description = "GitHub ID", required = true)
+            @RequestParam("githubId") String githubId
+    ) {
+        return Result.success(sysUserService.updateGithubId(userId, githubId));
+    }
+
+    @HasPermission(
+            summary = "removeUserById",
+            description = "删除用户"
+    )
+    @DeleteMapping("/internal/{userId}")
+    public Result<Boolean> removeUserById(
+            @Parameter(name = "userId", description = "用户ID", required = true)
+            @PathVariable("userId") UUID userId
+    ) {
+        return Result.success(sysUserService.removeUserById(userId));
     }
 }

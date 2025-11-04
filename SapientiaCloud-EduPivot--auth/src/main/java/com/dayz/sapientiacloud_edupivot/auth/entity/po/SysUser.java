@@ -53,4 +53,10 @@ public class SysUser extends BaseEntity implements Serializable {
     @Schema(name = "lastLoginTime", description = "最后登录时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime lastLoginTime;
+
+    @Schema(name = "githubId", description = "GitHub用户ID")
+    private String githubId;
+
+    @Schema(name = "wechatId", description = "微信OpenID")
+    private String wechatId;
 }
