@@ -50,6 +50,7 @@ public class SecurityConfig {
                                 "/check-username",
                                 "/check-mobile",
                                 "/bind-mobile",
+                                "/bind-mobile/confirm",
                                 "/oauth2/**",
                                 "/api/auth/**",
                                 "/v3/api-docs/**",

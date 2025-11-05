@@ -210,4 +210,16 @@ public class SysUserFeign {
     ) {
         return Result.success(sysUserService.removeUserById(userId));
     }
+
+    @HasPermission(
+            summary = "physicalDeleteUserById",
+            description = "物理删除用户"
+    )
+    @DeleteMapping("/internal/physical/{userId}")
+    public Result<Boolean> physicalDeleteUserById(
+            @Parameter(name = "userId", description = "用户ID", required = true)
+            @PathVariable("userId") UUID userId
+    ) {
+        return Result.success(sysUserService.physicalDeleteUserById(userId));
+    }
 }

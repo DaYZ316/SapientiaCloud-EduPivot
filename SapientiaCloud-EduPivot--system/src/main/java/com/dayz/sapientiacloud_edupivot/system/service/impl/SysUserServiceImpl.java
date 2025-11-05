@@ -40,6 +40,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -560,15 +562,12 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             return false;
         }
 
-        // 用户名长度校验：4-20位（与注册时的校验保持一致）
         if (username.length() < 4 || username.length() > 20) {
             return false;
         }
 
-        // 检查用户名是否已存在
         SysUser existingUser = sysUserMapper.selectByUsername(username);
 
-        // 如果用户不存在，则用户名可用（返回 true）
         return existingUser == null;
     }
 
@@ -584,58 +583,63 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             throw new BusinessException(SysUserEnum.THIRD_PARTY_PROVIDER_NOT_SUPPORTED);
         }
 
-        // 优先通过第三方平台ID查找用户
         SysUser existingUser = sysUserMapper.selectByThirdPartyId(provider, providerId);
 
         if (existingUser != null) {
-            // 用户已存在，可能需要更新信息（如用户名、头像等）
-            boolean needUpdate = false;
-            // 更新用户信息（如果第三方平台信息有变化）
-            if (StringUtils.hasText(email) && !Objects.equals(existingUser.getEmail(), email)) {
-                existingUser.setEmail(email);
-                needUpdate = true;
-            }
-            if (StringUtils.hasText(name) && !Objects.equals(existingUser.getNickName(), name)) {
-                existingUser.setNickName(name);
-                needUpdate = true;
-            }
-            if (StringUtils.hasText(avatarUrl) && !Objects.equals(existingUser.getAvatar(), avatarUrl)) {
-                existingUser.setAvatar(avatarUrl);
-                needUpdate = true;
-            }
-            if (StringUtils.hasText(username) && !Objects.equals(existingUser.getUsername(), username)) {
-                // 检查新用户名是否已被其他用户使用
-                SysUser userByUsername = sysUserMapper.selectByUsername(username);
-                if (userByUsername == null || userByUsername.getId().equals(existingUser.getId())) {
-                    existingUser.setUsername(username);
-                    needUpdate = true;
-                }
-            }
-
-            // 检查是否需要补充第三方平台ID（兼容旧数据）
-            if (!hasThirdPartyId(existingUser, provider, providerId)) {
-                setThirdPartyId(existingUser, provider, providerId);
-                needUpdate = true;
-            }
-
-            if (needUpdate) {
-                existingUser.setUpdateTime(LocalDateTime.now());
-                this.updateById(existingUser);
-            }
-
-            // 构建返回结果
+//            boolean needUpdate = false;
+//            if (StringUtils.hasText(email) && !Objects.equals(existingUser.getEmail(), email)) {
+//                existingUser.setEmail(email);
+//                needUpdate = true;
+//            }
+//            if (StringUtils.hasText(name) && !Objects.equals(existingUser.getNickName(), name)) {
+//                existingUser.setNickName(name);
+//                needUpdate = true;
+//            }
+//            if (StringUtils.hasText(avatarUrl) && !Objects.equals(existingUser.getAvatar(), avatarUrl)) {
+//                existingUser.setAvatar(avatarUrl);
+//                needUpdate = true;
+//            }
+//            if (StringUtils.hasText(username) && !Objects.equals(existingUser.getUsername(), username)) {
+//                SysUser userByUsername = sysUserMapper.selectByUsername(username);
+//                if (userByUsername == null || userByUsername.getId().equals(existingUser.getId())) {
+//                    existingUser.setUsername(username);
+//                    needUpdate = true;
+//                }
+//            }
+//
+//            if (!hasThirdPartyId(existingUser, provider, providerId)) {
+//                setThirdPartyId(existingUser, provider, providerId);
+//                needUpdate = true;
+//            }
+//
+//            if (needUpdate) {
+//                existingUser.setUpdateTime(LocalDateTime.now());
+//                this.updateById(existingUser);
+//            }
             return buildThirdPartyLoginResult(existingUser, false);
         }
 
 
-        // 检查用户名是否已存在，如果存在则生成唯一用户名
         String finalUsername = username;
         SysUser userByUsername = sysUserMapper.selectByUsername(username);
         if (userByUsername != null) {
-            // 生成唯一用户名：原用户名 + "_" + provider + "_" + providerId的后8位
-            String suffix = provider.toLowerCase() + "_" +
-                    (providerId.length() > 8 ? providerId.substring(providerId.length() - 8) : providerId);
+            String hash = md5Hex(provider + "_" + providerId);
+            String suffix = provider.toLowerCase() + "_" + hash.substring(0, 8);
             finalUsername = username + "_" + suffix;
+            
+            // 确保生成的用户名唯一（如果还冲突，继续生成）
+            int attempt = 1;
+            while (sysUserMapper.selectByUsername(finalUsername) != null) {
+                // 如果哈希值冲突，使用带计数器的哈希
+                String hashWithCounter = md5Hex(provider + "_" + providerId + "_" + attempt);
+                suffix = provider.toLowerCase() + "_" + hashWithCounter.substring(0, 8);
+                finalUsername = username + "_" + suffix;
+                attempt++;
+                // 防止无限循环
+                if (attempt > 100) {
+                    throw new BusinessException(SysUserEnum.USERNAME_GENERATION_FAILED);
+                }
+            }
         }
 
         SysUser newUser = new SysUser();
@@ -794,6 +798,25 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         }
     }
 
+    private String md5Hex(String input) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            byte[] hashBytes = md.digest(input.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : hashBytes) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) {
+                    hexString.append('0');
+                }
+                hexString.append(hex);
+            }
+            return hexString.toString();
+        } catch (NoSuchAlgorithmException e) {
+            // MD5 是标准算法，不会抛出此异常
+            throw new RuntimeException("MD5 algorithm not found", e);
+        }
+    }
+
     @Override
     @Transactional(readOnly = false)
     public SysUserInternalVO mobileLogin(SysUserMobileLoginDTO mobileLoginDTO) {
@@ -873,10 +896,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             }
         });
 
-        sysUser.setDeleted(DeletedEnum.DELETED.getCode());
-        sysUser.setUpdateTime(LocalDateTime.now());
-
-        return this.updateById(sysUser);
+        return this.removeById(userId);
     }
 
     @Override
@@ -896,5 +916,36 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         sysUser.setUpdateTime(LocalDateTime.now());
 
         return this.updateById(sysUser);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    @Caching(evict = {
+            @CacheEvict(value = "SysUser", key = "#p0", condition = "#p0 != null"),
+            @CacheEvict(value = "SysUser", key = "'all'", condition = "true")
+    })
+    public Boolean physicalDeleteUserById(UUID id) {
+        if (id == null) {
+            throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
+        }
+
+        SysUser sysUser = this.getById(id);
+        if (sysUser == null) {
+            throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
+        }
+
+        List<SysRoleVO> roles = sysUserRoleMapper.getUserRoles(id);
+        roles.forEach(role -> {
+            if (role.isAdmin()) {
+                throw new BusinessException(SysRoleEnum.ADMIN_OPERATION_FORBIDDEN);
+            }
+        });
+
+        int deleted = sysUserMapper.physicalDeleteById(id);
+        if (deleted > 0) {
+            sysUserRoleMapper.removeRolesByUserId(id);
+        }
+
+        return deleted > 0;
     }
 }

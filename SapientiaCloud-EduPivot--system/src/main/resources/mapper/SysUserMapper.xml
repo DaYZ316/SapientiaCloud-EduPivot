@@ -89,4 +89,8 @@
         </where>
     </select>
 
+    <delete id="physicalDeleteById">
+        DELETE FROM sys_user WHERE id = #{id}
+    </delete>
+
 </mapper>
