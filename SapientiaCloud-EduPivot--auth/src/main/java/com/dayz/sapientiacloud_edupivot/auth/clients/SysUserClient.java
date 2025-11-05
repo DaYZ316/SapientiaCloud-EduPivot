@@ -6,6 +6,7 @@ import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserMobileLoginDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserPasswordDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserRegisterDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysRoleVO;
+import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysUserBasicInfoVO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysUserInternalVO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.vo.ThirdPartyLoginResultVO;
 import com.dayz.sapientiacloud_edupivot.auth.result.Result;
@@ -59,7 +60,7 @@ public interface SysUserClient {
     Result<Boolean> checkMobileAvailable(@RequestParam("mobile") String mobile);
 
     @GetMapping("/internal/info/mobile/{mobile}")
-    Result<com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysUserBasicInfoVO> getUserInfoByMobile(@PathVariable("mobile") String mobile);
+    Result<SysUserBasicInfoVO> getUserInfoByMobile(@PathVariable("mobile") String mobile);
 
     @PutMapping("/internal/soft-delete/{userId}")
     Result<Boolean> softDeleteUserById(@PathVariable("userId") UUID userId);

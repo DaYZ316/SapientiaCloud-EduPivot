@@ -22,7 +22,6 @@ services:
       - "8001:8001"
     volumes:
       - redis_data:/data
-    restart: always
 
   nacos:
     image: nacos/nacos-server:v2.1.1
