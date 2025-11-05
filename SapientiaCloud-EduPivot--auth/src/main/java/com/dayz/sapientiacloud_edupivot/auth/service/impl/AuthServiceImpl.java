@@ -503,8 +503,8 @@ public class AuthServiceImpl implements AuthService {
                 throw new BusinessException(SysUserEnum.USER_SERVICE_ERROR);
             }
 
-            Result<Boolean> removeResult = sysUserClient.removeUserById(bindMobileConfirmDTO.getUserId());
-            if (removeResult == null || !removeResult.isSuccess()) {
+            Result<Boolean> removeResult = sysUserClient.physicalDeleteUserById(bindMobileConfirmDTO.getUserId());
+            if (removeResult == null || !removeResult.isSuccess() || !Boolean.TRUE.equals(removeResult.getData())) {
                 throw new BusinessException(SysUserEnum.USER_SERVICE_ERROR);
             }
 

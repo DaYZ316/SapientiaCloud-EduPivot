@@ -56,4 +56,6 @@ public interface ISysUserService {
     Boolean softDeleteUserById(UUID userId);
 
     Boolean updateGithubId(UUID userId, String githubId);
+
+    Boolean physicalDeleteUserById(UUID id);
 }

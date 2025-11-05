@@ -8,6 +8,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
+import java.util.UUID;
 
 @Mapper
 public interface SysUserMapper extends BaseMapper<SysUser> {
@@ -21,4 +22,6 @@ public interface SysUserMapper extends BaseMapper<SysUser> {
     SysUser selectByWechatId(String wechatId);
 
     SysUser selectByThirdPartyId(@Param("provider") String provider, @Param("providerId") String providerId);
+
+    int physicalDeleteById(UUID id);
 }

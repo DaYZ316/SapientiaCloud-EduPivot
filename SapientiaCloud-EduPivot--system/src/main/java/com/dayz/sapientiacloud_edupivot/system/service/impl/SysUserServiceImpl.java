@@ -873,10 +873,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             }
         });
 
-        sysUser.setDeleted(DeletedEnum.DELETED.getCode());
-        sysUser.setUpdateTime(LocalDateTime.now());
-
-        return this.updateById(sysUser);
+        return this.removeById(userId);
     }
 
     @Override
@@ -896,5 +893,36 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         sysUser.setUpdateTime(LocalDateTime.now());
 
         return this.updateById(sysUser);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    @Caching(evict = {
+            @CacheEvict(value = "SysUser", key = "#p0", condition = "#p0 != null"),
+            @CacheEvict(value = "SysUser", key = "'all'", condition = "true")
+    })
+    public Boolean physicalDeleteUserById(UUID id) {
+        if (id == null) {
+            throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
+        }
+
+        SysUser sysUser = this.getById(id);
+        if (sysUser == null) {
+            throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
+        }
+
+        List<SysRoleVO> roles = sysUserRoleMapper.getUserRoles(id);
+        roles.forEach(role -> {
+            if (role.isAdmin()) {
+                throw new BusinessException(SysRoleEnum.ADMIN_OPERATION_FORBIDDEN);
+            }
+        });
+
+        int deleted = sysUserMapper.physicalDeleteById(id);
+        if (deleted > 0) {
+            sysUserRoleMapper.removeRolesByUserId(id);
+        }
+
+        return deleted > 0;
     }
 }

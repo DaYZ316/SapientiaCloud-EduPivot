@@ -69,4 +69,7 @@ public interface SysUserClient {
 
     @DeleteMapping("/internal/{userId}")
     Result<Boolean> removeUserById(@PathVariable("userId") UUID userId);
+
+    @DeleteMapping("/internal/physical/{userId}")
+    Result<Boolean> physicalDeleteUserById(@PathVariable("userId") UUID userId);
 }
