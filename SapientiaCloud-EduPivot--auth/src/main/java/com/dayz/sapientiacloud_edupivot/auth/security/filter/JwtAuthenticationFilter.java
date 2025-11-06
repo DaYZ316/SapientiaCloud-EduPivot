@@ -7,7 +7,10 @@ import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysUserInternalVO;
 import com.dayz.sapientiacloud_edupivot.auth.enums.SysUserEnum;
 import com.dayz.sapientiacloud_edupivot.auth.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.auth.result.Result;
+import com.dayz.sapientiacloud_edupivot.auth.security.constants.JwtConstants;
 import com.dayz.sapientiacloud_edupivot.auth.security.utils.JwtUtil;
+import com.dayz.sapientiacloud_edupivot.auth.security.utils.TokenExtractionUtil;
+import com.dayz.sapientiacloud_edupivot.auth.security.utils.WhitelistUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,8 +21,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
-import org.springframework.util.AntPathMatcher;
-import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -28,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -35,18 +37,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private static final String[] WHITELIST = {
             "/login",
+            "/mobile-login",
             "/validate",
             "/register",
+            "/send-code",
+            "/check-username",
+            "/check-mobile",
+            "/bind-mobile",
+            "/bind-mobile/confirm",
+            "/oauth2/**",
+            "/api/auth/**",
+            "/v3/api-docs/**",
             "/doc.html",
             "/webjars/**",
-            "/v3/api-docs",
+            "/oauth2/**"
     };
-    private static final String USERID_CLAIM = "userId";
-    private static final String USERNAME_CLAIM = "username";
-    private static final String AUTHORIZATION_HEADER = "Authorization";
-    private static final String BEARER_PREFIX = "Bearer ";
-    private static final Integer TOKEN_PREFIX_LENGTH = BEARER_PREFIX.length();
-    private final AntPathMatcher pathMatcher = new AntPathMatcher();
     private final JwtUtil jwtUtil;
     private final SysUserClient sysUserClient;
 
@@ -57,19 +62,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String requestURI = request.getRequestURI();
 
         // 如果是白名单中的路径，直接放行
-        if (isWhitelistPath(requestURI)) {
+        if (WhitelistUtil.isWhitelistPath(requestURI, WHITELIST)) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        String token = extractTokenFromRequest(request);
+        String token = TokenExtractionUtil.extractTokenFromRequest(request);
         if (token != null) {
             try {
                 // 验证令牌，此方法会检查令牌是否在黑名单中
                 if (!jwtUtil.isTokenExpired(token)) {
                     DecodedJWT jwt = jwtUtil.validateToken(token);
                     String username = jwt.getSubject();
-                    String userId = jwt.getClaim(USERID_CLAIM).asString();
+                    String userId = jwt.getClaim(JwtConstants.USERID_CLAIM).asString();
 
                     if (username != null && userId != null) {
                         Result<SysUserInternalVO> userResult = sysUserClient.getUserInfoByUsername(username);
@@ -81,8 +86,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                         // 创建用户详情对象，存储用户名和用户ID
                         Map<String, Object> userDetails = new HashMap<>();
-                        userDetails.put(USERNAME_CLAIM, username);
-                        userDetails.put(USERID_CLAIM, userId);
+                        userDetails.put(JwtConstants.USERNAME_CLAIM, username);
+                        userDetails.put(JwtConstants.USERID_CLAIM, userId);
 
                         // 创建认证对象，使用userDetails作为principal
                         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
@@ -112,25 +117,4 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    private boolean isWhitelistPath(String requestURI) {
-        for (String pattern : WHITELIST) {
-            if (pathMatcher.match(pattern, requestURI)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private String extractTokenFromRequest(HttpServletRequest request) {
-        String bearerToken = request.getHeader(AUTHORIZATION_HEADER);
-        if (StringUtils.hasText(bearerToken)) {
-            // 如果已经有Bearer前缀，则去掉前缀
-            if (bearerToken.startsWith(BEARER_PREFIX)) {
-                return bearerToken.substring(TOKEN_PREFIX_LENGTH);
-            }
-            // 如果没有Bearer前缀，直接返回token
-            return bearerToken;
-        }
-        return null;
-    }
 } 

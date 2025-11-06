@@ -12,7 +12,6 @@ import com.dayz.sapientiacloud_edupivot.course.service.IQuestionOptionService;
 import com.github.f4b6a3.uuid.UuidCreator;
 import com.mongodb.client.result.UpdateResult;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;

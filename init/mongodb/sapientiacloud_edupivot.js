@@ -49,7 +49,7 @@ db.getCollection("mg_course_chapter").createIndex({
 // ----------------------------
 // Documents of mg_course_chapter
 // ----------------------------
-db.getCollection("mg_course_chapter").insert([ {
+db.getCollection("mg_course_chapter").insert([{
     _id: "78d44b4a-becd-4f65-9461-f2dcdda03e02",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
     chapter_name: "第一章 函数与极限",
@@ -73,8 +73,8 @@ db.getCollection("mg_course_chapter").insert([ {
     update_time: ISODate("2025-10-05T06:52:59.534Z"),
     is_deleted: Int32("0"),
     _class: "com.dayz.sapientiacloud_edupivot.course.entity.po.CourseChapter"
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
+}]);
+db.getCollection("mg_course_chapter").insert([{
     _id: "78d44b4a-becd-4f65-9461-f2dcdda03e03",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
     chapter_name: "1.1 函数的概念",
@@ -96,8 +96,8 @@ db.getCollection("mg_course_chapter").insert([ {
     update_time: ISODate("2025-10-04T12:55:34.385Z"),
     is_deleted: Int32("0"),
     _class: "com.dayz.sapientiacloud_edupivot.course.entity.po.CourseChapter"
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
+}]);
+db.getCollection("mg_course_chapter").insert([{
     _id: "78d44b4a-becd-4f65-9461-f2dcdda03e04",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
     chapter_name: "1.2 函数的性质",
@@ -115,15 +115,15 @@ db.getCollection("mg_course_chapter").insert([ {
     update_time: ISODate("2025-10-04T11:09:15.799Z"),
     is_deleted: Int32("0"),
     _class: "com.dayz.sapientiacloud_edupivot.course.entity.po.CourseChapter"
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
+}]);
+db.getCollection("mg_course_chapter").insert([{
     _id: "78d44b4a-becd-4f65-9461-f2dcdda03e05",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
     chapter_name: "1.3 极限的概念",
     parent_chapter_id: "78d44b4a-becd-4f65-9461-f2dcdda03e02",
     description: "理解极限的严格定义和几何意义",
     content: "<h3>1.3.1 极限的直观定义</h3><p>当x无限接近a时，f(x)无限接近某个常数A。</p><h3>1.3.2 极限的严格定义</h3><p>ε-δ定义：对于任意ε&gt;0，存在δ&gt;0，使得当0&lt;|x-a|&lt;δ时，|f(x)-A|&lt;ε。</p><h3>1.3.3 左极限和右极限</h3><p>分别考虑x从左侧和右侧趋近于a时的极限。</p>",
-    attachment_urls: [ ],
+    attachment_urls: [],
     sort_order: Int32("3"),
     status: Int32("1"),
     view_count: Long("420"),
@@ -132,8 +132,8 @@ db.getCollection("mg_course_chapter").insert([ {
     update_time: ISODate("2025-10-04T08:12:25.809Z"),
     is_deleted: Int32("0"),
     _class: "com.dayz.sapientiacloud_edupivot.course.entity.po.CourseChapter"
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
+}]);
+db.getCollection("mg_course_chapter").insert([{
     _id: "78d44b4a-becd-4f65-9461-f2dcdda03e06",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
     chapter_name: "1.4 极限的运算法则",
@@ -156,8 +156,8 @@ db.getCollection("mg_course_chapter").insert([ {
     update_time: ISODate("2025-10-04T16:11:53.166Z"),
     is_deleted: Int32("0"),
     _class: "com.dayz.sapientiacloud_edupivot.course.entity.po.CourseChapter"
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
+}]);
+db.getCollection("mg_course_chapter").insert([{
     _id: "78d44b4a-becd-4f65-9461-f2dcdda03e07",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
     chapter_name: "第二章 导数与微分",
@@ -171,8 +171,8 @@ db.getCollection("mg_course_chapter").insert([ {
     create_time: ISODate("2024-01-16T09:00:00.000Z"),
     update_time: ISODate("2024-01-16T09:00:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
+}]);
+db.getCollection("mg_course_chapter").insert([{
     _id: "78d44b4a-becd-4f65-9461-f2dcdda03e08",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
     chapter_name: "2.1 导数的定义",
@@ -186,8 +186,8 @@ db.getCollection("mg_course_chapter").insert([ {
     create_time: ISODate("2024-01-16T09:30:00.000Z"),
     update_time: ISODate("2024-01-16T09:30:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
+}]);
+db.getCollection("mg_course_chapter").insert([{
     _id: "78d44b4a-becd-4f65-9461-f2dcdda03e09",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
     chapter_name: "2.2 导数的计算",
@@ -201,8 +201,8 @@ db.getCollection("mg_course_chapter").insert([ {
     create_time: ISODate("2024-01-16T10:00:00.000Z"),
     update_time: ISODate("2024-01-16T10:00:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
+}]);
+db.getCollection("mg_course_chapter").insert([{
     _id: "78d44b4a-becd-4f65-9461-f2dcdda03e10",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
     chapter_name: "2.3 高阶导数",
@@ -216,8 +216,8 @@ db.getCollection("mg_course_chapter").insert([ {
     create_time: ISODate("2024-01-16T10:30:00.000Z"),
     update_time: ISODate("2024-01-16T10:30:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
+}]);
+db.getCollection("mg_course_chapter").insert([{
     _id: "78d44b4a-becd-4f65-9461-f2dcdda03e11",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
     chapter_name: "2.4 微分",
@@ -231,8 +231,8 @@ db.getCollection("mg_course_chapter").insert([ {
     create_time: ISODate("2024-01-16T11:00:00.000Z"),
     update_time: ISODate("2024-01-16T11:00:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
+}]);
+db.getCollection("mg_course_chapter").insert([{
     _id: "78d44b4a-becd-4f65-9461-f2dcdda03e12",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
     chapter_name: "第三章 导数的应用",
@@ -246,8 +246,8 @@ db.getCollection("mg_course_chapter").insert([ {
     create_time: ISODate("2024-01-17T09:00:00.000Z"),
     update_time: ISODate("2024-01-17T09:00:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
+}]);
+db.getCollection("mg_course_chapter").insert([{
     _id: "78d44b4a-becd-4f65-9461-f2dcdda03e13",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
     chapter_name: "3.1 函数的单调性",
@@ -261,8 +261,8 @@ db.getCollection("mg_course_chapter").insert([ {
     create_time: ISODate("2024-01-17T09:30:00.000Z"),
     update_time: ISODate("2024-01-17T09:30:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
+}]);
+db.getCollection("mg_course_chapter").insert([{
     _id: "78d44b4a-becd-4f65-9461-f2dcdda03e14",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
     chapter_name: "3.2 函数的极值",
@@ -276,8 +276,8 @@ db.getCollection("mg_course_chapter").insert([ {
     create_time: ISODate("2024-01-17T10:00:00.000Z"),
     update_time: ISODate("2024-01-17T10:00:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
+}]);
+db.getCollection("mg_course_chapter").insert([{
     _id: "78d44b4a-becd-4f65-9461-f2dcdda03e15",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
     chapter_name: "3.3 函数的最值",
@@ -292,8 +292,8 @@ db.getCollection("mg_course_chapter").insert([ {
     create_time: ISODate("2024-01-17T10:30:00.000Z"),
     update_time: ISODate("2024-01-17T10:30:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
+}]);
+db.getCollection("mg_course_chapter").insert([{
     _id: "78d44b4a-becd-4f65-9461-f2dcdda03e16",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
     chapter_name: "3.4 曲线的凹凸性",
@@ -307,8 +307,8 @@ db.getCollection("mg_course_chapter").insert([ {
     create_time: ISODate("2024-01-17T11:00:00.000Z"),
     update_time: ISODate("2024-01-17T11:00:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
+}]);
+db.getCollection("mg_course_chapter").insert([{
     _id: "78d44b4a-becd-4f65-9461-f2dcdda03e17",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
     chapter_name: "第四章 不定积分",
@@ -323,8 +323,8 @@ db.getCollection("mg_course_chapter").insert([ {
     create_time: ISODate("2024-01-18T09:00:00.000Z"),
     update_time: ISODate("2024-01-18T09:00:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
+}]);
+db.getCollection("mg_course_chapter").insert([{
     _id: "78d44b4a-becd-4f65-9461-f2dcdda03e18",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
     chapter_name: "4.1 不定积分的概念",
@@ -339,8 +339,8 @@ db.getCollection("mg_course_chapter").insert([ {
     create_time: ISODate("2024-01-18T09:30:00.000Z"),
     update_time: ISODate("2024-01-18T09:30:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
+}]);
+db.getCollection("mg_course_chapter").insert([{
     _id: "78d44b4a-becd-4f65-9461-f2dcdda03e19",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
     chapter_name: "4.2 基本积分公式",
@@ -354,8 +354,8 @@ db.getCollection("mg_course_chapter").insert([ {
     create_time: ISODate("2024-01-18T10:00:00.000Z"),
     update_time: ISODate("2024-01-18T10:00:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
+}]);
+db.getCollection("mg_course_chapter").insert([{
     _id: "78d44b4a-becd-4f65-9461-f2dcdda03e20",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
     chapter_name: "4.3 换元积分法",
@@ -370,8 +370,8 @@ db.getCollection("mg_course_chapter").insert([ {
     create_time: ISODate("2024-01-18T10:30:00.000Z"),
     update_time: ISODate("2024-01-18T10:30:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
+}]);
+db.getCollection("mg_course_chapter").insert([{
     _id: "78d44b4a-becd-4f65-9461-f2dcdda03e21",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
     chapter_name: "4.4 分部积分法",
@@ -386,8 +386,8 @@ db.getCollection("mg_course_chapter").insert([ {
     create_time: ISODate("2024-01-18T11:00:00.000Z"),
     update_time: ISODate("2024-01-18T11:00:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
+}]);
+db.getCollection("mg_course_chapter").insert([{
     _id: "78d44b4a-becd-4f65-9461-f2dcdda03e22",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
     chapter_name: "第五章 定积分",
@@ -402,8 +402,8 @@ db.getCollection("mg_course_chapter").insert([ {
     create_time: ISODate("2024-01-19T09:00:00.000Z"),
     update_time: ISODate("2024-01-19T09:00:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
+}]);
+db.getCollection("mg_course_chapter").insert([{
     _id: "78d44b4a-becd-4f65-9461-f2dcdda03e23",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
     chapter_name: "5.1 定积分的定义",
@@ -418,8 +418,8 @@ db.getCollection("mg_course_chapter").insert([ {
     create_time: ISODate("2024-01-19T09:30:00.000Z"),
     update_time: ISODate("2024-01-19T09:30:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
+}]);
+db.getCollection("mg_course_chapter").insert([{
     _id: "78d44b4a-becd-4f65-9461-f2dcdda03e24",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
     chapter_name: "5.2 定积分的性质",
@@ -433,8 +433,8 @@ db.getCollection("mg_course_chapter").insert([ {
     create_time: ISODate("2024-01-19T10:00:00.000Z"),
     update_time: ISODate("2024-01-19T10:00:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
+}]);
+db.getCollection("mg_course_chapter").insert([{
     _id: "78d44b4a-becd-4f65-9461-f2dcdda03e25",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
     chapter_name: "5.3 微积分基本定理",
@@ -448,8 +448,8 @@ db.getCollection("mg_course_chapter").insert([ {
     create_time: ISODate("2024-01-19T10:30:00.000Z"),
     update_time: ISODate("2024-01-19T10:30:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
+}]);
+db.getCollection("mg_course_chapter").insert([{
     _id: "78d44b4a-becd-4f65-9461-f2dcdda03e26",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
     chapter_name: "5.4 定积分的应用",
@@ -464,8 +464,8 @@ db.getCollection("mg_course_chapter").insert([ {
     create_time: ISODate("2024-01-19T11:00:00.000Z"),
     update_time: ISODate("2024-01-19T11:00:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
+}]);
+db.getCollection("mg_course_chapter").insert([{
     _id: "78d44b4a-becd-4f65-9461-f2dcdda03e27",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
     chapter_name: "第六章 多元函数微分学",
@@ -480,8 +480,8 @@ db.getCollection("mg_course_chapter").insert([ {
     create_time: ISODate("2024-01-20T09:00:00.000Z"),
     update_time: ISODate("2024-01-20T09:00:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
+}]);
+db.getCollection("mg_course_chapter").insert([{
     _id: "78d44b4a-becd-4f65-9461-f2dcdda03e28",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
     chapter_name: "6.1 多元函数的概念",
@@ -496,8 +496,8 @@ db.getCollection("mg_course_chapter").insert([ {
     create_time: ISODate("2024-01-20T09:30:00.000Z"),
     update_time: ISODate("2024-01-20T09:30:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
+}]);
+db.getCollection("mg_course_chapter").insert([{
     _id: "78d44b4a-becd-4f65-9461-f2dcdda03e29",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
     chapter_name: "6.2 偏导数",
@@ -511,8 +511,8 @@ db.getCollection("mg_course_chapter").insert([ {
     create_time: ISODate("2024-01-20T10:00:00.000Z"),
     update_time: ISODate("2024-01-20T10:00:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
+}]);
+db.getCollection("mg_course_chapter").insert([{
     _id: "78d44b4a-becd-4f65-9461-f2dcdda03e30",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
     chapter_name: "6.3 全微分",
@@ -526,8 +526,8 @@ db.getCollection("mg_course_chapter").insert([ {
     create_time: ISODate("2024-01-20T10:30:00.000Z"),
     update_time: ISODate("2024-01-20T10:30:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
+}]);
+db.getCollection("mg_course_chapter").insert([{
     _id: "78d44b4a-becd-4f65-9461-f2dcdda03e31",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
     chapter_name: "6.4 多元函数的极值",
@@ -541,8 +541,8 @@ db.getCollection("mg_course_chapter").insert([ {
     create_time: ISODate("2024-01-20T11:00:00.000Z"),
     update_time: ISODate("2024-01-20T11:00:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
+}]);
+db.getCollection("mg_course_chapter").insert([{
     _id: "78d44b4a-becd-4f65-9461-f2dcdda03e32",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
     chapter_name: "第七章 重积分",
@@ -557,8 +557,8 @@ db.getCollection("mg_course_chapter").insert([ {
     create_time: ISODate("2024-01-21T09:00:00.000Z"),
     update_time: ISODate("2024-01-21T09:00:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
+}]);
+db.getCollection("mg_course_chapter").insert([{
     _id: "78d44b4a-becd-4f65-9461-f2dcdda03e33",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
     chapter_name: "7.1 二重积分的概念",
@@ -572,8 +572,8 @@ db.getCollection("mg_course_chapter").insert([ {
     create_time: ISODate("2024-01-21T09:30:00.000Z"),
     update_time: ISODate("2024-01-21T09:30:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
+}]);
+db.getCollection("mg_course_chapter").insert([{
     _id: "78d44b4a-becd-4f65-9461-f2dcdda03e34",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
     chapter_name: "7.2 二重积分的计算",
@@ -588,8 +588,8 @@ db.getCollection("mg_course_chapter").insert([ {
     create_time: ISODate("2024-01-21T10:00:00.000Z"),
     update_time: ISODate("2024-01-21T10:00:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
+}]);
+db.getCollection("mg_course_chapter").insert([{
     _id: "78d44b4a-becd-4f65-9461-f2dcdda03e35",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
     chapter_name: "7.3 三重积分",
@@ -603,8 +603,8 @@ db.getCollection("mg_course_chapter").insert([ {
     create_time: ISODate("2024-01-21T10:30:00.000Z"),
     update_time: ISODate("2024-01-21T10:30:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
+}]);
+db.getCollection("mg_course_chapter").insert([{
     _id: "78d44b4a-becd-4f65-9461-f2dcdda03e36",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
     chapter_name: "7.4 重积分的应用",
@@ -619,8 +619,8 @@ db.getCollection("mg_course_chapter").insert([ {
     create_time: ISODate("2024-01-21T11:00:00.000Z"),
     update_time: ISODate("2024-01-21T11:00:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
+}]);
+db.getCollection("mg_course_chapter").insert([{
     _id: "78d44b4a-becd-4f65-9461-f2dcdda03e37",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
     chapter_name: "第八章 曲线积分与曲面积分",
@@ -635,8 +635,8 @@ db.getCollection("mg_course_chapter").insert([ {
     create_time: ISODate("2024-01-22T09:00:00.000Z"),
     update_time: ISODate("2024-01-22T09:00:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
+}]);
+db.getCollection("mg_course_chapter").insert([{
     _id: "78d44b4a-becd-4f65-9461-f2dcdda03e38",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
     chapter_name: "8.1 对弧长的曲线积分",
@@ -650,8 +650,8 @@ db.getCollection("mg_course_chapter").insert([ {
     create_time: ISODate("2024-01-22T09:30:00.000Z"),
     update_time: ISODate("2024-01-22T09:30:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
+}]);
+db.getCollection("mg_course_chapter").insert([{
     _id: "78d44b4a-becd-4f65-9461-f2dcdda03e39",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
     chapter_name: "8.2 对坐标的曲线积分",
@@ -665,8 +665,8 @@ db.getCollection("mg_course_chapter").insert([ {
     create_time: ISODate("2024-01-22T10:00:00.000Z"),
     update_time: ISODate("2024-01-22T10:00:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
+}]);
+db.getCollection("mg_course_chapter").insert([{
     _id: "78d44b4a-becd-4f65-9461-f2dcdda03e40",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
     chapter_name: "8.3 格林公式",
@@ -681,8 +681,8 @@ db.getCollection("mg_course_chapter").insert([ {
     create_time: ISODate("2024-01-22T10:30:00.000Z"),
     update_time: ISODate("2024-01-22T10:30:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
+}]);
+db.getCollection("mg_course_chapter").insert([{
     _id: "78d44b4a-becd-4f65-9461-f2dcdda03e41",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
     chapter_name: "8.4 曲面积分",
@@ -697,8 +697,8 @@ db.getCollection("mg_course_chapter").insert([ {
     create_time: ISODate("2024-01-22T11:00:00.000Z"),
     update_time: ISODate("2024-01-22T11:00:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
+}]);
+db.getCollection("mg_course_chapter").insert([{
     _id: "78d44b4a-becd-4f65-9461-f2dcdda03e42",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
     chapter_name: "第九章 无穷级数",
@@ -713,8 +713,8 @@ db.getCollection("mg_course_chapter").insert([ {
     create_time: ISODate("2024-01-23T09:00:00.000Z"),
     update_time: ISODate("2024-01-23T09:00:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
+}]);
+db.getCollection("mg_course_chapter").insert([{
     _id: "78d44b4a-becd-4f65-9461-f2dcdda03e43",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
     chapter_name: "9.1 无穷级数的概念",
@@ -728,8 +728,8 @@ db.getCollection("mg_course_chapter").insert([ {
     create_time: ISODate("2024-01-23T09:30:00.000Z"),
     update_time: ISODate("2024-01-23T09:30:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
+}]);
+db.getCollection("mg_course_chapter").insert([{
     _id: "78d44b4a-becd-4f65-9461-f2dcdda03e44",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
     chapter_name: "9.2 正项级数的收敛性判别法",
@@ -744,8 +744,8 @@ db.getCollection("mg_course_chapter").insert([ {
     create_time: ISODate("2024-01-23T10:00:00.000Z"),
     update_time: ISODate("2024-01-23T10:00:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
+}]);
+db.getCollection("mg_course_chapter").insert([{
     _id: "78d44b4a-becd-4f65-9461-f2dcdda03e45",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
     chapter_name: "9.3 幂级数",
@@ -760,8 +760,8 @@ db.getCollection("mg_course_chapter").insert([ {
     create_time: ISODate("2024-01-23T10:30:00.000Z"),
     update_time: ISODate("2024-01-23T10:30:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
+}]);
+db.getCollection("mg_course_chapter").insert([{
     _id: "78d44b4a-becd-4f65-9461-f2dcdda03e46",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
     chapter_name: "9.4 函数的幂级数展开",
@@ -775,7 +775,7 @@ db.getCollection("mg_course_chapter").insert([ {
     create_time: ISODate("2024-01-23T11:00:00.000Z"),
     update_time: ISODate("2024-01-23T11:00:00.000Z"),
     is_deleted: Int32("0")
-} ]);
+}]);
 
 // ----------------------------
 // Collection structure for mg_course_forum
@@ -806,7 +806,7 @@ db.getCollection("mg_course_forum").createIndex({
 // ----------------------------
 // Documents of mg_course_forum
 // ----------------------------
-db.getCollection("mg_course_forum").insert([ {
+db.getCollection("mg_course_forum").insert([{
     _id: "78d44b4a-becd-4f65-9461-f2dcdda03f01",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
     forum_name: "高等数学讨论区",
@@ -832,8 +832,8 @@ db.getCollection("mg_course_forum").insert([ {
     create_time: ISODate("2024-01-15T08:00:00.000Z"),
     update_time: ISODate("2024-01-20T14:30:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_forum").insert([ {
+}]);
+db.getCollection("mg_course_forum").insert([{
     _id: "78d44b4a-becd-4f65-9461-f2dcdda03f02",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
     forum_name: "高等数学问答区",
@@ -860,8 +860,8 @@ db.getCollection("mg_course_forum").insert([ {
     create_time: ISODate("2024-01-15T08:30:00.000Z"),
     update_time: ISODate("2024-01-19T16:45:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_forum").insert([ {
+}]);
+db.getCollection("mg_course_forum").insert([{
     _id: "78d44b4a-becd-4f65-9461-f2dcdda03f03",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
     forum_name: "高等数学作业区",
@@ -887,8 +887,8 @@ db.getCollection("mg_course_forum").insert([ {
     create_time: ISODate("2024-01-15T09:00:00.000Z"),
     update_time: ISODate("2024-01-18T10:20:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_forum").insert([ {
+}]);
+db.getCollection("mg_course_forum").insert([{
     _id: "78d44b4a-becd-4f65-9461-f2dcdda03f04",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
     forum_name: "课程公告区",
@@ -914,7 +914,7 @@ db.getCollection("mg_course_forum").insert([ {
     create_time: ISODate("2024-01-15T07:30:00.000Z"),
     update_time: ISODate("2024-01-17T09:00:00.000Z"),
     is_deleted: Int32("0")
-} ]);
+}]);
 
 // ----------------------------
 // Collection structure for mg_course_question_bank
@@ -960,7 +960,7 @@ db.getCollection("mg_course_question_bank").createIndex({
 // ----------------------------
 // Documents of mg_course_question_bank
 // ----------------------------
-db.getCollection("mg_course_question_bank").insert([ {
+db.getCollection("mg_course_question_bank").insert([{
     _id: "550e8400-e29b-41d4-a716-446655440001",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
     sys_user_id: "0198086c-fcd1-7a09-b3c3-537de3493332",
@@ -978,8 +978,8 @@ db.getCollection("mg_course_question_bank").insert([ {
     create_time: ISODate("2024-01-10T10:00:00.000Z"),
     update_time: ISODate("2024-01-10T10:00:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_question_bank").insert([ {
+}]);
+db.getCollection("mg_course_question_bank").insert([{
     _id: "550e8400-e29b-41d4-a716-446655440002",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
     sys_user_id: "0198086c-fcd1-7a09-b3c3-537de3493332",
@@ -998,8 +998,8 @@ db.getCollection("mg_course_question_bank").insert([ {
     update_time: ISODate("2025-10-14T16:08:24.865Z"),
     is_deleted: Int32("0"),
     _class: "com.dayz.sapientiacloud_edupivot.course.entity.po.CourseQuestionBank"
-} ]);
-db.getCollection("mg_course_question_bank").insert([ {
+}]);
+db.getCollection("mg_course_question_bank").insert([{
     _id: "550e8400-e29b-41d4-a716-446655440003",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
     sys_user_id: "0198086c-fcd1-7a09-b3c3-537de3493332",
@@ -1016,7 +1016,7 @@ db.getCollection("mg_course_question_bank").insert([ {
     create_time: ISODate("2024-01-20T09:15:00.000Z"),
     update_time: ISODate("2024-01-20T09:15:00.000Z"),
     is_deleted: Int32("0")
-} ]);
+}]);
 
 // ----------------------------
 // Collection structure for mg_course_task
@@ -1077,7 +1077,7 @@ db.getCollection("mg_course_task").createIndex({
 // ----------------------------
 // Documents of mg_course_task
 // ----------------------------
-db.getCollection("mg_course_task").insert([ {
+db.getCollection("mg_course_task").insert([{
     _id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
     sys_user_id: "0198086c-fcd1-7a09-b3c3-537de3493332",
@@ -1114,8 +1114,8 @@ db.getCollection("mg_course_task").insert([ {
     create_time: ISODate("2024-01-10T10:00:00.000Z"),
     update_time: ISODate("2024-01-10T10:00:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_task").insert([ {
+}]);
+db.getCollection("mg_course_task").insert([{
     _id: "550e8400-e29b-41d4-a716-446655440001",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
     sys_user_id: "0198086c-fcd1-7a09-b3c3-537de3493332",
@@ -1123,7 +1123,7 @@ db.getCollection("mg_course_task").insert([ {
     description: "测试学生对导数概念、求导法则和微分应用的掌握程度。",
     task_type: Int32("1"),
     task_content: "<h3>导数与微分测验</h3><p><strong>时间限制：60分钟</strong></p><p>请回答以下选择题和计算题：</p><ol><li>函数 f(x) = x³ 的导数是？<br/>A) 3x² B) x² C) 3x D) x³</li><li>求函数 f(x) = sin(x)cos(x) 的导数</li><li>求函数 f(x) = ln(x²+1) 的导数</li><li>求函数 f(x) = e^(2x) 的二阶导数</li><li>求函数 f(x) = x²+3x+2 在 x=1 处的微分</li></ol>",
-    attachment_urls: [ ],
+    attachment_urls: [],
     resource_urls: [
         "http://127.0.0.1:31589/sapientiacloud-edupivot/resources/derivative_rules.pdf",
         "http://127.0.0.1:31589/sapientiacloud-edupivot/resources/chain_rule_examples.mp4"
@@ -1147,8 +1147,8 @@ db.getCollection("mg_course_task").insert([ {
     create_time: ISODate("2024-01-20T14:30:00.000Z"),
     update_time: ISODate("2024-01-20T14:30:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_task").insert([ {
+}]);
+db.getCollection("mg_course_task").insert([{
     _id: "550e8400-e29b-41d4-a716-446655440002",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
     sys_user_id: "0198086c-fcd1-7a09-b3c3-537de3493332",
@@ -1186,8 +1186,8 @@ db.getCollection("mg_course_task").insert([ {
     create_time: ISODate("2024-01-25T16:00:00.000Z"),
     update_time: ISODate("2024-01-25T16:00:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_task").insert([ {
+}]);
+db.getCollection("mg_course_task").insert([{
     _id: "550e8400-e29b-41d4-a716-446655440003",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
     sys_user_id: "0198086c-fcd1-7a09-b3c3-537de3493332",
@@ -1224,8 +1224,8 @@ db.getCollection("mg_course_task").insert([ {
     create_time: ISODate("2024-02-05T11:20:00.000Z"),
     update_time: ISODate("2024-02-05T11:20:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_task").insert([ {
+}]);
+db.getCollection("mg_course_task").insert([{
     _id: "550e8400-e29b-41d4-a716-446655440004",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
     sys_user_id: "0197ee62-be08-7c57-b1ff-42b1fa3c8b3f",
@@ -1259,7 +1259,7 @@ db.getCollection("mg_course_task").insert([ {
     create_time: ISODate("2024-02-15T09:45:00.000Z"),
     update_time: ISODate("2024-02-15T09:45:00.000Z"),
     is_deleted: Int32("0")
-} ]);
+}]);
 
 // ----------------------------
 // Collection structure for mg_forum_post
@@ -1311,7 +1311,7 @@ db.getCollection("mg_forum_post").createIndex({
 // ----------------------------
 // Documents of mg_forum_post
 // ----------------------------
-db.getCollection("mg_forum_post").insert([ {
+db.getCollection("mg_forum_post").insert([{
     _id: "78d44b4a-becd-4f65-9461-f2dcdda03a01",
     forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f01",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
@@ -1348,8 +1348,8 @@ db.getCollection("mg_forum_post").insert([ {
     update_time: ISODate("2025-10-15T07:35:04.629Z"),
     is_deleted: Int32("0"),
     _class: "com.dayz.sapientiacloud_edupivot.course.entity.po.ForumPost"
-} ]);
-db.getCollection("mg_forum_post").insert([ {
+}]);
+db.getCollection("mg_forum_post").insert([{
     _id: "78d44b4a-becd-4f65-9461-f2dcdda03a02",
     forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f01",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
@@ -1358,8 +1358,8 @@ db.getCollection("mg_forum_post").insert([ {
     content: "最近在学习导数与微分这一章，对几何意义有些困惑。导数的几何意义是函数在某点的切线斜率，这个我能理解。但是微分的几何意义是什么呢？\n\n从几何上看，微分dy表示的是什么呢？是切线的增量吗？还是其他什么？\n\n另外，在实际应用中，什么时候用导数，什么时候用微分呢？\n\n希望有同学能帮忙解释一下，最好能结合图形来说明。",
     post_type: Int32("0"),
     is_anonymous: Int32("0"),
-    attachment_urls: [ ],
-    image_urls: [ ],
+    attachment_urls: [],
+    image_urls: [],
     tags: [
         "导数",
         "微分",
@@ -1381,8 +1381,8 @@ db.getCollection("mg_forum_post").insert([ {
     update_time: ISODate("2025-10-15T07:35:12.368Z"),
     is_deleted: Int32("0"),
     _class: "com.dayz.sapientiacloud_edupivot.course.entity.po.ForumPost"
-} ]);
-db.getCollection("mg_forum_post").insert([ {
+}]);
+db.getCollection("mg_forum_post").insert([{
     _id: "78d44b4a-becd-4f65-9461-f2dcdda03a08",
     forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f02",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
@@ -1394,7 +1394,7 @@ db.getCollection("mg_forum_post").insert([ {
     attachment_urls: [
         "http://127.0.0.1:31589/sapientiacloud-edupivot/attachments/limit_problem.pdf"
     ],
-    image_urls: [ ],
+    image_urls: [],
     tags: [
         "极限",
         "洛必达法则",
@@ -1415,8 +1415,8 @@ db.getCollection("mg_forum_post").insert([ {
     create_time: ISODate("2024-01-18T11:15:00.000Z"),
     update_time: ISODate("2024-01-19T16:45:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_forum_post").insert([ {
+}]);
+db.getCollection("mg_forum_post").insert([{
     _id: "78d44b4a-becd-4f65-9461-f2dcdda03a12",
     forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f03",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
@@ -1428,7 +1428,7 @@ db.getCollection("mg_forum_post").insert([ {
     attachment_urls: [
         "http://127.0.0.1:31589/sapientiacloud-edupivot/course-chapters/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20250903152605_5_110.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=root%2F20251004%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20251004T103547Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=1a33844050667bcb236c97d8b36b6c52609e4dc489da04700ee6e265617ef9fe"
     ],
-    image_urls: [ ],
+    image_urls: [],
     tags: [
         "作业",
         "极限",
@@ -1449,8 +1449,8 @@ db.getCollection("mg_forum_post").insert([ {
     create_time: ISODate("2024-01-15T16:00:00.000Z"),
     update_time: ISODate("2024-01-18T10:20:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_forum_post").insert([ {
+}]);
+db.getCollection("mg_forum_post").insert([{
     _id: "78d44b4a-becd-4f65-9461-f2dcdda03f15",
     forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f04",
     course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
@@ -1462,7 +1462,7 @@ db.getCollection("mg_forum_post").insert([ {
     attachment_urls: [
         "http://127.0.0.1:31589/sapientiacloud-edupivot/course-chapters/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20250903152605_5_110.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=root%2F20251004%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20251004T103547Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=1a33844050667bcb236c97d8b36b6c52609e4dc489da04700ee6e265617ef9fe"
     ],
-    image_urls: [ ],
+    image_urls: [],
     tags: [
         "通知",
         "期中考试",
@@ -1480,7 +1480,7 @@ db.getCollection("mg_forum_post").insert([ {
     update_time: ISODate("2025-10-10T05:57:14.533Z"),
     is_deleted: Int32("0"),
     _class: "com.dayz.sapientiacloud_edupivot.course.entity.po.ForumPost"
-} ]);
+}]);
 
 // ----------------------------
 // Collection structure for mg_forum_reply
@@ -1531,7 +1531,7 @@ db.getCollection("mg_forum_reply").createIndex({
 // ----------------------------
 // Documents of mg_forum_reply
 // ----------------------------
-db.getCollection("mg_forum_reply").insert([ {
+db.getCollection("mg_forum_reply").insert([{
     _id: "78d44b4a-becd-4f65-9461-f2dcdda03b01",
     post_id: "78d44b4a-becd-4f65-9461-f2dcdda03a01",
     forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f01",
@@ -1540,8 +1540,8 @@ db.getCollection("mg_forum_reply").insert([ {
     content: "<p>总结得很好！我补充一点，在计算极限时还要注意左右极限是否相等，特别是分段函数和含有绝对值的函数。</p>",
     reply_to_user_id: "01992cb7-735d-7857-9c8c-edbe566ad0d2",
     is_anonymous: Int32("0"),
-    attachment_urls: [ ],
-    image_urls: [ ],
+    attachment_urls: [],
+    image_urls: [],
     like_count: Long("5"),
     reply_count: Long("2"),
     is_accepted: Int32("0"),
@@ -1553,8 +1553,8 @@ db.getCollection("mg_forum_reply").insert([ {
     update_time: ISODate("2025-10-10T06:02:46.062Z"),
     is_deleted: Int32("0"),
     _class: "com.dayz.sapientiacloud_edupivot.course.entity.po.ForumReply"
-} ]);
-db.getCollection("mg_forum_reply").insert([ {
+}]);
+db.getCollection("mg_forum_reply").insert([{
     _id: "78d44b4a-becd-4f65-9461-f2dcdda03b02",
     post_id: "78d44b4a-becd-4f65-9461-f2dcdda03a01",
     forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f01",
@@ -1564,8 +1564,8 @@ db.getCollection("mg_forum_reply").insert([ {
     parent_reply_id: "78d44b4a-becd-4f65-9461-f2dcdda03b01",
     reply_to_user_id: "01983258-afb0-79b3-847b-0abf6a991c88",
     is_anonymous: Int32("0"),
-    attachment_urls: [ ],
-    image_urls: [ ],
+    attachment_urls: [],
+    image_urls: [],
     like_count: Int32("3"),
     reply_count: Int32("0"),
     is_accepted: Int32("0"),
@@ -1576,8 +1576,8 @@ db.getCollection("mg_forum_reply").insert([ {
     create_time: ISODate("2024-01-16T12:00:00.000Z"),
     update_time: ISODate("2024-01-16T12:00:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_forum_reply").insert([ {
+}]);
+db.getCollection("mg_forum_reply").insert([{
     _id: "78d44b4a-becd-4f65-9461-f2dcdda03b03",
     post_id: "78d44b4a-becd-4f65-9461-f2dcdda03a01",
     forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f01",
@@ -1586,8 +1586,8 @@ db.getCollection("mg_forum_reply").insert([ {
     content: "还有一个常见错误是混淆了无穷大和无穷小，比如把lim(x→0) 1/x当作无穷小，实际上当x→0⁺时，1/x→+∞。",
     reply_to_user_id: "01992cb7-735d-7857-9c8c-edbe566ad0d2",
     is_anonymous: Int32("0"),
-    attachment_urls: [ ],
-    image_urls: [ ],
+    attachment_urls: [],
+    image_urls: [],
     like_count: Long("9"),
     reply_count: Long("1"),
     is_accepted: Int32("0"),
@@ -1599,8 +1599,8 @@ db.getCollection("mg_forum_reply").insert([ {
     update_time: ISODate("2025-10-10T05:42:59.494Z"),
     is_deleted: Int32("0"),
     _class: "com.dayz.sapientiacloud_edupivot.course.entity.po.ForumReply"
-} ]);
-db.getCollection("mg_forum_reply").insert([ {
+}]);
+db.getCollection("mg_forum_reply").insert([{
     _id: "78d44b4a-becd-4f65-9461-f2dcdda03b12",
     post_id: "78d44b4a-becd-4f65-9461-f2dcdda03a02",
     forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f01",
@@ -1626,8 +1626,8 @@ db.getCollection("mg_forum_reply").insert([ {
     update_time: ISODate("2025-10-10T04:59:01.181Z"),
     is_deleted: Int32("0"),
     _class: "com.dayz.sapientiacloud_edupivot.course.entity.po.ForumReply"
-} ]);
-db.getCollection("mg_forum_reply").insert([ {
+}]);
+db.getCollection("mg_forum_reply").insert([{
     _id: "78d44b4a-becd-4f65-9461-f2dcdda03b15",
     post_id: "78d44b4a-becd-4f65-9461-f2dcdda03a08",
     forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f02",
@@ -1637,8 +1637,8 @@ db.getCollection("mg_forum_reply").insert([ {
     parent_reply_id: null,
     reply_to_user_id: "01992cb7-735d-7857-9c8c-edbe566ad0d2",
     is_anonymous: Int32("0"),
-    attachment_urls: [ ],
-    image_urls: [ ],
+    attachment_urls: [],
+    image_urls: [],
     like_count: Int32("12"),
     reply_count: Int32("1"),
     is_accepted: Int32("1"),
@@ -1649,8 +1649,8 @@ db.getCollection("mg_forum_reply").insert([ {
     create_time: ISODate("2024-01-19T16:45:00.000Z"),
     update_time: ISODate("2024-01-19T16:45:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_forum_reply").insert([ {
+}]);
+db.getCollection("mg_forum_reply").insert([{
     _id: "78d44b4a-becd-4f65-9461-f2dcdda03b18",
     post_id: "78d44b4a-becd-4f65-9461-f2dcdda03a12",
     forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f03",
@@ -1660,8 +1660,8 @@ db.getCollection("mg_forum_reply").insert([ {
     parent_reply_id: null,
     reply_to_user_id: "01983258-afb0-79b3-847b-0abf6a991c88",
     is_anonymous: Int32("0"),
-    attachment_urls: [ ],
-    image_urls: [ ],
+    attachment_urls: [],
+    image_urls: [],
     like_count: Int32("3"),
     reply_count: Int32("1"),
     is_accepted: Int32("0"),
@@ -1672,8 +1672,8 @@ db.getCollection("mg_forum_reply").insert([ {
     create_time: ISODate("2024-01-18T10:20:00.000Z"),
     update_time: ISODate("2024-01-18T10:20:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_forum_reply").insert([ {
+}]);
+db.getCollection("mg_forum_reply").insert([{
     _id: "0199cdf5-fa53-72ca-9db7-688043e7fa6d",
     post_id: "78d44b4a-becd-4f65-9461-f2dcdda03a01",
     forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f01",
@@ -1682,8 +1682,8 @@ db.getCollection("mg_forum_reply").insert([ {
     content: "<p>总结得很好！我补充一点，在计算极限时还要注意左右极限是否相等，特别是分段函数和含有绝对值的函数。</p>",
     reply_to_user_id: "01992cb7-735d-7857-9c8c-edbe566ad0d2",
     is_anonymous: Int32("0"),
-    attachment_urls: [ ],
-    image_urls: [ ],
+    attachment_urls: [],
+    image_urls: [],
     like_count: Long("0"),
     reply_count: Long("0"),
     is_accepted: Int32("0"),
@@ -1693,7 +1693,7 @@ db.getCollection("mg_forum_reply").insert([ {
     update_time: ISODate("2025-10-10T11:51:13.749Z"),
     is_deleted: Int32("0"),
     _class: "com.dayz.sapientiacloud_edupivot.course.entity.po.ForumReply"
-} ]);
+}]);
 
 // ----------------------------
 // Collection structure for mg_question
@@ -1749,7 +1749,7 @@ db.getCollection("mg_question").createIndex({
 // ----------------------------
 // Documents of mg_question
 // ----------------------------
-db.getCollection("mg_question").insert([ {
+db.getCollection("mg_question").insert([{
     _id: "550e8400-e29b-41d4-a716-446655440101",
     question_bank_id: "550e8400-e29b-41d4-a716-446655440001",
     sys_user_id: "0198086c-fcd1-7a09-b3c3-537de3493332",
@@ -1768,8 +1768,8 @@ db.getCollection("mg_question").insert([ {
     create_time: ISODate("2024-01-10T10:30:00.000Z"),
     update_time: ISODate("2024-01-10T10:30:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_question").insert([ {
+}]);
+db.getCollection("mg_question").insert([{
     _id: "550e8400-e29b-41d4-a716-446655440102",
     question_bank_id: "550e8400-e29b-41d4-a716-446655440001",
     sys_user_id: "0198086c-fcd1-7a09-b3c3-537de3493332",
@@ -1788,8 +1788,8 @@ db.getCollection("mg_question").insert([ {
     create_time: ISODate("2024-01-10T11:00:00.000Z"),
     update_time: ISODate("2024-01-10T11:00:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_question").insert([ {
+}]);
+db.getCollection("mg_question").insert([{
     _id: "550e8400-e29b-41d4-a716-446655440103",
     question_bank_id: "550e8400-e29b-41d4-a716-446655440001",
     sys_user_id: "0198086c-fcd1-7a09-b3c3-537de3493332",
@@ -1808,8 +1808,8 @@ db.getCollection("mg_question").insert([ {
     create_time: ISODate("2024-01-10T11:30:00.000Z"),
     update_time: ISODate("2024-01-10T11:30:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_question").insert([ {
+}]);
+db.getCollection("mg_question").insert([{
     _id: "550e8400-e29b-41d4-a716-446655440104",
     question_bank_id: "550e8400-e29b-41d4-a716-446655440002",
     sys_user_id: "0198086c-fcd1-7a09-b3c3-537de3493332",
@@ -1829,8 +1829,8 @@ db.getCollection("mg_question").insert([ {
     update_time: ISODate("2025-10-15T04:05:34.62Z"),
     is_deleted: Int32("0"),
     _class: "com.dayz.sapientiacloud_edupivot.course.entity.po.Question"
-} ]);
-db.getCollection("mg_question").insert([ {
+}]);
+db.getCollection("mg_question").insert([{
     _id: "550e8400-e29b-41d4-a716-446655440105",
     question_bank_id: "550e8400-e29b-41d4-a716-446655440002",
     sys_user_id: "0198086c-fcd1-7a09-b3c3-537de3493332",
@@ -1849,8 +1849,8 @@ db.getCollection("mg_question").insert([ {
     create_time: ISODate("2024-01-15T15:30:00.000Z"),
     update_time: ISODate("2024-01-15T15:30:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_question").insert([ {
+}]);
+db.getCollection("mg_question").insert([{
     _id: "550e8400-e29b-41d4-a716-446655440106",
     question_bank_id: "550e8400-e29b-41d4-a716-446655440003",
     sys_user_id: "0198086c-fcd1-7a09-b3c3-537de3493332",
@@ -1870,7 +1870,7 @@ db.getCollection("mg_question").insert([ {
     create_time: ISODate("2024-01-20T10:00:00.000Z"),
     update_time: ISODate("2024-01-20T10:00:00.000Z"),
     is_deleted: Int32("0")
-} ]);
+}]);
 
 // ----------------------------
 // Collection structure for mg_question_answer
@@ -1906,7 +1906,7 @@ db.getCollection("mg_question_answer").createIndex({
 // ----------------------------
 // Documents of mg_question_answer
 // ----------------------------
-db.getCollection("mg_question_answer").insert([ {
+db.getCollection("mg_question_answer").insert([{
     _id: "550e8400-e29b-41d4-a716-446655440301",
     question_id: "550e8400-e29b-41d4-a716-446655440101",
     sys_user_id: "0198086c-fcd1-7a09-b3c3-537de3493332",
@@ -1916,8 +1916,8 @@ db.getCollection("mg_question_answer").insert([ {
     create_time: ISODate("2024-01-12T14:30:00.000Z"),
     update_time: ISODate("2024-01-12T14:30:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_question_answer").insert([ {
+}]);
+db.getCollection("mg_question_answer").insert([{
     _id: "550e8400-e29b-41d4-a716-446655440302",
     question_id: "550e8400-e29b-41d4-a716-446655440102",
     sys_user_id: "0198086c-fcd1-7a09-b3c3-537de3493332",
@@ -1927,8 +1927,8 @@ db.getCollection("mg_question_answer").insert([ {
     create_time: ISODate("2024-01-12T15:00:00.000Z"),
     update_time: ISODate("2024-01-12T15:00:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_question_answer").insert([ {
+}]);
+db.getCollection("mg_question_answer").insert([{
     _id: "550e8400-e29b-41d4-a716-446655440303",
     question_id: "550e8400-e29b-41d4-a716-446655440103",
     sys_user_id: "0198086c-fcd1-7a09-b3c3-537de3493332",
@@ -1938,8 +1938,8 @@ db.getCollection("mg_question_answer").insert([ {
     create_time: ISODate("2024-01-12T15:30:00.000Z"),
     update_time: ISODate("2024-01-12T15:30:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_question_answer").insert([ {
+}]);
+db.getCollection("mg_question_answer").insert([{
     _id: "550e8400-e29b-41d4-a716-446655440304",
     question_id: "550e8400-e29b-41d4-a716-446655440104",
     sys_user_id: "0198086c-fcd1-7a09-b3c3-537de3493332",
@@ -1949,8 +1949,8 @@ db.getCollection("mg_question_answer").insert([ {
     create_time: ISODate("2024-01-18T16:00:00.000Z"),
     update_time: ISODate("2024-01-18T16:00:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_question_answer").insert([ {
+}]);
+db.getCollection("mg_question_answer").insert([{
     _id: "550e8400-e29b-41d4-a716-446655440305",
     question_id: "550e8400-e29b-41d4-a716-446655440105",
     sys_user_id: "0198086c-fcd1-7a09-b3c3-537de3493332",
@@ -1960,8 +1960,8 @@ db.getCollection("mg_question_answer").insert([ {
     create_time: ISODate("2024-01-18T16:30:00.000Z"),
     update_time: ISODate("2024-01-18T16:30:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_question_answer").insert([ {
+}]);
+db.getCollection("mg_question_answer").insert([{
     _id: "550e8400-e29b-41d4-a716-446655440306",
     question_id: "550e8400-e29b-41d4-a716-446655440106",
     sys_user_id: "0198086c-fcd1-7a09-b3c3-537de3493332",
@@ -1971,7 +1971,7 @@ db.getCollection("mg_question_answer").insert([ {
     create_time: ISODate("2024-01-22T10:00:00.000Z"),
     update_time: ISODate("2024-01-22T10:00:00.000Z"),
     is_deleted: Int32("0")
-} ]);
+}]);
 
 // ----------------------------
 // Collection structure for mg_question_option
@@ -2002,7 +2002,7 @@ db.getCollection("mg_question_option").createIndex({
 // ----------------------------
 // Documents of mg_question_option
 // ----------------------------
-db.getCollection("mg_question_option").insert([ {
+db.getCollection("mg_question_option").insert([{
     _id: "550e8400-e29b-41d4-a716-446655440201",
     question_id: "550e8400-e29b-41d4-a716-446655440101",
     option_content: "x ∈ (-∞, -2] ∪ [2, +∞)",
@@ -2011,8 +2011,8 @@ db.getCollection("mg_question_option").insert([ {
     create_time: ISODate("2024-01-10T10:35:00.000Z"),
     update_time: ISODate("2024-01-10T10:35:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_question_option").insert([ {
+}]);
+db.getCollection("mg_question_option").insert([{
     _id: "550e8400-e29b-41d4-a716-446655440202",
     question_id: "550e8400-e29b-41d4-a716-446655440101",
     option_content: "x ∈ [-2, 2]",
@@ -2021,8 +2021,8 @@ db.getCollection("mg_question_option").insert([ {
     create_time: ISODate("2024-01-10T10:35:00.000Z"),
     update_time: ISODate("2024-01-10T10:35:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_question_option").insert([ {
+}]);
+db.getCollection("mg_question_option").insert([{
     _id: "550e8400-e29b-41d4-a716-446655440203",
     question_id: "550e8400-e29b-41d4-a716-446655440101",
     option_content: "x ∈ (-∞, -2) ∪ (2, +∞)",
@@ -2031,8 +2031,8 @@ db.getCollection("mg_question_option").insert([ {
     create_time: ISODate("2024-01-10T10:35:00.000Z"),
     update_time: ISODate("2024-01-10T10:35:00.000Z"),
     is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_question_option").insert([ {
+}]);
+db.getCollection("mg_question_option").insert([{
     _id: "550e8400-e29b-41d4-a716-446655440204",
     question_id: "550e8400-e29b-41d4-a716-446655440101",
     option_content: "x ∈ R",
@@ -2041,4 +2041,4 @@ db.getCollection("mg_question_option").insert([ {
     create_time: ISODate("2024-01-10T10:35:00.000Z"),
     update_time: ISODate("2024-01-10T10:35:00.000Z"),
     is_deleted: Int32("0")
-} ]);
+}]);

@@ -1,7 +1,9 @@
 package com.dayz.sapientiacloud_edupivot.auth.security.config;
 
 import com.dayz.sapientiacloud_edupivot.auth.security.filter.JwtAuthenticationFilter;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -19,39 +21,58 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
+@Slf4j
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    // 仅保留 JWT 过滤相关依赖
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 // 禁用基本配置
                 .csrf(AbstractHttpConfigurer::disable)
+                // 禁用表单登录，避免触发默认认证流程导致循环调用
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .logout(AbstractHttpConfigurer::disable)
-                // 使用无状态会话
+                .oauth2Login(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-                // 配置请求授权
                 .authorizeHttpRequests(authorize -> authorize
-                        // 公开接口
-                        .requestMatchers("/login", "/mobile-login", "/validate", "/register").permitAll()
-                        // Swagger文档
-                        .requestMatchers("/v3/api-docs/**", "/doc.html", "/webjars/**").permitAll()
-                        // 需要认证的请求
+                        .requestMatchers(
+                                "/login",
+                                "/mobile-login",
+                                "/validate",
+                                "/register",
+                                "/send-code",
+                                "/check-username",
+                                "/check-mobile",
+                                "/bind-mobile",
+                                "/bind-mobile/confirm",
+                                "/oauth2/**",
+                                "/api/auth/**",
+                                "/v3/api-docs/**",
+                                "/doc.html",
+                                "/webjars/**",
+                                "/oauth2/**"
+                        ).permitAll()
+                        // 允许OPTIONS请求
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        // 其他请求需要认证
                         .anyRequest().authenticated()
                 )
-                // 设置未授权处理
+                // 设置未授权处理 - 使用简单的处理方式，避免显示Basic认证对话框
                 .exceptionHandling(exception -> exception
-                        .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            response.setContentType("application/json");
+                            response.getWriter().write("{\"code\":401,\"message\":\"未授权访问\",\"success\":false}");
+                        })
                 );
 
-        // 添加JWT过滤器
+        // 添加JWT过滤器，确保JWT认证正常工作
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

@@ -31,8 +31,10 @@ public class QuestionAnswerDTO implements Serializable {
     private UUID id;
 
     @Schema(name = "questionId", description = "题目ID")
-    @NotNull(message = "题目ID不能为空")
     private UUID questionId;
+
+    @Schema(name = "sysUserId", description = "用户ID")
+    private UUID sysUserId;
 
     @Schema(name = "answerContent", description = "答案内容")
     @NotBlank(message = "答案内容不能为空")

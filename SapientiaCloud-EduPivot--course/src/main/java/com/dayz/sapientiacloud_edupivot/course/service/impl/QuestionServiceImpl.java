@@ -7,7 +7,10 @@ import com.dayz.sapientiacloud_edupivot.course.common.enums.StatusEnum;
 import com.dayz.sapientiacloud_edupivot.course.common.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.course.common.result.Result;
 import com.dayz.sapientiacloud_edupivot.course.constant.QuestionConstants;
-import com.dayz.sapientiacloud_edupivot.course.entity.dto.*;
+import com.dayz.sapientiacloud_edupivot.course.entity.dto.QuestionAddDTO;
+import com.dayz.sapientiacloud_edupivot.course.entity.dto.QuestionDTO;
+import com.dayz.sapientiacloud_edupivot.course.entity.dto.QuestionOptionDTO;
+import com.dayz.sapientiacloud_edupivot.course.entity.dto.QuestionQueryDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.po.Question;
 import com.dayz.sapientiacloud_edupivot.course.entity.vo.QuestionAnswerVO;
 import com.dayz.sapientiacloud_edupivot.course.entity.vo.QuestionVO;
@@ -236,15 +239,6 @@ public class QuestionServiceImpl implements IQuestionService {
             optionDTOs.forEach(option -> option.setQuestionId(savedQuestion.getId()));
 
             questionOptionService.addQuestionOptions(optionDTOs);
-        }
-
-        // 保存正确答案
-        if (questionAddDTO.getQuestionAnswerDTO() != null) {
-            QuestionAnswerDTO answerDTO = questionAddDTO.getQuestionAnswerDTO();
-            // 设置题目ID和用户ID
-            answerDTO.setQuestionId(savedQuestion.getId());
-
-            questionAnswerService.addQuestionAnswer(answerDTO);
         }
 
         return convertToVO(savedQuestion);
@@ -537,19 +531,6 @@ public class QuestionServiceImpl implements IQuestionService {
                     .anyMatch(option -> option.getIsCorrect() != null && option.getIsCorrect() == 1);
             if (!hasCorrectOption) {
                 throw new BusinessException(QuestionEnum.QUESTION_OPTION_SAVE_FAILED);
-            }
-        }
-
-        // 所有题目都需要正确答案
-        if (questionAddDTO.getQuestionAnswerDTO() == null) {
-            throw new BusinessException(QuestionEnum.QUESTION_ANSWER_SAVE_FAILED);
-        }
-
-        // 填空题和简答题需要答案内容
-        if (questionType == 3 || questionType == 4) {
-            QuestionAnswerDTO answerDTO = questionAddDTO.getQuestionAnswerDTO();
-            if (!StringUtils.hasText(answerDTO.getAnswerContent()) && !StringUtils.hasText(answerDTO.getAnswerText())) {
-                throw new BusinessException(QuestionEnum.QUESTION_ANSWER_SAVE_FAILED);
             }
         }
     }

@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dayz.sapientiacloud_edupivot.classroom.mapper.CourseRecordStudentMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="CourseRecordStudentVOMap"
+               type="com.dayz.sapientiacloud_edupivot.classroom.entity.vo.CourseRecordStudentVO">
+        <result column="record_id" property="recordId"/>
+        <result column="student_id" property="studentId"/>
+        <result column="student_name" property="studentName"/>
+        <result column="student_code" property="studentCode"/>
+        <result column="student_avatar" property="studentAvatar"/>
+        <result column="course_id" property="courseId"/>
+        <result column="course_name" property="courseName"/>
+        <result column="seat_index" property="seatIndex"/>
+        <result column="location_x" property="locationX"/>
+        <result column="location_y" property="locationY"/>
+        <result column="location_z" property="locationZ"/>
+        <result column="rotation_y" property="rotationY"/>
+        <result column="seat_status" property="seatStatus"/>
+        <result column="attendance_status" property="attendanceStatus"/>
+        <result column="participation_score" property="participationScore"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <!-- 基础查询字段 -->
+    <sql id="Base_Column_List">
+        crs.record_id, crs.student_id, crs.course_id, crs.seat_index,
+        crs.location_x, crs.location_y, crs.location_z, crs.rotation_y,
+        crs.seat_status, crs.attendance_status, crs.participation_score,
+        crs.create_time, crs.update_time
+    </sql>
+
+    <!-- 扩展查询字段（包含关联信息） -->
+    <sql id="Extended_Column_List">
+        <include refid="Base_Column_List"/>,
+        s.real_name AS student_name,
+        s.student_code,
+        su.avatar AS student_avatar,
+        c.course_name
+    </sql>
+
+    <!-- 分页查询学生座位记录列表 -->
+    <select id="listCourseRecordStudent" resultMap="CourseRecordStudentVOMap">
+        SELECT
+        <include refid="Extended_Column_List"/>
+        FROM mg_course_record_student crs
+        LEFT JOIN mg_student s ON crs.student_id = s.id AND s.is_deleted = 0
+        LEFT JOIN sys_user su ON s.sys_user_id = su.id AND su.is_deleted = 0
+        LEFT JOIN mg_course c ON crs.course_id = c.id AND c.is_deleted = 0
+        WHERE 1=1
+        <if test="recordId != null">
+            AND crs.record_id = #{recordId}
+        </if>
+        <if test="studentId != null">
+            AND crs.student_id = #{studentId}
+        </if>
+        <if test="courseId != null">
+            AND crs.course_id = #{courseId}
+        </if>
+        <if test="seatStatus != null and seatStatus != ''">
+            AND crs.seat_status = #{seatStatus}
+        </if>
+        <if test="attendanceStatus != null">
+            AND crs.attendance_status = #{attendanceStatus}
+        </if>
+        ORDER BY crs.seat_index ASC
+    </select>
+
+    <!-- 查询所有学生座位记录 -->
+    <select id="listAllCourseRecordStudent" resultMap="CourseRecordStudentVOMap">
+        SELECT
+        <include refid="Extended_Column_List"/>
+        FROM mg_course_record_student crs
+        LEFT JOIN mg_student s ON crs.student_id = s.id AND s.is_deleted = 0
+        LEFT JOIN sys_user su ON s.sys_user_id = su.id AND su.is_deleted = 0
+        LEFT JOIN mg_course c ON crs.course_id = c.id AND c.is_deleted = 0
+        ORDER BY crs.create_time DESC
+    </select>
+
+    <!-- 根据课程记录ID查询所有学生座位 -->
+    <select id="listStudentsByRecordId" resultMap="CourseRecordStudentVOMap">
+        SELECT
+        <include refid="Extended_Column_List"/>
+        FROM mg_course_record_student crs
+        LEFT JOIN mg_student s ON crs.student_id = s.id AND s.is_deleted = 0
+        LEFT JOIN sys_user su ON s.sys_user_id = su.id AND su.is_deleted = 0
+        LEFT JOIN mg_course c ON crs.course_id = c.id AND c.is_deleted = 0
+        WHERE crs.record_id = #{recordId}
+        ORDER BY crs.seat_index ASC
+    </select>
+
+    <!-- 查询具体学生座位信息 -->
+    <select id="getStudentSeat" resultMap="CourseRecordStudentVOMap">
+        SELECT
+        <include refid="Extended_Column_List"/>
+        FROM mg_course_record_student crs
+        LEFT JOIN mg_student s ON crs.student_id = s.id AND s.is_deleted = 0
+        LEFT JOIN sys_user su ON s.sys_user_id = su.id AND su.is_deleted = 0
+        LEFT JOIN mg_course c ON crs.course_id = c.id AND c.is_deleted = 0
+        WHERE crs.record_id = #{recordId}
+        AND crs.student_id = #{studentId}
+    </select>
+
+    <!-- 检查座位是否被占用 -->
+    <select id="checkSeatOccupied" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM mg_course_record_student
+        WHERE record_id = #{recordId}
+          AND seat_index = #{seatIndex}
+    </select>
+
+    <!-- 统计课程记录的实到人数 -->
+    <select id="countStudentsByRecordId" resultType="java.lang.Integer">
+        SELECT COUNT(DISTINCT student_id)
+        FROM mg_course_record_student
+        WHERE record_id = #{recordId}
+    </select>
+
+    <!-- 根据课程记录ID列表查询所有学生座位记录 -->
+    <select id="listStudentsByRecordIds" resultMap="CourseRecordStudentVOMap">
+        SELECT
+        <include refid="Extended_Column_List"/>
+        FROM mg_course_record_student crs
+        LEFT JOIN mg_student s ON crs.student_id = s.id AND s.is_deleted = 0
+        LEFT JOIN sys_user su ON s.sys_user_id = su.id AND su.is_deleted = 0
+        LEFT JOIN mg_course c ON crs.course_id = c.id AND c.is_deleted = 0
+        WHERE crs.record_id IN
+        <foreach collection="recordIds" item="recordId" open="(" separator="," close=")">
+            #{recordId}
+        </foreach>
+        ORDER BY crs.record_id, crs.seat_index ASC
+    </select>
+
+</mapper>

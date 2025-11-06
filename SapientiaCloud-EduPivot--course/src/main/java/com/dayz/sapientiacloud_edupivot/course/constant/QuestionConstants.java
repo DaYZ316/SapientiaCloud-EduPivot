@@ -30,11 +30,11 @@ public class QuestionConstants {
     public static final String SORT_DESC = "DESC";
 
     // 题目类型范围
-    public static final int QUESTION_TYPE_SINGLE_CHOICE = 0; // 单选题
-    public static final int QUESTION_TYPE_MULTIPLE_CHOICE = 1; // 多选题
-    public static final int QUESTION_TYPE_TRUE_FALSE = 2; // 判断题
-    public static final int QUESTION_TYPE_FILL_BLANK = 3; // 填空题
-    public static final int QUESTION_TYPE_SHORT_ANSWER = 4; // 简答题
+    public static final int QUESTION_TYPE_SINGLE_CHOICE = 0;
+    public static final int QUESTION_TYPE_MULTIPLE_CHOICE = 1;
+    public static final int QUESTION_TYPE_TRUE_FALSE = 2;
+    public static final int QUESTION_TYPE_FILL_BLANK = 3;
+    public static final int QUESTION_TYPE_SHORT_ANSWER = 4;
     public static final int QUESTION_TYPE_MIN = QUESTION_TYPE_SINGLE_CHOICE;
     public static final int QUESTION_TYPE_MAX = QUESTION_TYPE_SHORT_ANSWER;
 
@@ -43,15 +43,15 @@ public class QuestionConstants {
     public static final int DIFFICULTY_MAX = DifficultyEnum.HARD.getCode();
 
     // 随机选项范围
-    public static final int IS_RANDOM_FIXED = 0; // 固定顺序
-    public static final int IS_RANDOM_RANDOM = 1; // 随机顺序
+    public static final int IS_RANDOM_FIXED = 0;
+    public static final int IS_RANDOM_RANDOM = 1;
     public static final int IS_RANDOM_MIN = IS_RANDOM_FIXED;
     public static final int IS_RANDOM_MAX = IS_RANDOM_RANDOM;
 
     // 默认值
     public static final int DEFAULT_QUESTION_TYPE = QUESTION_TYPE_SINGLE_CHOICE;
     public static final int DEFAULT_DIFFICULTY = DifficultyEnum.EASY.getCode();
-    public static final int DEFAULT_ESTIMATED_TIME = 5; // 默认5分钟
+    public static final int DEFAULT_ESTIMATED_TIME = 5;
     public static final int DEFAULT_IS_RANDOM = IS_RANDOM_FIXED;
     public static final int INCREMENT_VALUE = 1;
     public static final int DECREMENT_VALUE = -1;

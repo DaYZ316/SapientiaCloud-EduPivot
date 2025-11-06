@@ -38,6 +38,18 @@ spring:
             - Path=/api/course/**
           filters:
             - StripPrefix=2
+        - id: SapientiaCloud-EduPivot--classroom
+          uri: lb://SapientiaCloud-EduPivot--classroom
+          predicates:
+            - Path=/api/classroom/**
+          filters:
+            - StripPrefix=2
+        - id: SapientiaCloud-EduPivot--celestial-hub
+          uri: lb://SapientiaCloud-EduPivot--celestial-hub
+          predicates:
+            - Path=/api/celestial-hub/**
+          filters:
+            - StripPrefix=2
 
   data:
     redis:
@@ -77,8 +89,6 @@ logging:
   level:
     root: INFO
     com.dayz: INFO
-  # pattern:
-  #   console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [${spring.application.name:},%X{traceId:-},%X{spanId:-}] [%15.15t] %-40.40logger{39} : %m%n"
 
 REDIS_HOST: 127.0.0.1
 REDIS_PORT: 6379

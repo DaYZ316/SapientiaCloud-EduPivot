@@ -48,8 +48,6 @@ logging:
   level:
     root: INFO
     com.dayz: INFO
-#  pattern:
-#    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [${spring.application.name:},%X{traceId:-},%X{spanId:-}] [%15.15t] %-40.40logger{39} : %m%n"
 
 
 MYSQL_HOST: 127.0.0.1

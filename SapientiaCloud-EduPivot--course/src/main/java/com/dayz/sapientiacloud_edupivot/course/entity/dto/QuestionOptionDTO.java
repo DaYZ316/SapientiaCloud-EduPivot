@@ -32,7 +32,6 @@ public class QuestionOptionDTO implements Serializable {
     private UUID id;
 
     @Schema(name = "questionId", description = "所属题目ID")
-    @NotNull(message = "题目ID不能为空")
     private UUID questionId;
 
     @Schema(name = "optionContent", description = "选项内容")

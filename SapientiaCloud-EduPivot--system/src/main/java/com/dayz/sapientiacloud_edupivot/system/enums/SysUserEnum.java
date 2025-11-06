@@ -35,7 +35,9 @@ public enum SysUserEnum implements BaseEnum {
     DATA_CANNOT_BE_EMPTY(1301, "数据不能为空"),
     ADMIN_OPERATION_FORBIDDEN(1302, "超级管理员用户禁止操作"),
     VERIFICATION_CODE_ERROR(1303, "验证码错误"),
-    VERIFICATION_CODE_CANNOT_BE_EMPTY(1304, "验证码不能为空");
+    VERIFICATION_CODE_CANNOT_BE_EMPTY(1304, "验证码不能为空"),
+    THIRD_PARTY_PROVIDER_NOT_SUPPORTED(1305, "不支持的第三方平台"),
+    USERNAME_GENERATION_FAILED(1306, "用户名生成失败");
 
     private final int code;
 

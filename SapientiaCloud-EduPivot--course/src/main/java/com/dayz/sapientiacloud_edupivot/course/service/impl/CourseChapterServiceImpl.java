@@ -1,6 +1,7 @@
 package com.dayz.sapientiacloud_edupivot.course.service.impl;
 
 import com.dayz.sapientiacloud_edupivot.course.common.clients.TeacherClient;
+import com.dayz.sapientiacloud_edupivot.course.common.entity.vo.TeacherVO;
 import com.dayz.sapientiacloud_edupivot.course.common.enums.DeletedEnum;
 import com.dayz.sapientiacloud_edupivot.course.common.enums.StatusEnum;
 import com.dayz.sapientiacloud_edupivot.course.common.exception.BusinessException;
@@ -11,7 +12,6 @@ import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseChapterDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseChapterQueryDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.po.CourseChapter;
 import com.dayz.sapientiacloud_edupivot.course.entity.vo.CourseChapterVO;
-import com.dayz.sapientiacloud_edupivot.course.common.entity.vo.TeacherVO;
 import com.dayz.sapientiacloud_edupivot.course.enums.CourseChapterEnum;
 import com.dayz.sapientiacloud_edupivot.course.repository.CourseChapterRepository;
 import com.dayz.sapientiacloud_edupivot.course.service.ICourseChapterService;

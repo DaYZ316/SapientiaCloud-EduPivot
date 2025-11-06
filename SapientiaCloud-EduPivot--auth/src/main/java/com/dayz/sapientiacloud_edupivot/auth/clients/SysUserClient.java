@@ -6,7 +6,9 @@ import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserMobileLoginDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserPasswordDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserRegisterDTO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysRoleVO;
+import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysUserBasicInfoVO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysUserInternalVO;
+import com.dayz.sapientiacloud_edupivot.auth.entity.vo.ThirdPartyLoginResultVO;
 import com.dayz.sapientiacloud_edupivot.auth.result.Result;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +22,9 @@ public interface SysUserClient {
     @GetMapping("/internal/info/{username}")
     Result<SysUserInternalVO> getUserInfoByUsername(@PathVariable("username") String username);
 
+    @GetMapping("/internal/info/id/{userId}")
+    Result<SysUserInternalVO> getUserInfoById(@PathVariable("userId") UUID userId);
+
     @GetMapping("/internal/{userId}/role")
     Result<List<SysRoleVO>> getUserRoles(@PathVariable("userId") UUID userId);
 
@@ -32,6 +37,40 @@ public interface SysUserClient {
     @PutMapping("/internal/password")
     Result<Boolean> updatePassword(@RequestBody SysUserPasswordDTO sysUserPasswordDTO);
 
+    @PutMapping("/internal/password/{userId}")
+    Result<Boolean> updatePasswordByUserId(@PathVariable("userId") UUID userId, @RequestParam("newPassword") String newPassword);
+
     @PostMapping("/mobile-login")
     Result<SysUserInternalVO> mobileLogin(@RequestBody SysUserMobileLoginDTO mobileLoginDTO);
+
+    @GetMapping("/internal/third-party/find-or-create")
+    Result<ThirdPartyLoginResultVO> findOrCreateByThirdParty(
+            @RequestParam("provider") String provider,
+            @RequestParam("providerId") String providerId,
+            @RequestParam("username") String username,
+            @RequestParam(value = "email", required = false) String email,
+            @RequestParam(value = "name", required = false) String name,
+            @RequestParam(value = "avatarUrl", required = false) String avatarUrl
+    );
+
+    @GetMapping("/internal/check-username")
+    Result<Boolean> checkUsernameAvailable(@RequestParam("username") String username);
+
+    @GetMapping("/internal/check-mobile")
+    Result<Boolean> checkMobileAvailable(@RequestParam("mobile") String mobile);
+
+    @GetMapping("/internal/info/mobile/{mobile}")
+    Result<SysUserBasicInfoVO> getUserInfoByMobile(@PathVariable("mobile") String mobile);
+
+    @PutMapping("/internal/soft-delete/{userId}")
+    Result<Boolean> softDeleteUserById(@PathVariable("userId") UUID userId);
+
+    @PutMapping("/internal/github-id/{userId}")
+    Result<Boolean> updateGithubId(@PathVariable("userId") UUID userId, @RequestParam("githubId") String githubId);
+
+    @DeleteMapping("/internal/{userId}")
+    Result<Boolean> removeUserById(@PathVariable("userId") UUID userId);
+
+    @DeleteMapping("/internal/physical/{userId}")
+    Result<Boolean> physicalDeleteUserById(@PathVariable("userId") UUID userId);
 }

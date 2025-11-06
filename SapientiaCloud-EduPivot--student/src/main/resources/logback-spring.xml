@@ -15,18 +15,18 @@
     </appender>
 
     <logger name="com.dayz.sapientiacloud_edupivot" level="INFO" additivity="false">
-        <appender-ref ref="KAFKA" />
-        <appender-ref ref="CONSOLE" />
+        <appender-ref ref="KAFKA"/>
+        <appender-ref ref="CONSOLE"/>
     </logger>
 
     <logger name="org.springframework" level="WARN">
-        <appender-ref ref="KAFKA" />
-        <appender-ref ref="CONSOLE" />
+        <appender-ref ref="KAFKA"/>
+        <appender-ref ref="CONSOLE"/>
     </logger>
 
     <root level="INFO">
-        <appender-ref ref="KAFKA" />
-        <appender-ref ref="CONSOLE" />
+        <appender-ref ref="KAFKA"/>
+        <appender-ref ref="CONSOLE"/>
     </root>
 
 </configuration>

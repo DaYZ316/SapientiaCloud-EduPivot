@@ -1,20 +1,16 @@
 package com.dayz.sapientiacloud_edupivot.auth.controller;
 
-import com.dayz.sapientiacloud_edupivot.auth.clients.SysUserClient;
-import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserLoginDTO;
-import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserMobileLoginDTO;
-import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserPasswordDTO;
-import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SysUserRegisterDTO;
+import com.dayz.sapientiacloud_edupivot.auth.entity.dto.*;
 import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysUserInternalVO;
 import com.dayz.sapientiacloud_edupivot.auth.entity.vo.SysUserLoginVO;
 import com.dayz.sapientiacloud_edupivot.auth.result.Result;
 import com.dayz.sapientiacloud_edupivot.auth.service.AuthService;
+import com.dayz.sapientiacloud_edupivot.auth.service.VerificationCodeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -24,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
-    private final SysUserClient sysUserClient;
+    private final VerificationCodeService verificationCodeService;
 
     @PostMapping("/login")
     @Operation(summary = "login", description = "通过用户名和密码登录系统")
@@ -57,7 +53,8 @@ public class AuthController {
     @PostMapping("/register")
     @Operation(summary = "register", description = "注册一个新的用户")
     public Result<Boolean> register(@Valid @RequestBody SysUserRegisterDTO sysUserRegisterDTO) {
-        return sysUserClient.registerUser(sysUserRegisterDTO);
+        Boolean result = authService.register(sysUserRegisterDTO);
+        return Result.success(result);
     }
 
     @GetMapping("/info")
@@ -71,4 +68,46 @@ public class AuthController {
     public Result<Boolean> updatePassword(HttpServletRequest request, @Valid @RequestBody SysUserPasswordDTO sysUserPasswordDTO) {
         return Result.success(authService.updatePassword(request, sysUserPasswordDTO));
     }
+
+    @PutMapping("/mobile-password")
+    @Operation(summary = "updatePasswordByMobile", description = "通过手机验证码修改密码")
+    public Result<Boolean> updatePasswordByMobile(@Valid @RequestBody SysUserMobilePasswordDTO sysUserMobilePasswordDTO) {
+        return Result.success(authService.updatePasswordByMobile(sysUserMobilePasswordDTO));
+    }
+
+    @PostMapping("/send-code")
+    @Operation(summary = "sendVerificationCode", description = "发送手机验证码")
+    public Result<Boolean> sendVerificationCode(@Valid @RequestBody SendVerificationCodeDTO sendVerificationCodeDTO) {
+        boolean result = verificationCodeService.sendVerificationCode(sendVerificationCodeDTO);
+        return Result.success(result);
+    }
+
+    @GetMapping("/check-username")
+    @Operation(summary = "checkUsername", description = "检查用户名是否可用")
+    public Result<Boolean> checkUsername(@RequestParam("username") String username) {
+        Boolean available = authService.checkUsernameAvailable(username);
+        return Result.success(available);
+    }
+
+    @GetMapping("/check-mobile")
+    @Operation(summary = "checkMobile", description = "检查手机号是否可用，如果已被使用则返回已存在用户的基本信息")
+    public Result<BindMobileResultDTO> checkMobile(@RequestParam("mobile") String mobile) {
+        BindMobileResultDTO result = authService.checkMobileAvailable(mobile);
+        return Result.success(result);
+    }
+
+    @PostMapping("/bind-mobile")
+    @Operation(summary = "bindMobile", description = "绑定手机号（验证码校验成功后更新用户手机号，支持通过userId参数或当前登录用户）")
+    public Result<BindMobileResultDTO> bindMobile(@Valid @RequestBody BindMobileDTO bindMobileDTO) {
+        BindMobileResultDTO result = authService.bindMobile(bindMobileDTO);
+        return Result.success(result);
+    }
+
+    @PostMapping("/bind-mobile/confirm")
+    @Operation(summary = "bindMobileConfirm", description = "确认绑定手机号（当手机号已被使用时，用户确认是否为同一账户）")
+    public Result<BindMobileResultDTO> bindMobileConfirm(@Valid @RequestBody BindMobileConfirmDTO bindMobileConfirmDTO) {
+        BindMobileResultDTO result = authService.bindMobileConfirm(bindMobileConfirmDTO);
+        return Result.success(result);
+    }
+
 }

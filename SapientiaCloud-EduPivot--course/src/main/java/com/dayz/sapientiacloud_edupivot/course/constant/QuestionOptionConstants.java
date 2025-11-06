@@ -20,8 +20,8 @@ public class QuestionOptionConstants {
     public static final String SORT_DESC = "DESC";
 
     // 选项正确性范围
-    public static final int IS_CORRECT_WRONG = 0; // 错误
-    public static final int IS_CORRECT_CORRECT = 1; // 正确
+    public static final int IS_CORRECT_WRONG = 0;
+    public static final int IS_CORRECT_CORRECT = 1;
     public static final int IS_CORRECT_MIN = IS_CORRECT_WRONG;
     public static final int IS_CORRECT_MAX = IS_CORRECT_CORRECT;
 
@@ -100,7 +100,7 @@ public class QuestionOptionConstants {
     // 缓存相关
     public static final String CACHE_PREFIX_OPTION = "question_option:";
     public static final String CACHE_PREFIX_QUESTION_OPTIONS = "question_options:";
-    public static final int CACHE_EXPIRE_TIME = 3600; // 1小时
+    public static final int CACHE_EXPIRE_TIME = 3600;
 
     // 批量操作相关
     public static final int BATCH_SIZE = 50;

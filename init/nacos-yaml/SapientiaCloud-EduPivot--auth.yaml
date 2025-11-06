@@ -9,3 +9,14 @@ feign:
 spring:
   jpa:
     open-in-view: false
+
+oauth2:
+  github:
+    client-id: ${GITHUB_CLIENT_ID}
+    client-secret: ${GITHUB_CLIENT_SECRET}
+    redirect-uri: http://localhost:31600/api/auth/oauth2/callback/github
+    scope: user:email,read:user
+
+
+GITHUB_CLIENT_ID: Ov23litqHal3tJSRdGLD
+GITHUB_CLIENT_SECRET: 2b5cc1dc3e5495559ce2e49a9e148217f9c21e5e

@@ -1,7 +1,10 @@
 package com.dayz.sapientiacloud_edupivot.gateway.security.filter;
 
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.dayz.sapientiacloud_edupivot.gateway.security.constants.JwtConstants;
 import com.dayz.sapientiacloud_edupivot.gateway.security.utils.JwtUtil;
+import com.dayz.sapientiacloud_edupivot.gateway.security.utils.TokenExtractionUtil;
+import com.dayz.sapientiacloud_edupivot.gateway.security.utils.WhitelistUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
@@ -11,7 +14,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.stereotype.Component;
-import org.springframework.util.AntPathMatcher;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
@@ -33,21 +35,22 @@ public class JwtAuthenticationFilter implements WebFilter {
             "/api/auth/mobile-login",
             "/api/auth/validate",
             "/api/auth/register",
+            "/api/auth/send-code",
+            "/api/auth/check-username",
+            "/api/auth/check-mobile",
+            "/api/auth/bind-mobile",
+            "/api/auth/bind-mobile/confirm",
+            "/api/auth/github/**",
+            "/api/auth/oauth2/**",
+            "/github/**",
+            "/oauth2/**",
+            "/login/oauth2/**",
             "/api/*/v3/api-docs/**",
             "/v3/api-docs/**",
             "/doc.html",
-            "/webjars/**"
+            "/webjars/**",
+            "/favicon.ico"
     };
-    private static final String USERID_CLAIM = "userId";
-    private static final String USERNAME_CLAIM = "username";
-    private static final String ROLEKEYS_CLAIM = "roleKeys";
-    private static final String AUTHORIZATION_HEADER = "Authorization";
-    private static final String BEARER_PREFIX = "Bearer ";
-    // 自定义请求头
-    private static final String X_USER_ID = "X-User-Id";
-    private static final String X_USER_NAME = "X-User-Name";
-    private static final String X_USER_ROLES = "X-User-Roles";
-    private final AntPathMatcher pathMatcher = new AntPathMatcher();
     private final JwtUtil jwtUtil;
 
     @Override
@@ -56,12 +59,12 @@ public class JwtAuthenticationFilter implements WebFilter {
         String requestPath = request.getURI().getPath();
 
         // 如果是白名单中的路径，直接放行
-        if (isWhitelistPath(requestPath)) {
+        if (WhitelistUtil.isWhitelistPath(requestPath, WHITELIST)) {
             return chain.filter(exchange);
         }
 
         // 提取请求头中的Token
-        String token = extractTokenFromRequest(request);
+        String token = TokenExtractionUtil.extractTokenFromRequest(request);
 
         if (StringUtils.hasText(token)) {
             try {
@@ -69,7 +72,7 @@ public class JwtAuthenticationFilter implements WebFilter {
                 if (!jwtUtil.isTokenExpired(token)) {
                     DecodedJWT jwt = jwtUtil.validateToken(token);
                     String username = jwt.getSubject();
-                    String userId = jwt.getClaim(USERID_CLAIM).asString();
+                    String userId = jwt.getClaim(JwtConstants.USERID_CLAIM).asString();
 
                     if (username != null && userId != null) {
                         // 从令牌中获取角色
@@ -77,23 +80,22 @@ public class JwtAuthenticationFilter implements WebFilter {
 
                         // 创建用户详情对象，存储用户名和用户ID
                         Map<String, Object> userDetails = new HashMap<>();
-                        userDetails.put(USERNAME_CLAIM, username);
-                        userDetails.put(USERID_CLAIM, userId);
+                        userDetails.put(JwtConstants.USERNAME_CLAIM, username);
+                        userDetails.put(JwtConstants.USERID_CLAIM, userId);
 
                         // 获取原始的授权头
                         String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
 
                         // 添加用户信息到请求头，传递给下游服务
                         ServerHttpRequest mutatedRequest = request.mutate()
-                                .header(AUTHORIZATION_HEADER, authHeader)
-                                .header(X_USER_ID, userId)
-                                .header(X_USER_NAME, username)
-                                .header(X_USER_ROLES, String.join(",", roleKeys))
+                                .header(JwtConstants.AUTHORIZATION_HEADER, authHeader)
+                                .header(JwtConstants.X_USER_ID, userId)
+                                .header(JwtConstants.X_USER_NAME, username)
+                                .header(JwtConstants.X_USER_ROLES, String.join(",", roleKeys))
                                 .build();
 
                         log.debug("传递授权头到下游服务 - X_USER_ID: {}, X_USER_NAME: {}, X_USER_ROLES: {}",
-                                  userId, username, String.join(",", roleKeys));
-
+                                userId, username, String.join(",", roleKeys));
 
                         exchange = exchange.mutate().request(mutatedRequest).build();
 
@@ -123,28 +125,4 @@ public class JwtAuthenticationFilter implements WebFilter {
         return chain.filter(exchange);
     }
 
-    private boolean isWhitelistPath(String requestPath) {
-        for (String pattern : WHITELIST) {
-            if (pathMatcher.match(pattern, requestPath)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private String extractTokenFromRequest(ServerHttpRequest request) {
-        List<String> authHeaders = request.getHeaders().get(HttpHeaders.AUTHORIZATION);
-        if (authHeaders != null && !authHeaders.isEmpty()) {
-            String bearerToken = authHeaders.get(0);
-            if (StringUtils.hasText(bearerToken)) {
-                // 如果已经有Bearer前缀，则去掉前缀
-                if (bearerToken.startsWith(BEARER_PREFIX)) {
-                    return bearerToken.substring(BEARER_PREFIX.length());
-                }
-                // 如果没有Bearer前缀，直接返回token
-                return bearerToken;
-            }
-        }
-        return null;
-    }
-} 
+}

@@ -34,8 +34,7 @@ public class FeignRequestAspect {
     /**
      * 定义切点，匹配内部接口
      */
-    @Pointcut("@annotation(com.dayz.sapientiacloud_edupivot.system.common.security.annotation.HasPermission) && " +
-            "execution(* com.dayz.sapientiacloud_edupivot.system.feigns.*.*(..))")
+    @Pointcut("@annotation(com.dayz.sapientiacloud_edupivot.system.common.security.annotation.HasPermission)")
     public void feignRequestPointcut() {
     }
 

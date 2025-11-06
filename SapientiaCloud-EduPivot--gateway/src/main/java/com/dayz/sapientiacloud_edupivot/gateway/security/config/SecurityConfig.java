@@ -22,10 +22,21 @@ public class SecurityConfig {
             "/api/auth/mobile-login",
             "/api/auth/validate",
             "/api/auth/register",
+            "/api/auth/send-code",
+            "/api/auth/check-username",
+            "/api/auth/check-mobile",
+            "/api/auth/bind-mobile",
+            "/api/auth/bind-mobile/confirm",
+            "/api/auth/github/**",
+            "/api/auth/oauth2/**",
+            "/github/**",
+            "/oauth2/**",
+            "/login/oauth2/**",
             "/api/*/v3/api-docs/**",
             "/v3/api-docs/**",
             "/doc.html",
-            "/webjars/**"
+            "/webjars/**",
+            "/favicon.ico"
     };
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
@@ -62,4 +73,4 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-} 
+}

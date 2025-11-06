@@ -46,6 +46,8 @@ create table sys_user
     gender          tinyint(1)                           null,
     avatar          varchar(255)                         null,
     status          tinyint(1) default 0                 null,
+    github_id       varchar(100)                         null,
+    wechat_id       varchar(100)                         null,
     last_login_time datetime                             null,
     create_time     datetime   default CURRENT_TIMESTAMP null,
     update_time     datetime   default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,

@@ -5,15 +5,11 @@ import com.dayz.sapientiacloud_edupivot.system.common.security.annotation.HasPer
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserPasswordDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysUserRegisterDTO;
-import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysPermissionVO;
-import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysRoleVO;
-import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysUserInternalVO;
-import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysUserVO;
+import com.dayz.sapientiacloud_edupivot.system.entity.vo.*;
 import com.dayz.sapientiacloud_edupivot.system.service.ISysUserService;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -107,5 +103,123 @@ public class SysUserFeign {
     @PutMapping("/internal/password")
     public Result<Boolean> updatePassword(@RequestBody SysUserPasswordDTO sysUserPasswordDTO) {
         return Result.success(sysUserService.updatePassword(sysUserPasswordDTO));
+    }
+
+    @HasPermission(
+            summary = "updatePasswordByUserId",
+            description = "通过用户ID更新密码"
+    )
+    @PutMapping("/internal/password/{userId}")
+    public Result<Boolean> updatePasswordByUserId(
+            @Parameter(name = "userId", description = "用户ID", required = true) @PathVariable("userId") UUID userId,
+            @Parameter(name = "newPassword", description = "新密码", required = true) @RequestParam("newPassword") String newPassword
+    ) {
+        return Result.success(sysUserService.updatePasswordByUserId(userId, newPassword));
+    }
+
+    @HasPermission(
+            summary = "findOrCreateByThirdParty",
+            description = "通过第三方账号查找或创建用户，返回注册状态"
+    )
+    @GetMapping("/internal/third-party/find-or-create")
+    public Result<ThirdPartyLoginResultVO> findOrCreateByThirdParty(
+            @RequestParam("provider") String provider,
+            @RequestParam("providerId") String providerId,
+            @RequestParam("username") String username,
+            @RequestParam(value = "email", required = false) String email,
+            @RequestParam(value = "name", required = false) String name,
+            @RequestParam(value = "avatarUrl", required = false) String avatarUrl
+    ) {
+        return Result.success(sysUserService.findOrCreateByThirdParty(provider, providerId, username, email, name, avatarUrl));
+    }
+
+    @HasPermission(
+            summary = "checkUsernameAvailable",
+            description = "检查用户名是否可用"
+    )
+    @GetMapping("/internal/check-username")
+    public Result<Boolean> checkUsernameAvailable(
+            @Parameter(name = "username", description = "用户名", required = true)
+            @RequestParam("username") String username
+    ) {
+        Boolean available = sysUserService.isUsernameAvailable(username);
+        return Result.success(available);
+    }
+
+    @HasPermission(
+            summary = "checkMobileAvailable",
+            description = "检查手机号是否可用"
+    )
+    @GetMapping("/internal/check-mobile")
+    public Result<Boolean> checkMobileAvailable(
+            @Parameter(name = "mobile", description = "手机号", required = true)
+            @RequestParam("mobile") String mobile
+    ) {
+        Boolean exists = sysUserService.isMobileExists(mobile);
+        Boolean available = !exists;
+        return Result.success(available);
+    }
+
+    @HasPermission(
+            summary = "getUserInfoByMobile",
+            description = "通过手机号获取用户基本信息"
+    )
+    @GetMapping("/internal/info/mobile/{mobile}")
+    public Result<com.dayz.sapientiacloud_edupivot.system.entity.vo.SysUserBasicInfoVO> getUserInfoByMobile(
+            @Parameter(name = "mobile", description = "手机号", required = true)
+            @PathVariable("mobile") String mobile
+    ) {
+        com.dayz.sapientiacloud_edupivot.system.entity.vo.SysUserBasicInfoVO userInfo = sysUserService.getUserInfoByMobile(mobile);
+        return Result.success(userInfo);
+    }
+
+    @HasPermission(
+            summary = "softDeleteUserById",
+            description = "软删除用户"
+    )
+    @PutMapping("/internal/soft-delete/{userId}")
+    public Result<Boolean> softDeleteUserById(
+            @Parameter(name = "userId", description = "用户ID", required = true)
+            @PathVariable("userId") UUID userId
+    ) {
+        return Result.success(sysUserService.softDeleteUserById(userId));
+    }
+
+    @HasPermission(
+            summary = "updateGithubId",
+            description = "更新用户的GitHub ID"
+    )
+    @PutMapping("/internal/github-id/{userId}")
+    public Result<Boolean> updateGithubId(
+            @Parameter(name = "userId", description = "用户ID", required = true)
+            @PathVariable("userId") UUID userId,
+            @Parameter(name = "githubId", description = "GitHub ID", required = true)
+            @RequestParam("githubId") String githubId
+    ) {
+        return Result.success(sysUserService.updateGithubId(userId, githubId));
+    }
+
+    @HasPermission(
+            summary = "removeUserById",
+            description = "删除用户"
+    )
+    @DeleteMapping("/internal/{userId}")
+    public Result<Boolean> removeUserById(
+            @Parameter(name = "userId", description = "用户ID", required = true)
+            @PathVariable("userId") UUID userId
+    ) {
+        return Result.success(sysUserService.removeUserById(userId));
+    }
+
+    @HasPermission(
+            summary = "physicalDeleteUserById",
+            description = "物理删除用户"
+    )
+    @DeleteMapping("/internal/physical/{userId}")
+    public Result<Boolean> physicalDeleteUserById(
+            @Parameter(name = "userId", description = "用户ID", required = true)
+            @PathVariable("userId") UUID userId
+    ) {
+        return Result.success(sysUserService.physicalDeleteUserById(userId));
     }
 }

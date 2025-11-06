@@ -10,10 +10,7 @@ import com.dayz.sapientiacloud_edupivot.system.common.security.utils.UserContext
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.*;
 import com.dayz.sapientiacloud_edupivot.system.entity.po.SysRole;
 import com.dayz.sapientiacloud_edupivot.system.entity.po.SysUser;
-import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysPermissionVO;
-import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysRoleVO;
-import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysUserInternalVO;
-import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysUserVO;
+import com.dayz.sapientiacloud_edupivot.system.entity.vo.*;
 import com.dayz.sapientiacloud_edupivot.system.enums.GenderEnum;
 import com.dayz.sapientiacloud_edupivot.system.enums.SysRoleEnum;
 import com.dayz.sapientiacloud_edupivot.system.enums.SysUserEnum;
@@ -27,7 +24,6 @@ import com.github.javafaker.Faker;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.cache.annotation.CacheEvict;
@@ -43,6 +39,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -53,9 +51,9 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
     private final static int DEFAULT_USERNAME_LENGTH = 8;
     private final static String INIT_PASSWORD = "123456";
-    private final static String INIT_VERIFICATION_CODE = "123456";
-    private static final String STUDENT = "STUDENT";
-    private static final String TEACHER = "TEACHER";
+    private final static String ADMIN = "ADMIN";
+    private final static String STUDENT = "STUDENT";
+    private final static String TEACHER = "TEACHER";
 
     private final SysUserMapper sysUserMapper;
     private final SysUserRoleMapper sysUserRoleMapper;
@@ -115,6 +113,8 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Boolean registerUser(SysUserRegisterDTO sysUserRegisterDTO) {
+        // 注意：验证码校验已在 auth 模块的 Controller 层完成，此处不再重复校验
+
         if (sysUserRegisterDTO == null || !StringUtils.hasText(sysUserRegisterDTO.getUsername())) {
             throw new BusinessException(SysUserEnum.USERNAME_CANNOT_BE_EMPTY);
         }
@@ -130,19 +130,11 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             throw new BusinessException(SysUserEnum.PHONE_NUMBER_ALREADY_EXISTS);
         }
 
-        if (!StringUtils.hasText(sysUserRegisterDTO.getVerificationCode())) {
-            throw new BusinessException(SysUserEnum.VERIFICATION_CODE_CANNOT_BE_EMPTY);
-        }
-
         SysUser sysUser = checkSysUserInfo(sysUserRegisterDTO);
         sysUser.setId(UuidCreator.getTimeOrderedEpoch());
 
         if (!StringUtils.hasText(sysUserRegisterDTO.getNickName())) {
             sysUser.setNickName(sysUser.getId().toString());
-        }
-
-        if (!sysUserRegisterDTO.getVerificationCode().equals(INIT_VERIFICATION_CODE)) {
-            throw new BusinessException(SysUserEnum.VERIFICATION_CODE_ERROR);
         }
 
         return this.save(sysUser);
@@ -154,12 +146,72 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             throw new BusinessException(SysUserEnum.DATA_CANNOT_BE_EMPTY);
         }
 
+        if (!StringUtils.hasText(sysUserPasswordDTO.getNewPassword())) {
+            throw new BusinessException(SysUserEnum.PASSWORD_CANNOT_BE_EMPTY);
+        }
+
         SysUserInternalVO currentUser = UserContextUtil.getCurrentUser();
 
         currentUser.setPassword(passwordEncoder.encode(sysUserPasswordDTO.getNewPassword()));
         currentUser.setUpdateTime(LocalDateTime.now());
 
         return this.updateById(currentUser);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    @Caching(evict = {
+            @CacheEvict(value = "SysUser", key = "#p0", condition = "#p0 != null"),
+            @CacheEvict(value = "SysUser", key = "'all'", condition = "true")
+    })
+    public Boolean updatePasswordByUserId(UUID userId, String newPassword) {
+        if (userId == null) {
+            throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
+        }
+        if (!StringUtils.hasText(newPassword)) {
+            throw new BusinessException(SysUserEnum.PASSWORD_CANNOT_BE_EMPTY);
+        }
+
+        SysUser sysUser = this.getById(userId);
+        if (sysUser == null) {
+            throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
+        }
+
+        sysUser.setPassword(passwordEncoder.encode(newPassword));
+        sysUser.setUpdateTime(LocalDateTime.now());
+
+        return this.updateById(sysUser);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    @Caching(evict = {
+            @CacheEvict(value = "SysUser", key = "#p0", condition = "#p0 != null"),
+            @CacheEvict(value = "SysUser", key = "'all'", condition = "true")
+    })
+    public Boolean resetPassword(UUID userId) {
+        if (userId == null) {
+            throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
+        }
+
+        SysUser sysUser = this.getById(userId);
+        if (sysUser == null) {
+            throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
+        }
+
+        // 禁止重置 admin 用户的密码
+        if (ADMIN.equals(sysUser.getUsername())) {
+            throw new BusinessException(SysUserEnum.ADMIN_OPERATION_FORBIDDEN);
+        }
+
+        // 重置密码为123456
+        if (!StringUtils.hasText(INIT_PASSWORD)) {
+            throw new BusinessException(SysUserEnum.PASSWORD_CANNOT_BE_EMPTY);
+        }
+        sysUser.setPassword(passwordEncoder.encode(INIT_PASSWORD));
+        sysUser.setUpdateTime(LocalDateTime.now());
+
+        return this.updateById(sysUser);
     }
 
     @Override
@@ -502,21 +554,270 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public Boolean isUsernameAvailable(String username) {
+        if (!StringUtils.hasText(username)) {
+            return false;
+        }
+
+        if (username.length() < 4 || username.length() > 20) {
+            return false;
+        }
+
+        SysUser existingUser = sysUserMapper.selectByUsername(username);
+
+        return existingUser == null;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(value = "SysUser", key = "#result.user.id", condition = "#result != null && #result.user != null")
+    public ThirdPartyLoginResultVO findOrCreateByThirdParty(String provider, String providerId, String username, String email, String name, String avatarUrl) {
+        if (!StringUtils.hasText(provider) || !StringUtils.hasText(providerId) || !StringUtils.hasText(username)) {
+            throw new BusinessException(SysUserEnum.USERNAME_CANNOT_BE_EMPTY);
+        }
+
+        if (!isSupportedProvider(provider)) {
+            throw new BusinessException(SysUserEnum.THIRD_PARTY_PROVIDER_NOT_SUPPORTED);
+        }
+
+        SysUser existingUser = sysUserMapper.selectByThirdPartyId(provider, providerId);
+
+        if (existingUser != null) {
+//            boolean needUpdate = false;
+//            if (StringUtils.hasText(email) && !Objects.equals(existingUser.getEmail(), email)) {
+//                existingUser.setEmail(email);
+//                needUpdate = true;
+//            }
+//            if (StringUtils.hasText(name) && !Objects.equals(existingUser.getNickName(), name)) {
+//                existingUser.setNickName(name);
+//                needUpdate = true;
+//            }
+//            if (StringUtils.hasText(avatarUrl) && !Objects.equals(existingUser.getAvatar(), avatarUrl)) {
+//                existingUser.setAvatar(avatarUrl);
+//                needUpdate = true;
+//            }
+//            if (StringUtils.hasText(username) && !Objects.equals(existingUser.getUsername(), username)) {
+//                SysUser userByUsername = sysUserMapper.selectByUsername(username);
+//                if (userByUsername == null || userByUsername.getId().equals(existingUser.getId())) {
+//                    existingUser.setUsername(username);
+//                    needUpdate = true;
+//                }
+//            }
+//
+//            if (!hasThirdPartyId(existingUser, provider, providerId)) {
+//                setThirdPartyId(existingUser, provider, providerId);
+//                needUpdate = true;
+//            }
+//
+//            if (needUpdate) {
+//                existingUser.setUpdateTime(LocalDateTime.now());
+//                this.updateById(existingUser);
+//            }
+            return buildThirdPartyLoginResult(existingUser, false);
+        }
+
+
+        String finalUsername = username;
+        SysUser userByUsername = sysUserMapper.selectByUsername(username);
+        if (userByUsername != null) {
+            String hash = md5Hex(provider + "_" + providerId);
+            String suffix = provider.toLowerCase() + "_" + hash.substring(0, 8);
+            finalUsername = username + "_" + suffix;
+
+            // 确保生成的用户名唯一（如果还冲突，继续生成）
+            int attempt = 1;
+            while (sysUserMapper.selectByUsername(finalUsername) != null) {
+                // 如果哈希值冲突，使用带计数器的哈希
+                String hashWithCounter = md5Hex(provider + "_" + providerId + "_" + attempt);
+                suffix = provider.toLowerCase() + "_" + hashWithCounter.substring(0, 8);
+                finalUsername = username + "_" + suffix;
+                attempt++;
+                // 防止无限循环
+                if (attempt > 100) {
+                    throw new BusinessException(SysUserEnum.USERNAME_GENERATION_FAILED);
+                }
+            }
+        }
+
+        SysUser newUser = new SysUser();
+        newUser.setId(UuidCreator.getTimeOrderedEpoch());
+        newUser.setUsername(finalUsername);
+        newUser.setNickName(StringUtils.hasText(name) ? name : finalUsername);
+        newUser.setEmail(email);
+        newUser.setAvatar(avatarUrl);
+
+        // 保存第三方平台ID
+        setThirdPartyId(newUser, provider, providerId);
+
+        // 设置默认密码（第三方登录用户）
+        newUser.setPassword(passwordEncoder.encode("THIRD_PARTY_USER_" + providerId));
+
+        // 设置用户状态
+        newUser.setStatus(StatusEnum.NORMAL.getCode());
+        newUser.setGender(GenderEnum.UNKNOWN.getCode());
+        newUser.setCreateTime(LocalDateTime.now());
+        newUser.setUpdateTime(LocalDateTime.now());
+        newUser.setDeleted(DeletedEnum.NOT_DELETED.getCode());
+
+        // 保存用户
+        boolean saveResult = this.save(newUser);
+        if (!saveResult) {
+            throw new BusinessException("创建第三方用户失败");
+        }
+
+        // 构建返回结果
+        return buildThirdPartyLoginResult(newUser, true);
+    }
+
+    /**
+     * 构建第三方登录结果
+     */
+    private ThirdPartyLoginResultVO buildThirdPartyLoginResult(SysUser user, boolean isNewUser) {
+        // 构建用户VO
+        SysUserInternalVO userVO = new SysUserInternalVO();
+        BeanUtils.copyProperties(user, userVO);
+
+        // 获取用户角色
+        List<SysRoleVO> roles = sysUserRoleMapper.getUserRoles(user.getId());
+        if (roles == null) {
+            roles = Collections.emptyList();
+        }
+        userVO.setRoles(roles);
+
+        // 判断是否需要绑定手机号
+        boolean needBindMobile = !StringUtils.hasText(user.getMobile());
+
+        // 判断是否需要选择身份（检查是否同时有学生和教师角色，或者都没有）
+        boolean hasStudentRole = roles.stream().anyMatch(role -> STUDENT.equals(role.getRoleKey()));
+        boolean hasTeacherRole = roles.stream().anyMatch(role -> TEACHER.equals(role.getRoleKey()));
+        // 对于新用户，如果只分配了学生角色，则认为已选择身份；否则需要选择
+        boolean needSelectIdentity = !isNewUser && (!hasStudentRole && !hasTeacherRole);
+
+        // 判断是否需要完善信息（检查基本信息是否完整）
+        // TODO 这里可以根据实际需求调整判断逻辑
+        boolean needCompleteInfo = false;
+
+        // 确定当前步骤
+        String currentStep;
+        if (needBindMobile) {
+            currentStep = "bindMobile";
+        } else if (needSelectIdentity) {
+            currentStep = "selectIdentity";
+        } else if (needCompleteInfo) {
+            currentStep = "completeInfo";
+        } else {
+            currentStep = "completed";
+        }
+
+        // 构建结果对象
+        ThirdPartyLoginResultVO result = ThirdPartyLoginResultVO.builder()
+                .user(userVO)
+                .isNewUser(isNewUser)
+                .needBindMobile(needBindMobile)
+                .needSelectIdentity(needSelectIdentity)
+                .needCompleteInfo(needCompleteInfo)
+                .currentStep(currentStep)
+                .build();
+
+        return result;
+    }
+
+    /**
+     * 检查第三方平台是否支持
+     */
+    private boolean isSupportedProvider(String provider) {
+        if (!StringUtils.hasText(provider)) {
+            return false;
+        }
+        String lowerProvider = provider.toLowerCase();
+        return "github".equals(lowerProvider) || "wechat".equals(lowerProvider);
+    }
+
+    /**
+     * 检查用户是否已有该第三方平台的ID
+     */
+    private boolean hasThirdPartyId(SysUser user, String provider, String providerId) {
+        if (user == null || !StringUtils.hasText(provider) || !StringUtils.hasText(providerId)) {
+            return false;
+        }
+        String lowerProvider = provider.toLowerCase();
+        return switch (lowerProvider) {
+            case "github" -> StringUtils.hasText(user.getGithubId()) && user.getGithubId().equals(providerId);
+            case "wechat" -> StringUtils.hasText(user.getWechatId()) && user.getWechatId().equals(providerId);
+            default -> false;
+        };
+    }
+
+    /**
+     * 设置第三方平台ID到用户对象
+     */
+    private void setThirdPartyId(SysUser user, String provider, String providerId) {
+        if (user == null || !StringUtils.hasText(provider) || !StringUtils.hasText(providerId)) {
+            throw new BusinessException(SysUserEnum.DATA_CANNOT_BE_EMPTY);
+        }
+        String lowerProvider = provider.toLowerCase();
+        switch (lowerProvider) {
+            case "github":
+                user.setGithubId(providerId);
+                break;
+            case "wechat":
+                user.setWechatId(providerId);
+                break;
+            default:
+                throw new BusinessException(SysUserEnum.THIRD_PARTY_PROVIDER_NOT_SUPPORTED);
+        }
+    }
+
+    /**
+     * 为新用户分配学生角色
+     */
+    private void assignStudentRoleToUser(UUID userId) {
+        try {
+            // 查找学生角色
+            LambdaQueryWrapper<SysRole> roleQuery = new LambdaQueryWrapper<>();
+            roleQuery.eq(SysRole::getRoleKey, "STUDENT")
+                    .eq(SysRole::getStatus, StatusEnum.NORMAL.getCode())
+                    .eq(SysRole::getDeleted, DeletedEnum.NOT_DELETED.getCode());
+
+            SysRole studentRole = sysRoleMapper.selectOne(roleQuery);
+            if (studentRole != null) {
+                // 分配角色给用户
+                List<UUID> roleIds = List.of(studentRole.getId());
+                sysUserRoleMapper.addUserRoles(userId, roleIds);
+            }
+        } catch (Exception e) {
+            // 不抛出异常，避免影响用户创建流程
+        }
+    }
+
+    private String md5Hex(String input) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            byte[] hashBytes = md.digest(input.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : hashBytes) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) {
+                    hexString.append('0');
+                }
+                hexString.append(hex);
+            }
+            return hexString.toString();
+        } catch (NoSuchAlgorithmException e) {
+            // MD5 是标准算法，不会抛出此异常
+            throw new RuntimeException("MD5 algorithm not found", e);
+        }
+    }
+
+    @Override
     @Transactional(readOnly = false)
     public SysUserInternalVO mobileLogin(SysUserMobileLoginDTO mobileLoginDTO) {
         if (mobileLoginDTO == null || !StringUtils.hasText(mobileLoginDTO.getMobile())) {
             throw new BusinessException(SysUserEnum.MOBILE_CANNOT_BE_EMPTY);
         }
 
-        if (!StringUtils.hasText(mobileLoginDTO.getVerificationCode())) {
-            throw new BusinessException(SysUserEnum.VERIFICATION_CODE_ERROR);
-        }
-
-        // TODO 验证验证码（这里使用固定验证码，实际项目中应该从缓存或数据库中验证）
-        if (!INIT_VERIFICATION_CODE.equals(mobileLoginDTO.getVerificationCode())) {
-            throw new BusinessException(SysUserEnum.VERIFICATION_CODE_ERROR);
-        }
-
+        // 注意：验证码校验已在 auth 模块完成，此处不再重复校验
         // 根据手机号查找用户
         LambdaQueryWrapper<SysUser> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(SysUser::getMobile, mobileLoginDTO.getMobile())
@@ -540,5 +841,104 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         sysUserInternalVO.setPermissions(sysUserPermissionMapper.getUserPermissions(sysUser.getId()));
 
         return sysUserInternalVO;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public SysUserBasicInfoVO getUserInfoByMobile(String mobile) {
+        if (!StringUtils.hasText(mobile)) {
+            throw new BusinessException(SysUserEnum.MOBILE_CANNOT_BE_EMPTY);
+        }
+
+        LambdaQueryWrapper<SysUser> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(SysUser::getMobile, mobile)
+                .eq(SysUser::getDeleted, DeletedEnum.NOT_DELETED.getCode());
+
+        SysUser sysUser = sysUserMapper.selectOne(queryWrapper);
+        if (sysUser == null) {
+            throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
+        }
+
+        SysUserBasicInfoVO sysUserBasicInfoVO = new SysUserBasicInfoVO();
+        sysUserBasicInfoVO.setId(sysUser.getId());
+        sysUserBasicInfoVO.setUsername(sysUser.getUsername());
+        sysUserBasicInfoVO.setNickName(sysUser.getNickName());
+        sysUserBasicInfoVO.setAvatar(sysUser.getAvatar());
+        sysUserBasicInfoVO.setCreateTime(sysUser.getCreateTime());
+
+        return sysUserBasicInfoVO;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(value = "SysUser", key = "#p0", condition = "#p0 != null")
+    public Boolean softDeleteUserById(UUID userId) {
+        if (userId == null) {
+            throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
+        }
+
+        SysUser sysUser = this.getById(userId);
+        if (sysUser == null) {
+            throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
+        }
+
+        List<SysRoleVO> roles = sysUserRoleMapper.getUserRoles(userId);
+        roles.forEach(role -> {
+            if (role.isAdmin()) {
+                throw new BusinessException(SysUserEnum.ADMIN_OPERATION_FORBIDDEN);
+            }
+        });
+
+        return this.removeById(userId);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(value = "SysUser", key = "#p0", condition = "#p0 != null")
+    public Boolean updateGithubId(UUID userId, String githubId) {
+        if (userId == null) {
+            throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
+        }
+
+        SysUser sysUser = this.getById(userId);
+        if (sysUser == null) {
+            throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
+        }
+
+        sysUser.setGithubId(githubId);
+        sysUser.setUpdateTime(LocalDateTime.now());
+
+        return this.updateById(sysUser);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    @Caching(evict = {
+            @CacheEvict(value = "SysUser", key = "#p0", condition = "#p0 != null"),
+            @CacheEvict(value = "SysUser", key = "'all'", condition = "true")
+    })
+    public Boolean physicalDeleteUserById(UUID id) {
+        if (id == null) {
+            throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
+        }
+
+        SysUser sysUser = this.getById(id);
+        if (sysUser == null) {
+            throw new BusinessException(SysUserEnum.USER_NOT_FOUND);
+        }
+
+        List<SysRoleVO> roles = sysUserRoleMapper.getUserRoles(id);
+        roles.forEach(role -> {
+            if (role.isAdmin()) {
+                throw new BusinessException(SysRoleEnum.ADMIN_OPERATION_FORBIDDEN);
+            }
+        });
+
+        int deleted = sysUserMapper.physicalDeleteById(id);
+        if (deleted > 0) {
+            sysUserRoleMapper.removeRolesByUserId(id);
+        }
+
+        return deleted > 0;
     }
 }

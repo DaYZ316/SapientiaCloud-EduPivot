@@ -1,10 +1,7 @@
 package com.dayz.sapientiacloud_edupivot.system.service;
 
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.*;
-import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysPermissionVO;
-import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysRoleVO;
-import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysUserInternalVO;
-import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysUserVO;
+import com.dayz.sapientiacloud_edupivot.system.entity.vo.*;
 import com.github.pagehelper.PageInfo;
 
 import java.util.List;
@@ -42,7 +39,23 @@ public interface ISysUserService {
 
     Boolean updatePassword(SysUserPasswordDTO sysUserPasswordDTO);
 
+    Boolean updatePasswordByUserId(UUID userId, String newPassword);
+
+    Boolean resetPassword(UUID userId);
+
     Boolean isMobileExists(String mobile);
 
+    Boolean isUsernameAvailable(String username);
+
     SysUserInternalVO mobileLogin(SysUserMobileLoginDTO mobileLoginDTO);
+
+    ThirdPartyLoginResultVO findOrCreateByThirdParty(String provider, String providerId, String username, String email, String name, String avatarUrl);
+
+    SysUserBasicInfoVO getUserInfoByMobile(String mobile);
+
+    Boolean softDeleteUserById(UUID userId);
+
+    Boolean updateGithubId(UUID userId, String githubId);
+
+    Boolean physicalDeleteUserById(UUID id);
 }

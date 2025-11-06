@@ -24,9 +24,9 @@ public class CourseQuestionBankConstants {
     public static final String SORT_DESC = "DESC";
 
     // 题库类型范围
-    public static final int BANK_TYPE_PRACTICE = 0; // 练习题库
-    public static final int BANK_TYPE_EXAM = 1; // 考试题库
-    public static final int BANK_TYPE_HOMEWORK = 2; // 作业题库
+    public static final int BANK_TYPE_PRACTICE = 0;
+    public static final int BANK_TYPE_EXAM = 1;
+    public static final int BANK_TYPE_HOMEWORK = 2;
     public static final int BANK_TYPE_MIN = BANK_TYPE_PRACTICE;
     public static final int BANK_TYPE_MAX = BANK_TYPE_HOMEWORK;
 
