@@ -26,7 +26,7 @@ public class SecurityConfig {
             "/api/auth/check-username",
             "/api/auth/check-mobile",
             "/api/auth/bind-mobile",
-            "/api/auth/bind-mobile/confirm", 
+            "/api/auth/bind-mobile/confirm",
             "/api/auth/github/**",
             "/api/auth/oauth2/**",
             "/github/**",

@@ -16,7 +16,6 @@ import com.dayz.sapientiacloud_edupivot.celestial_hub.service.IChatSessionServic
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.KnowledgeService;
 import com.github.f4b6a3.uuid.UuidCreator;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
@@ -36,7 +35,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ChatMessageServiceImpl implements IChatMessageService {
@@ -106,14 +104,9 @@ public class ChatMessageServiceImpl implements IChatMessageService {
                 .content()
                 .doOnNext(fullResponse::append)
                 .doOnComplete(() -> {
-                    try {
-                        saveAssistantMessage(sessionId, fullResponse.toString());
-                        chatSessionService.updateSessionLastMessage(sessionId, fullResponse.toString());
-                    } catch (Exception e) {
-                        log.error("保存流式对话结果失败: ", e);
-                    }
-                })
-                .doOnError(e -> log.error("流式对话异常，会话ID: {}, 错误信息: ", sessionId, e));
+                    saveAssistantMessage(sessionId, fullResponse.toString());
+                    chatSessionService.updateSessionLastMessage(sessionId, fullResponse.toString());
+                });
     }
 
     @Override
@@ -194,25 +187,21 @@ public class ChatMessageServiceImpl implements IChatMessageService {
     }
 
     private String retrieveKnowledge(ChatRequestDTO request) {
-        try {
-            KnowledgeRequestDTO query = new KnowledgeRequestDTO();
-            query.setQuery(request.getMessage());
-            query.setCourseId(request.getCourseId());
-            query.setChapterId(request.getChapterId());
-            query.setTopK(AIChatConstants.DEFAULT_RAG_TOP_K);
-            query.setSimilarityThreshold(AIChatConstants.DEFAULT_RAG_SIMILARITY_THRESHOLD);
+        KnowledgeRequestDTO query = new KnowledgeRequestDTO();
+        query.setQuery(request.getMessage());
+        query.setCourseId(request.getCourseId());
+        query.setChapterId(request.getChapterId());
+        query.setTopK(AIChatConstants.DEFAULT_RAG_TOP_K);
+        query.setSimilarityThreshold(AIChatConstants.DEFAULT_RAG_SIMILARITY_THRESHOLD);
 
-            KnowledgeSearchVO result = knowledgeService.searchKnowledge(query);
-            if (result != null && !CollectionUtils.isEmpty(result.getItems())) {
-                return result.getItems().stream()
-                        .map(item -> String.format(AIChatConstants.RAG_ITEM_FORMAT,
-                                item.getTitle(),
-                                item.getContentType(),
-                                item.getContent()))
-                        .collect(Collectors.joining(AIChatConstants.RAG_SEPARATOR));
-            }
-        } catch (Exception e) {
-            log.error("知识检索失败: ", e);
+        KnowledgeSearchVO result = knowledgeService.searchKnowledge(query);
+        if (result != null && !CollectionUtils.isEmpty(result.getItems())) {
+            return result.getItems().stream()
+                    .map(item -> String.format(AIChatConstants.RAG_ITEM_FORMAT,
+                            item.getTitle(),
+                            item.getContentType(),
+                            item.getContent()))
+                    .collect(Collectors.joining(AIChatConstants.RAG_SEPARATOR));
         }
         return null;
     }
@@ -225,7 +214,6 @@ public class ChatMessageServiceImpl implements IChatMessageService {
                     .call()
                     .content();
         } catch (Exception e) {
-            log.error("AI模型调用失败: ", e);
             throw new BusinessException(AIChatEnum.AI_SERVICE_ERROR);
         }
     }

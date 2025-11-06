@@ -4,7 +4,6 @@ import com.dayz.sapientiacloud_edupivot.auth.entity.dto.SendVerificationCodeDTO;
 import com.dayz.sapientiacloud_edupivot.auth.enums.SysUserEnum;
 import com.dayz.sapientiacloud_edupivot.auth.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.auth.service.VerificationCodeService;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -15,7 +14,6 @@ import java.util.concurrent.TimeUnit;
  * 验证码服务实现类
  */
 @Service
-@Slf4j
 public class VerificationCodeServiceImpl implements VerificationCodeService {
 
     private static final String SMS_CODE_PREFIX = "sms:code:";
@@ -98,7 +96,6 @@ public class VerificationCodeServiceImpl implements VerificationCodeService {
         try {
             // TODO: 集成阿里云短信服务
             // 这里暂时只存储到Redis，实际生产环境需要调用阿里云短信API发送
-            log.debug("发送短信验证码到手机号: {}, 验证码: {}", mobile, code);
 
             // 存储验证码到Redis，设置过期时间
             String key = SMS_CODE_PREFIX + mobile;
@@ -109,7 +106,6 @@ public class VerificationCodeServiceImpl implements VerificationCodeService {
 
             return true;
         } catch (Exception e) {
-            log.error("发送短信验证码失败: {}", e.getMessage(), e);
             throw new BusinessException("发送短信验证码失败: " + e.getMessage());
         }
     }

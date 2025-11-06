@@ -13,7 +13,6 @@ import com.dayz.sapientiacloud_edupivot.auth.security.utils.JwtUtil;
 import com.dayz.sapientiacloud_edupivot.auth.service.IGitHubOAuth2Service;
 import com.dayz.sapientiacloud_edupivot.auth.utils.OAuth2RetryUtil;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -31,7 +30,6 @@ import java.util.Map;
  */
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class GitHubOAuth2ServiceImpl implements IGitHubOAuth2Service {
 
     private final SysUserClient sysUserClient;
@@ -53,7 +51,6 @@ public class GitHubOAuth2ServiceImpl implements IGitHubOAuth2Service {
                 .build()
                 .toUriString();
 
-        log.debug("构建GitHub授权URL: {}", url.replace(clientId, "***"));
         return url;
     }
 
@@ -85,7 +82,6 @@ public class GitHubOAuth2ServiceImpl implements IGitHubOAuth2Service {
 
             return Result.success(resultDTO);
         } catch (Exception e) {
-            log.error("GitHub OAuth2回调处理失败: {}", e.getMessage(), e);
             return Result.fail("GitHub OAuth2回调处理失败: " + e.getMessage());
         }
     }
@@ -102,8 +98,6 @@ public class GitHubOAuth2ServiceImpl implements IGitHubOAuth2Service {
         params.add(OAuth2Constants.PARAM_CODE, code);
         params.add(OAuth2Constants.PARAM_REDIRECT_URI, OAuth2Config.getRedirectUri());
 
-        log.debug("请求GitHub获取access_token，redirect_uri: {}", OAuth2Config.getRedirectUri());
-
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
 
         return OAuth2RetryUtil.executeWithRetry("获取access_token", () -> {
@@ -112,13 +106,9 @@ public class GitHubOAuth2ServiceImpl implements IGitHubOAuth2Service {
             Map<String, Object> responseBody = response.getBody();
 
             if (responseBody != null && responseBody.containsKey(OAuth2Constants.RESPONSE_ACCESS_TOKEN)) {
-                log.debug("成功获取access_token");
                 return (String) responseBody.get(OAuth2Constants.RESPONSE_ACCESS_TOKEN);
             } else {
                 String error = (String) responseBody.get(OAuth2Constants.RESPONSE_ERROR);
-                String errorDescription = (String) responseBody.get(OAuth2Constants.RESPONSE_ERROR_DESCRIPTION);
-                log.error("GitHub返回错误 - error: {}, error_description: {}, 完整响应: {}",
-                        error, errorDescription, responseBody);
 
                 if (OAuth2Constants.ERROR_BAD_VERIFICATION_CODE.equals(error)) {
                     throw new BusinessException(OAuth2Enum.AUTHORIZATION_CODE_EXPIRED);
@@ -144,12 +134,10 @@ public class GitHubOAuth2ServiceImpl implements IGitHubOAuth2Service {
         });
 
         if (userInfo == null || userInfo.isEmpty()) {
-            log.error("GitHub API 返回空数据");
             throw new BusinessException(OAuth2Enum.OAUTH2_USER_INFO_INVALID);
         }
 
         if (!userInfo.containsKey(OAuth2Constants.GITHUB_API_USER_ID)) {
-            log.error("GitHub 用户信息缺少必要字段: {}", userInfo);
             throw new BusinessException(OAuth2Enum.OAUTH2_USER_INFO_INVALID);
         }
 
@@ -165,23 +153,15 @@ public class GitHubOAuth2ServiceImpl implements IGitHubOAuth2Service {
         String avatarUrl = userInfo.get(OAuth2Constants.USER_INFO_AVATAR_URL);
         try {
             Result<ThirdPartyLoginResultVO> result = sysUserClient.findOrCreateByThirdParty(OAuth2Constants.PROVIDER_GITHUB, githubId, username, email, name, avatarUrl);
-            log.debug("Feign 调用结果: success={}, message={}", result.isSuccess(), result.getMessage());
 
             if (result.isSuccess() && result.getData() != null) {
-                ThirdPartyLoginResultVO loginResult = result.getData();
-                log.debug("用户查找/创建成功: userId={}, username={}, isNewUser={}, currentStep={}",
-                        loginResult.getUser().getId(), loginResult.getUser().getUsername(),
-                        loginResult.getIsNewUser(), loginResult.getCurrentStep());
-                return loginResult;
+                return result.getData();
             } else {
-                log.error("查找或创建用户失败: success={}, message={}, code={}",
-                        result.isSuccess(), result.getMessage(), result.getCode());
                 throw new BusinessException(OAuth2Enum.OAUTH2_CALLBACK_FAILED);
             }
         } catch (BusinessException e) {
             throw e;
         } catch (Exception e) {
-            log.error("Feign 调用异常: {}", e.getMessage(), e);
             throw new BusinessException(OAuth2Enum.OAUTH2_CALLBACK_FAILED);
         }
     }

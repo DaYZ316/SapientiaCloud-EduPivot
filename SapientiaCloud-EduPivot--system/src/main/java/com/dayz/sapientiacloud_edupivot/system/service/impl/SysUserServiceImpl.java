@@ -24,7 +24,6 @@ import com.github.javafaker.Faker;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.cache.annotation.CacheEvict;
@@ -48,7 +47,6 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> implements ISysUserService, UserDetailsService {
 
     private final static int DEFAULT_USERNAME_LENGTH = 8;
@@ -626,7 +624,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             String hash = md5Hex(provider + "_" + providerId);
             String suffix = provider.toLowerCase() + "_" + hash.substring(0, 8);
             finalUsername = username + "_" + suffix;
-            
+
             // 确保生成的用户名唯一（如果还冲突，继续生成）
             int attempt = 1;
             while (sysUserMapper.selectByUsername(finalUsername) != null) {
@@ -665,10 +663,8 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         // 保存用户
         boolean saveResult = this.save(newUser);
         if (!saveResult) {
-            log.error("用户保存失败: userId={}, username={}", newUser.getId(), finalUsername);
             throw new BusinessException("创建第三方用户失败");
         }
-        log.debug("用户保存成功: userId={}, username={}", newUser.getId(), finalUsername);
 
         // 构建返回结果
         return buildThirdPartyLoginResult(newUser, true);
@@ -723,9 +719,6 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
                 .needCompleteInfo(needCompleteInfo)
                 .currentStep(currentStep)
                 .build();
-
-        log.debug("第三方登录结果构建完成: userId={}, isNewUser={}, currentStep={}",
-                user.getId(), isNewUser, currentStep);
 
         return result;
     }
