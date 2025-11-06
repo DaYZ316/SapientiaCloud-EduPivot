@@ -1,6 +1,7 @@
 package com.dayz.sapientiacloud_edupivot.student.common.aspect;
 
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
@@ -21,6 +22,7 @@ import java.util.*;
  */
 @Aspect
 @Component
+@Slf4j
 public class FeignRequestAspect {
 
     // 自定义请求头
@@ -57,6 +59,7 @@ public class FeignRequestAspect {
             String rolesStr = request.getHeader(X_USER_ROLES);
 
             if (StringUtils.hasText(userId) && StringUtils.hasText(username)) {
+                log.debug("从Feign请求头中获取用户信息: userId={}, username={}", userId, username);
 
                 // 解析角色信息
                 List<String> roleKeys = new ArrayList<>();
@@ -81,6 +84,7 @@ public class FeignRequestAspect {
                 // 设置认证信息到安全上下文
                 SecurityContextHolder.getContext().setAuthentication(authentication);
 
+                log.debug("已设置Feign请求的用户认证信息到SecurityContext");
             }
         }
     }

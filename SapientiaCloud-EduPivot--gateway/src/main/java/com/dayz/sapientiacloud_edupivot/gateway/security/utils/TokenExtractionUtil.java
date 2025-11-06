@@ -1,4 +1,4 @@
-package com.dayz.sapientiacloud_edupivot.gateway.common.security.utils;
+package com.dayz.sapientiacloud_edupivot.gateway.security.utils;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -6,8 +6,8 @@ import org.springframework.util.StringUtils;
 
 import java.util.List;
 
-import static com.dayz.sapientiacloud_edupivot.gateway.common.security.constants.JwtConstants.BEARER_PREFIX;
-import static com.dayz.sapientiacloud_edupivot.gateway.common.security.constants.JwtConstants.BEARER_PREFIX_LENGTH;
+import static com.dayz.sapientiacloud_edupivot.gateway.security.constants.JwtConstants.BEARER_PREFIX;
+import static com.dayz.sapientiacloud_edupivot.gateway.security.constants.JwtConstants.BEARER_PREFIX_LENGTH;
 
 /**
  * Token提取工具类

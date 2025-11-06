@@ -6,6 +6,7 @@ import com.dayz.sapientiacloud_edupivot.student.common.enums.ResultEnum;
 import com.dayz.sapientiacloud_edupivot.student.common.enums.SysUserEnum;
 import com.dayz.sapientiacloud_edupivot.student.common.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.student.common.result.Result;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -22,6 +23,7 @@ import java.util.UUID;
  * 用户上下文工具类
  * 用于获取当前登录用户信息
  */
+@Slf4j
 @Component
 public class UserContextUtil {
 
@@ -47,6 +49,7 @@ public class UserContextUtil {
                         }
                         return null;
                     } catch (IllegalArgumentException e) {
+                        log.error("转换用户ID为UUID失败: {}", e.getMessage());
                         throw new BusinessException("用户ID格式不正确");
                     }
                 })

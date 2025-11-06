@@ -1,4 +1,4 @@
-package com.dayz.sapientiacloud_edupivot.gateway.common.security.utils;
+package com.dayz.sapientiacloud_edupivot.gateway.security.utils;
 
 import org.springframework.util.AntPathMatcher;
 

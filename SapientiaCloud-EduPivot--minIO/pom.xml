@@ -27,6 +27,8 @@
         <lombok.version>1.18.30</lombok.version>
         <mapstruct.version>1.5.5.Final</mapstruct.version>
         <uuid.version>5.3.3</uuid.version>
+        <logstash.logback.version>7.4</logstash.logback.version>
+        <kafka.logback.version>0.2.0-RC2</kafka.logback.version>
     </properties>
 
     <dependencyManagement>
@@ -164,6 +166,32 @@
             <artifactId>commons-io</artifactId>
             <version>2.15.1</version>
         </dependency>
+
+<!--        &lt;!&ndash; Micrometer Tracing &ndash;&gt;-->
+<!--        <dependency>-->
+<!--            <groupId>io.micrometer</groupId>-->
+<!--            <artifactId>micrometer-tracing-bridge-brave</artifactId>-->
+<!--        </dependency>-->
+
+<!--        &lt;!&ndash; Zipkin Reporter &ndash;&gt;-->
+<!--        <dependency>-->
+<!--            <groupId>io.zipkin.reporter2</groupId>-->
+<!--            <artifactId>zipkin-reporter-brave</artifactId>-->
+<!--        </dependency>-->
+
+<!--        &lt;!&ndash; Logstash Logback Encoder &ndash;&gt;-->
+<!--        <dependency>-->
+<!--            <groupId>net.logstash.logback</groupId>-->
+<!--            <artifactId>logstash-logback-encoder</artifactId>-->
+<!--            <version>${logstash.logback.version}</version>-->
+<!--        </dependency>-->
+
+<!--        &lt;!&ndash; Kafka Logback Appender &ndash;&gt;-->
+<!--        <dependency>-->
+<!--            <groupId>com.github.danielwegener</groupId>-->
+<!--            <artifactId>logback-kafka-appender</artifactId>-->
+<!--            <version>${kafka.logback.version}</version>-->
+<!--        </dependency>-->
 
         <!-- Spring Boot Test -->
         <dependency>

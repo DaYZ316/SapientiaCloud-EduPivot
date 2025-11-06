@@ -6,6 +6,7 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.dayz.sapientiacloud_edupivot.gateway.config.JwtConfig;
+import com.dayz.sapientiacloud_edupivot.gateway.security.constants.JwtConstants;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -23,7 +24,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class JwtUtil {
 
-    private static final String TOKEN_BLACKLIST_PREFIX = com.dayz.sapientiacloud_edupivot.gateway.common.security.constants.JwtConstants.TOKEN_BLACKLIST_PREFIX;
+    private static final String TOKEN_BLACKLIST_PREFIX = JwtConstants.TOKEN_BLACKLIST_PREFIX;
     private final JwtConfig jwtConfig;
     private final RedisTemplate<String, Object> redisTemplate;
 
@@ -92,6 +93,6 @@ public class JwtUtil {
 
     private String extractActualToken(String token) {
         // 使用工具类提取实际token
-        return com.dayz.sapientiacloud_edupivot.gateway.common.security.utils.TokenExtractionUtil.extractActualToken(token);
+        return TokenExtractionUtil.extractActualToken(token);
     }
 } 

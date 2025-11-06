@@ -1,9 +1,9 @@
 package com.dayz.sapientiacloud_edupivot.gateway.security.filter;
 
 import com.auth0.jwt.interfaces.DecodedJWT;
-import com.dayz.sapientiacloud_edupivot.gateway.common.security.constants.JwtConstants;
-import com.dayz.sapientiacloud_edupivot.gateway.common.security.utils.TokenExtractionUtil;
-import com.dayz.sapientiacloud_edupivot.gateway.common.security.utils.WhitelistUtil;
+import com.dayz.sapientiacloud_edupivot.gateway.security.constants.JwtConstants;
+import com.dayz.sapientiacloud_edupivot.gateway.security.utils.TokenExtractionUtil;
+import com.dayz.sapientiacloud_edupivot.gateway.security.utils.WhitelistUtil;
 import com.dayz.sapientiacloud_edupivot.gateway.security.utils.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -94,10 +94,8 @@ public class JwtAuthenticationFilter implements WebFilter {
                                 .header(JwtConstants.X_USER_ROLES, String.join(",", roleKeys))
                                 .build();
 
-                        log.info("传递授权头到下游服务");
-                        log.info("X_USER_ID: {}", userId);
-                        log.info("X_USER_NAME: {}", username);
-                        log.info("X_USER_ROLES: {}", String.join(",", roleKeys));
+                        log.debug("传递授权头到下游服务 - X_USER_ID: {}, X_USER_NAME: {}, X_USER_ROLES: {}",
+                                userId, username, String.join(",", roleKeys));
 
                         exchange = exchange.mutate().request(mutatedRequest).build();
 

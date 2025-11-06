@@ -14,11 +14,6 @@ spring:
       max-request-size: 100MB
       file-size-threshold: 2MB
 
-logging:
-  level:
-    com.dayz.sapientiacloud_edupivot.minio: DEBUG
-
-
 MINIO_IP: 127.0.0.1
 MINIO_PORT: 31589
 MINIO_USERNAME: root
