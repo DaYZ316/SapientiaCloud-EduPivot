@@ -10,6 +10,7 @@ import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseQueryDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.po.Course;
 import com.dayz.sapientiacloud_edupivot.course.entity.vo.CourseStudentVO;
 import com.dayz.sapientiacloud_edupivot.course.entity.vo.CourseVO;
+import com.dayz.sapientiacloud_edupivot.course.entity.vo.PublicCourseVO;
 import com.dayz.sapientiacloud_edupivot.course.enums.CourseEnum;
 import com.dayz.sapientiacloud_edupivot.course.mapper.CourseMapper;
 import com.dayz.sapientiacloud_edupivot.course.service.ICourseService;
@@ -72,7 +73,11 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    @CacheEvict(value = {"Course", "CourseTeacher"}, allEntries = true)
+    @Caching(evict = {
+            @CacheEvict(value = "Course", allEntries = true),
+            @CacheEvict(value = "CourseTeacher", allEntries = true),
+            @CacheEvict(value = "PublicCourse", allEntries = true)
+    })
     public CourseVO addCourse(CourseDTO courseDTO) {
         if (courseDTO == null) {
             throw new BusinessException(CourseEnum.COURSE_INFO_REQUIRED);
@@ -105,7 +110,8 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
     @Caching(evict = {
             @CacheEvict(value = "Course", key = "#p0.id", condition = "#p0.id != null"),
             @CacheEvict(value = "Course", key = "'all'", condition = "true"),
-            @CacheEvict(value = "CourseTeacher", allEntries = true)
+            @CacheEvict(value = "CourseTeacher", allEntries = true),
+            @CacheEvict(value = "PublicCourse", allEntries = true)
     })
     public Boolean updateCourse(CourseDTO courseDTO) {
         if (courseDTO == null || courseDTO.getId() == null) {
@@ -140,7 +146,8 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
     @Caching(evict = {
             @CacheEvict(value = "Course", key = "#p0", condition = "#p0 != null"),
             @CacheEvict(value = "Course", key = "'all'", condition = "true"),
-            @CacheEvict(value = "CourseTeacher", allEntries = true)
+            @CacheEvict(value = "CourseTeacher", allEntries = true),
+            @CacheEvict(value = "PublicCourse", allEntries = true)
     })
     public Boolean removeCourseById(UUID courseId) {
         if (courseId == null) {
@@ -163,7 +170,11 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
     // 弃用
     @Override
     @Transactional(rollbackFor = Exception.class)
-    @CacheEvict(value = {"Course", "CourseTeacher"}, allEntries = true)
+    @Caching(evict = {
+            @CacheEvict(value = "Course", allEntries = true),
+            @CacheEvict(value = "CourseTeacher", allEntries = true),
+            @CacheEvict(value = "PublicCourse", allEntries = true)
+    })
     public Integer removeCourseByIds(List<UUID> courseIds) {
         if (courseIds == null || courseIds.isEmpty()) {
             throw new BusinessException(CourseEnum.COURSE_ID_LIST_REQUIRED);
@@ -183,5 +194,12 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
 
         boolean removeResult = this.removeBatchByIds(courseIds);
         return Math.toIntExact(removeResult ? courseIds.size() : 0);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    @Cacheable(value = "PublicCourse", key = "'random:six'", condition = "true")
+    public List<PublicCourseVO> listPublicCourse() {
+        return courseMapper.listPublicCourse();
     }
 }

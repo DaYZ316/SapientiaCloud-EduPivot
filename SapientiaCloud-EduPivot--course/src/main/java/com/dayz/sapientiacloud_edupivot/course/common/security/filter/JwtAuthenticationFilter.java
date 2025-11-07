@@ -27,7 +27,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private static final String[] WHITELIST = {
             "/v3/api-docs/**",
             "/doc.html",
-            "/webjars/**"
+            "/webjars/**",
+            "/public/list"
     };
     private static final String USERID_CLAIM = "userId";
     private static final String USERNAME_CLAIM = "username";
