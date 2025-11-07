@@ -32,6 +32,7 @@ public class SecurityConfig {
             "/github/**",
             "/oauth2/**",
             "/login/oauth2/**",
+            "/api/course/public/list",
             "/api/*/v3/api-docs/**",
             "/v3/api-docs/**",
             "/doc.html",

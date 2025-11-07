@@ -42,6 +42,19 @@
         <result column="last_login_time" property="lastLoginTime"/>
     </resultMap>
 
+    <resultMap id="PublicCourseVOMap" type="com.dayz.sapientiacloud_edupivot.course.entity.vo.PublicCourseVO">
+        <id column="id" property="id"/>
+        <result column="course_name" property="courseName"/>
+        <result column="description" property="description"/>
+        <result column="cover_image_url" property="coverImageUrl"/>
+        <result column="course_type" property="courseType"/>
+        <result column="semester" property="semester"/>
+        <result column="location" property="location"/>
+        <result column="teacher_name" property="teacherName"/>
+        <result column="teacher_avatar" property="teacherAvatar"/>
+        <result column="create_time" property="createTime"/>
+    </resultMap>
+
     <select id="listCourse" resultMap="CourseVOMap"
             parameterType="com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseQueryDTO">
         SELECT
@@ -260,6 +273,30 @@
             </if>
         </where>
         ORDER BY t.create_time DESC
+    </select>
+
+    <select id="listPublicCourse" resultMap="PublicCourseVOMap">
+        SELECT
+        c.id,
+        c.course_name,
+        c.description,
+        c.cover_image_url,
+        c.course_type,
+        c.semester,
+        c.location,
+        t.real_name as teacher_name,
+        u.avatar as teacher_avatar,
+        c.create_time
+        FROM mg_course c
+        LEFT JOIN mg_teacher t ON c.teacher_id = t.id
+        LEFT JOIN sys_user u ON t.sys_user_id = u.id
+        <where>
+            c.is_deleted = 0
+            AND (t.is_deleted = 0 OR t.id IS NULL)
+            AND c.status = 0
+        </where>
+        ORDER BY RAND()
+        LIMIT 6
     </select>
 
 </mapper>

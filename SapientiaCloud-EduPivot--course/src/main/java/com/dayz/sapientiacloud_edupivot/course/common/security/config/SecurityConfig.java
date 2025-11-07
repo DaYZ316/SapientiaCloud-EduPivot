@@ -46,6 +46,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         // Swagger文档
                         .requestMatchers("/v3/api-docs/**", "/doc.html", "/webjars/**").permitAll()
+                        // 公开接口
+                        .requestMatchers("/public/list").permitAll()
                         // 放行所有带有Feign请求头的请求
                         .requestMatchers(request -> request.getHeader(FEIGN_REQUEST_HEADER) != null).permitAll()
                         // 需要认证的请求
