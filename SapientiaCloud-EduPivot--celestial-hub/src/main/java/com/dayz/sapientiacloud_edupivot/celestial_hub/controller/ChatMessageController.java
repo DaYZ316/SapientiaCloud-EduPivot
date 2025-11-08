@@ -5,9 +5,11 @@ import com.dayz.sapientiacloud_edupivot.celestial_hub.common.result.Result;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.common.security.annotation.HasPermission;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.constant.PermissionConstants;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.ChatRequestDTO;
+import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.KafkaChatRequestDTO;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.po.ChatMessage;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.vo.ChatResponseVO;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.IChatMessageService;
+import com.dayz.sapientiacloud_edupivot.celestial_hub.service.KafkaChatService;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -26,6 +28,7 @@ import java.util.UUID;
 public class ChatMessageController extends BaseController {
 
     private final IChatMessageService chatMessageService;
+    private final KafkaChatService kafkaChatService;
 
     @HasPermission(
             summary = "chat",
@@ -46,6 +49,16 @@ public class ChatMessageController extends BaseController {
     @PostMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<String> chatStream(@Valid @RequestBody ChatRequestDTO request) {
         return chatMessageService.chatStream(request);
+    }
+
+    @HasPermission(
+            summary = "chatStreamKafka",
+            description = "通过Kafka转发消息并以流式方式接收AI回复",
+            permission = PermissionConstants.CELESTIAL_ADD
+    )
+    @PostMapping(value = "/stream/kafka", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<String> chatStreamKafka(@Valid @RequestBody KafkaChatRequestDTO request) {
+        return chatMessageService.chatStreamKafka(request);
     }
 
     @HasPermission(
@@ -87,6 +100,19 @@ public class ChatMessageController extends BaseController {
     ) {
         Boolean result = chatMessageService.feedbackMessage(id, feedback);
         return Result.success(result);
+    }
+
+    @HasPermission(
+            summary = "getRequestIdBySessionId",
+            description = "根据会话ID查询Kafka流式对话请求的requestId",
+            permission = PermissionConstants.CELESTIAL_QUERY
+    )
+    @GetMapping("/kafka/request/{sessionId}")
+    public Result<String> getRequestIdBySessionId(
+            @Parameter(name = "sessionId", description = "会话ID", required = true) @PathVariable("sessionId") UUID sessionId
+    ) {
+        String requestId = kafkaChatService.getRequestIdBySessionId(sessionId);
+        return Result.success(requestId);
     }
 }
 

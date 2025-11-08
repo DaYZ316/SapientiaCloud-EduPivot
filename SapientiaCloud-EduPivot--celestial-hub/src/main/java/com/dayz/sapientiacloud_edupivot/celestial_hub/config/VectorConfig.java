@@ -26,6 +26,9 @@ public class VectorConfig {
     @Value("${spring.ai.vectorstore.redis.prefix:vector}")
     private String prefix;
 
+    @Value("${spring.ai.vectorstore.redis.initialize-schema:true}")
+    private Boolean initializeSchema;
+
     @Value("${spring.data.redis.host:localhost}")
     private String redisHost;
 
@@ -63,7 +66,7 @@ public class VectorConfig {
         return RedisVectorStore.builder(jedisPooled, embeddingModel)
                 .indexName(indexName)
                 .prefix(prefix)
-                .initializeSchema(true)
+                .initializeSchema(initializeSchema)
                 .build();
     }
 }

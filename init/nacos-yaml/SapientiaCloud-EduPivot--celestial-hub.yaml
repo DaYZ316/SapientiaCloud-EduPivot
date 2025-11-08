@@ -43,6 +43,39 @@ spring:
       password: ${MONGODB_PASSWORD}
       authentication-database: ${MONGODB_AUTH_DATABASE}
       type-mapper: none
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: all
+      retries: 3
+      enable-idempotence: true
+      compression-type: snappy
+      batch-size: 16384
+      linger-ms: 10
+      buffer-memory: 33554432
+    consumer:
+      group-id: chat-group
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      enable-auto-commit: false
+      auto-offset-reset: earliest
+    topic:
+      chat-request: chat-request-topic
+      chat-response: chat-response-topic
+
+# Kafka聊天服务配置
+kafka:
+  chat:
+    # 超时时间（秒）
+    timeout-seconds: 300
+    # Sink缓存配置
+    sink-cache:
+      # 过期时间（分钟）
+      expire-after-write-minutes: 10
+      # 最大缓存数量
+      maximum-size: 1000
   ai:
     dashscope:
       api-key: ${TONGYI_API_KEY}
@@ -66,3 +99,5 @@ MONGODB_DATABASE: sapientiacloud_edupivot
 MONGODB_USERNAME: root
 MONGODB_PASSWORD: zhaosheng123
 MONGODB_AUTH_DATABASE: admin
+
+KAFKA_BOOTSTRAP_SERVERS: localhost:9092

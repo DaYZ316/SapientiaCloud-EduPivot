@@ -137,9 +137,18 @@ public class ChatSessionServiceImpl implements IChatSessionService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public ChatSessionVO addChatSession(UUID courseId, Integer sessionType, String title) {
+        return addChatSession(UserContextUtil.getCurrentUserId(), courseId, sessionType, title);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public ChatSessionVO addChatSession(UUID userId, UUID courseId, Integer sessionType, String title) {
+        if (userId == null) {
+            throw new BusinessException(AIChatEnum.SESSION_USER_ID_REQUIRED);
+        }
         ChatSession session = new ChatSession();
         session.setId(UuidCreator.getTimeOrderedEpoch());
-        session.setSysUserId(UserContextUtil.getCurrentUserId());
+        session.setSysUserId(userId);
         session.setSessionTitle(StringUtils.hasText(title) ? title : AIChatConstants.DEFAULT_SESSION_TITLE);
         session.setSessionType(sessionType != null ? sessionType : SessionTypeEnum.GENERAL.getCode());
         session.setIsPinned(AIChatConstants.PINNED_FALSE);

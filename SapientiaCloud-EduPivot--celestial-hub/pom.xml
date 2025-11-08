@@ -247,6 +247,18 @@
             <artifactId>spring-ai-starter-vector-store-redis</artifactId>
         </dependency>
 
+        <!-- Spring Boot Kafka -->
+        <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka</artifactId>
+        </dependency>
+
+        <!-- Caffeine Cache -->
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+        </dependency>
+
 <!--        &lt;!&ndash; Micrometer Tracing &ndash;&gt;-->
 <!--        <dependency>-->
 <!--            <groupId>io.micrometer</groupId>-->
