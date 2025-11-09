@@ -1,2044 +1,4358 @@
-/*
- Navicat Premium Dump Script
+// ============================================
+// 合并的MongoDB数据初始化脚本
+// 包含九个集合的数据：删除原数据并插入新数据
+// ============================================
 
- Source Server         : localhost_27017
- Source Server Type    : MongoDB
- Source Server Version : 60005 (6.0.5)
- Source Host           : localhost:27017
- Source Schema         : sapientiacloud_edupivot
+// ============================================
+// 1. mg_course_chapter - 课程章节数据
+// ============================================
+print("正在处理 mg_course_chapter...");
+db.getCollection("mg_course_chapter").deleteMany({});
+db.getCollection("mg_course_chapter").insertMany([
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03e02",
+      course_id: "0cf2dbe8-c12d-4be7-b914-545edcf0fad8",
+      teacher_id: "0198086c-fcd1-7a09-b3c3-537de3493332",
+      chapter_name: "第一章 函数与极限",
+      parent_chapter_id: null,
+      description: "学习函数的基本概念、性质以及极限的定义和计算方法",
+      content: "<h2>1.1 函数的概念</h2><p>函数是数学中的基本概念之一，它描述了两个变量之间的依赖关系。设D是一个非空数集，如果对于D中的每一个数x，按照某种对应法则f，都有唯一确定的数y与之对应，则称y是x的函数，记作y=f(x)。</p><h2>1.2 函数的性质</h2><p>函数具有单调性、奇偶性、周期性等性质。单调性分为单调递增和单调递减；奇偶性分为奇函数和偶函数；周期性是指函数值按一定规律重复出现。</p><h2>1.3 极限的概念</h2><p>极限是微积分的基础概念，描述函数在某点附近的变化趋势。当自变量x无限接近某个值时，函数值f(x)无限接近的常数A称为函数在该点的极限。</p><h2>1.4 极限的运算法则</h2><p>极限运算遵循四则运算法则、复合函数法则等基本规律，这些法则为后续的导数计算奠定了基础。</p>",
+      attachment_urls: [],
+      sort_order: 1,
+      status: 1,
+      view_count: 1250,
+      like_count: 89,
+      create_time: ISODate("2024-01-15T09:00:00.000Z"),
+      update_time: ISODate("2024-01-15T09:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03e03",
+      course_id: "0cf2dbe8-c12d-4be7-b914-545edcf0fad8",
+      teacher_id: "0198086c-fcd1-7a09-b3c3-537de3493332",
+      chapter_name: "1.1 函数的概念",
+      parent_chapter_id: "78d44b4a-becd-4f65-9461-f2dcdda03e02",
+      description: "学习函数的基本定义、定义域、值域等基本概念",
+      content: "<h3>1.1.1 函数的定义</h3><p>设D是一个非空数集，如果对于D中的每一个数x，按照某种对应法则f，都有唯一确定的数y与之对应，则称y是x的函数，记作y=f(x)。</p><h3>1.1.2 定义域和值域</h3><p>定义域是自变量x的取值范围，值域是因变量y的取值范围。</p><h3>1.1.3 函数的表示方法</h3><p>函数可以用解析式、图像、表格等方式表示。</p>",
+      attachment_urls: [],
+      sort_order: 1,
+      status: 1,
+      view_count: 450,
+      like_count: 32,
+      create_time: ISODate("2024-01-15T09:30:00.000Z"),
+      update_time: ISODate("2024-01-15T09:30:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03e04",
+      course_id: "0cf2dbe8-c12d-4be7-b914-545edcf0fad8",
+      teacher_id: "0198086c-fcd1-7a09-b3c3-537de3493332",
+      chapter_name: "1.2 函数的性质",
+      parent_chapter_id: "78d44b4a-becd-4f65-9461-f2dcdda03e02",
+      description: "掌握函数的单调性、奇偶性、周期性等基本性质",
+      content: "<h3>1.2.1 单调性</h3><p>函数在某个区间内单调递增或单调递减的性质。</p><h3>1.2.2 奇偶性</h3><p>奇函数满足f(-x)=-f(x)，偶函数满足f(-x)=f(x)。</p><h3>1.2.3 周期性</h3><p>如果存在正数T，使得f(x+T)=f(x)对所有x成立，则称f(x)是周期函数。</p>",
+      attachment_urls: [],
+      sort_order: 2,
+      status: 1,
+      view_count: 380,
+      like_count: 28,
+      create_time: ISODate("2024-01-15T10:00:00.000Z"),
+      update_time: ISODate("2024-01-15T10:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03e05",
+      course_id: "0cf2dbe8-c12d-4be7-b914-545edcf0fad8",
+      teacher_id: "0198086c-fcd1-7a09-b3c3-537de3493332",
+      chapter_name: "1.3 极限的概念",
+      parent_chapter_id: "78d44b4a-becd-4f65-9461-f2dcdda03e02",
+      description: "理解极限的严格定义和几何意义",
+      content: "<h3>1.3.1 极限的直观定义</h3><p>当x无限接近a时，f(x)无限接近某个常数A。</p><h3>1.3.2 极限的严格定义</h3><p>ε-δ定义：对于任意ε>0，存在δ>0，使得当0<|x-a|<δ时，|f(x)-A|<ε。</p><h3>1.3.3 左极限和右极限</h3><p>分别考虑x从左侧和右侧趋近于a时的极限。</p>",
+      attachment_urls: [],
+      sort_order: 3,
+      status: 1,
+      view_count: 420,
+      like_count: 35,
+      create_time: ISODate("2024-01-15T10:30:00.000Z"),
+      update_time: ISODate("2024-01-15T10:30:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03e06",
+      course_id: "0cf2dbe8-c12d-4be7-b914-545edcf0fad8",
+      teacher_id: "0198086c-fcd1-7a09-b3c3-537de3493332",
+      chapter_name: "第二章 导数与微分",
+      parent_chapter_id: null,
+      description: "学习导数的概念、求导法则和微分的应用",
+      content: "<h2>2.1 导数的概念</h2><p>导数是函数在某点处的变化率，表示函数在该点的切线斜率。</p><h2>2.2 求导法则</h2><p>包括基本求导公式、复合函数求导、隐函数求导等。</p><h2>2.3 微分的应用</h2><p>微分在近似计算、极值问题等方面有重要应用。</p>",
+      attachment_urls: [],
+      sort_order: 2,
+      status: 1,
+      view_count: 980,
+      like_count: 72,
+      create_time: ISODate("2024-01-18T09:00:00.000Z"),
+      update_time: ISODate("2024-01-18T09:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03e07",
+      course_id: "0f2231b3-d310-49c9-913e-1ad5e8f46e47",
+      teacher_id: "24c7df03-1dd3-4b69-8686-725ec68fd095",
+      chapter_name: "第一章 网络安全基础",
+      parent_chapter_id: null,
+      description: "学习网络安全的基本概念、威胁类型和防护措施",
+      content: "<h2>1.1 网络安全概述</h2><p>网络安全是指保护网络系统的硬件、软件及其系统中的数据，使其不因偶然的或者恶意的原因而遭受到破坏、更改、泄露，系统连续可靠正常地运行。</p><h2>1.2 网络威胁类型</h2><p>包括病毒、木马、蠕虫、拒绝服务攻击等。</p><h2>1.3 加密技术</h2><p>对称加密、非对称加密、数字签名等加密技术。</p>",
+      attachment_urls: [],
+      sort_order: 1,
+      status: 1,
+      view_count: 856,
+      like_count: 64,
+      create_time: ISODate("2024-02-01T09:00:00.000Z"),
+      update_time: ISODate("2024-02-01T09:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03e08",
+      course_id: "173432dc-eb2d-4a33-a659-8b5ef9f15900",
+      teacher_id: "b57f2213-a134-4624-8ac8-7edc4e592f6d",
+      chapter_name: "第一章 进程管理",
+      parent_chapter_id: null,
+      description: "学习进程的概念、进程调度、进程同步等内容",
+      content: "<h2>1.1 进程的概念</h2><p>进程是程序的一次执行过程，是系统进行资源分配和调度的基本单位。</p><h2>1.2 进程调度</h2><p>包括先来先服务、短作业优先、时间片轮转等调度算法。</p><h2>1.3 进程同步</h2><p>进程同步机制包括信号量、互斥锁、条件变量等。</p>",
+      attachment_urls: [],
+      sort_order: 1,
+      status: 1,
+      view_count: 742,
+      like_count: 58,
+      create_time: ISODate("2024-02-05T09:00:00.000Z"),
+      update_time: ISODate("2024-02-05T09:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03e09",
+      course_id: "28e0ba83-8b52-448c-a932-b83b536440c8",
+      teacher_id: "b6bbcc62-c65b-44d3-85cb-b8ca05a17993",
+      chapter_name: "第一章 数据库基础",
+      parent_chapter_id: null,
+      description: "学习数据库的基本概念、数据模型和SQL语言",
+      content: "<h2>1.1 数据库概述</h2><p>数据库是长期存储在计算机内的、有组织的、可共享的数据集合。</p><h2>1.2 数据模型</h2><p>包括层次模型、网状模型、关系模型等。</p><h2>1.3 SQL语言</h2><p>SQL是结构化查询语言，用于操作关系数据库。</p>",
+      attachment_urls: [],
+      sort_order: 1,
+      status: 1,
+      view_count: 923,
+      like_count: 71,
+      create_time: ISODate("2024-02-10T09:00:00.000Z"),
+      update_time: ISODate("2024-02-10T09:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03e10",
+      course_id: "2d9d9b8d-250e-4554-95cd-1539735775f7",
+      teacher_id: "b57f2213-a134-4624-8ac8-7edc4e592f6d",
+      chapter_name: "第一章 词法分析",
+      parent_chapter_id: null,
+      description: "学习词法分析的基本概念、正则表达式和有限自动机",
+      content: "<h2>1.1 词法分析概述</h2><p>词法分析是编译过程的第一步，将源程序分解为词法单元。</p><h2>1.2 正则表达式</h2><p>正则表达式是描述词法规则的形式化工具。</p><h2>1.3 有限自动机</h2><p>有限自动机是识别正则表达式的计算模型。</p>",
+      attachment_urls: [],
+      sort_order: 1,
+      status: 1,
+      view_count: 678,
+      like_count: 52,
+      create_time: ISODate("2024-02-15T09:00:00.000Z"),
+      update_time: ISODate("2024-02-15T09:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03e11",
+      course_id: "32e6b5e7-1792-4630-b433-9ba0739b003b",
+      teacher_id: "b6bbcc62-c65b-44d3-85cb-b8ca05a17993",
+      chapter_name: "第一章 网络体系结构",
+      parent_chapter_id: null,
+      description: "学习OSI模型、TCP/IP协议栈等网络体系结构",
+      content: "<h2>1.1 OSI参考模型</h2><p>OSI模型将网络通信分为七层：物理层、数据链路层、网络层、传输层、会话层、表示层、应用层。</p><h2>1.2 TCP/IP协议栈</h2><p>TCP/IP是互联网的核心协议，包括网络接口层、网络层、传输层、应用层。</p><h2>1.3 网络协议</h2><p>包括HTTP、HTTPS、FTP、SMTP等应用层协议。</p>",
+      attachment_urls: [],
+      sort_order: 1,
+      status: 1,
+      view_count: 1024,
+      like_count: 78,
+      create_time: ISODate("2024-02-20T09:00:00.000Z"),
+      update_time: ISODate("2024-02-20T09:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03e12",
+      course_id: "3a2a3444-31a3-46f6-8322-7d99a25a1796",
+      teacher_id: "da4f9ad2-736c-4c0b-8235-d565edde803e",
+      chapter_name: "第一章 云计算基础",
+      parent_chapter_id: null,
+      description: "学习云计算的基本概念、服务模型和部署模型",
+      content: "<h2>1.1 云计算概述</h2><p>云计算是一种基于互联网的计算方式，通过共享计算资源提供服务。</p><h2>1.2 服务模型</h2><p>包括IaaS、PaaS、SaaS三种服务模型。</p><h2>1.3 容器技术</h2><p>Docker、Kubernetes等容器技术是云计算的重要支撑。</p>",
+      attachment_urls: [],
+      sort_order: 1,
+      status: 1,
+      view_count: 789,
+      like_count: 61,
+      create_time: ISODate("2024-02-25T09:00:00.000Z"),
+      update_time: ISODate("2024-02-25T09:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03e13",
+      course_id: "7d69b274-deb8-4b9a-8e69-ca93f10dd115",
+      teacher_id: "fc65a565-31a5-4ea2-83c1-448426a01155",
+      chapter_name: "第一章 Vue3基础",
+      parent_chapter_id: null,
+      description: "学习Vue3的基本概念、组件系统和响应式原理",
+      content: "<h2>1.1 Vue3概述</h2><p>Vue3是一个渐进式JavaScript框架，用于构建用户界面。</p><h2>1.2 组件系统</h2><p>Vue3采用组件化开发，支持单文件组件。</p><h2>1.3 响应式原理</h2><p>Vue3使用Proxy实现响应式数据绑定。</p>",
+      attachment_urls: [],
+      sort_order: 1,
+      status: 1,
+      view_count: 1123,
+      like_count: 85,
+      create_time: ISODate("2024-03-01T09:00:00.000Z"),
+      update_time: ISODate("2024-03-01T09:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03e14",
+      course_id: "8caf6fcf-501b-427b-b31d-697c4b53dfbb",
+      teacher_id: "4a7bae38-28d2-4b49-a985-d1aa2f3d072e",
+      chapter_name: "第一章 大数据概述",
+      parent_chapter_id: null,
+      description: "学习大数据的基本概念、特征和处理技术",
+      content: "<h2>1.1 大数据概述</h2><p>大数据是指无法用传统数据处理工具处理的大规模数据集合。</p><h2>1.2 大数据特征</h2><p>包括Volume（体量）、Velocity（速度）、Variety（多样性）、Value（价值）。</p><h2>1.3 Hadoop生态系统</h2><p>Hadoop是大数据处理的核心框架，包括HDFS、MapReduce等组件。</p>",
+      attachment_urls: [],
+      sort_order: 1,
+      status: 1,
+      view_count: 867,
+      like_count: 66,
+      create_time: ISODate("2024-03-05T09:00:00.000Z"),
+      update_time: ISODate("2024-03-05T09:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03e15",
+      course_id: "a772626c-1084-4b54-8d67-086694bd39c0",
+      teacher_id: "0db2d446-97ac-45f6-97fe-e2ab9fbb33a7",
+      chapter_name: "第一章 Android基础",
+      parent_chapter_id: null,
+      description: "学习Android开发的基础知识、开发环境和应用架构",
+      content: "<h2>1.1 Android概述</h2><p>Android是一个基于Linux的开源移动操作系统。</p><h2>1.2 开发环境</h2><p>Android Studio是官方推荐的开发工具。</p><h2>1.3 应用架构</h2><p>Android应用采用组件化架构，包括Activity、Service、BroadcastReceiver等。</p>",
+      attachment_urls: [],
+      sort_order: 1,
+      status: 1,
+      view_count: 945,
+      like_count: 73,
+      create_time: ISODate("2024-03-10T09:00:00.000Z"),
+      update_time: ISODate("2024-03-10T09:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03e16",
+      course_id: "b36f76a6-3726-4b9a-b3cc-ad6ef589920c",
+      teacher_id: "d31bc6b3-6bb0-4e07-bf27-9c4d4a94237b",
+      chapter_name: "第一章 矩阵基础",
+      parent_chapter_id: null,
+      description: "学习矩阵的基本概念、运算和性质",
+      content: "<h2>1.1 矩阵的概念</h2><p>矩阵是由数组成的矩形阵列，是线性代数的基础。</p><h2>1.2 矩阵运算</h2><p>包括矩阵加法、乘法、转置、求逆等运算。</p><h2>1.3 矩阵的性质</h2><p>包括矩阵的秩、行列式、特征值等性质。</p>",
+      attachment_urls: [],
+      sort_order: 1,
+      status: 1,
+      view_count: 634,
+      like_count: 48,
+      create_time: ISODate("2024-03-15T09:00:00.000Z"),
+      update_time: ISODate("2024-03-15T09:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03e17",
+      course_id: "bb4824f3-2f97-401e-9a1a-c92558cfc221",
+      teacher_id: "da4f9ad2-736c-4c0b-8235-d565edde803e",
+      chapter_name: "第一章 数据结构基础",
+      parent_chapter_id: null,
+      description: "学习数据结构的基本概念、线性结构和非线性结构",
+      content: "<h2>1.1 数据结构概述</h2><p>数据结构是计算机存储、组织数据的方式。</p><h2>1.2 线性结构</h2><p>包括数组、链表、栈、队列等线性数据结构。</p><h2>1.3 非线性结构</h2><p>包括树、图等非线性数据结构。</p>",
+      attachment_urls: [],
+      sort_order: 1,
+      status: 1,
+      view_count: 1156,
+      like_count: 89,
+      create_time: ISODate("2024-03-20T09:00:00.000Z"),
+      update_time: ISODate("2024-03-20T09:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03e18",
+      course_id: "c4da4d8c-e5bb-4833-b3c8-4896cd585dc2",
+      teacher_id: "cf76a275-f0f4-492e-bd13-71e6ec75de8a",
+      chapter_name: "第一章 软件工程概述",
+      parent_chapter_id: null,
+      description: "学习软件工程的基本概念、开发过程和生命周期",
+      content: "<h2>1.1 软件工程概述</h2><p>软件工程是应用工程化方法开发、维护软件的学科。</p><h2>1.2 软件开发过程</h2><p>包括需求分析、设计、编码、测试、维护等阶段。</p><h2>1.3 软件生命周期</h2><p>软件从需求到退役的完整过程。</p>",
+      attachment_urls: [],
+      sort_order: 1,
+      status: 1,
+      view_count: 892,
+      like_count: 68,
+      create_time: ISODate("2024-03-25T09:00:00.000Z"),
+      update_time: ISODate("2024-03-25T09:00:00.000Z"),
+      is_deleted: 0
+    }
+  ]);
 
- Target Server Type    : MongoDB
- Target Server Version : 60005 (6.0.5)
- File Encoding         : 65001
-
- Date: 16/10/2025 22:53:54
-*/
-
-
-// ----------------------------
-// Collection structure for mg_course_chapter
-// ----------------------------
-db.getCollection("mg_course_chapter").drop();
-db.createCollection("mg_course_chapter");
-db.getCollection("mg_course_chapter").createIndex({
-    course_id: Int32("1")
-}, {
-    name: "course_id_1"
-});
-db.getCollection("mg_course_chapter").createIndex({
-    chapter_number: Int32("1")
-}, {
-    name: "chapter_number_1"
-});
-db.getCollection("mg_course_chapter").createIndex({
-    parent_chapter_id: Int32("1")
-}, {
-    name: "parent_chapter_id_1"
-});
-db.getCollection("mg_course_chapter").createIndex({
-    status: Int32("1")
-}, {
-    name: "status_1"
-});
-db.getCollection("mg_course_chapter").createIndex({
-    create_time: Int32("-1")
-}, {
-    name: "create_time_-1"
-});
-
-// ----------------------------
-// Documents of mg_course_chapter
-// ----------------------------
-db.getCollection("mg_course_chapter").insert([ {
-    _id: "78d44b4a-becd-4f65-9461-f2dcdda03e02",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    chapter_name: "第一章 函数与极限",
-    description: "学习函数的基本概念、性质以及极限的定义和计算方法",
-    content: "<h2>1.1 函数的概念</h2><p>函数是数学中的基本概念之一，它描述了两个变量之间的依赖关系。设D是一个非空数集，如果对于D中的每一个数x，按照某种对应法则f，都有唯一确定的数y与之对应，则称y是x的函数，记作y=f(x)。</p><h2>1.2 函数的性质</h2><p>函数具有单调性、奇偶性、周期性等性质。单调性分为单调递增和单调递减；奇偶性分为奇函数和偶函数；周期性是指函数值按一定规律重复出现。</p><h2>1.3 极限的概念</h2><p>极限是微积分的基础概念，描述函数在某点附近的变化趋势。当自变量x无限接近某个值时，函数值f(x)无限接近的常数A称为函数在该点的极限。</p><h2>1.4 极限的运算法则</h2><p>极限运算遵循四则运算法则、复合函数法则等基本规律，这些法则为后续的导数计算奠定了基础。</p>",
-    attachment_urls: [
-        "http://127.0.0.1:31589/sapientiacloud-edupivot/course-chapters/5006bd9f5dd62fdc13a670dbbb8d23ca.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=root%2F20251005%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20251005T065248Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=29731a80c5d1a164c21cbac9dbe99000fbe7aeffe359aa7b26df40712c913ffa",
-        "http://127.0.0.1:31589/sapientiacloud-edupivot/course-chapters/O1CN01TTAgWE1Y6AoAKpJXV_%21%212210898473009.avif?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=root%2F20251005%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20251005T065249Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=f0c35a4487345fee35a8a4ab101ec5be5df05e1c1cecab2c1b110f7d095d2e84",
-        "http://127.0.0.1:31589/sapientiacloud-edupivot/course-chapters/e1604019539295.webp?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=root%2F20251005%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20251005T065249Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=590b50ee9219167428803db6b6cf3bca41321c8d24ab9feff21d4acc5732ce9a",
-        "http://127.0.0.1:31589/sapientiacloud-edupivot/course-chapters/1756915008131.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=root%2F20251005%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20251005T065249Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=cdb1e4669c62fb36adecfe8ea2167d53c92ec5a05fe8c35b3b762742b920e300",
-        "http://127.0.0.1:31589/sapientiacloud-edupivot/course-chapters/login-background.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=root%2F20251005%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20251005T065249Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=9a6801328680441629ee27fc0a9173db4ca4bf9cf094dcfad0adc264a951a109",
-        "http://127.0.0.1:31589/sapientiacloud-edupivot/course-chapters/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20251001183400_907_138.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=root%2F20251005%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20251005T065249Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=59dcc19c76025171a7289f3c173b094a5d1432b28019687697bad148f2a6daec",
-        "http://127.0.0.1:31589/sapientiacloud-edupivot/course-chapters/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20250903152605_5_110.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=root%2F20251005%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20251005T065249Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=bc5a9ff7a53699893559ad151fdb091b0d6b724c8d00192ce0806c9f19847700",
-        "http://127.0.0.1:31589/sapientiacloud-edupivot/course-chapters/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20250903153836_6_110.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=root%2F20251005%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20251005T065249Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=1dd9b0fab332f3b9df462e7d35e56d991b874d9ccb7d79257280962b4adb515a"
-    ],
-    sort_order: Int32("1"),
-    status: Int32("1"),
-    view_count: Long("1250"),
-    like_count: Long("89"),
-    create_time: ISODate("2024-01-15T09:00:00.000Z"),
-    update_time: ISODate("2025-10-05T06:52:59.534Z"),
-    is_deleted: Int32("0"),
-    _class: "com.dayz.sapientiacloud_edupivot.course.entity.po.CourseChapter"
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
-    _id: "78d44b4a-becd-4f65-9461-f2dcdda03e03",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    chapter_name: "1.1 函数的概念",
-    parent_chapter_id: "78d44b4a-becd-4f65-9461-f2dcdda03e02",
-    description: "学习函数的基本定义、定义域、值域等基本概念",
-    content: "<h3>1.1.1 函数的定义</h3><p>设D是一个非空数集，如果对于D中的每一个数x，按照某种对应法则f，都有唯一确定的数y与之对应，则称y是x的函数，记作y=f(x)。</p><h3>1.1.2 定义域和值域</h3><p>定义域是自变量x的取值范围，值域是因变量y的取值范围。</p><h3>1.1.3 函数的表示方法</h3><p>函数可以用解析式、图像、表格等方式表示。</p>",
-    attachment_urls: [
-        "http://127.0.0.1:31589/sapientiacloud-edupivot/course-chapters/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20250903152605_5_110.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=root%2F20251004%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20251004T103547Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=1a33844050667bcb236c97d8b36b6c52609e4dc489da04700ee6e265617ef9fe",
-        "http://127.0.0.1:31589/sapientiacloud-edupivot/course-chapters/%E7%94%A8%E6%88%B7%E4%B8%AD%E5%BF%83.pdf?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=root%2F20251004%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20251004T103547Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=c5bda626c8180390e8ccb894c128dce8a5f4c913544117fb71ca79da4bb6ff7f",
-        "http://127.0.0.1:31589/sapientiacloud-edupivot/course-chapters/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20251001183400_907_138.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=root%2F20251004%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20251004T103547Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=ffbbb05b76df5f3a0ed640d6e760ec6a163551caaaba6eb5252f0acc9d7cbebf",
-        "http://127.0.0.1:31589/sapientiacloud-edupivot/course-chapters/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20250903153836_6_110.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=root%2F20251004%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20251004T103547Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=b91265e39809570e13f3c951c101cf08e4d5b47e508a406d94fff13f117e3ef8",
-        "http://127.0.0.1:31589/sapientiacloud-edupivot/course-chapters/%E5%B1%8F%E5%B9%95%E5%BD%95%E5%88%B6%202025-09-28%20154745.mp4?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=root%2F20251004%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20251004T125530Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=f73bd59924fb6183494367fcbc06ebda973154bdba44e6808868aa3db860b8e1"
-    ],
-    sort_order: Int32("1"),
-    status: Int32("1"),
-    view_count: Long("450"),
-    like_count: Long("32"),
-    create_time: ISODate("2024-01-15T09:30:00.000Z"),
-    update_time: ISODate("2025-10-04T12:55:34.385Z"),
-    is_deleted: Int32("0"),
-    _class: "com.dayz.sapientiacloud_edupivot.course.entity.po.CourseChapter"
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
-    _id: "78d44b4a-becd-4f65-9461-f2dcdda03e04",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    chapter_name: "1.2 函数的性质",
-    parent_chapter_id: "78d44b4a-becd-4f65-9461-f2dcdda03e02",
-    description: "掌握函数的单调性、奇偶性、周期性等基本性质",
-    content: "<h3>1.2.1 单调性</h3><p>函数在某个区间内单调递增或单调递减的性质。</p><h3>1.2.2 奇偶性</h3><p>奇函数满足f(-x)=-f(x)，偶函数满足f(-x)=f(x)。</p><h3>1.2.3 周期性</h3><p>如果存在正数T，使得f(x+T)=f(x)对所有x成立，则称f(x)是周期函数。</p>",
-    attachment_urls: [
-        "http://127.0.0.1:31589/sapientiacloud-edupivot/course-chapters/%E5%AE%9E%E9%AA%8C%E5%85%AB%20Spring%20Boot%E6%95%B0%E6%8D%AE%E5%BA%93%E6%93%8D%E4%BD%9C.doc?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=root%2F20251004%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20251004T110913Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=17a43dc9ef4684d648d95e15dafad75609fe4bbf9f82df256b05c7b08bb5bb51"
-    ],
-    sort_order: Int32("2"),
-    status: Int32("1"),
-    view_count: Long("380"),
-    like_count: Long("28"),
-    create_time: ISODate("2024-01-15T10:00:00.000Z"),
-    update_time: ISODate("2025-10-04T11:09:15.799Z"),
-    is_deleted: Int32("0"),
-    _class: "com.dayz.sapientiacloud_edupivot.course.entity.po.CourseChapter"
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
-    _id: "78d44b4a-becd-4f65-9461-f2dcdda03e05",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    chapter_name: "1.3 极限的概念",
-    parent_chapter_id: "78d44b4a-becd-4f65-9461-f2dcdda03e02",
-    description: "理解极限的严格定义和几何意义",
-    content: "<h3>1.3.1 极限的直观定义</h3><p>当x无限接近a时，f(x)无限接近某个常数A。</p><h3>1.3.2 极限的严格定义</h3><p>ε-δ定义：对于任意ε&gt;0，存在δ&gt;0，使得当0&lt;|x-a|&lt;δ时，|f(x)-A|&lt;ε。</p><h3>1.3.3 左极限和右极限</h3><p>分别考虑x从左侧和右侧趋近于a时的极限。</p>",
-    attachment_urls: [ ],
-    sort_order: Int32("3"),
-    status: Int32("1"),
-    view_count: Long("420"),
-    like_count: Long("29"),
-    create_time: ISODate("2024-01-15T10:30:00.000Z"),
-    update_time: ISODate("2025-10-04T08:12:25.809Z"),
-    is_deleted: Int32("0"),
-    _class: "com.dayz.sapientiacloud_edupivot.course.entity.po.CourseChapter"
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
-    _id: "78d44b4a-becd-4f65-9461-f2dcdda03e06",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    chapter_name: "1.4 极限的运算法则",
-    parent_chapter_id: "78d44b4a-becd-4f65-9461-f2dcdda03e02",
-    description: "掌握极限的四则运算法则和复合函数极限",
-    content: "<h3>1.4.1 四则运算法则</h3><p>极限的和、差、积、商的运算法则。</p><h3>1.4.2 复合函数极限</h3><p>复合函数的极限运算法则。</p><h3>1.4.3 夹逼定理</h3><p>利用夹逼定理求极限的重要方法。</p>",
-    attachment_urls: [
-        "http://127.0.0.1:31589/sapientiacloud-edupivot/course-chapters/Java%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8A_%E8%B5%B5%E7%9B%9B.doc?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=root%2F20251004%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20251004T152734Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=62f9d6830a13eb4e89e6194dfdfb8048224d46b93de5bcab3539c43b99e87a3e",
-        "http://127.0.0.1:31589/sapientiacloud-edupivot/course-chapters/%E5%AE%9E%E9%AA%8C8%EF%BC%9AGUI%EF%BC%881%EF%BC%89.pptx?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=root%2F20251004%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20251004T152735Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=5e0febad6545c4de3a80bd515925bdf90adafb2cd96af7d589b5ea9dc17fbe8b",
-        "http://127.0.0.1:31589/sapientiacloud-edupivot/course-chapters/%E6%9F%A5%E6%89%BE%E6%8E%92%E5%BA%8F%28%E8%B5%B5%E7%9B%9B%20202300501414%29.docx?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=root%2F20251004%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20251004T153539Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=a8a7d115e0be6a738dc6d0e1d97b693b1fc4110cf6123a0a90fecbe84b8b8b52",
-        "http://127.0.0.1:31589/sapientiacloud-edupivot/course-chapters/student.txt?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=root%2F20251004%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20251004T154103Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=7b662aa29006cd50d3a06d6f91050f1cfa916a3df07fbcc13980bf765dd97070",
-        "http://127.0.0.1:31589/sapientiacloud-edupivot/course-chapters/readme.xlsx?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=root%2F20251004%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20251004T154812Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=3ba0626d774a0d91a4ec4a7cfc27c307651bf3e9cb31e85fe9807ab37e3384ce",
-        "http://127.0.0.1:31589/sapientiacloud-edupivot/course-chapters/04%E3%80%81%E7%BB%BC%E5%90%88%E6%B5%8B%E8%AF%84%E8%AE%A1%E7%AE%97%E8%A1%A8%E6%A0%BC.xlsx?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=root%2F20251004%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20251004T161151Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=06ed3f2822123c60ca6bf4e40083399961c4974f13d9aea1bf63b18b81351b05"
-    ],
-    sort_order: Int32("4"),
-    status: Int32("1"),
-    view_count: Long("350"),
-    like_count: Long("25"),
-    create_time: ISODate("2024-01-15T11:00:00.000Z"),
-    update_time: ISODate("2025-10-04T16:11:53.166Z"),
-    is_deleted: Int32("0"),
-    _class: "com.dayz.sapientiacloud_edupivot.course.entity.po.CourseChapter"
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
-    _id: "78d44b4a-becd-4f65-9461-f2dcdda03e07",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    chapter_name: "第二章 导数与微分",
-    parent_chapter_id: null,
-    description: "掌握导数的定义、几何意义、计算方法以及微分的概念和应用",
-    content: "<h2>2.1 导数的定义</h2><p>导数描述函数在某点的瞬时变化率，是微积分的核心概念。导数的定义基于极限概念，表示函数值随自变量变化的快慢程度。</p><h2>2.2 导数的几何意义</h2><p>导数的几何意义是函数曲线在某点处的切线斜率，这为理解函数的局部性质提供了直观的几何解释。</p><h2>2.3 导数的计算</h2><p>掌握基本初等函数的导数公式、导数的四则运算法则、复合函数求导法则（链式法则）以及隐函数求导方法。</p><h2>2.4 高阶导数</h2><p>高阶导数是导数的导数，在物理学和工程学中有重要应用，如加速度是速度的导数，速度是位移的导数。</p><h2>2.5 微分</h2><p>微分是导数的另一种表达形式，在近似计算和误差分析中有重要应用。</p>",
-    sort_order: Int32("2"),
-    status: Int32("1"),
-    view_count: Int32("1180"),
-    like_count: Int32("95"),
-    create_time: ISODate("2024-01-16T09:00:00.000Z"),
-    update_time: ISODate("2024-01-16T09:00:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
-    _id: "78d44b4a-becd-4f65-9461-f2dcdda03e08",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    chapter_name: "2.1 导数的定义",
-    parent_chapter_id: "78d44b4a-becd-4f65-9461-f2dcdda03e07",
-    description: "理解导数的定义和几何意义",
-    content: "<h3>2.1.1 导数的定义</h3><p>f'(x) = lim[h→0] [f(x+h)-f(x)]/h</p><h3>2.1.2 导数的几何意义</h3><p>导数表示函数曲线在某点处的切线斜率。</p><h3>2.1.3 导数的物理意义</h3><p>导数表示瞬时变化率，如速度是位移的导数。</p>",
-    sort_order: Int32("1"),
-    status: Int32("1"),
-    view_count: Int32("420"),
-    like_count: Int32("35"),
-    create_time: ISODate("2024-01-16T09:30:00.000Z"),
-    update_time: ISODate("2024-01-16T09:30:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
-    _id: "78d44b4a-becd-4f65-9461-f2dcdda03e09",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    chapter_name: "2.2 导数的计算",
-    parent_chapter_id: "78d44b4a-becd-4f65-9461-f2dcdda03e07",
-    description: "掌握基本初等函数的导数公式",
-    content: "<h3>2.2.1 基本初等函数的导数</h3><p>幂函数、指数函数、对数函数、三角函数的导数公式。</p><h3>2.2.2 导数的四则运算法则</h3><p>和、差、积、商的导数运算法则。</p><h3>2.2.3 复合函数求导法则</h3><p>链式法则：d/dx[f(g(x))] = f'(g(x))·g'(x)。</p>",
-    sort_order: Int32("2"),
-    status: Int32("1"),
-    view_count: Int32("380"),
-    like_count: Int32("32"),
-    create_time: ISODate("2024-01-16T10:00:00.000Z"),
-    update_time: ISODate("2024-01-16T10:00:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
-    _id: "78d44b4a-becd-4f65-9461-f2dcdda03e10",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    chapter_name: "2.3 高阶导数",
-    parent_chapter_id: "78d44b4a-becd-4f65-9461-f2dcdda03e07",
-    description: "学习高阶导数的概念和计算",
-    content: "<h3>2.3.1 高阶导数的定义</h3><p>二阶导数、三阶导数等概念。</p><h3>2.3.2 高阶导数的计算</h3><p>逐次求导的方法。</p><h3>2.3.3 高阶导数的应用</h3><p>在物理学和工程学中的应用。</p>",
-    sort_order: Int32("3"),
-    status: Int32("1"),
-    view_count: Int32("300"),
-    like_count: Int32("20"),
-    create_time: ISODate("2024-01-16T10:30:00.000Z"),
-    update_time: ISODate("2024-01-16T10:30:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
-    _id: "78d44b4a-becd-4f65-9461-f2dcdda03e11",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    chapter_name: "2.4 微分",
-    parent_chapter_id: "78d44b4a-becd-4f65-9461-f2dcdda03e07",
-    description: "理解微分的概念和应用",
-    content: "<h3>2.4.1 微分的定义</h3><p>dy = f'(x)dx，微分是导数的另一种表达形式。</p><h3>2.4.2 微分的几何意义</h3><p>微分表示函数增量的线性主部。</p><h3>2.4.3 微分的应用</h3><p>在近似计算和误差分析中的应用。</p>",
-    sort_order: Int32("4"),
-    status: Int32("1"),
-    view_count: Int32("280"),
-    like_count: Int32("18"),
-    create_time: ISODate("2024-01-16T11:00:00.000Z"),
-    update_time: ISODate("2024-01-16T11:00:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
-    _id: "78d44b4a-becd-4f65-9461-f2dcdda03e12",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    chapter_name: "第三章 导数的应用",
-    parent_chapter_id: null,
-    description: "学习导数在函数性质研究、最值问题、曲线描绘等方面的应用",
-    content: "<h2>3.1 函数的单调性</h2><p>利用导数判断函数的单调性：当f'(x)>0时，函数单调递增；当f'(x)<0时，函数单调递减。</p><h2>3.2 函数的极值</h2><p>极值是函数在局部范围内的最大值或最小值。通过求导并令导数为零，可以找到可能的极值点。</p><h2>3.3 函数的最值</h2><p>最值问题是导数应用的重要领域，包括闭区间上的最值问题和实际应用中的优化问题。</p><h2>3.4 曲线的凹凸性</h2><p>利用二阶导数判断曲线的凹凸性，当f''(x)>0时曲线凹向上，当f''(x)<0时曲线凹向下。</p><h2>3.5 拐点</h2><p>拐点是曲线凹凸性发生改变的点，在函数图像分析中具有重要意义。</p><h2>3.6 渐近线</h2><p>渐近线包括水平渐近线、垂直渐近线和斜渐近线，是描绘函数图像的重要工具。</p>",
-    sort_order: Int32("3"),
-    status: Int32("1"),
-    view_count: Int32("1080"),
-    like_count: Int32("78"),
-    create_time: ISODate("2024-01-17T09:00:00.000Z"),
-    update_time: ISODate("2024-01-17T09:00:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
-    _id: "78d44b4a-becd-4f65-9461-f2dcdda03e13",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    chapter_name: "3.1 函数的单调性",
-    parent_chapter_id: "78d44b4a-becd-4f65-9461-f2dcdda03e12",
-    description: "利用导数判断函数的单调性",
-    content: "<h3>3.1.1 单调性的判定</h3><p>当f'(x)>0时，函数单调递增；当f'(x)<0时，函数单调递减。</p><h3>3.1.2 单调区间的求法</h3><p>通过求导数的符号变化来确定单调区间。</p><h3>3.1.3 应用实例</h3><p>利用单调性解决实际问题。</p>",
-    sort_order: Int32("1"),
-    status: Int32("1"),
-    view_count: Int32("350"),
-    like_count: Int32("28"),
-    create_time: ISODate("2024-01-17T09:30:00.000Z"),
-    update_time: ISODate("2024-01-17T09:30:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
-    _id: "78d44b4a-becd-4f65-9461-f2dcdda03e14",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    chapter_name: "3.2 函数的极值",
-    parent_chapter_id: "78d44b4a-becd-4f65-9461-f2dcdda03e12",
-    description: "学习函数极值的概念和求法",
-    content: "<h3>3.2.1 极值的定义</h3><p>函数在局部范围内的最大值或最小值。</p><h3>3.2.2 极值的必要条件</h3><p>可导函数在极值点处导数必为零。</p><h3>3.2.3 极值的充分条件</h3><p>利用一阶导数或二阶导数判断极值。</p>",
-    sort_order: Int32("2"),
-    status: Int32("1"),
-    view_count: Int32("320"),
-    like_count: Int32("25"),
-    create_time: ISODate("2024-01-17T10:00:00.000Z"),
-    update_time: ISODate("2024-01-17T10:00:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
-    _id: "78d44b4a-becd-4f65-9461-f2dcdda03e15",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    chapter_name: "3.3 函数的最值",
-    parent_chapter_id: "78d44b4a-becd-4f65-9461-f2dcdda03e12",
-    description: "掌握最值问题的求解方法",
-    content: "<h3>3.3.1 闭区间上的最值</h3><p>在闭区间上连续函数必有最大值和最小值。</p><h3>3.3.2 最值的求法</h3><p>比较函数在驻点、端点处的函数值。</p><h3>3.3.3 实际应用问题</h3><p>利用最值理论解决优化问题。</p>",
-    sort_order: Int32("3"),
-    status: Int32("1"),
-    view_count: Int32("300"),
-    like_count: Int32("22"),
-    comment_count: Int32("6"),
-    create_time: ISODate("2024-01-17T10:30:00.000Z"),
-    update_time: ISODate("2024-01-17T10:30:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
-    _id: "78d44b4a-becd-4f65-9461-f2dcdda03e16",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    chapter_name: "3.4 曲线的凹凸性",
-    parent_chapter_id: "78d44b4a-becd-4f65-9461-f2dcdda03e12",
-    description: "利用二阶导数判断曲线的凹凸性",
-    content: "<h3>3.4.1 凹凸性的定义</h3><p>曲线向上凸或向下凸的性质。</p><h3>3.4.2 凹凸性的判定</h3><p>当f''(x)>0时曲线凹向上，当f''(x)<0时曲线凹向下。</p><h3>3.4.3 拐点</h3><p>曲线凹凸性发生改变的点。</p>",
-    sort_order: Int32("4"),
-    status: Int32("1"),
-    view_count: Int32("280"),
-    like_count: Int32("20"),
-    create_time: ISODate("2024-01-17T11:00:00.000Z"),
-    update_time: ISODate("2024-01-17T11:00:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
-    _id: "78d44b4a-becd-4f65-9461-f2dcdda03e17",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    chapter_name: "第四章 不定积分",
-    parent_chapter_id: null,
-    description: "掌握不定积分的概念、性质和基本积分方法",
-    content: "<h2>4.1 不定积分的概念</h2><p>不定积分是导数的逆运算，表示所有导数为给定函数的函数族。如果F'(x)=f(x)，则F(x)是f(x)的一个原函数。</p><h2>4.2 基本积分公式</h2><p>掌握基本初等函数的不定积分公式，包括幂函数、指数函数、三角函数、对数函数等的积分。</p><h2>4.3 积分的性质</h2><p>不定积分具有线性性质，即∫[af(x)+bg(x)]dx = a∫f(x)dx + b∫g(x)dx。</p><h2>4.4 换元积分法</h2><p>换元积分法是不定积分的重要方法，包括第一类换元法（凑微分法）和第二类换元法。</p><h2>4.5 分部积分法</h2><p>分部积分法适用于被积函数是两个函数乘积的情况，公式为∫udv = uv - ∫vdu。</p><h2>4.6 有理函数的积分</h2><p>有理函数的积分通过部分分式分解等方法求解，是积分计算中的重要技巧。</p>",
-    sort_order: Int32("4"),
-    status: Int32("1"),
-    view_count: Int32("980"),
-    like_count: Int32("72"),
-    comment_count: Int32("25"),
-    create_time: ISODate("2024-01-18T09:00:00.000Z"),
-    update_time: ISODate("2024-01-18T09:00:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
-    _id: "78d44b4a-becd-4f65-9461-f2dcdda03e18",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    chapter_name: "4.1 不定积分的概念",
-    parent_chapter_id: "78d44b4a-becd-4f65-9461-f2dcdda03e17",
-    description: "理解不定积分的定义和基本概念",
-    content: "<h3>4.1.1 原函数的概念</h3><p>如果F'(x)=f(x)，则F(x)是f(x)的一个原函数。</p><h3>4.1.2 不定积分的定义</h3><p>∫f(x)dx = F(x) + C，其中C是任意常数。</p><h3>4.1.3 不定积分的几何意义</h3><p>不定积分表示一族平行曲线。</p>",
-    sort_order: Int32("1"),
-    status: Int32("1"),
-    view_count: Int32("320"),
-    like_count: Int32("24"),
-    comment_count: Int32("6"),
-    create_time: ISODate("2024-01-18T09:30:00.000Z"),
-    update_time: ISODate("2024-01-18T09:30:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
-    _id: "78d44b4a-becd-4f65-9461-f2dcdda03e19",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    chapter_name: "4.2 基本积分公式",
-    parent_chapter_id: "78d44b4a-becd-4f65-9461-f2dcdda03e17",
-    description: "掌握基本初等函数的积分公式",
-    content: "<h3>4.2.1 幂函数的积分</h3><p>∫x^n dx = x^(n+1)/(n+1) + C (n≠-1)</p><h3>4.2.2 指数函数的积分</h3><p>∫e^x dx = e^x + C, ∫a^x dx = a^x/ln(a) + C</p><h3>4.2.3 三角函数的积分</h3><p>∫sin(x)dx = -cos(x) + C, ∫cos(x)dx = sin(x) + C</p><h3>4.2.4 对数函数的积分</h3><p>∫1/x dx = ln|x| + C</p>",
-    sort_order: Int32("2"),
-    status: Int32("1"),
-    view_count: Int32("380"),
-    like_count: Int32("28"),
-    create_time: ISODate("2024-01-18T10:00:00.000Z"),
-    update_time: ISODate("2024-01-18T10:00:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
-    _id: "78d44b4a-becd-4f65-9461-f2dcdda03e20",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    chapter_name: "4.3 换元积分法",
-    parent_chapter_id: "78d44b4a-becd-4f65-9461-f2dcdda03e17",
-    description: "掌握第一类和第二类换元积分法",
-    content: "<h3>4.3.1 第一类换元法（凑微分法）</h3><p>∫f(g(x))g'(x)dx = ∫f(u)du，其中u=g(x)。</p><h3>4.3.2 第二类换元法</h3><p>通过变量替换简化积分计算。</p><h3>4.3.3 三角换元</h3><p>利用三角函数进行变量替换。</p>",
-    sort_order: Int32("3"),
-    status: Int32("1"),
-    view_count: Int32("350"),
-    like_count: Int32("26"),
-    comment_count: Int32("7"),
-    create_time: ISODate("2024-01-18T10:30:00.000Z"),
-    update_time: ISODate("2024-01-18T10:30:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
-    _id: "78d44b4a-becd-4f65-9461-f2dcdda03e21",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    chapter_name: "4.4 分部积分法",
-    parent_chapter_id: "78d44b4a-becd-4f65-9461-f2dcdda03e17",
-    description: "掌握分部积分法的应用",
-    content: "<h3>4.4.1 分部积分公式</h3><p>∫udv = uv - ∫vdu</p><h3>4.4.2 分部积分的应用</h3><p>适用于被积函数是两个函数乘积的情况。</p><h3>4.4.3 循环积分</h3><p>某些积分需要多次使用分部积分法。</p>",
-    sort_order: Int32("4"),
-    status: Int32("1"),
-    view_count: Int32("300"),
-    like_count: Int32("22"),
-    comment_count: Int32("5"),
-    create_time: ISODate("2024-01-18T11:00:00.000Z"),
-    update_time: ISODate("2024-01-18T11:00:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
-    _id: "78d44b4a-becd-4f65-9461-f2dcdda03e22",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    chapter_name: "第五章 定积分",
-    parent_chapter_id: null,
-    description: "学习定积分的定义、性质、计算方法和几何意义",
-    content: "<h2>5.1 定积分的定义</h2><p>定积分是黎曼积分的概念，通过分割、近似、求和、取极限的过程定义。定积分∫[a,b]f(x)dx表示函数f(x)在区间[a,b]上的积分。</p><h2>5.2 定积分的性质</h2><p>定积分具有线性性质、区间可加性、单调性等基本性质，这些性质为定积分的计算提供了理论基础。</p><h2>5.3 微积分基本定理</h2><p>微积分基本定理建立了导数与积分之间的联系，包括第一基本定理和第二基本定理。</p><h2>5.4 定积分的计算</h2><p>利用牛顿-莱布尼茨公式计算定积分，结合换元积分法和分部积分法求解复杂的定积分问题。</p><h2>5.5 定积分的几何意义</h2><p>定积分在几何上表示曲线与坐标轴围成的面积，这为理解积分的几何意义提供了直观的解释。</p><h2>5.6 定积分的应用</h2><p>定积分在计算面积、体积、弧长等几何量以及解决物理问题中有重要应用。</p>",
-    sort_order: Int32("5"),
-    status: Int32("1"),
-    view_count: Int32("920"),
-    like_count: Int32("85"),
-    comment_count: Int32("28"),
-    create_time: ISODate("2024-01-19T09:00:00.000Z"),
-    update_time: ISODate("2024-01-19T09:00:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
-    _id: "78d44b4a-becd-4f65-9461-f2dcdda03e23",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    chapter_name: "5.1 定积分的定义",
-    parent_chapter_id: "78d44b4a-becd-4f65-9461-f2dcdda03e22",
-    description: "理解定积分的黎曼定义",
-    content: "<h3>5.1.1 黎曼和</h3><p>通过分割、近似、求和、取极限的过程定义定积分。</p><h3>5.1.2 定积分的几何意义</h3><p>定积分表示曲线与坐标轴围成的面积。</p><h3>5.1.3 定积分的物理意义</h3><p>在物理学中表示累积量，如位移、功等。</p>",
-    sort_order: Int32("1"),
-    status: Int32("1"),
-    view_count: Int32("320"),
-    like_count: Int32("24"),
-    comment_count: Int32("6"),
-    create_time: ISODate("2024-01-19T09:30:00.000Z"),
-    update_time: ISODate("2024-01-19T09:30:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
-    _id: "78d44b4a-becd-4f65-9461-f2dcdda03e24",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    chapter_name: "5.2 定积分的性质",
-    parent_chapter_id: "78d44b4a-becd-4f65-9461-f2dcdda03e22",
-    description: "掌握定积分的基本性质",
-    content: "<h3>5.2.1 线性性质</h3><p>∫[a,b][αf(x)+βg(x)]dx = α∫[a,b]f(x)dx + β∫[a,b]g(x)dx</p><h3>5.2.2 区间可加性</h3><p>∫[a,b]f(x)dx = ∫[a,c]f(x)dx + ∫[c,b]f(x)dx</p><h3>5.2.3 单调性</h3><p>如果f(x)≤g(x)，则∫[a,b]f(x)dx ≤ ∫[a,b]g(x)dx</p>",
-    sort_order: Int32("2"),
-    status: Int32("1"),
-    view_count: Int32("280"),
-    like_count: Int32("20"),
-    create_time: ISODate("2024-01-19T10:00:00.000Z"),
-    update_time: ISODate("2024-01-19T10:00:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
-    _id: "78d44b4a-becd-4f65-9461-f2dcdda03e25",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    chapter_name: "5.3 微积分基本定理",
-    parent_chapter_id: "78d44b4a-becd-4f65-9461-f2dcdda03e22",
-    description: "理解微积分基本定理的重要性",
-    content: "<h3>5.3.1 第一基本定理</h3><p>如果F(x)=∫[a,x]f(t)dt，则F'(x)=f(x)。</p><h3>5.3.2 第二基本定理</h3><p>∫[a,b]f(x)dx = F(b) - F(a)，其中F'(x)=f(x)。</p><h3>5.3.3 牛顿-莱布尼茨公式</h3><p>建立了导数与积分之间的联系。</p>",
-    sort_order: Int32("3"),
-    status: Int32("1"),
-    view_count: Int32("350"),
-    like_count: Int32("28"),
-    create_time: ISODate("2024-01-19T10:30:00.000Z"),
-    update_time: ISODate("2024-01-19T10:30:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
-    _id: "78d44b4a-becd-4f65-9461-f2dcdda03e26",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    chapter_name: "5.4 定积分的应用",
-    parent_chapter_id: "78d44b4a-becd-4f65-9461-f2dcdda03e22",
-    description: "学习定积分在几何和物理中的应用",
-    content: "<h3>5.4.1 计算面积</h3><p>利用定积分计算平面图形的面积。</p><h3>5.4.2 计算体积</h3><p>利用定积分计算旋转体的体积。</p><h3>5.4.3 计算弧长</h3><p>利用定积分计算曲线的弧长。</p><h3>5.4.4 物理应用</h3><p>在物理学中计算功、质心等。</p>",
-    sort_order: Int32("4"),
-    status: Int32("1"),
-    view_count: Int32("300"),
-    like_count: Int32("22"),
-    comment_count: Int32("6"),
-    create_time: ISODate("2024-01-19T11:00:00.000Z"),
-    update_time: ISODate("2024-01-19T11:00:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
-    _id: "78d44b4a-becd-4f65-9461-f2dcdda03e27",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    chapter_name: "第六章 多元函数微分学",
-    parent_chapter_id: null,
-    description: "学习多元函数的概念、偏导数、全微分以及多元函数的极值问题",
-    content: "<h2>6.1 多元函数的概念</h2><p>多元函数是定义在n维空间上的函数，最常见的是二元函数z=f(x,y)。多元函数在几何上表示空间中的曲面。</p><h2>6.2 偏导数</h2><p>偏导数是多元函数对某个变量的导数，其他变量视为常数。偏导数∂f/∂x表示函数f对x的偏导数。</p><h2>6.3 全微分</h2><p>全微分是多元函数增量的线性主部，dz = (∂f/∂x)dx + (∂f/∂y)dy。全微分在近似计算中有重要应用。</p><h2>6.4 复合函数求导</h2><p>多元复合函数的求导法则，包括链式法则在多元函数中的应用。</p><h2>6.5 隐函数求导</h2><p>隐函数是由方程F(x,y)=0确定的函数关系，通过隐函数求导法则可以求出dy/dx。</p><h2>6.6 多元函数的极值</h2><p>多元函数的极值问题包括无条件极值和条件极值，拉格朗日乘数法是求解条件极值的重要方法。</p>",
-    sort_order: Int32("6"),
-    status: Int32("1"),
-    view_count: Int32("850"),
-    like_count: Int32("68"),
-    comment_count: Int32("22"),
-    create_time: ISODate("2024-01-20T09:00:00.000Z"),
-    update_time: ISODate("2024-01-20T09:00:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
-    _id: "78d44b4a-becd-4f65-9461-f2dcdda03e28",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    chapter_name: "6.1 多元函数的概念",
-    parent_chapter_id: "78d44b4a-becd-4f65-9461-f2dcdda03e27",
-    description: "理解多元函数的定义和几何意义",
-    content: "<h3>6.1.1 二元函数的定义</h3><p>z=f(x,y)表示定义在平面区域D上的函数。</p><h3>6.1.2 多元函数的几何意义</h3><p>二元函数在几何上表示空间中的曲面。</p><h3>6.1.3 多元函数的极限</h3><p>多元函数极限的概念和性质。</p>",
-    sort_order: Int32("1"),
-    status: Int32("1"),
-    view_count: Int32("300"),
-    like_count: Int32("22"),
-    comment_count: Int32("6"),
-    create_time: ISODate("2024-01-20T09:30:00.000Z"),
-    update_time: ISODate("2024-01-20T09:30:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
-    _id: "78d44b4a-becd-4f65-9461-f2dcdda03e29",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    chapter_name: "6.2 偏导数",
-    parent_chapter_id: "78d44b4a-becd-4f65-9461-f2dcdda03e27",
-    description: "掌握偏导数的概念和计算",
-    content: "<h3>6.2.1 偏导数的定义</h3><p>∂f/∂x = lim[h→0][f(x+h,y)-f(x,y)]/h</p><h3>6.2.2 偏导数的几何意义</h3><p>偏导数表示曲面在某个方向上的切线斜率。</p><h3>6.2.3 高阶偏导数</h3><p>二阶偏导数、混合偏导数等概念。</p>",
-    sort_order: Int32("2"),
-    status: Int32("1"),
-    view_count: Int32("280"),
-    like_count: Int32("20"),
-    create_time: ISODate("2024-01-20T10:00:00.000Z"),
-    update_time: ISODate("2024-01-20T10:00:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
-    _id: "78d44b4a-becd-4f65-9461-f2dcdda03e30",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    chapter_name: "6.3 全微分",
-    parent_chapter_id: "78d44b4a-becd-4f65-9461-f2dcdda03e27",
-    description: "理解全微分的概念和应用",
-    content: "<h3>6.3.1 全微分的定义</h3><p>dz = (∂f/∂x)dx + (∂f/∂y)dy</p><h3>6.3.2 全微分的几何意义</h3><p>全微分表示函数增量的线性主部。</p><h3>6.3.3 全微分的应用</h3><p>在近似计算和误差分析中的应用。</p>",
-    sort_order: Int32("3"),
-    status: Int32("1"),
-    view_count: Int32("250"),
-    like_count: Int32("18"),
-    create_time: ISODate("2024-01-20T10:30:00.000Z"),
-    update_time: ISODate("2024-01-20T10:30:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
-    _id: "78d44b4a-becd-4f65-9461-f2dcdda03e31",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    chapter_name: "6.4 多元函数的极值",
-    parent_chapter_id: "78d44b4a-becd-4f65-9461-f2dcdda03e27",
-    description: "学习多元函数的极值问题",
-    content: "<h3>6.4.1 无条件极值</h3><p>多元函数在定义域内的极值问题。</p><h3>6.4.2 条件极值</h3><p>在约束条件下的极值问题。</p><h3>6.4.3 拉格朗日乘数法</h3><p>求解条件极值的重要方法。</p>",
-    sort_order: Int32("4"),
-    status: Int32("1"),
-    view_count: Int32("320"),
-    like_count: Int32("25"),
-    create_time: ISODate("2024-01-20T11:00:00.000Z"),
-    update_time: ISODate("2024-01-20T11:00:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
-    _id: "78d44b4a-becd-4f65-9461-f2dcdda03e32",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    chapter_name: "第七章 重积分",
-    parent_chapter_id: null,
-    description: "掌握二重积分和三重积分的概念、性质、计算方法和应用",
-    content: "<h2>7.1 二重积分的概念</h2><p>二重积分是定积分在二维空间的推广，表示函数在平面区域上的积分。二重积分∬D f(x,y)dxdy表示函数f(x,y)在区域D上的积分。</p><h2>7.2 二重积分的性质</h2><p>二重积分具有线性性质、区域可加性、单调性等基本性质，这些性质为二重积分的计算提供了理论基础。</p><h2>7.3 二重积分的计算</h2><p>二重积分的计算通常通过化为累次积分进行，包括直角坐标系下的计算和极坐标系下的计算。</p><h2>7.4 二重积分的应用</h2><p>二重积分在计算平面图形的面积、曲面的面积、物体的质量、重心等几何和物理量中有重要应用。</p><h2>7.5 三重积分</h2><p>三重积分是定积分在三维空间的推广，表示函数在空间区域上的积分。三重积分∭V f(x,y,z)dxdydz表示函数f(x,y,z)在区域V上的积分。</p><h2>7.6 三重积分的计算</h2><p>三重积分的计算通过化为累次积分进行，包括直角坐标系、柱坐标系和球坐标系下的计算。</p>",
-    sort_order: Int32("7"),
-    status: Int32("1"),
-    view_count: Int32("780"),
-    like_count: Int32("62"),
-    comment_count: Int32("18"),
-    create_time: ISODate("2024-01-21T09:00:00.000Z"),
-    update_time: ISODate("2024-01-21T09:00:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
-    _id: "78d44b4a-becd-4f65-9461-f2dcdda03e33",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    chapter_name: "7.1 二重积分的概念",
-    parent_chapter_id: "78d44b4a-becd-4f65-9461-f2dcdda03e32",
-    description: "理解二重积分的定义和几何意义",
-    content: "<h3>7.1.1 二重积分的定义</h3><p>∬D f(x,y)dxdy表示函数f(x,y)在区域D上的积分。</p><h3>7.1.2 二重积分的几何意义</h3><p>二重积分表示曲面与坐标平面围成的体积。</p><h3>7.1.3 二重积分的性质</h3><p>线性性质、区域可加性等基本性质。</p>",
-    sort_order: Int32("1"),
-    status: Int32("1"),
-    view_count: Int32("280"),
-    like_count: Int32("20"),
-    create_time: ISODate("2024-01-21T09:30:00.000Z"),
-    update_time: ISODate("2024-01-21T09:30:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
-    _id: "78d44b4a-becd-4f65-9461-f2dcdda03e34",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    chapter_name: "7.2 二重积分的计算",
-    parent_chapter_id: "78d44b4a-becd-4f65-9461-f2dcdda03e32",
-    description: "掌握二重积分的计算方法",
-    content: "<h3>7.2.1 直角坐标系下的计算</h3><p>化为累次积分进行计算。</p><h3>7.2.2 极坐标系下的计算</h3><p>利用极坐标变换简化计算。</p><h3>7.2.3 积分次序的交换</h3><p>交换积分次序的技巧。</p>",
-    sort_order: Int32("2"),
-    status: Int32("1"),
-    view_count: Int32("320"),
-    like_count: Int32("24"),
-    comment_count: Int32("6"),
-    create_time: ISODate("2024-01-21T10:00:00.000Z"),
-    update_time: ISODate("2024-01-21T10:00:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
-    _id: "78d44b4a-becd-4f65-9461-f2dcdda03e35",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    chapter_name: "7.3 三重积分",
-    parent_chapter_id: "78d44b4a-becd-4f65-9461-f2dcdda03e32",
-    description: "学习三重积分的概念和计算",
-    content: "<h3>7.3.1 三重积分的定义</h3><p>∭V f(x,y,z)dxdydz表示函数f(x,y,z)在区域V上的积分。</p><h3>7.3.2 直角坐标系下的计算</h3><p>化为累次积分进行计算。</p><h3>7.3.3 柱坐标系和球坐标系</h3><p>利用不同坐标系简化计算。</p>",
-    sort_order: Int32("3"),
-    status: Int32("1"),
-    view_count: Int32("260"),
-    like_count: Int32("18"),
-    create_time: ISODate("2024-01-21T10:30:00.000Z"),
-    update_time: ISODate("2024-01-21T10:30:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
-    _id: "78d44b4a-becd-4f65-9461-f2dcdda03e36",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    chapter_name: "7.4 重积分的应用",
-    parent_chapter_id: "78d44b4a-becd-4f65-9461-f2dcdda03e32",
-    description: "学习重积分在几何和物理中的应用",
-    content: "<h3>7.4.1 计算面积和体积</h3><p>利用重积分计算平面图形的面积和空间立体的体积。</p><h3>7.4.2 计算质量</h3><p>利用重积分计算物体的质量。</p><h3>7.4.3 计算重心</h3><p>利用重积分计算物体的重心坐标。</p>",
-    sort_order: Int32("4"),
-    status: Int32("1"),
-    view_count: Int32("240"),
-    like_count: Int32("16"),
-    comment_count: Int32("3"),
-    create_time: ISODate("2024-01-21T11:00:00.000Z"),
-    update_time: ISODate("2024-01-21T11:00:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
-    _id: "78d44b4a-becd-4f65-9461-f2dcdda03e37",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    chapter_name: "第八章 曲线积分与曲面积分",
-    parent_chapter_id: null,
-    description: "学习曲线积分和曲面积分的概念、性质、计算方法和物理意义",
-    content: "<h2>8.1 对弧长的曲线积分</h2><p>对弧长的曲线积分是函数沿曲线的积分，表示函数在曲线上的积分。第一类曲线积分∫L f(x,y)ds表示函数f(x,y)沿曲线L的积分。</p><h2>8.2 对坐标的曲线积分</h2><p>对坐标的曲线积分是向量场沿曲线的积分，在物理学中有重要应用。第二类曲线积分∫L Pdx + Qdy表示向量场(P,Q)沿曲线L的积分。</p><h2>8.3 格林公式</h2><p>格林公式建立了平面区域上的二重积分与边界曲线上的曲线积分之间的关系，是曲线积分理论的重要定理。</p><h2>8.4 对面积的曲面积分</h2><p>对面积的曲面积分是函数在曲面上的积分，表示函数在曲面上的积分。第一类曲面积分∬Σ f(x,y,z)dS表示函数f(x,y,z)在曲面Σ上的积分。</p><h2>8.5 对坐标的曲面积分</h2><p>对坐标的曲面积分是向量场通过曲面的积分，在电磁学中有重要应用。第二类曲面积分∬Σ Pdydz + Qdzdx + Rdxdy表示向量场(P,Q,R)通过曲面Σ的积分。</p><h2>8.6 高斯公式和斯托克斯公式</h2><p>高斯公式建立了空间区域上的三重积分与边界曲面上的曲面积分之间的关系；斯托克斯公式建立了曲面上的曲面积分与边界曲线上的曲线积分之间的关系。</p>",
-    sort_order: Int32("8"),
-    status: Int32("1"),
-    view_count: Int32("720"),
-    like_count: Int32("58"),
-    comment_count: Int32("15"),
-    create_time: ISODate("2024-01-22T09:00:00.000Z"),
-    update_time: ISODate("2024-01-22T09:00:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
-    _id: "78d44b4a-becd-4f65-9461-f2dcdda03e38",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    chapter_name: "8.1 对弧长的曲线积分",
-    parent_chapter_id: "78d44b4a-becd-4f65-9461-f2dcdda03e37",
-    description: "学习第一类曲线积分的概念和计算",
-    content: "<h3>8.1.1 第一类曲线积分的定义</h3><p>∫L f(x,y)ds表示函数f(x,y)沿曲线L的积分。</p><h3>8.1.2 第一类曲线积分的计算</h3><p>化为定积分进行计算。</p><h3>8.1.3 第一类曲线积分的应用</h3><p>计算曲线的质量、重心等。</p>",
-    sort_order: Int32("1"),
-    status: Int32("1"),
-    view_count: Int32("250"),
-    like_count: Int32("18"),
-    create_time: ISODate("2024-01-22T09:30:00.000Z"),
-    update_time: ISODate("2024-01-22T09:30:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
-    _id: "78d44b4a-becd-4f65-9461-f2dcdda03e39",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    chapter_name: "8.2 对坐标的曲线积分",
-    parent_chapter_id: "78d44b4a-becd-4f65-9461-f2dcdda03e37",
-    description: "学习第二类曲线积分的概念和计算",
-    content: "<h3>8.2.1 第二类曲线积分的定义</h3><p>∫L Pdx + Qdy表示向量场(P,Q)沿曲线L的积分。</p><h3>8.2.2 第二类曲线积分的计算</h3><p>化为定积分进行计算。</p><h3>8.2.3 第二类曲线积分的应用</h3><p>在物理学中计算功、环流等。</p>",
-    sort_order: Int32("2"),
-    status: Int32("1"),
-    view_count: Int32("280"),
-    like_count: Int32("20"),
-    create_time: ISODate("2024-01-22T10:00:00.000Z"),
-    update_time: ISODate("2024-01-22T10:00:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
-    _id: "78d44b4a-becd-4f65-9461-f2dcdda03e40",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    chapter_name: "8.3 格林公式",
-    parent_chapter_id: "78d44b4a-becd-4f65-9461-f2dcdda03e37",
-    description: "掌握格林公式及其应用",
-    content: "<h3>8.3.1 格林公式的表述</h3><p>∬D (∂Q/∂x - ∂P/∂y)dxdy = ∮L Pdx + Qdy</p><h3>8.3.2 格林公式的应用</h3><p>简化曲线积分的计算。</p><h3>8.3.3 平面区域的面积</h3><p>利用格林公式计算平面区域的面积。</p>",
-    sort_order: Int32("3"),
-    status: Int32("1"),
-    view_count: Int32("300"),
-    like_count: Int32("22"),
-    comment_count: Int32("6"),
-    create_time: ISODate("2024-01-22T10:30:00.000Z"),
-    update_time: ISODate("2024-01-22T10:30:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
-    _id: "78d44b4a-becd-4f65-9461-f2dcdda03e41",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    chapter_name: "8.4 曲面积分",
-    parent_chapter_id: "78d44b4a-becd-4f65-9461-f2dcdda03e37",
-    description: "学习曲面积分的概念和计算",
-    content: "<h3>8.4.1 对面积的曲面积分</h3><p>∬Σ f(x,y,z)dS表示函数f(x,y,z)在曲面Σ上的积分。</p><h3>8.4.2 对坐标的曲面积分</h3><p>∬Σ Pdydz + Qdzdx + Rdxdy表示向量场通过曲面的积分。</p><h3>8.4.3 高斯公式和斯托克斯公式</h3><p>建立重积分与曲面积分之间的关系。</p>",
-    sort_order: Int32("4"),
-    status: Int32("1"),
-    view_count: Int32("320"),
-    like_count: Int32("24"),
-    comment_count: Int32("7"),
-    create_time: ISODate("2024-01-22T11:00:00.000Z"),
-    update_time: ISODate("2024-01-22T11:00:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
-    _id: "78d44b4a-becd-4f65-9461-f2dcdda03e42",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    chapter_name: "第九章 无穷级数",
-    parent_chapter_id: null,
-    description: "掌握无穷级数的概念、收敛性判别法、幂级数和傅里叶级数",
-    content: "<h2>9.1 无穷级数的概念</h2><p>无穷级数是无穷多个数的和，是数学分析中的重要概念。级数∑(n=1 to ∞)an的收敛性通过部分和序列的极限来定义。</p><h2>9.2 级数的基本性质</h2><p>级数具有线性性质、收敛级数的必要条件等基本性质。如果级数收敛，则其通项趋于零。</p><h2>9.3 正项级数的收敛性判别法</h2><p>正项级数的收敛性判别法包括比较判别法、比值判别法、根值判别法、积分判别法等。</p><h2>9.4 交错级数</h2><p>交错级数是正负项交替出现的级数，莱布尼茨判别法是判断交错级数收敛性的重要方法。</p><h2>9.5 幂级数</h2><p>幂级数是形如∑(n=0 to ∞)an(x-a)^n的级数，在函数展开和近似计算中有重要应用。</p><h2>9.6 函数的幂级数展开</h2><p>许多函数可以展开为幂级数，包括泰勒级数和麦克劳林级数，这为函数的近似计算提供了重要工具。</p><h2>9.7 傅里叶级数</h2><p>傅里叶级数是周期函数的三角级数展开，在信号处理、物理学等领域有重要应用。</p>",
-    sort_order: Int32("9"),
-    status: Int32("1"),
-    view_count: Int32("680"),
-    like_count: Int32("55"),
-    comment_count: Int32("20"),
-    create_time: ISODate("2024-01-23T09:00:00.000Z"),
-    update_time: ISODate("2024-01-23T09:00:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
-    _id: "78d44b4a-becd-4f65-9461-f2dcdda03e43",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    chapter_name: "9.1 无穷级数的概念",
-    parent_chapter_id: "78d44b4a-becd-4f65-9461-f2dcdda03e42",
-    description: "理解无穷级数的定义和收敛性",
-    content: "<h3>9.1.1 无穷级数的定义</h3><p>∑(n=1 to ∞)an = a1 + a2 + a3 + ...</p><h3>9.1.2 级数的收敛性</h3><p>通过部分和序列的极限来定义级数的收敛性。</p><h3>9.1.3 级数的基本性质</h3><p>收敛级数的必要条件、线性性质等。</p>",
-    sort_order: Int32("1"),
-    status: Int32("1"),
-    view_count: Int32("280"),
-    like_count: Int32("20"),
-    create_time: ISODate("2024-01-23T09:30:00.000Z"),
-    update_time: ISODate("2024-01-23T09:30:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
-    _id: "78d44b4a-becd-4f65-9461-f2dcdda03e44",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    chapter_name: "9.2 正项级数的收敛性判别法",
-    parent_chapter_id: "78d44b4a-becd-4f65-9461-f2dcdda03e42",
-    description: "掌握正项级数的各种收敛性判别法",
-    content: "<h3>9.2.1 比较判别法</h3><p>通过比较两个级数来判断收敛性。</p><h3>9.2.2 比值判别法</h3><p>利用lim(n→∞)|an+1/an|来判断收敛性。</p><h3>9.2.3 根值判别法</h3><p>利用lim(n→∞)ⁿ√|an|来判断收敛性。</p><h3>9.2.4 积分判别法</h3><p>利用积分来判断级数的收敛性。</p>",
-    sort_order: Int32("2"),
-    status: Int32("1"),
-    view_count: Int32("320"),
-    like_count: Int32("24"),
-    comment_count: Int32("6"),
-    create_time: ISODate("2024-01-23T10:00:00.000Z"),
-    update_time: ISODate("2024-01-23T10:00:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
-    _id: "78d44b4a-becd-4f65-9461-f2dcdda03e45",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    chapter_name: "9.3 幂级数",
-    parent_chapter_id: "78d44b4a-becd-4f65-9461-f2dcdda03e42",
-    description: "学习幂级数的概念和性质",
-    content: "<h3>9.3.1 幂级数的定义</h3><p>∑(n=0 to ∞)an(x-a)^n形式的级数。</p><h3>9.3.2 收敛半径</h3><p>幂级数的收敛半径和收敛区间。</p><h3>9.3.3 幂级数的性质</h3><p>幂级数的和函数、逐项求导、逐项积分等。</p>",
-    sort_order: Int32("3"),
-    status: Int32("1"),
-    view_count: Int32("300"),
-    like_count: Int32("22"),
-    comment_count: Int32("6"),
-    create_time: ISODate("2024-01-23T10:30:00.000Z"),
-    update_time: ISODate("2024-01-23T10:30:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_chapter").insert([ {
-    _id: "78d44b4a-becd-4f65-9461-f2dcdda03e46",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    chapter_name: "9.4 函数的幂级数展开",
-    parent_chapter_id: "78d44b4a-becd-4f65-9461-f2dcdda03e42",
-    description: "学习函数的泰勒级数和麦克劳林级数展开",
-    content: "<h3>9.4.1 泰勒级数</h3><p>f(x) = ∑(n=0 to ∞)[f^(n)(a)/n!](x-a)^n</p><h3>9.4.2 麦克劳林级数</h3><p>当a=0时的泰勒级数。</p><h3>9.4.3 常用函数的幂级数展开</h3><p>e^x、sin(x)、cos(x)、ln(1+x)等的幂级数展开。</p><h3>9.4.4 傅里叶级数</h3><p>周期函数的三角级数展开。</p>",
-    sort_order: Int32("4"),
-    status: Int32("1"),
-    view_count: Int32("350"),
-    like_count: Int32("26"),
-    create_time: ISODate("2024-01-23T11:00:00.000Z"),
-    update_time: ISODate("2024-01-23T11:00:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-
-// ----------------------------
-// Collection structure for mg_course_forum
-// ----------------------------
-db.getCollection("mg_course_forum").drop();
-db.createCollection("mg_course_forum");
-db.getCollection("mg_course_forum").createIndex({
-    course_id: Int32("1")
-}, {
-    name: "course_id_1"
-});
-db.getCollection("mg_course_forum").createIndex({
-    forum_type: Int32("1")
-}, {
-    name: "forum_type_1"
-});
-db.getCollection("mg_course_forum").createIndex({
-    status: Int32("1")
-}, {
-    name: "status_1"
-});
-db.getCollection("mg_course_forum").createIndex({
-    sort_order: Int32("1")
-}, {
-    name: "sort_order_1"
-});
-
-// ----------------------------
-// Documents of mg_course_forum
-// ----------------------------
-db.getCollection("mg_course_forum").insert([ {
-    _id: "78d44b4a-becd-4f65-9461-f2dcdda03f01",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    forum_name: "高等数学讨论区",
-    description: "高等数学课程学习讨论区，同学们可以在这里交流学习心得、讨论问题",
-    forum_type: Int32("0"),
-    is_public: Int32("0"),
-    allow_anonymous: Int32("0"),
-    moderator_ids: [
-        "01983258-afb0-79b3-847b-0abf6a991c88"
-    ],
-    post_count: Int32("15"),
-    reply_count: Int32("45"),
-    last_post_id: "78d44b4a-becd-4f65-9461-f2dcdda03a01",
-    last_post_time: "2024-01-20T14:30:00.000Z",
-    sort_order: Int32("1"),
-    status: Int32("0"),
-    rules: "1. 请保持文明用语，尊重他人\n2. 发帖前请先搜索是否已有类似问题\n3. 问题描述要清晰，便于他人理解和回答\n4. 禁止发布与课程无关的内容",
-    tags: [
-        "高等数学",
-        "讨论",
-        "学习交流"
-    ],
-    create_time: ISODate("2024-01-15T08:00:00.000Z"),
-    update_time: ISODate("2024-01-20T14:30:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_forum").insert([ {
-    _id: "78d44b4a-becd-4f65-9461-f2dcdda03f02",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    forum_name: "高等数学问答区",
-    description: "专门用于提问和回答高等数学相关问题的区域",
-    forum_type: Int32("1"),
-    is_public: Int32("0"),
-    allow_anonymous: Int32("1"),
-    moderator_ids: [
-        "01983258-afb0-79b3-847b-0abf6a991c88",
-        "01992cb7-735d-7857-9c8c-edbe566ad0d2"
-    ],
-    post_count: Int32("8"),
-    reply_count: Int32("23"),
-    last_post_id: "78d44b4a-becd-4f65-9461-f2dcdda03a08",
-    last_post_time: "2024-01-19T16:45:00.000Z",
-    sort_order: Int32("2"),
-    status: Int32("0"),
-    rules: "1. 提问时请详细描述问题背景和具体疑问\n2. 回答时请提供详细的解题步骤\n3. 对于好的回答，请及时采纳\n4. 鼓励大家互相帮助，共同进步",
-    tags: [
-        "高等数学",
-        "问答",
-        "问题求助"
-    ],
-    create_time: ISODate("2024-01-15T08:30:00.000Z"),
-    update_time: ISODate("2024-01-19T16:45:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_forum").insert([ {
-    _id: "78d44b4a-becd-4f65-9461-f2dcdda03f03",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    forum_name: "高等数学作业区",
-    description: "发布和讨论高等数学作业的区域",
-    forum_type: Int32("2"),
-    is_public: Int32("0"),
-    allow_anonymous: Int32("0"),
-    moderator_ids: [
-        "01983258-afb0-79b3-847b-0abf6a991c88"
-    ],
-    post_count: Int32("5"),
-    reply_count: Int32("12"),
-    last_post_id: "78d44b4a-becd-4f65-9461-f2dcdda03a12",
-    last_post_time: "2024-01-18T10:20:00.000Z",
-    sort_order: Int32("3"),
-    status: Int32("0"),
-    rules: "1. 作业发布后请及时完成\n2. 可以讨论作业中的难点问题\n3. 禁止直接发布作业答案\n4. 鼓励分享解题思路和方法",
-    tags: [
-        "高等数学",
-        "作业",
-        "练习"
-    ],
-    create_time: ISODate("2024-01-15T09:00:00.000Z"),
-    update_time: ISODate("2024-01-18T10:20:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_forum").insert([ {
-    _id: "78d44b4a-becd-4f65-9461-f2dcdda03f04",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    forum_name: "课程公告区",
-    description: "发布课程相关通知和公告的区域",
-    forum_type: Int32("3"),
-    is_public: Int32("0"),
-    allow_anonymous: Int32("0"),
-    moderator_ids: [
-        "01983258-afb0-79b3-847b-0abf6a991c88"
-    ],
-    post_count: Int32("3"),
-    reply_count: Int32("0"),
-    last_post_id: "78d44b4a-becd-4f65-9461-f2dcdda03f15",
-    last_post_time: "2024-01-17T09:00:00.000Z",
-    sort_order: Int32("0"),
-    status: Int32("0"),
-    rules: "1. 仅教师和管理员可以发布公告\n2. 学生可以查看和回复公告\n3. 重要公告会置顶显示",
-    tags: [
-        "高等数学",
-        "公告",
-        "通知"
-    ],
-    create_time: ISODate("2024-01-15T07:30:00.000Z"),
-    update_time: ISODate("2024-01-17T09:00:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-
-// ----------------------------
-// Collection structure for mg_course_question_bank
-// ----------------------------
-db.getCollection("mg_course_question_bank").drop();
-db.createCollection("mg_course_question_bank");
-db.getCollection("mg_course_question_bank").createIndex({
-    course_id: Int32("1")
-}, {
-    name: "course_id_1"
-});
-db.getCollection("mg_course_question_bank").createIndex({
-    sys_user_id: Int32("1")
-}, {
-    name: "sys_user_id_1"
-});
-db.getCollection("mg_course_question_bank").createIndex({
-    bank_type: Int32("1")
-}, {
-    name: "bank_type_1"
-});
-db.getCollection("mg_course_question_bank").createIndex({
-    difficulty: Int32("1")
-}, {
-    name: "difficulty_1"
-});
-db.getCollection("mg_course_question_bank").createIndex({
-    is_public: Int32("1")
-}, {
-    name: "is_public_1"
-});
-db.getCollection("mg_course_question_bank").createIndex({
-    tags: Int32("1")
-}, {
-    name: "tags_1"
-});
-db.getCollection("mg_course_question_bank").createIndex({
-    create_time: Int32("-1")
-}, {
-    name: "create_time_-1"
-});
-
-// ----------------------------
-// Documents of mg_course_question_bank
-// ----------------------------
-db.getCollection("mg_course_question_bank").insert([ {
-    _id: "550e8400-e29b-41d4-a716-446655440001",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    sys_user_id: "0198086c-fcd1-7a09-b3c3-537de3493332",
-    bank_name: "高等数学基础题库",
-    description: "高等数学基础概念和计算题目的综合题库，涵盖函数、极限、导数等基础内容。",
-    bank_type: Int32("0"),
-    difficulty: Int32("1"),
-    is_public: Int32("1"),
-    tags: [
-        "高等数学",
-        "基础",
-        "函数",
-        "极限"
-    ],
-    create_time: ISODate("2024-01-10T10:00:00.000Z"),
-    update_time: ISODate("2024-01-10T10:00:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_question_bank").insert([ {
-    _id: "550e8400-e29b-41d4-a716-446655440002",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    sys_user_id: "0198086c-fcd1-7a09-b3c3-537de3493332",
-    bank_name: "微积分进阶题库",
-    description: "微积分进阶题目集合，包含积分、微分方程、级数等高级内容。",
-    bank_type: Int32("1"),
-    tags: [
-        "微积分",
-        "积分",
-        "微分方程",
-        "级数"
-    ],
-    difficulty: Int32("3"),
-    is_public: Int32("1"),
-    create_time: ISODate("2024-01-15T14:30:00.000Z"),
-    update_time: ISODate("2025-10-14T16:08:24.865Z"),
-    is_deleted: Int32("0"),
-    _class: "com.dayz.sapientiacloud_edupivot.course.entity.po.CourseQuestionBank"
-} ]);
-db.getCollection("mg_course_question_bank").insert([ {
-    _id: "550e8400-e29b-41d4-a716-446655440003",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    sys_user_id: "0198086c-fcd1-7a09-b3c3-537de3493332",
-    bank_name: "期末考试题库",
-    description: "期末考试专用题库，综合各章节重点难点题目。",
-    bank_type: Int32("2"),
-    difficulty: Int32("2"),
-    is_public: Int32("0"),
-    tags: [
-        "期末考试",
-        "综合",
-        "重点"
-    ],
-    create_time: ISODate("2024-01-20T09:15:00.000Z"),
-    update_time: ISODate("2024-01-20T09:15:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-
-// ----------------------------
-// Collection structure for mg_course_task
-// ----------------------------
-db.getCollection("mg_course_task").drop();
-db.createCollection("mg_course_task");
-db.getCollection("mg_course_task").createIndex({
-    course_id: Int32("1")
-}, {
-    name: "course_id_1"
-});
-db.getCollection("mg_course_task").createIndex({
-    sysUserId_id: Int32("1")
-}, {
-    name: "sysUserId_id_1"
-});
-db.getCollection("mg_course_task").createIndex({
-    task_type: Int32("1")
-}, {
-    name: "task_type_1"
-});
-db.getCollection("mg_course_task").createIndex({
-    status: Int32("1")
-}, {
-    name: "status_1"
-});
-db.getCollection("mg_course_task").createIndex({
-    start_time: Int32("1")
-}, {
-    name: "start_time_1"
-});
-db.getCollection("mg_course_task").createIndex({
-    end_time: Int32("1")
-}, {
-    name: "end_time_1"
-});
-db.getCollection("mg_course_task").createIndex({
-    difficulty: Int32("1")
-}, {
-    name: "difficulty_1"
-});
-db.getCollection("mg_course_task").createIndex({
-    tags: Int32("1")
-}, {
-    name: "tags_1"
-});
-db.getCollection("mg_course_task").createIndex({
-    create_time: Int32("-1")
-}, {
-    name: "create_time_-1"
-});
-db.getCollection("mg_course_task").createIndex({
-    view_count: Int32("-1")
-}, {
-    name: "view_count_-1"
-});
-
-// ----------------------------
-// Documents of mg_course_task
-// ----------------------------
-db.getCollection("mg_course_task").insert([ {
-    _id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    sys_user_id: "0198086c-fcd1-7a09-b3c3-537de3493332",
-    task_name: "高等数学第一章作业 - 函数与极限",
-    description: "完成第一章函数与极限的相关练习题，包括函数概念、极限定义、极限运算法则等内容。",
-    task_type: Int32("0"),
-    task_content: "<h3>第一章 函数与极限</h3><p>请完成以下题目：</p><ol><li><strong>函数概念题</strong><br/>求函数 f(x) = √(x²-4) 的定义域和值域</li><li><strong>极限计算题</strong><br/>计算下列极限：<br/>a) lim(x→0) sin(x)/x<br/>b) lim(x→∞) (x²+1)/(2x²-3x+1)</li><li><strong>极限证明题</strong><br/>用ε-δ定义证明 lim(x→2) (3x-1) = 5</li><li><strong>连续性问题</strong><br/>讨论函数 f(x) = {x², x≤1; 2x-1, x>1} 在 x=1 处的连续性</li></ol>",
-    attachment_urls: [
+// ============================================
+// 2. mg_course_task - 课程任务数据
+// ============================================
+print("正在处理 mg_course_task...");
+db.getCollection("mg_course_task").deleteMany({});
+db.getCollection("mg_course_task").insertMany([
+    {
+      _id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      course_id: "0cf2dbe8-c12d-4be7-b914-545edcf0fad8",
+      sys_user_id: "0198086c-fcd1-7a09-b3c3-537de3493332",
+      task_name: "高等数学第一章作业 - 函数与极限",
+      description: "完成第一章函数与极限的相关练习题，包括函数概念、极限定义、极限运算法则等内容。",
+      task_type: 0,
+      task_content: "<h3>第一章 函数与极限</h3><p>请完成以下题目：</p><ol><li><strong>函数概念题</strong><br/>求函数 f(x) = √(x²-4) 的定义域和值域</li><li><strong>极限计算题</strong><br/>计算下列极限：<br/>a) lim(x→0) sin(x)/x<br/>b) lim(x→∞) (x²+1)/(2x²-3x+1)</li><li><strong>极限证明题</strong><br/>用ε-δ定义证明 lim(x→2) (3x-1) = 5</li><li><strong>连续性问题</strong><br/>讨论函数 f(x) = {x², x≤1; 2x-1, x>1} 在 x=1 处的连续性</li></ol>",
+      attachment_urls: [
         "http://127.0.0.1:31589/sapientiacloud-edupivot/attachments/calculus_chapter1_homework.pdf",
         "http://127.0.0.1:31589/sapientiacloud-edupivot/attachments/limit_examples.docx"
-    ],
-    resource_urls: [
+      ],
+      resource_urls: [
         "http://127.0.0.1:31589/sapientiacloud-edupivot/resources/calculus_textbook_chapter1.pdf",
         "http://127.0.0.1:31589/sapientiacloud-edupivot/resources/limit_concepts_video.mp4",
         "http://127.0.0.1:31589/sapientiacloud-edupivot/resources/practice_problems.pdf"
-    ],
-    max_score: Int32("100"),
-    start_time: ISODate("2024-01-15T08:00:00.000Z"),
-    end_time: ISODate("2024-01-22T23:59:59.000Z"),
-    allow_late_submit: Int32("1"),
-    max_submit_count: Int32("3"),
-    auto_grade: Int32("0"),
-    tags: [
-        "高等数学",
-        "函数",
-        "极限",
-        "作业",
-        "第一章"
-    ],
-    difficulty: Int32("2"),
-    estimated_time: Int32("120"),
-    view_count: Int32("0"),
-    status: Int32("1"),
-    create_time: ISODate("2024-01-10T10:00:00.000Z"),
-    update_time: ISODate("2024-01-10T10:00:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_task").insert([ {
-    _id: "550e8400-e29b-41d4-a716-446655440001",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    sys_user_id: "0198086c-fcd1-7a09-b3c3-537de3493332",
-    task_name: "导数与微分在线测验",
-    description: "测试学生对导数概念、求导法则和微分应用的掌握程度。",
-    task_type: Int32("1"),
-    task_content: "<h3>导数与微分测验</h3><p><strong>时间限制：60分钟</strong></p><p>请回答以下选择题和计算题：</p><ol><li>函数 f(x) = x³ 的导数是？<br/>A) 3x² B) x² C) 3x D) x³</li><li>求函数 f(x) = sin(x)cos(x) 的导数</li><li>求函数 f(x) = ln(x²+1) 的导数</li><li>求函数 f(x) = e^(2x) 的二阶导数</li><li>求函数 f(x) = x²+3x+2 在 x=1 处的微分</li></ol>",
-    attachment_urls: [ ],
-    resource_urls: [
+      ],
+      max_score: 100,
+      start_time: ISODate("2024-01-15T08:00:00.000Z"),
+      end_time: ISODate("2024-01-22T23:59:59.000Z"),
+      allow_late_submit: 1,
+      max_submit_count: 3,
+      auto_grade: 0,
+      tags: ["高等数学", "函数", "极限", "作业", "第一章"],
+      difficulty: 2,
+      estimated_time: 120,
+      view_count: 0,
+      status: 1,
+      create_time: ISODate("2024-01-10T10:00:00.000Z"),
+      update_time: ISODate("2024-01-10T10:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440001",
+      course_id: "0cf2dbe8-c12d-4be7-b914-545edcf0fad8",
+      sys_user_id: "0198086c-fcd1-7a09-b3c3-537de3493332",
+      task_name: "导数与微分在线测验",
+      description: "测试学生对导数概念、求导法则和微分应用的掌握程度。",
+      task_type: 1,
+      task_content: "<h3>导数与微分测验</h3><p><strong>时间限制：60分钟</strong></p><p>请回答以下选择题和计算题：</p><ol><li>函数 f(x) = x³ 的导数是？<br/>A) 3x² B) x² C) 3x D) x³</li><li>求函数 f(x) = sin(x)cos(x) 的导数</li><li>求函数 f(x) = ln(x²+1) 的导数</li><li>求函数 f(x) = e^(2x) 的二阶导数</li><li>求函数 f(x) = x²+3x+2 在 x=1 处的微分</li></ol>",
+      attachment_urls: [],
+      resource_urls: [
         "http://127.0.0.1:31589/sapientiacloud-edupivot/resources/derivative_rules.pdf",
         "http://127.0.0.1:31589/sapientiacloud-edupivot/resources/chain_rule_examples.mp4"
-    ],
-    max_score: Int32("50"),
-    start_time: ISODate("2024-01-25T09:00:00.000Z"),
-    end_time: ISODate("2024-01-25T10:00:00.000Z"),
-    allow_late_submit: Int32("0"),
-    max_submit_count: Int32("1"),
-    auto_grade: Int32("1"),
-    tags: [
-        "高等数学",
-        "导数",
-        "微分",
-        "测验"
-    ],
-    difficulty: Int32("2"),
-    estimated_time: Int32("60"),
-    view_count: Int32("0"),
-    status: Int32("1"),
-    create_time: ISODate("2024-01-20T14:30:00.000Z"),
-    update_time: ISODate("2024-01-20T14:30:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_task").insert([ {
-    _id: "550e8400-e29b-41d4-a716-446655440002",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    sys_user_id: "0198086c-fcd1-7a09-b3c3-537de3493332",
-    task_name: "积分应用数学建模项目",
-    description: "运用积分知识解决实际问题的数学建模项目，培养数学应用能力。",
-    task_type: Int32("2"),
-    task_content: "<h3>积分应用数学建模项目</h3><p><strong>项目要求：</strong></p><ol><li><strong>问题选择</strong><br/>从以下主题中选择一个进行建模：<br/>• 人口增长模型<br/>• 经济增长模型<br/>• 物理运动问题<br/>• 工程优化问题</li><li><strong>模型建立</strong><br/>• 建立微分方程模型<br/>• 运用积分方法求解<br/>• 分析模型参数</li><li><strong>结果分析</strong><br/>• 数值计算和图形展示<br/>• 模型验证和误差分析<br/>• 实际意义解释</li><li><strong>报告撰写</strong><br/>• 完整的数学推导过程<br/>• 清晰的图表和计算<br/>• 结论和建议</li></ol>",
-    attachment_urls: [
+      ],
+      max_score: 50,
+      start_time: ISODate("2024-01-25T09:00:00.000Z"),
+      end_time: ISODate("2024-01-25T10:00:00.000Z"),
+      allow_late_submit: 0,
+      max_submit_count: 1,
+      auto_grade: 1,
+      tags: ["高等数学", "导数", "微分", "测验"],
+      difficulty: 2,
+      estimated_time: 60,
+      view_count: 0,
+      status: 1,
+      create_time: ISODate("2024-01-20T14:30:00.000Z"),
+      update_time: ISODate("2024-01-20T14:30:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440002",
+      course_id: "0cf2dbe8-c12d-4be7-b914-545edcf0fad8",
+      sys_user_id: "0198086c-fcd1-7a09-b3c3-537de3493332",
+      task_name: "积分应用数学建模项目",
+      description: "运用积分知识解决实际问题的数学建模项目，培养数学应用能力。",
+      task_type: 2,
+      task_content: "<h3>积分应用数学建模项目</h3><p><strong>项目要求：</strong></p><ol><li><strong>问题选择</strong><br/>从以下主题中选择一个进行建模：<br/>• 人口增长模型<br/>• 经济增长模型<br/>• 物理运动问题<br/>• 工程优化问题</li><li><strong>模型建立</strong><br/>• 建立微分方程模型<br/>• 运用积分方法求解<br/>• 分析模型参数</li><li><strong>结果分析</strong><br/>• 数值计算和图形展示<br/>• 模型验证和误差分析<br/>• 实际意义解释</li><li><strong>报告撰写</strong><br/>• 完整的数学推导过程<br/>• 清晰的图表和计算<br/>• 结论和建议</li></ol>",
+      attachment_urls: [
         "http://127.0.0.1:31589/sapientiacloud-edupivot/attachments/modeling_guidelines.pdf",
         "http://127.0.0.1:31589/sapientiacloud-edupivot/attachments/integration_examples.zip",
         "http://127.0.0.1:31589/sapientiacloud-edupivot/attachments/report_template.docx"
-    ],
-    resource_urls: [
+      ],
+      resource_urls: [
         "http://127.0.0.1:31589/sapientiacloud-edupivot/resources/mathematical_modeling.pdf",
-        "http://127.0.0.1:31589/sapientiacloud-edupivot/resources/integration_applications.mp4",
-        "http://127.0.0.1:31589/sapientiacloud-edupivot/resources/matlab_tutorial.pdf"
-    ],
-    max_score: Int32("150"),
-    start_time: ISODate("2024-02-01T08:00:00.000Z"),
-    end_time: ISODate("2024-03-15T23:59:59.000Z"),
-    allow_late_submit: Int32("1"),
-    max_submit_count: Int32("2"),
-    auto_grade: Int32("0"),
-    tags: [
-        "高等数学",
-        "积分",
-        "数学建模",
-        "项目",
-        "应用"
-    ],
-    difficulty: Int32("3"),
-    estimated_time: Int32("1440"),
-    view_count: Int32("0"),
-    status: Int32("1"),
-    create_time: ISODate("2024-01-25T16:00:00.000Z"),
-    update_time: ISODate("2024-01-25T16:00:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_task").insert([ {
-    _id: "550e8400-e29b-41d4-a716-446655440003",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    sys_user_id: "0198086c-fcd1-7a09-b3c3-537de3493332",
-    task_name: "多元函数微分学实验",
-    description: "通过计算机实验探索多元函数的偏导数、全微分和极值问题。",
-    task_type: Int32("3"),
-    task_content: "<h3>多元函数微分学实验</h3><p><strong>实验目标：</strong>通过MATLAB或Python编程，研究多元函数的微分性质</p><p><strong>实验内容：</strong></p><ol><li><strong>偏导数计算</strong><br/>• 计算函数 f(x,y) = x²y + xy² 的一阶和二阶偏导数<br/>• 验证混合偏导数相等性</li><li><strong>全微分研究</strong><br/>• 计算函数 f(x,y) = sin(xy) 的全微分<br/>• 分析全微分的几何意义</li><li><strong>极值问题</strong><br/>• 求函数 f(x,y) = x³ + y³ - 3xy 的极值点<br/>• 绘制函数图形和等高线图</li><li><strong>条件极值</strong><br/>• 在约束条件 x² + y² = 1 下求 f(x,y) = xy 的极值<br/>• 使用拉格朗日乘数法</li></ol><p><strong>实验报告要求：</strong></p><ul><li>完整的代码和运行结果</li><li>数学推导过程</li><li>图形分析和解释</li><li>实验心得和思考</li></ul>",
-    attachment_urls: [
-        "http://127.0.0.1:31589/sapientiacloud-edupivot/attachments/matlab_scripts.zip",
-        "http://127.0.0.1:31589/sapientiacloud-edupivot/attachments/experiment_template.m"
-    ],
-    resource_urls: [
-        "http://127.0.0.1:31589/sapientiacloud-edupivot/resources/multivariable_calculus.pdf",
-        "http://127.0.0.1:31589/sapientiacloud-edupivot/resources/matlab_tutorial.mp4",
-        "http://127.0.0.1:31589/sapientiacloud-edupivot/resources/3d_plotting_guide.pdf"
-    ],
-    max_score: Int32("80"),
-    start_time: ISODate("2024-02-10T08:00:00.000Z"),
-    end_time: ISODate("2024-02-17T23:59:59.000Z"),
-    allow_late_submit: Int32("1"),
-    max_submit_count: Int32("2"),
-    auto_grade: Int32("0"),
-    tags: [
-        "高等数学",
-        "多元函数",
-        "偏导数",
-        "实验",
-        "MATLAB"
-    ],
-    difficulty: Int32("2"),
-    estimated_time: Int32("180"),
-    view_count: Int32("0"),
-    status: Int32("1"),
-    create_time: ISODate("2024-02-05T11:20:00.000Z"),
-    update_time: ISODate("2024-02-05T11:20:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_course_task").insert([ {
-    _id: "550e8400-e29b-41d4-a716-446655440004",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    sys_user_id: "0197ee62-be08-7c57-b1ff-42b1fa3c8b3f",
-    task_name: "级数收敛性分析作业",
-    description: "分析各种级数的收敛性，掌握级数收敛的判别方法。",
-    task_type: Int32("0"),
-    task_content: "<h3>级数收敛性分析</h3><p>请判断下列级数的收敛性，并说明理由：</p><ol><li>∑(n=1 to ∞) 1/n²</li><li>∑(n=1 to ∞) (-1)ⁿ/n</li><li>∑(n=1 to ∞) n!/nⁿ</li><li>∑(n=1 to ∞) (2n)!/(n!)²</li><li>∑(n=1 to ∞) sin(n)/n²</li></ol><p><strong>要求：</strong></p><ul><li>使用适当的收敛判别法</li><li>详细说明判断过程</li><li>如果收敛，求其和（如果可能）</li><li>如果发散，说明发散类型</li></ul>",
-    attachment_urls: [
-        "http://127.0.0.1:31589/sapientiacloud-edupivot/attachments/series_convergence_guide.pdf"
-    ],
-    resource_urls: [
-        "http://127.0.0.1:31589/sapientiacloud-edupivot/resources/series_convergence.pdf",
-        "http://127.0.0.1:31589/sapientiacloud-edupivot/resources/convergence_tests.mp4"
-    ],
-    max_score: Int32("100"),
-    start_time: ISODate("2024-02-20T08:00:00.000Z"),
-    end_time: ISODate("2024-02-27T23:59:59.000Z"),
-    allow_late_submit: Int32("1"),
-    max_submit_count: Int32("3"),
-    auto_grade: Int32("0"),
-    tags: [
-        "高等数学",
-        "级数",
-        "收敛性",
-        "作业"
-    ],
-    difficulty: Int32("3"),
-    estimated_time: Int32("150"),
-    view_count: Int32("0"),
-    status: Int32("0"),
-    create_time: ISODate("2024-02-15T09:45:00.000Z"),
-    update_time: ISODate("2024-02-15T09:45:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
+        "http://127.0.0.1:31589/sapientiacloud-edupivot/resources/integration_applications.mp4"
+      ],
+      max_score: 150,
+      start_time: ISODate("2024-02-01T08:00:00.000Z"),
+      end_time: ISODate("2024-02-28T23:59:59.000Z"),
+      allow_late_submit: 1,
+      max_submit_count: 2,
+      auto_grade: 0,
+      tags: ["高等数学", "积分", "数学建模", "项目"],
+      difficulty: 3,
+      estimated_time: 480,
+      view_count: 0,
+      status: 1,
+      create_time: ISODate("2024-01-28T10:00:00.000Z"),
+      update_time: ISODate("2024-01-28T10:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440003",
+      course_id: "0f2231b3-d310-49c9-913e-1ad5e8f46e47",
+      sys_user_id: "24c7df03-1dd3-4b69-8686-725ec68fd095",
+      task_name: "网络安全基础作业",
+      description: "完成网络安全基础知识的学习和练习，包括加密算法、数字签名等内容。",
+      task_type: 0,
+      task_content: "<h3>网络安全基础作业</h3><p>请完成以下题目：</p><ol><li>简述对称加密和非对称加密的区别</li><li>解释数字签名的原理和作用</li><li>分析RSA算法的安全性</li><li>设计一个简单的加密通信方案</li></ol>",
+      attachment_urls: [],
+      resource_urls: [
+        "http://127.0.0.1:31589/sapientiacloud-edupivot/resources/network_security_basics.pdf"
+      ],
+      max_score: 100,
+      start_time: ISODate("2024-02-05T08:00:00.000Z"),
+      end_time: ISODate("2024-02-12T23:59:59.000Z"),
+      allow_late_submit: 1,
+      max_submit_count: 3,
+      auto_grade: 0,
+      tags: ["网络安全", "加密", "作业"],
+      difficulty: 2,
+      estimated_time: 120,
+      view_count: 0,
+      status: 1,
+      create_time: ISODate("2024-02-02T10:00:00.000Z"),
+      update_time: ISODate("2024-02-02T10:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440004",
+      course_id: "173432dc-eb2d-4a33-a659-8b5ef9f15900",
+      sys_user_id: "b57f2213-a134-4624-8ac8-7edc4e592f6d",
+      task_name: "操作系统进程管理测验",
+      description: "测试学生对进程、线程、进程调度等概念的理解。",
+      task_type: 1,
+      task_content: "<h3>操作系统进程管理测验</h3><p><strong>时间限制：45分钟</strong></p><p>请回答以下题目：</p><ol><li>进程和线程的区别是什么？</li><li>死锁产生的四个必要条件是什么？</li><li>简述进程调度的几种算法</li><li>如何避免死锁？</li></ol>",
+      attachment_urls: [],
+      resource_urls: [],
+      max_score: 50,
+      start_time: ISODate("2024-02-10T09:00:00.000Z"),
+      end_time: ISODate("2024-02-10T09:45:00.000Z"),
+      allow_late_submit: 0,
+      max_submit_count: 1,
+      auto_grade: 0,
+      tags: ["操作系统", "进程", "测验"],
+      difficulty: 2,
+      estimated_time: 45,
+      view_count: 0,
+      status: 1,
+      create_time: ISODate("2024-02-06T11:00:00.000Z"),
+      update_time: ISODate("2024-02-06T11:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440005",
+      course_id: "28e0ba83-8b52-448c-a932-b83b536440c8",
+      sys_user_id: "b6bbcc62-c65b-44d3-85cb-b8ca05a17993",
+      task_name: "数据库设计项目",
+      description: "设计一个完整的数据库系统，包括ER图设计、表结构设计、SQL实现等。",
+      task_type: 2,
+      task_content: "<h3>数据库设计项目</h3><p><strong>项目要求：</strong></p><ol><li><strong>需求分析</strong><br/>选择一个实际应用场景，分析数据需求</li><li><strong>ER图设计</strong><br/>绘制完整的ER图，包括实体、属性和关系</li><li><strong>表结构设计</strong><br/>设计数据库表结构，包括字段、类型、约束等</li><li><strong>SQL实现</strong><br/>编写建表语句、查询语句、存储过程等</li><li><strong>性能优化</strong><br/>设计索引、优化查询语句</li></ol>",
+      attachment_urls: [
+        "http://127.0.0.1:31589/sapientiacloud-edupivot/attachments/database_design_guidelines.pdf"
+      ],
+      resource_urls: [
+        "http://127.0.0.1:31589/sapientiacloud-edupivot/resources/database_design_examples.pdf"
+      ],
+      max_score: 150,
+      start_time: ISODate("2024-02-15T08:00:00.000Z"),
+      end_time: ISODate("2024-03-15T23:59:59.000Z"),
+      allow_late_submit: 1,
+      max_submit_count: 2,
+      auto_grade: 0,
+      tags: ["数据库", "设计", "项目"],
+      difficulty: 3,
+      estimated_time: 600,
+      view_count: 0,
+      status: 1,
+      create_time: ISODate("2024-02-11T09:00:00.000Z"),
+      update_time: ISODate("2024-02-11T09:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440006",
+      course_id: "2d9d9b8d-250e-4554-95cd-1539735775f7",
+      sys_user_id: "b57f2213-a134-4624-8ac8-7edc4e592f6d",
+      task_name: "编译原理词法分析作业",
+      description: "实现一个简单的词法分析器，能够识别标识符、关键字、运算符等。",
+      task_type: 0,
+      task_content: "<h3>编译原理词法分析作业</h3><p>请完成以下任务：</p><ol><li>设计词法规则，包括标识符、关键字、运算符、分隔符等</li><li>使用正则表达式描述词法规则</li><li>实现词法分析器，能够识别各种词法单元</li><li>编写测试用例，验证词法分析器的正确性</li></ol>",
+      attachment_urls: [],
+      resource_urls: [
+        "http://127.0.0.1:31589/sapientiacloud-edupivot/resources/lexical_analysis.pdf"
+      ],
+      max_score: 100,
+      start_time: ISODate("2024-02-20T08:00:00.000Z"),
+      end_time: ISODate("2024-02-27T23:59:59.000Z"),
+      allow_late_submit: 1,
+      max_submit_count: 3,
+      auto_grade: 0,
+      tags: ["编译原理", "词法分析", "作业"],
+      difficulty: 3,
+      estimated_time: 180,
+      view_count: 0,
+      status: 1,
+      create_time: ISODate("2024-02-16T10:00:00.000Z"),
+      update_time: ISODate("2024-02-16T10:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440007",
+      course_id: "32e6b5e7-1792-4630-b433-9ba0739b003b",
+      sys_user_id: "b6bbcc62-c65b-44d3-85cb-b8ca05a17993",
+      task_name: "计算机网络协议分析测验",
+      description: "测试学生对TCP/IP协议栈、HTTP协议等的理解。",
+      task_type: 1,
+      task_content: "<h3>计算机网络协议分析测验</h3><p><strong>时间限制：60分钟</strong></p><p>请回答以下题目：</p><ol><li>简述TCP三次握手的过程</li><li>HTTP和HTTPS的区别是什么？</li><li>解释IP地址的分类和子网划分</li><li>分析TCP和UDP的优缺点</li></ol>",
+      attachment_urls: [],
+      resource_urls: [],
+      max_score: 50,
+      start_time: ISODate("2024-02-25T09:00:00.000Z"),
+      end_time: ISODate("2024-02-25T10:00:00.000Z"),
+      allow_late_submit: 0,
+      max_submit_count: 1,
+      auto_grade: 0,
+      tags: ["计算机网络", "协议", "测验"],
+      difficulty: 2,
+      estimated_time: 60,
+      view_count: 0,
+      status: 1,
+      create_time: ISODate("2024-02-21T10:00:00.000Z"),
+      update_time: ISODate("2024-02-21T10:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440008",
+      course_id: "3a2a3444-31a3-46f6-8322-7d99a25a1796",
+      sys_user_id: "da4f9ad2-736c-4c0b-8235-d565edde803e",
+      task_name: "Docker容器化部署项目",
+      description: "使用Docker容器化技术部署一个Web应用，包括镜像构建、容器编排等。",
+      task_type: 2,
+      task_content: "<h3>Docker容器化部署项目</h3><p><strong>项目要求：</strong></p><ol><li><strong>应用选择</strong><br/>选择一个Web应用进行容器化</li><li><strong>Dockerfile编写</strong><br/>编写Dockerfile，构建应用镜像</li><li><strong>容器编排</strong><br/>使用Docker Compose或Kubernetes进行容器编排</li><li><strong>部署测试</strong><br/>部署应用并进行功能测试</li><li><strong>文档编写</strong><br/>编写部署文档和使用说明</li></ol>",
+      attachment_urls: [
+        "http://127.0.0.1:31589/sapientiacloud-edupivot/attachments/docker_guide.pdf"
+      ],
+      resource_urls: [
+        "http://127.0.0.1:31589/sapientiacloud-edupivot/resources/docker_tutorial.mp4"
+      ],
+      max_score: 150,
+      start_time: ISODate("2024-03-01T08:00:00.000Z"),
+      end_time: ISODate("2024-03-31T23:59:59.000Z"),
+      allow_late_submit: 1,
+      max_submit_count: 2,
+      auto_grade: 0,
+      tags: ["云计算", "Docker", "容器", "项目"],
+      difficulty: 3,
+      estimated_time: 480,
+      view_count: 0,
+      status: 1,
+      create_time: ISODate("2024-02-26T09:00:00.000Z"),
+      update_time: ISODate("2024-02-26T09:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440009",
+      course_id: "7d69b274-deb8-4b9a-8e69-ca93f10dd115",
+      sys_user_id: "fc65a565-31a5-4ea2-83c1-448426a01155",
+      task_name: "Vue3项目开发作业",
+      description: "使用Vue3开发一个完整的单页应用，包括组件设计、状态管理、路由等。",
+      task_type: 0,
+      task_content: "<h3>Vue3项目开发作业</h3><p>请完成以下任务：</p><ol><li>使用Vue3 Composition API开发应用</li><li>实现组件化设计，包括可复用组件</li><li>使用Vue Router实现路由管理</li><li>使用Pinia或Vuex进行状态管理</li><li>实现响应式布局和交互效果</li></ol>",
+      attachment_urls: [],
+      resource_urls: [
+        "http://127.0.0.1:31589/sapientiacloud-edupivot/resources/vue3_tutorial.pdf"
+      ],
+      max_score: 100,
+      start_time: ISODate("2024-03-05T08:00:00.000Z"),
+      end_time: ISODate("2024-03-19T23:59:59.000Z"),
+      allow_late_submit: 1,
+      max_submit_count: 3,
+      auto_grade: 0,
+      tags: ["Web前端", "Vue", "作业"],
+      difficulty: 3,
+      estimated_time: 240,
+      view_count: 0,
+      status: 1,
+      create_time: ISODate("2024-03-02T08:00:00.000Z"),
+      update_time: ISODate("2024-03-02T08:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440010",
+      course_id: "8caf6fcf-501b-427b-b31d-697c4b53dfbb",
+      sys_user_id: "4a7bae38-28d2-4b49-a985-d1aa2f3d072e",
+      task_name: "Hadoop大数据处理项目",
+      description: "使用Hadoop生态系统进行大数据处理和分析，包括HDFS、MapReduce、Hive等。",
+      task_type: 2,
+      task_content: "<h3>Hadoop大数据处理项目</h3><p><strong>项目要求：</strong></p><ol><li><strong>数据准备</strong><br/>准备大规模数据集（至少1GB）</li><li><strong>HDFS存储</strong><br/>将数据存储到HDFS中</li><li><strong>MapReduce编程</strong><br/>编写MapReduce程序进行数据处理</li><li><strong>Hive分析</strong><br/>使用Hive进行数据查询和分析</li><li><strong>结果展示</strong><br/>展示分析结果和可视化图表</li></ol>",
+      attachment_urls: [
+        "http://127.0.0.1:31589/sapientiacloud-edupivot/attachments/hadoop_guide.pdf"
+      ],
+      resource_urls: [
+        "http://127.0.0.1:31589/sapientiacloud-edupivot/resources/hadoop_tutorial.mp4"
+      ],
+      max_score: 150,
+      start_time: ISODate("2024-03-10T08:00:00.000Z"),
+      end_time: ISODate("2024-04-10T23:59:59.000Z"),
+      allow_late_submit: 1,
+      max_submit_count: 2,
+      auto_grade: 0,
+      tags: ["大数据", "Hadoop", "项目"],
+      difficulty: 3,
+      estimated_time: 600,
+      view_count: 0,
+      status: 1,
+      create_time: ISODate("2024-03-06T10:00:00.000Z"),
+      update_time: ISODate("2024-03-06T10:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440011",
+      course_id: "a772626c-1084-4b54-8d67-086694bd39c0",
+      sys_user_id: "0db2d446-97ac-45f6-97fe-e2ab9fbb33a7",
+      task_name: "Android应用开发项目",
+      description: "开发一个完整的Android应用，包括UI设计、数据存储、网络请求等功能。",
+      task_type: 2,
+      task_content: "<h3>Android应用开发项目</h3><p><strong>项目要求：</strong></p><ol><li><strong>应用设计</strong><br/>设计应用的功能和界面</li><li><strong>UI实现</strong><br/>使用Material Design设计UI</li><li><strong>数据存储</strong><br/>使用SQLite或Room进行数据存储</li><li><strong>网络请求</strong><br/>使用Retrofit进行网络请求</li><li><strong>功能测试</strong><br/>进行功能测试和性能优化</li></ol>",
+      attachment_urls: [
+        "http://127.0.0.1:31589/sapientiacloud-edupivot/attachments/android_guide.pdf"
+      ],
+      resource_urls: [
+        "http://127.0.0.1:31589/sapientiacloud-edupivot/resources/android_tutorial.mp4"
+      ],
+      max_score: 150,
+      start_time: ISODate("2024-03-15T08:00:00.000Z"),
+      end_time: ISODate("2024-04-15T23:59:59.000Z"),
+      allow_late_submit: 1,
+      max_submit_count: 2,
+      auto_grade: 0,
+      tags: ["移动开发", "Android", "项目"],
+      difficulty: 3,
+      estimated_time: 480,
+      view_count: 0,
+      status: 1,
+      create_time: ISODate("2024-03-11T09:00:00.000Z"),
+      update_time: ISODate("2024-03-11T09:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440012",
+      course_id: "b36f76a6-3726-4b9a-b3cc-ad6ef589920c",
+      sys_user_id: "d31bc6b3-6bb0-4e07-bf27-9c4d4a94237b",
+      task_name: "线性代数矩阵运算作业",
+      description: "完成矩阵运算的相关练习，包括矩阵乘法、求逆、特征值等。",
+      task_type: 0,
+      task_content: "<h3>线性代数矩阵运算作业</h3><p>请完成以下题目：</p><ol><li>计算矩阵A和B的乘积</li><li>求矩阵A的逆矩阵</li><li>求矩阵A的特征值和特征向量</li><li>判断矩阵A是否可对角化</li></ol>",
+      attachment_urls: [],
+      resource_urls: [
+        "http://127.0.0.1:31589/sapientiacloud-edupivot/resources/linear_algebra.pdf"
+      ],
+      max_score: 100,
+      start_time: ISODate("2024-03-20T08:00:00.000Z"),
+      end_time: ISODate("2024-03-27T23:59:59.000Z"),
+      allow_late_submit: 1,
+      max_submit_count: 3,
+      auto_grade: 0,
+      tags: ["线性代数", "矩阵", "作业"],
+      difficulty: 2,
+      estimated_time: 120,
+      view_count: 0,
+      status: 1,
+      create_time: ISODate("2024-03-16T11:00:00.000Z"),
+      update_time: ISODate("2024-03-16T11:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440013",
+      course_id: "bb4824f3-2f97-401e-9a1a-c92558cfc221",
+      sys_user_id: "da4f9ad2-736c-4c0b-8235-d565edde803e",
+      task_name: "数据结构算法实现作业",
+      description: "实现常见的数据结构和算法，包括排序、查找、树遍历等。",
+      task_type: 0,
+      task_content: "<h3>数据结构算法实现作业</h3><p>请完成以下任务：</p><ol><li>实现快速排序算法</li><li>实现二叉树的三种遍历方式</li><li>实现图的深度优先搜索和广度优先搜索</li><li>实现哈希表的插入和查找操作</li></ol>",
+      attachment_urls: [],
+      resource_urls: [
+        "http://127.0.0.1:31589/sapientiacloud-edupivot/resources/data_structure.pdf"
+      ],
+      max_score: 100,
+      start_time: ISODate("2024-03-25T08:00:00.000Z"),
+      end_time: ISODate("2024-04-01T23:59:59.000Z"),
+      allow_late_submit: 1,
+      max_submit_count: 3,
+      auto_grade: 0,
+      tags: ["数据结构", "算法", "作业"],
+      difficulty: 3,
+      estimated_time: 180,
+      view_count: 0,
+      status: 1,
+      create_time: ISODate("2024-03-21T08:00:00.000Z"),
+      update_time: ISODate("2024-03-21T08:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440014",
+      course_id: "c4da4d8c-e5bb-4833-b3c8-4896cd585dc2",
+      sys_user_id: "cf76a275-f0f4-492e-bd13-71e6ec75de8a",
+      task_name: "软件工程需求分析项目",
+      description: "完成一个软件项目的需求分析，包括需求获取、分析、规格说明等。",
+      task_type: 2,
+      task_content: "<h3>软件工程需求分析项目</h3><p><strong>项目要求：</strong></p><ol><li><strong>需求获取</strong><br/>通过访谈、问卷等方式获取用户需求</li><li><strong>需求分析</strong><br/>分析需求的合理性、完整性和一致性</li><li><strong>需求规格说明</strong><br/>编写详细的需求规格说明书</li><li><strong>需求验证</strong><br/>验证需求的正确性和可验证性</li><li><strong>需求管理</strong><br/>建立需求变更管理机制</li></ol>",
+      attachment_urls: [
+        "http://127.0.0.1:31589/sapientiacloud-edupivot/attachments/requirements_analysis_guide.pdf"
+      ],
+      resource_urls: [
+        "http://127.0.0.1:31589/sapientiacloud-edupivot/resources/software_engineering.pdf"
+      ],
+      max_score: 150,
+      start_time: ISODate("2024-03-30T08:00:00.000Z"),
+      end_time: ISODate("2024-04-30T23:59:59.000Z"),
+      allow_late_submit: 1,
+      max_submit_count: 2,
+      auto_grade: 0,
+      tags: ["软件工程", "需求分析", "项目"],
+      difficulty: 3,
+      estimated_time: 480,
+      view_count: 0,
+      status: 1,
+      create_time: ISODate("2024-03-26T10:00:00.000Z"),
+      update_time: ISODate("2024-03-26T10:00:00.000Z"),
+      is_deleted: 0
+    }
+  ]);
 
-// ----------------------------
-// Collection structure for mg_forum_post
-// ----------------------------
-db.getCollection("mg_forum_post").drop();
-db.createCollection("mg_forum_post");
-db.getCollection("mg_forum_post").createIndex({
-    forum_id: Int32("1")
-}, {
-    name: "forum_id_1"
-});
-db.getCollection("mg_forum_post").createIndex({
-    course_id: Int32("1")
-}, {
-    name: "course_id_1"
-});
-db.getCollection("mg_forum_post").createIndex({
-    author_id: Int32("1")
-}, {
-    name: "author_id_1"
-});
-db.getCollection("mg_forum_post").createIndex({
-    post_type: Int32("1")
-}, {
-    name: "post_type_1"
-});
-db.getCollection("mg_forum_post").createIndex({
-    is_top: Int32("1"),
-    create_time: Int32("-1")
-}, {
-    name: "is_top_1_create_time_-1"
-});
-db.getCollection("mg_forum_post").createIndex({
-    status: Int32("1")
-}, {
-    name: "status_1"
-});
-db.getCollection("mg_forum_post").createIndex({
-    create_time: Int32("-1")
-}, {
-    name: "create_time_-1"
-});
-db.getCollection("mg_forum_post").createIndex({
-    tags: Int32("1")
-}, {
-    name: "tags_1"
-});
+// ============================================
+// 3. mg_forum_reply - 论坛回复数据
+// ============================================
+print("正在处理 mg_forum_reply...");
+db.getCollection("mg_forum_reply").deleteMany({});
+db.getCollection("mg_forum_reply").insertMany([
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03b01",
+      post_id: "78d44b4a-becd-4f65-9461-f2dcdda03a01",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f01",
+      course_id: "0cf2dbe8-c12d-4be7-b914-545edcf0fad8",
+      sys_user_id: "01983258-afb0-79b3-847b-0abf6a991c88",
+      content: "总结得很好！我补充一点，在计算极限时还要注意左右极限是否相等，特别是分段函数和含有绝对值的函数。",
+      reply_to_user_id: "01992cb7-735d-7857-9c8c-edbe566ad0d2",
+      parent_reply_id: null,
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      like_count: 5,
+      reply_count: 2,
+      is_accepted: 0,
+      floor_number: 1,
+      status: 0,
+      ip_address: "192.168.1.100",
+      user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      create_time: ISODate("2024-01-16T11:30:00.000Z"),
+      update_time: ISODate("2024-01-16T11:30:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03b02",
+      post_id: "78d44b4a-becd-4f65-9461-f2dcdda03a01",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f01",
+      course_id: "0cf2dbe8-c12d-4be7-b914-545edcf0fad8",
+      sys_user_id: "01992cb6-d9a7-7841-9e2b-9dcc1c9ea0a7",
+      content: "老师说得对！我经常忘记考虑左右极限，导致答案错误。",
+      reply_to_user_id: "01983258-afb0-79b3-847b-0abf6a991c88",
+      parent_reply_id: "78d44b4a-becd-4f65-9461-f2dcdda03b01",
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      like_count: 3,
+      reply_count: 0,
+      is_accepted: 0,
+      floor_number: 2,
+      status: 0,
+      ip_address: "192.168.1.101",
+      user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      create_time: ISODate("2024-01-16T12:00:00.000Z"),
+      update_time: ISODate("2024-01-16T12:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03b03",
+      post_id: "78d44b4a-becd-4f65-9461-f2dcdda03a01",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f01",
+      course_id: "0cf2dbe8-c12d-4be7-b914-545edcf0fad8",
+      sys_user_id: "01992cb7-735d-7857-9c8c-edbe566ad0d2",
+      content: "感谢补充！左右极限确实是很多同学容易忽略的点。",
+      reply_to_user_id: "01983258-afb0-79b3-847b-0abf6a991c88",
+      parent_reply_id: "78d44b4a-becd-4f65-9461-f2dcdda03b01",
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      like_count: 2,
+      reply_count: 0,
+      is_accepted: 0,
+      floor_number: 3,
+      status: 0,
+      ip_address: "192.168.1.102",
+      user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      create_time: ISODate("2024-01-16T12:30:00.000Z"),
+      update_time: ISODate("2024-01-16T12:30:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03b04",
+      post_id: "78d44b4a-becd-4f65-9461-f2dcdda03a02",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f01",
+      course_id: "0cf2dbe8-c12d-4be7-b914-545edcf0fad8",
+      sys_user_id: "01992cb7-735d-7857-9c8c-edbe566ad0d2",
+      content: "导数的几何意义是函数图像在某点处的切线斜率。当导数为正时，函数递增；当导数为负时，函数递减；当导数为零时，函数可能有极值。",
+      reply_to_user_id: "01983258-afb0-79b3-847b-0abf6a991c88",
+      parent_reply_id: null,
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      like_count: 8,
+      reply_count: 3,
+      is_accepted: 1,
+      floor_number: 1,
+      status: 0,
+      ip_address: "192.168.1.103",
+      user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      create_time: ISODate("2024-01-17T10:00:00.000Z"),
+      update_time: ISODate("2024-01-17T10:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03b05",
+      post_id: "78d44b4a-becd-4f65-9461-f2dcdda03a03",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f02",
+      course_id: "0cf2dbe8-c12d-4be7-b914-545edcf0fad8",
+      sys_user_id: "01983258-afb0-79b3-847b-0abf6a991c88",
+      content: "这个极限可以使用洛必达法则，或者使用重要极限 lim(x→0) sin(x)/x = 1。直接代入会得到0/0的不定式，需要变形处理。",
+      reply_to_user_id: "01992cb6-d9a7-7841-9e2b-9dcc1c9ea0a7",
+      parent_reply_id: null,
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      like_count: 6,
+      reply_count: 1,
+      is_accepted: 1,
+      floor_number: 1,
+      status: 0,
+      ip_address: "192.168.1.104",
+      user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      create_time: ISODate("2024-01-18T15:00:00.000Z"),
+      update_time: ISODate("2024-01-18T15:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03b06",
+      post_id: "78d44b4a-becd-4f65-9461-f2dcdda03a04",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f03",
+      course_id: "0f2231b3-d310-49c9-913e-1ad5e8f46e47",
+      sys_user_id: "24c7df03-1dd3-4b69-8686-725ec68fd095",
+      content: "对称加密使用同一个密钥进行加密和解密，速度快但密钥分发困难；非对称加密使用公钥和私钥，安全性高但速度较慢。实际应用中常结合使用。",
+      reply_to_user_id: "24c7df03-1dd3-4b69-8686-725ec68fd095",
+      parent_reply_id: null,
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      like_count: 12,
+      reply_count: 4,
+      is_accepted: 1,
+      floor_number: 1,
+      status: 0,
+      ip_address: "192.168.1.105",
+      user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      create_time: ISODate("2024-02-02T11:00:00.000Z"),
+      update_time: ISODate("2024-02-02T11:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03b07",
+      post_id: "78d44b4a-becd-4f65-9461-f2dcdda03a05",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f04",
+      course_id: "173432dc-eb2d-4a33-a659-8b5ef9f15900",
+      sys_user_id: "b57f2213-a134-4624-8ac8-7edc4e592f6d",
+      content: "进程是资源分配的基本单位，拥有独立的地址空间；线程是CPU调度的基本单位，共享进程的资源。多线程可以提高程序的并发性能。",
+      reply_to_user_id: "b57f2213-a134-4624-8ac8-7edc4e592f6d",
+      parent_reply_id: null,
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      like_count: 9,
+      reply_count: 2,
+      is_accepted: 1,
+      floor_number: 1,
+      status: 0,
+      ip_address: "192.168.1.106",
+      user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      create_time: ISODate("2024-02-06T12:00:00.000Z"),
+      update_time: ISODate("2024-02-06T12:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03b08",
+      post_id: "78d44b4a-becd-4f65-9461-f2dcdda03a01",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f01",
+      course_id: "0cf2dbe8-c12d-4be7-b914-545edcf0fad8",
+      sys_user_id: "01992cb6-d9a7-7841-9e2b-9dcc1c9ea0a7",
+      content: "非常实用的总结！我会把这些要点记录下来，避免再犯同样的错误。",
+      reply_to_user_id: "01992cb7-735d-7857-9c8c-edbe566ad0d2",
+      parent_reply_id: null,
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      like_count: 4,
+      reply_count: 0,
+      is_accepted: 0,
+      floor_number: 4,
+      status: 0,
+      ip_address: "192.168.1.107",
+      user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      create_time: ISODate("2024-01-20T14:30:00.000Z"),
+      update_time: ISODate("2024-01-20T14:30:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03b09",
+      post_id: "78d44b4a-becd-4f65-9461-f2dcdda03a02",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f01",
+      course_id: "0cf2dbe8-c12d-4be7-b914-545edcf0fad8",
+      sys_user_id: "01983258-afb0-79b3-847b-0abf6a991c88",
+      content: "谢谢老师的详细解答！现在对导数的几何意义有了更清晰的理解。",
+      reply_to_user_id: "01992cb7-735d-7857-9c8c-edbe566ad0d2",
+      parent_reply_id: "78d44b4a-becd-4f65-9461-f2dcdda03b04",
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      like_count: 2,
+      reply_count: 0,
+      is_accepted: 0,
+      floor_number: 2,
+      status: 0,
+      ip_address: "192.168.1.108",
+      user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      create_time: ISODate("2024-01-18T15:20:00.000Z"),
+      update_time: ISODate("2024-01-18T15:20:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03b10",
+      post_id: "78d44b4a-becd-4f65-9461-f2dcdda03a03",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f02",
+      course_id: "0cf2dbe8-c12d-4be7-b914-545edcf0fad8",
+      sys_user_id: "01992cb6-d9a7-7841-9e2b-9dcc1c9ea0a7",
+      content: "明白了！谢谢老师的解答。",
+      reply_to_user_id: "01983258-afb0-79b3-847b-0abf6a991c88",
+      parent_reply_id: "78d44b4a-becd-4f65-9461-f2dcdda03b05",
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      like_count: 1,
+      reply_count: 0,
+      is_accepted: 0,
+      floor_number: 2,
+      status: 0,
+      ip_address: "192.168.1.109",
+      user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      create_time: ISODate("2024-01-19T10:30:00.000Z"),
+      update_time: ISODate("2024-01-19T10:30:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03b11",
+      post_id: "78d44b4a-becd-4f65-9461-f2dcdda03a04",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f03",
+      course_id: "0f2231b3-d310-49c9-913e-1ad5e8f46e47",
+      sys_user_id: "24c7df03-1dd3-4b69-8686-725ec68fd095",
+      content: "补充一点，实际应用中常使用混合加密：用非对称加密传输对称密钥，然后用对称加密加密数据，兼顾安全性和效率。",
+      reply_to_user_id: "24c7df03-1dd3-4b69-8686-725ec68fd095",
+      parent_reply_id: "78d44b4a-becd-4f65-9461-f2dcdda03b06",
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      like_count: 7,
+      reply_count: 0,
+      is_accepted: 0,
+      floor_number: 2,
+      status: 0,
+      ip_address: "192.168.1.110",
+      user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      create_time: ISODate("2024-02-05T16:00:00.000Z"),
+      update_time: ISODate("2024-02-05T16:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03b12",
+      post_id: "78d44b4a-becd-4f65-9461-f2dcdda03a05",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f04",
+      course_id: "173432dc-eb2d-4a33-a659-8b5ef9f15900",
+      sys_user_id: "b57f2213-a134-4624-8ac8-7edc4e592f6d",
+      content: "线程的创建和切换开销比进程小，但需要注意线程安全问题。",
+      reply_to_user_id: "b57f2213-a134-4624-8ac8-7edc4e592f6d",
+      parent_reply_id: "78d44b4a-becd-4f65-9461-f2dcdda03b07",
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      like_count: 5,
+      reply_count: 0,
+      is_accepted: 0,
+      floor_number: 2,
+      status: 0,
+      ip_address: "192.168.1.111",
+      user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      create_time: ISODate("2024-02-08T14:30:00.000Z"),
+      update_time: ISODate("2024-02-08T14:30:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03b13",
+      post_id: "78d44b4a-becd-4f65-9461-f2dcdda03a06",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f05",
+      course_id: "28e0ba83-8b52-448c-a932-b83b536440c8",
+      sys_user_id: "b6bbcc62-c65b-44d3-85cb-b8ca05a17993",
+      content: "索引是SQL优化的关键。除了合理使用索引，还要注意避免索引失效的情况，如函数运算、类型转换等。",
+      reply_to_user_id: "b6bbcc62-c65b-44d3-85cb-b8ca05a17993",
+      parent_reply_id: null,
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      like_count: 11,
+      reply_count: 3,
+      is_accepted: 1,
+      floor_number: 1,
+      status: 0,
+      ip_address: "192.168.1.112",
+      user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      create_time: ISODate("2024-02-12T15:00:00.000Z"),
+      update_time: ISODate("2024-02-12T15:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03b14",
+      post_id: "78d44b4a-becd-4f65-9461-f2dcdda03a07",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f06",
+      course_id: "2d9d9b8d-250e-4554-95cd-1539735775f7",
+      sys_user_id: "b57f2213-a134-4624-8ac8-7edc4e592f6d",
+      content: "正则表达式是文本处理的重要工具，掌握基础语法后可以大大提高处理效率。",
+      reply_to_user_id: "b57f2213-a134-4624-8ac8-7edc4e592f6d",
+      parent_reply_id: null,
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      like_count: 6,
+      reply_count: 1,
+      is_accepted: 1,
+      floor_number: 1,
+      status: 0,
+      ip_address: "192.168.1.113",
+      user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      create_time: ISODate("2024-02-18T11:00:00.000Z"),
+      update_time: ISODate("2024-02-18T11:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03b15",
+      post_id: "78d44b4a-becd-4f65-9461-f2dcdda03a08",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f07",
+      course_id: "32e6b5e7-1792-4630-b433-9ba0739b003b",
+      sys_user_id: "b6bbcc62-c65b-44d3-85cb-b8ca05a17993",
+      content: "TCP三次握手确保了连接的可靠性。四次挥手则是断开连接的过程，确保数据完整传输。",
+      reply_to_user_id: "b6bbcc62-c65b-44d3-85cb-b8ca05a17993",
+      parent_reply_id: null,
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      like_count: 15,
+      reply_count: 5,
+      is_accepted: 1,
+      floor_number: 1,
+      status: 0,
+      ip_address: "192.168.1.114",
+      user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      create_time: ISODate("2024-02-22T16:00:00.000Z"),
+      update_time: ISODate("2024-02-22T16:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03b16",
+      post_id: "78d44b4a-becd-4f65-9461-f2dcdda03a09",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f08",
+      course_id: "3a2a3444-31a3-46f6-8322-7d99a25a1796",
+      sys_user_id: "da4f9ad2-736c-4c0b-8235-d565edde803e",
+      content: "Docker通过容器化技术实现了应用的快速部署和环境一致性，是DevOps的重要工具。",
+      reply_to_user_id: "da4f9ad2-736c-4c0b-8235-d565edde803e",
+      parent_reply_id: null,
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      like_count: 9,
+      reply_count: 2,
+      is_accepted: 1,
+      floor_number: 1,
+      status: 0,
+      ip_address: "192.168.1.115",
+      user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      create_time: ISODate("2024-02-27T14:00:00.000Z"),
+      update_time: ISODate("2024-02-27T14:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03b17",
+      post_id: "78d44b4a-becd-4f65-9461-f2dcdda03a10",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f09",
+      course_id: "7d69b274-deb8-4b9a-8e69-ca93f10dd115",
+      sys_user_id: "fc65a565-31a5-4ea2-83c1-448426a01155",
+      content: "Composition API提供了更好的逻辑复用和代码组织方式，特别适合大型项目。",
+      reply_to_user_id: "fc65a565-31a5-4ea2-83c1-448426a01155",
+      parent_reply_id: null,
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      like_count: 13,
+      reply_count: 4,
+      is_accepted: 1,
+      floor_number: 1,
+      status: 0,
+      ip_address: "192.168.1.116",
+      user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      create_time: ISODate("2024-03-05T15:00:00.000Z"),
+      update_time: ISODate("2024-03-05T15:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03b18",
+      post_id: "78d44b4a-becd-4f65-9461-f2dcdda03a11",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f10",
+      course_id: "8caf6fcf-501b-427b-b31d-697c4b53dfbb",
+      sys_user_id: "4a7bae38-28d2-4b49-a985-d1aa2f3d072e",
+      content: "Hadoop生态系统为大数据处理提供了完整的解决方案，从存储到计算都有相应的组件支持。",
+      reply_to_user_id: "4a7bae38-28d2-4b49-a985-d1aa2f3d072e",
+      parent_reply_id: null,
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      like_count: 8,
+      reply_count: 2,
+      is_accepted: 1,
+      floor_number: 1,
+      status: 0,
+      ip_address: "192.168.1.117",
+      user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      create_time: ISODate("2024-03-08T13:00:00.000Z"),
+      update_time: ISODate("2024-03-08T13:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03b19",
+      post_id: "78d44b4a-becd-4f65-9461-f2dcdda03a12",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f11",
+      course_id: "a772626c-1084-4b54-8d67-086694bd39c0",
+      sys_user_id: "0db2d446-97ac-45f6-97fe-e2ab9fbb33a7",
+      content: "理解Activity生命周期对于开发Android应用非常重要，可以帮助我们正确管理资源和状态。",
+      reply_to_user_id: "0db2d446-97ac-45f6-97fe-e2ab9fbb33a7",
+      parent_reply_id: null,
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      like_count: 10,
+      reply_count: 3,
+      is_accepted: 1,
+      floor_number: 1,
+      status: 0,
+      ip_address: "192.168.1.118",
+      user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      create_time: ISODate("2024-03-12T14:00:00.000Z"),
+      update_time: ISODate("2024-03-12T14:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03b20",
+      post_id: "78d44b4a-becd-4f65-9461-f2dcdda03a13",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f12",
+      course_id: "b36f76a6-3726-4b9a-b3cc-ad6ef589920c",
+      sys_user_id: "d31bc6b3-6bb0-4e07-bf27-9c4d4a94237b",
+      content: "矩阵运算是线性代数的基础，掌握矩阵运算对于理解线性变换和解决实际问题非常重要。",
+      reply_to_user_id: "d31bc6b3-6bb0-4e07-bf27-9c4d4a94237b",
+      parent_reply_id: null,
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      like_count: 7,
+      reply_count: 1,
+      is_accepted: 1,
+      floor_number: 1,
+      status: 0,
+      ip_address: "192.168.1.119",
+      user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      create_time: ISODate("2024-03-18T12:00:00.000Z"),
+      update_time: ISODate("2024-03-18T12:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03b21",
+      post_id: "78d44b4a-becd-4f65-9461-f2dcdda03a14",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f13",
+      course_id: "bb4824f3-2f97-401e-9a1a-c92558cfc221",
+      sys_user_id: "da4f9ad2-736c-4c0b-8235-d565edde803e",
+      content: "快速排序是分治算法的典型应用，理解其原理对于掌握算法设计思想非常重要。",
+      reply_to_user_id: "da4f9ad2-736c-4c0b-8235-d565edde803e",
+      parent_reply_id: null,
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      like_count: 14,
+      reply_count: 5,
+      is_accepted: 1,
+      floor_number: 1,
+      status: 0,
+      ip_address: "192.168.1.120",
+      user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      create_time: ISODate("2024-03-22T16:00:00.000Z"),
+      update_time: ISODate("2024-03-22T16:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03b22",
+      post_id: "78d44b4a-becd-4f65-9461-f2dcdda03a15",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f14",
+      course_id: "c4da4d8c-e5bb-4833-b3c8-4896cd585dc2",
+      sys_user_id: "cf76a275-f0f4-492e-bd13-71e6ec75de8a",
+      content: "软件测试是保证软件质量的重要手段，不同类型的测试关注不同的方面，需要结合使用。",
+      reply_to_user_id: "cf76a275-f0f4-492e-bd13-71e6ec75de8a",
+      parent_reply_id: null,
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      like_count: 8,
+      reply_count: 2,
+      is_accepted: 1,
+      floor_number: 1,
+      status: 0,
+      ip_address: "192.168.1.121",
+      user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      create_time: ISODate("2024-03-28T14:00:00.000Z"),
+      update_time: ISODate("2024-03-28T14:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03b23",
+      post_id: "78d44b4a-becd-4f65-9461-f2dcdda03a16",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f21",
+      course_id: "0cf2dbe8-c12d-4be7-b914-545edcf0fad8",
+      sys_user_id: "0198086c-fcd1-7a09-b3c3-537de3493332",
+      content: "作业已收到，批改后会及时反馈。",
+      reply_to_user_id: "0198086c-fcd1-7a09-b3c3-537de3493332",
+      parent_reply_id: null,
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      like_count: 1,
+      reply_count: 0,
+      is_accepted: 0,
+      floor_number: 1,
+      status: 0,
+      ip_address: "192.168.1.122",
+      user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      create_time: ISODate("2024-01-20T10:00:00.000Z"),
+      update_time: ISODate("2024-01-20T10:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03b24",
+      post_id: "78d44b4a-becd-4f65-9461-f2dcdda03a17",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f22",
+      course_id: "0cf2dbe8-c12d-4be7-b914-545edcf0fad8",
+      sys_user_id: "01992cb7-735d-7857-9c8c-edbe566ad0d2",
+      content: "收到通知，会提前准备。",
+      reply_to_user_id: "0198086c-fcd1-7a09-b3c3-537de3493332",
+      parent_reply_id: null,
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      like_count: 2,
+      reply_count: 0,
+      is_accepted: 0,
+      floor_number: 1,
+      status: 0,
+      ip_address: "192.168.1.123",
+      user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      create_time: ISODate("2024-01-25T09:00:00.000Z"),
+      update_time: ISODate("2024-01-25T09:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03b25",
+      post_id: "78d44b4a-becd-4f65-9461-f2dcdda03a18",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f23",
+      course_id: "0f2231b3-d310-49c9-913e-1ad5e8f46e47",
+      sys_user_id: "24c7df03-1dd3-4b69-8686-725ec68fd095",
+      content: "数字签名使用私钥对数据进行签名，接收方使用公钥验证签名，确保数据未被篡改且来源可信。",
+      reply_to_user_id: "24c7df03-1dd3-4b69-8686-725ec68fd095",
+      parent_reply_id: null,
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      like_count: 5,
+      reply_count: 1,
+      is_accepted: 1,
+      floor_number: 1,
+      status: 0,
+      ip_address: "192.168.1.124",
+      user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      create_time: ISODate("2024-02-05T11:00:00.000Z"),
+      update_time: ISODate("2024-02-05T11:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03b26",
+      post_id: "78d44b4a-becd-4f65-9461-f2dcdda03a19",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f24",
+      course_id: "173432dc-eb2d-4a33-a659-8b5ef9f15900",
+      sys_user_id: "b57f2213-a134-4624-8ac8-7edc4e592f6d",
+      content: "死锁产生的四个必要条件是：1) 互斥条件；2) 请求和保持条件；3) 不剥夺条件；4) 环路等待条件。",
+      reply_to_user_id: "b57f2213-a134-4624-8ac8-7edc4e592f6d",
+      parent_reply_id: null,
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      like_count: 4,
+      reply_count: 1,
+      is_accepted: 1,
+      floor_number: 1,
+      status: 0,
+      ip_address: "192.168.1.125",
+      user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      create_time: ISODate("2024-02-09T13:00:00.000Z"),
+      update_time: ISODate("2024-02-09T13:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03b27",
+      post_id: "78d44b4a-becd-4f65-9461-f2dcdda03a20",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f25",
+      course_id: "28e0ba83-8b52-448c-a932-b83b536440c8",
+      sys_user_id: "b6bbcc62-c65b-44d3-85cb-b8ca05a17993",
+      content: "ACID特性：1) 原子性(Atomicity)：事务要么全部执行，要么全部不执行；2) 一致性(Consistency)：事务执行前后数据库保持一致状态；3) 隔离性(Isolation)：并发事务之间相互隔离；4) 持久性(Durability)：事务提交后数据永久保存。",
+      reply_to_user_id: "b6bbcc62-c65b-44d3-85cb-b8ca05a17993",
+      parent_reply_id: null,
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      like_count: 6,
+      reply_count: 1,
+      is_accepted: 1,
+      floor_number: 1,
+      status: 0,
+      ip_address: "192.168.1.126",
+      user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      create_time: ISODate("2024-02-13T14:00:00.000Z"),
+      update_time: ISODate("2024-02-13T14:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03b28",
+      post_id: "78d44b4a-becd-4f65-9461-f2dcdda03a21",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f26",
+      course_id: "2d9d9b8d-250e-4554-95cd-1539735775f7",
+      sys_user_id: "b57f2213-a134-4624-8ac8-7edc4e592f6d",
+      content: "将正则表达式转换为有限自动机的步骤：1) 构建NFA；2) 将NFA转换为DFA；3) 最小化DFA。",
+      reply_to_user_id: "b57f2213-a134-4624-8ac8-7edc4e592f6d",
+      parent_reply_id: null,
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      like_count: 5,
+      reply_count: 1,
+      is_accepted: 1,
+      floor_number: 1,
+      status: 0,
+      ip_address: "192.168.1.127",
+      user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      create_time: ISODate("2024-02-19T12:00:00.000Z"),
+      update_time: ISODate("2024-02-19T12:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03b29",
+      post_id: "78d44b4a-becd-4f65-9461-f2dcdda03a22",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f27",
+      course_id: "32e6b5e7-1792-4630-b433-9ba0739b003b",
+      sys_user_id: "b6bbcc62-c65b-44d3-85cb-b8ca05a17993",
+      content: "HTTP是明文传输，HTTPS使用SSL/TLS加密传输。HTTPS默认端口443，HTTP默认端口80。",
+      reply_to_user_id: "b6bbcc62-c65b-44d3-85cb-b8ca05a17993",
+      parent_reply_id: null,
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      like_count: 7,
+      reply_count: 2,
+      is_accepted: 1,
+      floor_number: 1,
+      status: 0,
+      ip_address: "192.168.1.128",
+      user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      create_time: ISODate("2024-02-24T15:00:00.000Z"),
+      update_time: ISODate("2024-02-24T15:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03b30",
+      post_id: "78d44b4a-becd-4f65-9461-f2dcdda03a23",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f28",
+      course_id: "3a2a3444-31a3-46f6-8322-7d99a25a1796",
+      sys_user_id: "da4f9ad2-736c-4c0b-8235-d565edde803e",
+      content: "Docker容器基于Linux的namespace和cgroups技术实现。namespace提供进程隔离，cgroups提供资源限制。",
+      reply_to_user_id: "da4f9ad2-736c-4c0b-8235-d565edde803e",
+      parent_reply_id: null,
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      like_count: 6,
+      reply_count: 1,
+      is_accepted: 1,
+      floor_number: 1,
+      status: 0,
+      ip_address: "192.168.1.129",
+      user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      create_time: ISODate("2024-02-29T13:00:00.000Z"),
+      update_time: ISODate("2024-02-29T13:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03b31",
+      post_id: "78d44b4a-becd-4f65-9461-f2dcdda03a24",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f29",
+      course_id: "7d69b274-deb8-4b9a-8e69-ca93f10dd115",
+      sys_user_id: "fc65a565-31a5-4ea2-83c1-448426a01155",
+      content: "Vue通过Object.defineProperty或Proxy拦截数据属性的访问和修改。当数据变化时，触发依赖收集，通知所有依赖该数据的视图更新。",
+      reply_to_user_id: "fc65a565-31a5-4ea2-83c1-448426a01155",
+      parent_reply_id: null,
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      like_count: 8,
+      reply_count: 2,
+      is_accepted: 1,
+      floor_number: 1,
+      status: 0,
+      ip_address: "192.168.1.130",
+      user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      create_time: ISODate("2024-03-07T14:00:00.000Z"),
+      update_time: ISODate("2024-03-07T14:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03b32",
+      post_id: "78d44b4a-becd-4f65-9461-f2dcdda03a25",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f30",
+      course_id: "8caf6fcf-501b-427b-b31d-697c4b53dfbb",
+      sys_user_id: "4a7bae38-28d2-4b49-a985-d1aa2f3d072e",
+      content: "Transformation是惰性操作，返回新的RDD，不立即执行；Action是触发操作，返回结果值，会触发整个计算链的执行。",
+      reply_to_user_id: "4a7bae38-28d2-4b49-a985-d1aa2f3d072e",
+      parent_reply_id: null,
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      like_count: 5,
+      reply_count: 1,
+      is_accepted: 1,
+      floor_number: 1,
+      status: 0,
+      ip_address: "192.168.1.131",
+      user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      create_time: ISODate("2024-03-10T15:00:00.000Z"),
+      update_time: ISODate("2024-03-10T15:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03b33",
+      post_id: "78d44b4a-becd-4f65-9461-f2dcdda03a26",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f11",
+      course_id: "a772626c-1084-4b54-8d67-086694bd39c0",
+      sys_user_id: "0db2d446-97ac-45f6-97fe-e2ab9fbb33a7",
+      content: "ARC（自动引用计数）是iOS的内存管理机制。编译器自动插入retain和release调用，当对象引用计数为0时自动释放。",
+      reply_to_user_id: "0db2d446-97ac-45f6-97fe-e2ab9fbb33a7",
+      parent_reply_id: null,
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      like_count: 4,
+      reply_count: 1,
+      is_accepted: 1,
+      floor_number: 1,
+      status: 0,
+      ip_address: "192.168.1.132",
+      user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      create_time: ISODate("2024-03-13T13:00:00.000Z"),
+      update_time: ISODate("2024-03-13T13:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03b34",
+      post_id: "78d44b4a-becd-4f65-9461-f2dcdda03a27",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f12",
+      course_id: "b36f76a6-3726-4b9a-b3cc-ad6ef589920c",
+      sys_user_id: "d31bc6b3-6bb0-4e07-bf27-9c4d4a94237b",
+      content: "特征值：λ₁=3, λ₂=1；对应的特征向量：v₁=[1,1]ᵀ, v₂=[1,-1]ᵀ",
+      reply_to_user_id: "d31bc6b3-6bb0-4e07-bf27-9c4d4a94237b",
+      parent_reply_id: null,
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      like_count: 3,
+      reply_count: 0,
+      is_accepted: 1,
+      floor_number: 1,
+      status: 0,
+      ip_address: "192.168.1.133",
+      user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      create_time: ISODate("2024-03-19T12:00:00.000Z"),
+      update_time: ISODate("2024-03-19T12:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03b35",
+      post_id: "78d44b4a-becd-4f65-9461-f2dcdda03a28",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f13",
+      course_id: "bb4824f3-2f97-401e-9a1a-c92558cfc221",
+      sys_user_id: "da4f9ad2-736c-4c0b-8235-d565edde803e",
+      content: "前序遍历：根-左-右；中序遍历：左-根-右；后序遍历：左-右-根。递归实现：前序先访问根节点，再递归左右子树；中序先递归左子树，访问根，再递归右子树；后序先递归左右子树，最后访问根。",
+      reply_to_user_id: "da4f9ad2-736c-4c0b-8235-d565edde803e",
+      parent_reply_id: null,
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      like_count: 6,
+      reply_count: 1,
+      is_accepted: 1,
+      floor_number: 1,
+      status: 0,
+      ip_address: "192.168.1.134",
+      user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      create_time: ISODate("2024-03-23T14:00:00.000Z"),
+      update_time: ISODate("2024-03-23T14:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03b36",
+      post_id: "78d44b4a-becd-4f65-9461-f2dcdda03a29",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f14",
+      course_id: "c4da4d8c-e5bb-4833-b3c8-4896cd585dc2",
+      sys_user_id: "cf76a275-f0f4-492e-bd13-71e6ec75de8a",
+      content: "需求分析步骤：1) 需求获取；2) 需求分析；3) 需求规格说明；4) 需求验证；5) 需求管理。",
+      reply_to_user_id: "cf76a275-f0f4-492e-bd13-71e6ec75de8a",
+      parent_reply_id: null,
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      like_count: 4,
+      reply_count: 1,
+      is_accepted: 1,
+      floor_number: 1,
+      status: 0,
+      ip_address: "192.168.1.135",
+      user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      create_time: ISODate("2024-03-29T15:00:00.000Z"),
+      update_time: ISODate("2024-03-29T15:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03b37",
+      post_id: "78d44b4a-becd-4f65-9461-f2dcdda03a30",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f01",
+      course_id: "0cf2dbe8-c12d-4be7-b914-545edcf0fad8",
+      sys_user_id: "01992cb6-d9a7-7841-9e2b-9dcc1c9ea0a7",
+      content: "非常实用的总结！我会把这些方法记录下来，方便以后使用。",
+      reply_to_user_id: "01992cb7-735d-7857-9c8c-edbe566ad0d2",
+      parent_reply_id: null,
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      like_count: 3,
+      reply_count: 0,
+      is_accepted: 0,
+      floor_number: 1,
+      status: 0,
+      ip_address: "192.168.1.136",
+      user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      create_time: ISODate("2024-01-22T16:00:00.000Z"),
+      update_time: ISODate("2024-01-22T16:00:00.000Z"),
+      is_deleted: 0
+    }
+  ]);
 
-// ----------------------------
-// Documents of mg_forum_post
-// ----------------------------
-db.getCollection("mg_forum_post").insert([ {
-    _id: "78d44b4a-becd-4f65-9461-f2dcdda03a01",
-    forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f01",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    sys_user_id: "01992cb7-735d-7857-9c8c-edbe566ad0d2",
-    title: "极限计算中的常见错误分析",
-    content: "在学习极限的过程中，我发现很多同学容易犯一些常见的错误。今天想和大家分享一下这些错误以及正确的解题方法。\n\n**常见错误1：直接代入法使用不当**\n很多同学在计算极限时，直接代入x的值，但忽略了某些情况下直接代入会导致分母为0的情况。\n\n**常见错误2：洛必达法则使用条件不满足**\n洛必达法则有严格的使用条件，必须是0/0型或∞/∞型的不定式，且分子分母都可导。\n\n**常见错误3：等价无穷小替换错误**\n在使用等价无穷小替换时，要注意替换的时机和条件。\n\n大家在学习过程中还遇到过哪些问题呢？欢迎分享！",
-    post_type: Int32("1"),
-    is_anonymous: Int32("0"),
-    attachment_urls: [
+// ============================================
+// 4. mg_forum_post - 论坛帖子数据
+// ============================================
+print("正在处理 mg_forum_post...");
+db.getCollection("mg_forum_post").deleteMany({});
+db.getCollection("mg_forum_post").insertMany([
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03a01",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f01",
+      course_id: "0cf2dbe8-c12d-4be7-b914-545edcf0fad8",
+      sys_user_id: "01992cb7-735d-7857-9c8c-edbe566ad0d2",
+      title: "极限计算中的常见错误分析",
+      content: "在学习极限的过程中，我发现很多同学容易犯一些常见的错误。今天想和大家分享一下这些错误以及正确的解题方法。\n\n**常见错误1：直接代入法使用不当**\n很多同学在计算极限时，直接代入x的值，但忽略了某些情况下直接代入会导致分母为0的情况。\n\n**常见错误2：洛必达法则使用条件不满足**\n洛必达法则有严格的使用条件，必须是0/0型或∞/∞型的不定式，且分子分母都可导。\n\n**常见错误3：等价无穷小替换错误**\n在使用等价无穷小替换时，要注意替换的时机和条件。\n\n大家在学习过程中还遇到过哪些问题呢？欢迎分享！",
+      post_type: 1,
+      is_anonymous: 0,
+      attachment_urls: [
         "http://127.0.0.1:31589/sapientiacloud-edupivot/attachments/limit_common_errors.pdf"
-    ],
-    image_urls: [
+      ],
+      image_urls: [
         "http://127.0.0.1:31589/sapientiacloud-edupivot/images/limit_error_example1.png",
         "http://127.0.0.1:31589/sapientiacloud-edupivot/images/limit_error_example2.png"
-    ],
-    tags: [
-        "极限",
-        "错误分析",
-        "学习方法"
-    ],
-    view_count: Long("663"),
-    like_count: Long("23"),
-    reply_count: Long("53"),
-    share_count: Long("14"),
-    is_top: Int32("0"),
-    is_essence: Int32("0"),
-    is_locked: Int32("0"),
-    last_reply_id: "78d44b4a-becd-4f65-9461-f2dcdda03b08",
-    last_reply_time: "2024-01-20T14:30:00.000Z",
-    last_reply_user_id: "01992cb6-d9a7-7841-9e2b-9dcc1c9ea0a7",
-    status: Int32("0"),
-    chapter_id: "78d44b4a-becd-4f65-9461-f2dcdda03e02",
-    create_time: ISODate("2024-01-16T10:00:00.000Z"),
-    update_time: ISODate("2025-10-15T07:35:04.629Z"),
-    is_deleted: Int32("0"),
-    _class: "com.dayz.sapientiacloud_edupivot.course.entity.po.ForumPost"
-} ]);
-db.getCollection("mg_forum_post").insert([ {
-    _id: "78d44b4a-becd-4f65-9461-f2dcdda03a02",
-    forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f01",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    sys_user_id: "01992cb6-d9a7-7841-9e2b-9dcc1c9ea0a7",
-    title: "导数与微分的几何意义理解",
-    content: "最近在学习导数与微分这一章，对几何意义有些困惑。导数的几何意义是函数在某点的切线斜率，这个我能理解。但是微分的几何意义是什么呢？\n\n从几何上看，微分dy表示的是什么呢？是切线的增量吗？还是其他什么？\n\n另外，在实际应用中，什么时候用导数，什么时候用微分呢？\n\n希望有同学能帮忙解释一下，最好能结合图形来说明。",
-    post_type: Int32("0"),
-    is_anonymous: Int32("0"),
-    attachment_urls: [ ],
-    image_urls: [ ],
-    tags: [
-        "导数",
-        "微分",
-        "几何意义"
-    ],
-    view_count: Long("170"),
-    like_count: Long("12"),
-    reply_count: Long("5"),
-    share_count: Long("2"),
-    is_top: Int32("1"),
-    is_essence: Int32("0"),
-    is_locked: Int32("0"),
-    last_reply_id: "78d44b4a-becd-4f65-9461-f2dcdda03b12",
-    last_reply_time: "2024-01-19T15:20:00.000Z",
-    last_reply_user_id: "01983258-afb0-79b3-847b-0abf6a991c88",
-    status: Int32("0"),
-    chapter_id: "78d44b4a-becd-4f65-9461-f2dcdda03e05",
-    create_time: ISODate("2024-01-17T14:30:00.000Z"),
-    update_time: ISODate("2025-10-15T07:35:12.368Z"),
-    is_deleted: Int32("0"),
-    _class: "com.dayz.sapientiacloud_edupivot.course.entity.po.ForumPost"
-} ]);
-db.getCollection("mg_forum_post").insert([ {
-    _id: "78d44b4a-becd-4f65-9461-f2dcdda03a08",
-    forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f02",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    sys_user_id: "01992cb7-735d-7857-9c8c-edbe566ad0d2",
-    title: "如何计算这个极限？lim(x→0) (sin x - x) / x³",
-    content: "题目：计算极限 lim(x→0) (sin x - x) / x³\n\n我尝试了几种方法：\n1. 直接代入：得到0/0型\n2. 洛必达法则：分子分母求导后还是0/0型\n3. 泰勒展开：sin x = x - x³/6 + x⁵/120 - ...\n\n用泰勒展开：\nsin x - x = -x³/6 + x⁵/120 - ...\n所以原式 = lim(x→0) (-x³/6 + x⁵/120 - ...) / x³\n= lim(x→0) (-1/6 + x²/120 - ...)\n= -1/6\n\n请问这个解法对吗？还有其他方法吗？",
-    post_type: Int32("0"),
-    is_anonymous: Int32("0"),
-    attachment_urls: [
-        "http://127.0.0.1:31589/sapientiacloud-edupivot/attachments/limit_problem.pdf"
-    ],
-    image_urls: [ ],
-    tags: [
-        "极限",
-        "洛必达法则",
-        "泰勒展开"
-    ],
-    view_count: Int32("237"),
-    like_count: Int32("18"),
-    reply_count: Int32("6"),
-    share_count: Int32("3"),
-    is_top: Int32("0"),
-    is_essence: Int32("0"),
-    is_locked: Int32("0"),
-    last_reply_id: "78d44b4a-becd-4f65-9461-f2dcdda03b15",
-    last_reply_time: "2024-01-19T16:45:00.000Z",
-    last_reply_user_id: "01983258-afb0-79b3-847b-0abf6a991c88",
-    status: Int32("0"),
-    chapter_id: "78d44b4a-becd-4f65-9461-f2dcdda03e02",
-    create_time: ISODate("2024-01-18T11:15:00.000Z"),
-    update_time: ISODate("2024-01-19T16:45:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_forum_post").insert([ {
-    _id: "78d44b4a-becd-4f65-9461-f2dcdda03a12",
-    forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f03",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    sys_user_id: "01983258-afb0-79b3-847b-0abf6a991c88",
-    title: "第一章作业：极限计算练习",
-    content: "**作业内容：**\n请完成以下极限计算题：\n\n1. lim(x→2) (x² - 4) / (x - 2)\n2. lim(x→0) (1 - cos x) / x²\n3. lim(x→∞) (2x² + 3x + 1) / (3x² - 2x + 5)\n4. lim(x→0) (e^x - 1) / x\n5. lim(x→1) (x³ - 1) / (x² - 1)\n\n**要求：**\n- 每题都要写出详细的解题过程\n- 使用多种方法验证答案\n- 下周一前提交\n\n**提交方式：**\n将作业拍照或扫描后上传到课程平台",
-    post_type: Int32("0"),
-    is_anonymous: Int32("0"),
-    attachment_urls: [
-        "http://127.0.0.1:31589/sapientiacloud-edupivot/course-chapters/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20250903152605_5_110.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=root%2F20251004%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20251004T103547Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=1a33844050667bcb236c97d8b36b6c52609e4dc489da04700ee6e265617ef9fe"
-    ],
-    image_urls: [ ],
-    tags: [
-        "作业",
-        "极限",
-        "第一章"
-    ],
-    view_count: Int32("147"),
-    like_count: Int32("8"),
-    reply_count: Int32("4"),
-    share_count: Int32("1"),
-    is_top: Int32("0"),
-    is_essence: Int32("0"),
-    is_locked: Int32("0"),
-    last_reply_id: "78d44b4a-becd-4f65-9461-f2dcdda03b18",
-    last_reply_time: "2024-01-18T10:20:00.000Z",
-    last_reply_user_id: "01992cb7-735d-7857-9c8c-edbe566ad0d2",
-    status: Int32("0"),
-    chapter_id: "78d44b4a-becd-4f65-9461-f2dcdda03e02",
-    create_time: ISODate("2024-01-15T16:00:00.000Z"),
-    update_time: ISODate("2024-01-18T10:20:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_forum_post").insert([ {
-    _id: "78d44b4a-becd-4f65-9461-f2dcdda03f15",
-    forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f04",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    sys_user_id: "01983258-afb0-79b3-847b-0abf6a991c88",
-    title: "【重要通知】期中考试安排",
-    content: "**期中考试通知**\n\n**考试时间：** 2024年2月15日 上午9:00-11:00\n**考试地点：** 教学楼A101、A102、A103\n**考试范围：** 第一章至第三章（函数与极限、导数与微分、积分）\n\n**注意事项：**\n1. 请携带学生证和身份证\n2. 考试期间禁止使用手机和计算器\n3. 提前15分钟到达考场\n4. 考试形式为闭卷笔试\n\n**复习建议：**\n- 重点复习基本概念和定理\n- 多做练习题，特别是历年真题\n- 注意解题步骤的规范性\n\n如有疑问，请及时联系老师。祝大家考试顺利！",
-    post_type: Int32("0"),
-    is_anonymous: Int32("1"),
-    attachment_urls: [
-        "http://127.0.0.1:31589/sapientiacloud-edupivot/course-chapters/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20250903152605_5_110.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=root%2F20251004%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20251004T103547Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=1a33844050667bcb236c97d8b36b6c52609e4dc489da04700ee6e265617ef9fe"
-    ],
-    image_urls: [ ],
-    tags: [
-        "通知",
-        "期中考试",
-        "重要"
-    ],
-    view_count: Long("327"),
-    like_count: Long("15"),
-    reply_count: Long("0"),
-    share_count: Long("9"),
-    is_top: Int32("1"),
-    is_essence: Int32("1"),
-    is_locked: Int32("0"),
-    status: Int32("0"),
-    create_time: ISODate("2024-01-17T09:00:00.000Z"),
-    update_time: ISODate("2025-10-10T05:57:14.533Z"),
-    is_deleted: Int32("0"),
-    _class: "com.dayz.sapientiacloud_edupivot.course.entity.po.ForumPost"
-} ]);
+      ],
+      tags: ["极限", "错误分析", "学习方法"],
+      view_count: 663,
+      like_count: 23,
+      reply_count: 53,
+      share_count: 14,
+      is_top: 0,
+      is_essence: 0,
+      is_locked: 0,
+      last_reply_id: "78d44b4a-becd-4f65-9461-f2dcdda03b08",
+      last_reply_time: ISODate("2024-01-20T14:30:00.000Z"),
+      last_reply_user_id: "01992cb6-d9a7-7841-9e2b-9dcc1c9ea0a7",
+      status: 0,
+      chapter_id: "78d44b4a-becd-4f65-9461-f2dcdda03e02",
+      create_time: ISODate("2024-01-16T10:00:00.000Z"),
+      update_time: ISODate("2024-01-20T14:30:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03a02",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f01",
+      course_id: "0cf2dbe8-c12d-4be7-b914-545edcf0fad8",
+      sys_user_id: "01983258-afb0-79b3-847b-0abf6a991c88",
+      title: "如何理解导数的几何意义？",
+      content: "导数的几何意义是函数在某点处的切线斜率。通过导数的几何意义，我们可以更好地理解函数的变化趋势。",
+      post_type: 1,
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      tags: ["导数", "几何意义", "理解"],
+      view_count: 456,
+      like_count: 18,
+      reply_count: 32,
+      share_count: 8,
+      is_top: 0,
+      is_essence: 1,
+      is_locked: 0,
+      last_reply_id: "78d44b4a-becd-4f65-9461-f2dcdda03b09",
+      last_reply_time: ISODate("2024-01-18T15:20:00.000Z"),
+      last_reply_user_id: "01992cb7-735d-7857-9c8c-edbe566ad0d2",
+      status: 0,
+      chapter_id: "78d44b4a-becd-4f65-9461-f2dcdda03e03",
+      create_time: ISODate("2024-01-17T09:00:00.000Z"),
+      update_time: ISODate("2024-01-18T15:20:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03a03",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f02",
+      course_id: "0cf2dbe8-c12d-4be7-b914-545edcf0fad8",
+      sys_user_id: "01992cb6-d9a7-7841-9e2b-9dcc1c9ea0a7",
+      title: "求极限 lim(x→0) (sin x)/x 的值",
+      content: "请问如何计算这个极限？我尝试了直接代入，但得到0/0的不定式。",
+      post_type: 0,
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      tags: ["极限", "三角函数", "问答"],
+      view_count: 234,
+      like_count: 5,
+      reply_count: 12,
+      share_count: 3,
+      is_top: 0,
+      is_essence: 0,
+      is_locked: 0,
+      last_reply_id: "78d44b4a-becd-4f65-9461-f2dcdda03b10",
+      last_reply_time: ISODate("2024-01-19T10:30:00.000Z"),
+      last_reply_user_id: "01983258-afb0-79b3-847b-0abf6a991c88",
+      status: 0,
+      chapter_id: "78d44b4a-becd-4f65-9461-f2dcdda03e02",
+      create_time: ISODate("2024-01-18T14:00:00.000Z"),
+      update_time: ISODate("2024-01-19T10:30:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03a04",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f03",
+      course_id: "0f2231b3-d310-49c9-913e-1ad5e8f46e47",
+      sys_user_id: "24c7df03-1dd3-4b69-8686-725ec68fd095",
+      title: "对称加密与非对称加密的区别",
+      content: "对称加密和非对称加密是两种不同的加密方式。对称加密使用同一个密钥进行加密和解密，速度快但密钥管理困难；非对称加密使用公钥和私钥，安全性高但速度较慢。",
+      post_type: 1,
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      tags: ["网络安全", "加密", "对称加密", "非对称加密"],
+      view_count: 567,
+      like_count: 28,
+      reply_count: 45,
+      share_count: 12,
+      is_top: 1,
+      is_essence: 1,
+      is_locked: 0,
+      last_reply_id: "78d44b4a-becd-4f65-9461-f2dcdda03b11",
+      last_reply_time: ISODate("2024-02-05T16:00:00.000Z"),
+      last_reply_user_id: "24c7df03-1dd3-4b69-8686-725ec68fd095",
+      status: 0,
+      chapter_id: null,
+      create_time: ISODate("2024-02-02T10:00:00.000Z"),
+      update_time: ISODate("2024-02-05T16:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03a05",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f04",
+      course_id: "173432dc-eb2d-4a33-a659-8b5ef9f15900",
+      sys_user_id: "b57f2213-a134-4624-8ac8-7edc4e592f6d",
+      title: "进程与线程的区别",
+      content: "进程是资源分配的基本单位，线程是CPU调度的基本单位。一个进程可以包含多个线程，线程共享进程的资源。",
+      post_type: 1,
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      tags: ["操作系统", "进程", "线程"],
+      view_count: 423,
+      like_count: 19,
+      reply_count: 34,
+      share_count: 9,
+      is_top: 0,
+      is_essence: 1,
+      is_locked: 0,
+      last_reply_id: "78d44b4a-becd-4f65-9461-f2dcdda03b12",
+      last_reply_time: ISODate("2024-02-08T14:30:00.000Z"),
+      last_reply_user_id: "b57f2213-a134-4624-8ac8-7edc4e592f6d",
+      status: 0,
+      chapter_id: null,
+      create_time: ISODate("2024-02-06T11:00:00.000Z"),
+      update_time: ISODate("2024-02-08T14:30:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03a06",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f05",
+      course_id: "28e0ba83-8b52-448c-a932-b83b536440c8",
+      sys_user_id: "b6bbcc62-c65b-44d3-85cb-b8ca05a17993",
+      title: "SQL查询优化技巧",
+      content: "SQL查询优化是数据库性能调优的重要方面。主要技巧包括：1) 合理使用索引；2) 避免SELECT *；3) 使用EXPLAIN分析查询计划；4) 优化JOIN操作；5) 使用LIMIT限制结果集。",
+      post_type: 1,
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      tags: ["数据库", "SQL", "查询优化", "性能"],
+      view_count: 678,
+      like_count: 35,
+      reply_count: 52,
+      share_count: 18,
+      is_top: 1,
+      is_essence: 1,
+      is_locked: 0,
+      last_reply_id: "78d44b4a-becd-4f65-9461-f2dcdda03b13",
+      last_reply_time: ISODate("2024-02-12T15:00:00.000Z"),
+      last_reply_user_id: "b6bbcc62-c65b-44d3-85cb-b8ca05a17993",
+      status: 0,
+      chapter_id: null,
+      create_time: ISODate("2024-02-11T09:00:00.000Z"),
+      update_time: ISODate("2024-02-12T15:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03a07",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f06",
+      course_id: "2d9d9b8d-250e-4554-95cd-1539735775f7",
+      sys_user_id: "b57f2213-a134-4624-8ac8-7edc4e592f6d",
+      title: "正则表达式基础语法",
+      content: "正则表达式是文本匹配的强大工具。常用语法包括：字符类[]、量词*+?、锚点^$、分组()等。",
+      post_type: 1,
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      tags: ["编译原理", "正则表达式", "语法"],
+      view_count: 345,
+      like_count: 16,
+      reply_count: 28,
+      share_count: 7,
+      is_top: 0,
+      is_essence: 0,
+      is_locked: 0,
+      last_reply_id: "78d44b4a-becd-4f65-9461-f2dcdda03b14",
+      last_reply_time: ISODate("2024-02-18T11:00:00.000Z"),
+      last_reply_user_id: "b57f2213-a134-4624-8ac8-7edc4e592f6d",
+      status: 0,
+      chapter_id: null,
+      create_time: ISODate("2024-02-16T10:00:00.000Z"),
+      update_time: ISODate("2024-02-18T11:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03a08",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f07",
+      course_id: "32e6b5e7-1792-4630-b433-9ba0739b003b",
+      sys_user_id: "b6bbcc62-c65b-44d3-85cb-b8ca05a17993",
+      title: "TCP三次握手详解",
+      content: "TCP三次握手是建立连接的过程：1) 客户端发送SYN；2) 服务器回复SYN-ACK；3) 客户端发送ACK。完成三次握手后连接建立。",
+      post_type: 1,
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      tags: ["计算机网络", "TCP", "三次握手"],
+      view_count: 789,
+      like_count: 42,
+      reply_count: 61,
+      share_count: 21,
+      is_top: 1,
+      is_essence: 1,
+      is_locked: 0,
+      last_reply_id: "78d44b4a-becd-4f65-9461-f2dcdda03b15",
+      last_reply_time: ISODate("2024-02-22T16:00:00.000Z"),
+      last_reply_user_id: "b6bbcc62-c65b-44d3-85cb-b8ca05a17993",
+      status: 0,
+      chapter_id: null,
+      create_time: ISODate("2024-02-21T10:00:00.000Z"),
+      update_time: ISODate("2024-02-22T16:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03a09",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f08",
+      course_id: "3a2a3444-31a3-46f6-8322-7d99a25a1796",
+      sys_user_id: "da4f9ad2-736c-4c0b-8235-d565edde803e",
+      title: "Docker容器技术入门",
+      content: "Docker是容器化技术的代表。通过Docker可以快速部署应用，实现环境一致性。主要概念包括镜像、容器、仓库等。",
+      post_type: 1,
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      tags: ["云计算", "Docker", "容器"],
+      view_count: 512,
+      like_count: 24,
+      reply_count: 38,
+      share_count: 11,
+      is_top: 0,
+      is_essence: 1,
+      is_locked: 0,
+      last_reply_id: "78d44b4a-becd-4f65-9461-f2dcdda03b16",
+      last_reply_time: ISODate("2024-02-27T14:00:00.000Z"),
+      last_reply_user_id: "da4f9ad2-736c-4c0b-8235-d565edde803e",
+      status: 0,
+      chapter_id: null,
+      create_time: ISODate("2024-02-26T09:00:00.000Z"),
+      update_time: ISODate("2024-02-27T14:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03a10",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f09",
+      course_id: "7d69b274-deb8-4b9a-8e69-ca93f10dd115",
+      sys_user_id: "fc65a565-31a5-4ea2-83c1-448426a01155",
+      title: "Vue3 Composition API使用心得",
+      content: "Vue3的Composition API提供了更好的代码组织和复用性。通过setup函数和响应式API，可以更灵活地组织组件逻辑。",
+      post_type: 1,
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      tags: ["Web前端", "Vue", "Composition API"],
+      view_count: 623,
+      like_count: 31,
+      reply_count: 47,
+      share_count: 15,
+      is_top: 1,
+      is_essence: 1,
+      is_locked: 0,
+      last_reply_id: "78d44b4a-becd-4f65-9461-f2dcdda03b17",
+      last_reply_time: ISODate("2024-03-05T15:00:00.000Z"),
+      last_reply_user_id: "fc65a565-31a5-4ea2-83c1-448426a01155",
+      status: 0,
+      chapter_id: null,
+      create_time: ISODate("2024-03-02T08:00:00.000Z"),
+      update_time: ISODate("2024-03-05T15:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03a11",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f10",
+      course_id: "8caf6fcf-501b-427b-b31d-697c4b53dfbb",
+      sys_user_id: "4a7bae38-28d2-4b49-a985-d1aa2f3d072e",
+      title: "Hadoop生态系统介绍",
+      content: "Hadoop生态系统包括HDFS、MapReduce、YARN、Hive、HBase等组件。HDFS提供分布式存储，MapReduce提供分布式计算。",
+      post_type: 1,
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      tags: ["大数据", "Hadoop", "分布式"],
+      view_count: 456,
+      like_count: 22,
+      reply_count: 35,
+      share_count: 10,
+      is_top: 0,
+      is_essence: 1,
+      is_locked: 0,
+      last_reply_id: "78d44b4a-becd-4f65-9461-f2dcdda03b18",
+      last_reply_time: ISODate("2024-03-08T13:00:00.000Z"),
+      last_reply_user_id: "4a7bae38-28d2-4b49-a985-d1aa2f3d072e",
+      status: 0,
+      chapter_id: null,
+      create_time: ISODate("2024-03-06T10:00:00.000Z"),
+      update_time: ISODate("2024-03-08T13:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03a12",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f11",
+      course_id: "a772626c-1084-4b54-8d67-086694bd39c0",
+      sys_user_id: "0db2d446-97ac-45f6-97fe-e2ab9fbb33a7",
+      title: "Android Activity生命周期详解",
+      content: "Activity生命周期包括onCreate、onStart、onResume、onPause、onStop、onDestroy等方法。理解生命周期对于开发Android应用非常重要。",
+      post_type: 1,
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      tags: ["移动开发", "Android", "Activity", "生命周期"],
+      view_count: 567,
+      like_count: 28,
+      reply_count: 42,
+      share_count: 13,
+      is_top: 0,
+      is_essence: 1,
+      is_locked: 0,
+      last_reply_id: "78d44b4a-becd-4f65-9461-f2dcdda03b19",
+      last_reply_time: ISODate("2024-03-12T14:00:00.000Z"),
+      last_reply_user_id: "0db2d446-97ac-45f6-97fe-e2ab9fbb33a7",
+      status: 0,
+      chapter_id: null,
+      create_time: ISODate("2024-03-11T09:00:00.000Z"),
+      update_time: ISODate("2024-03-12T14:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03a13",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f12",
+      course_id: "b36f76a6-3726-4b9a-b3cc-ad6ef589920c",
+      sys_user_id: "d31bc6b3-6bb0-4e07-bf27-9c4d4a94237b",
+      title: "矩阵运算基础",
+      content: "矩阵运算是线性代数的基础。包括矩阵加法、乘法、转置、求逆等运算。掌握矩阵运算对于理解线性变换非常重要。",
+      post_type: 1,
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      tags: ["线性代数", "矩阵", "运算"],
+      view_count: 389,
+      like_count: 17,
+      reply_count: 29,
+      share_count: 8,
+      is_top: 0,
+      is_essence: 0,
+      is_locked: 0,
+      last_reply_id: "78d44b4a-becd-4f65-9461-f2dcdda03b20",
+      last_reply_time: ISODate("2024-03-18T12:00:00.000Z"),
+      last_reply_user_id: "d31bc6b3-6bb0-4e07-bf27-9c4d4a94237b",
+      status: 0,
+      chapter_id: null,
+      create_time: ISODate("2024-03-16T11:00:00.000Z"),
+      update_time: ISODate("2024-03-18T12:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03a14",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f13",
+      course_id: "bb4824f3-2f97-401e-9a1a-c92558cfc221",
+      sys_user_id: "da4f9ad2-736c-4c0b-8235-d565edde803e",
+      title: "快速排序算法详解",
+      content: "快速排序是一种高效的排序算法，采用分治思想。平均时间复杂度O(nlogn)，最坏情况O(n²)。理解快速排序对于掌握算法非常重要。",
+      post_type: 1,
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      tags: ["数据结构", "算法", "排序", "快速排序"],
+      view_count: 712,
+      like_count: 38,
+      reply_count: 56,
+      share_count: 19,
+      is_top: 1,
+      is_essence: 1,
+      is_locked: 0,
+      last_reply_id: "78d44b4a-becd-4f65-9461-f2dcdda03b21",
+      last_reply_time: ISODate("2024-03-22T16:00:00.000Z"),
+      last_reply_user_id: "da4f9ad2-736c-4c0b-8235-d565edde803e",
+      status: 0,
+      chapter_id: null,
+      create_time: ISODate("2024-03-21T08:00:00.000Z"),
+      update_time: ISODate("2024-03-22T16:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03a15",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f14",
+      course_id: "c4da4d8c-e5bb-4833-b3c8-4896cd585dc2",
+      sys_user_id: "cf76a275-f0f4-492e-bd13-71e6ec75de8a",
+      title: "软件测试方法与实践",
+      content: "软件测试是保证软件质量的重要手段。包括单元测试、集成测试、系统测试等。掌握测试方法对于开发高质量软件非常重要。",
+      post_type: 1,
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      tags: ["软件工程", "测试", "质量保证"],
+      view_count: 445,
+      like_count: 21,
+      reply_count: 33,
+      share_count: 9,
+      is_top: 0,
+      is_essence: 1,
+      is_locked: 0,
+      last_reply_id: "78d44b4a-becd-4f65-9461-f2dcdda03b22",
+      last_reply_time: ISODate("2024-03-28T14:00:00.000Z"),
+      last_reply_user_id: "cf76a275-f0f4-492e-bd13-71e6ec75de8a",
+      status: 0,
+      chapter_id: null,
+      create_time: ISODate("2024-03-26T10:00:00.000Z"),
+      update_time: ISODate("2024-03-28T14:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03a16",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f21",
+      course_id: "0cf2dbe8-c12d-4be7-b914-545edcf0fad8",
+      sys_user_id: "0198086c-fcd1-7a09-b3c3-537de3493332",
+      title: "第一章作业提交",
+      content: "已完成第一章函数与极限的作业，请老师批阅。",
+      post_type: 2,
+      is_anonymous: 0,
+      attachment_urls: [
+        "http://127.0.0.1:31589/sapientiacloud-edupivot/attachments/homework_submission_001.pdf"
+      ],
+      image_urls: [],
+      tags: ["作业", "提交", "第一章"],
+      view_count: 123,
+      like_count: 2,
+      reply_count: 5,
+      share_count: 1,
+      is_top: 0,
+      is_essence: 0,
+      is_locked: 0,
+      last_reply_id: "78d44b4a-becd-4f65-9461-f2dcdda03b23",
+      last_reply_time: ISODate("2024-01-20T10:00:00.000Z"),
+      last_reply_user_id: "0198086c-fcd1-7a09-b3c3-537de3493332",
+      status: 0,
+      chapter_id: "78d44b4a-becd-4f65-9461-f2dcdda03e02",
+      create_time: ISODate("2024-01-19T15:00:00.000Z"),
+      update_time: ISODate("2024-01-20T10:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03a17",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f22",
+      course_id: "0cf2dbe8-c12d-4be7-b914-545edcf0fad8",
+      sys_user_id: "0198086c-fcd1-7a09-b3c3-537de3493332",
+      title: "课程通知：下周考试安排",
+      content: "各位同学，下周将进行期中考试，请提前做好准备。考试时间为下周三上午9:00-11:00，地点在教学楼201。",
+      post_type: 3,
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      tags: ["公告", "考试", "通知"],
+      view_count: 456,
+      like_count: 8,
+      reply_count: 15,
+      share_count: 5,
+      is_top: 1,
+      is_essence: 1,
+      is_locked: 0,
+      last_reply_id: "78d44b4a-becd-4f65-9461-f2dcdda03b24",
+      last_reply_time: ISODate("2024-01-25T09:00:00.000Z"),
+      last_reply_user_id: "01992cb7-735d-7857-9c8c-edbe566ad0d2",
+      status: 0,
+      chapter_id: null,
+      create_time: ISODate("2024-01-24T08:00:00.000Z"),
+      update_time: ISODate("2024-01-25T09:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03a18",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f23",
+      course_id: "0f2231b3-d310-49c9-913e-1ad5e8f46e47",
+      sys_user_id: "24c7df03-1dd3-4b69-8686-725ec68fd095",
+      title: "如何理解数字签名的原理？",
+      content: "数字签名是如何保证数据完整性和身份认证的？",
+      post_type: 0,
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      tags: ["网络安全", "数字签名", "问答"],
+      view_count: 234,
+      like_count: 6,
+      reply_count: 11,
+      share_count: 3,
+      is_top: 0,
+      is_essence: 0,
+      is_locked: 0,
+      last_reply_id: "78d44b4a-becd-4f65-9461-f2dcdda03b25",
+      last_reply_time: ISODate("2024-02-05T11:00:00.000Z"),
+      last_reply_user_id: "24c7df03-1dd3-4b69-8686-725ec68fd095",
+      status: 0,
+      chapter_id: null,
+      create_time: ISODate("2024-02-03T10:00:00.000Z"),
+      update_time: ISODate("2024-02-05T11:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03a19",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f24",
+      course_id: "173432dc-eb2d-4a33-a659-8b5ef9f15900",
+      sys_user_id: "b57f2213-a134-4624-8ac8-7edc4e592f6d",
+      title: "死锁产生的条件是什么？",
+      content: "请问死锁产生的四个必要条件是什么？",
+      post_type: 0,
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      tags: ["操作系统", "死锁", "问答"],
+      view_count: 189,
+      like_count: 4,
+      reply_count: 9,
+      share_count: 2,
+      is_top: 0,
+      is_essence: 0,
+      is_locked: 0,
+      last_reply_id: "78d44b4a-becd-4f65-9461-f2dcdda03b26",
+      last_reply_time: ISODate("2024-02-09T13:00:00.000Z"),
+      last_reply_user_id: "b57f2213-a134-4624-8ac8-7edc4e592f6d",
+      status: 0,
+      chapter_id: null,
+      create_time: ISODate("2024-02-07T11:00:00.000Z"),
+      update_time: ISODate("2024-02-09T13:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03a20",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f25",
+      course_id: "28e0ba83-8b52-448c-a932-b83b536440c8",
+      sys_user_id: "b6bbcc62-c65b-44d3-85cb-b8ca05a17993",
+      title: "数据库事务的ACID特性",
+      content: "请问数据库事务的ACID特性具体指什么？",
+      post_type: 0,
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      tags: ["数据库", "事务", "ACID", "问答"],
+      view_count: 267,
+      like_count: 7,
+      reply_count: 13,
+      share_count: 4,
+      is_top: 0,
+      is_essence: 0,
+      is_locked: 0,
+      last_reply_id: "78d44b4a-becd-4f65-9461-f2dcdda03b27",
+      last_reply_time: ISODate("2024-02-13T14:00:00.000Z"),
+      last_reply_user_id: "b6bbcc62-c65b-44d3-85cb-b8ca05a17993",
+      status: 0,
+      chapter_id: null,
+      create_time: ISODate("2024-02-12T10:00:00.000Z"),
+      update_time: ISODate("2024-02-13T14:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03a21",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f26",
+      course_id: "2d9d9b8d-250e-4554-95cd-1539735775f7",
+      sys_user_id: "b57f2213-a134-4624-8ac8-7edc4e592f6d",
+      title: "如何将正则表达式转换为有限自动机？",
+      content: "请问如何将正则表达式转换为有限自动机？具体步骤是什么？",
+      post_type: 0,
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      tags: ["编译原理", "正则表达式", "有限自动机", "问答"],
+      view_count: 198,
+      like_count: 5,
+      reply_count: 10,
+      share_count: 2,
+      is_top: 0,
+      is_essence: 0,
+      is_locked: 0,
+      last_reply_id: "78d44b4a-becd-4f65-9461-f2dcdda03b28",
+      last_reply_time: ISODate("2024-02-19T12:00:00.000Z"),
+      last_reply_user_id: "b57f2213-a134-4624-8ac8-7edc4e592f6d",
+      status: 0,
+      chapter_id: null,
+      create_time: ISODate("2024-02-17T11:00:00.000Z"),
+      update_time: ISODate("2024-02-19T12:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03a22",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f27",
+      course_id: "32e6b5e7-1792-4630-b433-9ba0739b003b",
+      sys_user_id: "b6bbcc62-c65b-44d3-85cb-b8ca05a17993",
+      title: "HTTP和HTTPS的区别",
+      content: "请问HTTP和HTTPS的主要区别是什么？",
+      post_type: 0,
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      tags: ["计算机网络", "HTTP", "HTTPS", "问答"],
+      view_count: 312,
+      like_count: 9,
+      reply_count: 16,
+      share_count: 5,
+      is_top: 0,
+      is_essence: 0,
+      is_locked: 0,
+      last_reply_id: "78d44b4a-becd-4f65-9461-f2dcdda03b29",
+      last_reply_time: ISODate("2024-02-24T15:00:00.000Z"),
+      last_reply_user_id: "b6bbcc62-c65b-44d3-85cb-b8ca05a17993",
+      status: 0,
+      chapter_id: null,
+      create_time: ISODate("2024-02-22T11:00:00.000Z"),
+      update_time: ISODate("2024-02-24T15:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03a23",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f28",
+      course_id: "3a2a3444-31a3-46f6-8322-7d99a25a1796",
+      sys_user_id: "da4f9ad2-736c-4c0b-8235-d565edde803e",
+      title: "Docker容器原理",
+      content: "请问Docker容器的实现原理是什么？",
+      post_type: 0,
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      tags: ["云计算", "Docker", "容器", "问答"],
+      view_count: 245,
+      like_count: 6,
+      reply_count: 12,
+      share_count: 3,
+      is_top: 0,
+      is_essence: 0,
+      is_locked: 0,
+      last_reply_id: "78d44b4a-becd-4f65-9461-f2dcdda03b30",
+      last_reply_time: ISODate("2024-02-29T13:00:00.000Z"),
+      last_reply_user_id: "da4f9ad2-736c-4c0b-8235-d565edde803e",
+      status: 0,
+      chapter_id: null,
+      create_time: ISODate("2024-02-27T10:00:00.000Z"),
+      update_time: ISODate("2024-02-29T13:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03a24",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f29",
+      course_id: "7d69b274-deb8-4b9a-8e69-ca93f10dd115",
+      sys_user_id: "fc65a565-31a5-4ea2-83c1-448426a01155",
+      title: "Vue响应式原理",
+      content: "请问Vue的响应式数据绑定是如何实现的？",
+      post_type: 0,
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      tags: ["Web前端", "Vue", "响应式", "问答"],
+      view_count: 378,
+      like_count: 11,
+      reply_count: 19,
+      share_count: 6,
+      is_top: 0,
+      is_essence: 0,
+      is_locked: 0,
+      last_reply_id: "78d44b4a-becd-4f65-9461-f2dcdda03b31",
+      last_reply_time: ISODate("2024-03-07T14:00:00.000Z"),
+      last_reply_user_id: "fc65a565-31a5-4ea2-83c1-448426a01155",
+      status: 0,
+      chapter_id: null,
+      create_time: ISODate("2024-03-04T09:00:00.000Z"),
+      update_time: ISODate("2024-03-07T14:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03a25",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f30",
+      course_id: "8caf6fcf-501b-427b-b31d-697c4b53dfbb",
+      sys_user_id: "4a7bae38-28d2-4b49-a985-d1aa2f3d072e",
+      title: "Spark RDD操作",
+      content: "请问Spark中RDD的transformation和action操作有什么区别？",
+      post_type: 0,
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      tags: ["大数据", "Spark", "RDD", "问答"],
+      view_count: 289,
+      like_count: 8,
+      reply_count: 14,
+      share_count: 4,
+      is_top: 0,
+      is_essence: 0,
+      is_locked: 0,
+      last_reply_id: "78d44b4a-becd-4f65-9461-f2dcdda03b32",
+      last_reply_time: ISODate("2024-03-10T15:00:00.000Z"),
+      last_reply_user_id: "4a7bae38-28d2-4b49-a985-d1aa2f3d072e",
+      status: 0,
+      chapter_id: null,
+      create_time: ISODate("2024-03-08T10:00:00.000Z"),
+      update_time: ISODate("2024-03-10T15:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03a26",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f11",
+      course_id: "a772626c-1084-4b54-8d67-086694bd39c0",
+      sys_user_id: "0db2d446-97ac-45f6-97fe-e2ab9fbb33a7",
+      title: "iOS内存管理",
+      content: "请问iOS中的ARC机制是如何工作的？",
+      post_type: 0,
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      tags: ["移动开发", "iOS", "ARC", "内存管理", "问答"],
+      view_count: 234,
+      like_count: 6,
+      reply_count: 11,
+      share_count: 3,
+      is_top: 0,
+      is_essence: 0,
+      is_locked: 0,
+      last_reply_id: "78d44b4a-becd-4f65-9461-f2dcdda03b33",
+      last_reply_time: ISODate("2024-03-13T13:00:00.000Z"),
+      last_reply_user_id: "0db2d446-97ac-45f6-97fe-e2ab9fbb33a7",
+      status: 0,
+      chapter_id: null,
+      create_time: ISODate("2024-03-12T10:00:00.000Z"),
+      update_time: ISODate("2024-03-13T13:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03a27",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f12",
+      course_id: "b36f76a6-3726-4b9a-b3cc-ad6ef589920c",
+      sys_user_id: "d31bc6b3-6bb0-4e07-bf27-9c4d4a94237b",
+      title: "特征值与特征向量",
+      content: "请问如何求矩阵的特征值和特征向量？",
+      post_type: 0,
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      tags: ["线性代数", "特征值", "特征向量", "问答"],
+      view_count: 198,
+      like_count: 5,
+      reply_count: 9,
+      share_count: 2,
+      is_top: 0,
+      is_essence: 0,
+      is_locked: 0,
+      last_reply_id: "78d44b4a-becd-4f65-9461-f2dcdda03b34",
+      last_reply_time: ISODate("2024-03-19T12:00:00.000Z"),
+      last_reply_user_id: "d31bc6b3-6bb0-4e07-bf27-9c4d4a94237b",
+      status: 0,
+      chapter_id: null,
+      create_time: ISODate("2024-03-17T11:00:00.000Z"),
+      update_time: ISODate("2024-03-19T12:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03a28",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f13",
+      course_id: "bb4824f3-2f97-401e-9a1a-c92558cfc221",
+      sys_user_id: "da4f9ad2-736c-4c0b-8235-d565edde803e",
+      title: "二叉树遍历算法",
+      content: "请问二叉树的前序、中序、后序遍历算法如何实现？",
+      post_type: 0,
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      tags: ["数据结构", "二叉树", "遍历", "问答"],
+      view_count: 345,
+      like_count: 10,
+      reply_count: 17,
+      share_count: 5,
+      is_top: 0,
+      is_essence: 0,
+      is_locked: 0,
+      last_reply_id: "78d44b4a-becd-4f65-9461-f2dcdda03b35",
+      last_reply_time: ISODate("2024-03-23T14:00:00.000Z"),
+      last_reply_user_id: "da4f9ad2-736c-4c0b-8235-d565edde803e",
+      status: 0,
+      chapter_id: null,
+      create_time: ISODate("2024-03-21T09:00:00.000Z"),
+      update_time: ISODate("2024-03-23T14:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03a29",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f14",
+      course_id: "c4da4d8c-e5bb-4833-b3c8-4896cd585dc2",
+      sys_user_id: "cf76a275-f0f4-492e-bd13-71e6ec75de8a",
+      title: "软件需求分析步骤",
+      content: "请问软件需求分析包括哪些步骤？",
+      post_type: 0,
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      tags: ["软件工程", "需求分析", "问答"],
+      view_count: 267,
+      like_count: 7,
+      reply_count: 13,
+      share_count: 4,
+      is_top: 0,
+      is_essence: 0,
+      is_locked: 0,
+      last_reply_id: "78d44b4a-becd-4f65-9461-f2dcdda03b36",
+      last_reply_time: ISODate("2024-03-29T15:00:00.000Z"),
+      last_reply_user_id: "cf76a275-f0f4-492e-bd13-71e6ec75de8a",
+      status: 0,
+      chapter_id: null,
+      create_time: ISODate("2024-03-27T10:00:00.000Z"),
+      update_time: ISODate("2024-03-29T15:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03a30",
+      forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f01",
+      course_id: "0cf2dbe8-c12d-4be7-b914-545edcf0fad8",
+      sys_user_id: "01992cb7-735d-7857-9c8c-edbe566ad0d2",
+      title: "不定积分计算方法总结",
+      content: "不定积分计算是高等数学的重要内容。主要方法包括：1) 基本积分公式；2) 换元积分法；3) 分部积分法；4) 有理函数积分。",
+      post_type: 1,
+      is_anonymous: 0,
+      attachment_urls: [],
+      image_urls: [],
+      tags: ["高等数学", "不定积分", "计算方法"],
+      view_count: 534,
+      like_count: 26,
+      reply_count: 41,
+      share_count: 12,
+      is_top: 0,
+      is_essence: 1,
+      is_locked: 0,
+      last_reply_id: "78d44b4a-becd-4f65-9461-f2dcdda03b37",
+      last_reply_time: ISODate("2024-01-22T16:00:00.000Z"),
+      last_reply_user_id: "01992cb6-d9a7-7841-9e2b-9dcc1c9ea0a7",
+      status: 0,
+      chapter_id: "78d44b4a-becd-4f65-9461-f2dcdda03e04",
+      create_time: ISODate("2024-01-21T10:00:00.000Z"),
+      update_time: ISODate("2024-01-22T16:00:00.000Z"),
+      is_deleted: 0
+    }
+  ]);
 
-// ----------------------------
-// Collection structure for mg_forum_reply
-// ----------------------------
-db.getCollection("mg_forum_reply").drop();
-db.createCollection("mg_forum_reply");
-db.getCollection("mg_forum_reply").createIndex({
-    post_id: Int32("1")
-}, {
-    name: "post_id_1"
-});
-db.getCollection("mg_forum_reply").createIndex({
-    forum_id: Int32("1")
-}, {
-    name: "forum_id_1"
-});
-db.getCollection("mg_forum_reply").createIndex({
-    course_id: Int32("1")
-}, {
-    name: "course_id_1"
-});
-db.getCollection("mg_forum_reply").createIndex({
-    author_id: Int32("1")
-}, {
-    name: "author_id_1"
-});
-db.getCollection("mg_forum_reply").createIndex({
-    parent_reply_id: Int32("1")
-}, {
-    name: "parent_reply_id_1"
-});
-db.getCollection("mg_forum_reply").createIndex({
-    status: Int32("1")
-}, {
-    name: "status_1"
-});
-db.getCollection("mg_forum_reply").createIndex({
-    create_time: Int32("-1")
-}, {
-    name: "create_time_-1"
-});
-db.getCollection("mg_forum_reply").createIndex({
-    floor_number: Int32("1")
-}, {
-    name: "floor_number_1"
-});
+// ============================================
+// 5. mg_course_forum - 课程论坛数据
+// ============================================
+print("正在处理 mg_course_forum...");
+db.getCollection("mg_course_forum").deleteMany({});
+db.getCollection("mg_course_forum").insertMany([
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03f01",
+      course_id: "0cf2dbe8-c12d-4be7-b914-545edcf0fad8",
+      forum_name: "高等数学讨论区",
+      description: "高等数学课程学习讨论区，同学们可以在这里交流学习心得、讨论问题",
+      forum_type: 0,
+      is_public: 0,
+      allow_anonymous: 0,
+      post_count: 15,
+      reply_count: 45,
+      status: 0,
+      tags: ["高等数学", "讨论", "学习交流"],
+      create_time: ISODate("2024-01-15T08:00:00.000Z"),
+      update_time: ISODate("2024-01-20T14:30:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03f02",
+      course_id: "0cf2dbe8-c12d-4be7-b914-545edcf0fad8",
+      forum_name: "高等数学问答区",
+      description: "高等数学课程问答专区，快速解答学习中的疑问",
+      forum_type: 1,
+      is_public: 0,
+      allow_anonymous: 0,
+      post_count: 8,
+      reply_count: 23,
+      status: 0,
+      tags: ["高等数学", "问答", "答疑"],
+      create_time: ISODate("2024-01-15T08:30:00.000Z"),
+      update_time: ISODate("2024-01-20T15:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03f03",
+      course_id: "0f2231b3-d310-49c9-913e-1ad5e8f46e47",
+      forum_name: "网络安全讨论区",
+      description: "网络安全课程讨论区，分享安全技术和实践经验",
+      forum_type: 0,
+      is_public: 1,
+      allow_anonymous: 0,
+      post_count: 12,
+      reply_count: 38,
+      status: 0,
+      tags: ["网络安全", "讨论", "技术分享"],
+      create_time: ISODate("2024-02-01T08:00:00.000Z"),
+      update_time: ISODate("2024-02-10T10:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03f04",
+      course_id: "173432dc-eb2d-4a33-a659-8b5ef9f15900",
+      forum_name: "操作系统讨论区",
+      description: "操作系统原理与实践讨论区",
+      forum_type: 0,
+      is_public: 0,
+      allow_anonymous: 0,
+      post_count: 10,
+      reply_count: 32,
+      status: 0,
+      tags: ["操作系统", "讨论", "原理"],
+      create_time: ISODate("2024-02-05T09:00:00.000Z"),
+      update_time: ISODate("2024-02-15T11:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03f05",
+      course_id: "28e0ba83-8b52-448c-a932-b83b536440c8",
+      forum_name: "数据库技术讨论区",
+      description: "数据库系统原理与应用讨论区",
+      forum_type: 0,
+      is_public: 1,
+      allow_anonymous: 0,
+      post_count: 14,
+      reply_count: 42,
+      status: 0,
+      tags: ["数据库", "讨论", "SQL"],
+      create_time: ISODate("2024-02-10T08:00:00.000Z"),
+      update_time: ISODate("2024-02-20T09:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03f06",
+      course_id: "2d9d9b8d-250e-4554-95cd-1539735775f7",
+      forum_name: "编译原理讨论区",
+      description: "编译原理与技术讨论区",
+      forum_type: 0,
+      is_public: 0,
+      allow_anonymous: 0,
+      post_count: 9,
+      reply_count: 28,
+      status: 0,
+      tags: ["编译原理", "讨论", "编译器"],
+      create_time: ISODate("2024-02-15T09:00:00.000Z"),
+      update_time: ISODate("2024-02-25T10:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03f07",
+      course_id: "32e6b5e7-1792-4630-b433-9ba0739b003b",
+      forum_name: "计算机网络讨论区",
+      description: "计算机网络协议与技术讨论区",
+      forum_type: 0,
+      is_public: 1,
+      allow_anonymous: 0,
+      post_count: 13,
+      reply_count: 41,
+      status: 0,
+      tags: ["计算机网络", "讨论", "协议"],
+      create_time: ISODate("2024-02-20T08:00:00.000Z"),
+      update_time: ISODate("2024-03-01T09:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03f08",
+      course_id: "3a2a3444-31a3-46f6-8322-7d99a25a1796",
+      forum_name: "云计算技术讨论区",
+      description: "云计算与容器技术讨论区",
+      forum_type: 0,
+      is_public: 1,
+      allow_anonymous: 0,
+      post_count: 11,
+      reply_count: 35,
+      status: 0,
+      tags: ["云计算", "讨论", "容器"],
+      create_time: ISODate("2024-02-25T08:00:00.000Z"),
+      update_time: ISODate("2024-03-05T10:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03f09",
+      course_id: "7d69b274-deb8-4b9a-8e69-ca93f10dd115",
+      forum_name: "Web前端开发讨论区",
+      description: "Web前端技术讨论与经验分享",
+      forum_type: 0,
+      is_public: 1,
+      allow_anonymous: 0,
+      post_count: 16,
+      reply_count: 48,
+      status: 0,
+      tags: ["Web前端", "讨论", "开发"],
+      create_time: ISODate("2024-03-01T08:00:00.000Z"),
+      update_time: ISODate("2024-03-10T09:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03f10",
+      course_id: "8caf6fcf-501b-427b-b31d-697c4b53dfbb",
+      forum_name: "大数据技术讨论区",
+      description: "大数据处理与分析技术讨论区",
+      forum_type: 0,
+      is_public: 1,
+      allow_anonymous: 0,
+      post_count: 10,
+      reply_count: 31,
+      status: 0,
+      tags: ["大数据", "讨论", "Hadoop"],
+      create_time: ISODate("2024-03-05T08:00:00.000Z"),
+      update_time: ISODate("2024-03-15T10:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03f11",
+      course_id: "a772626c-1084-4b54-8d67-086694bd39c0",
+      forum_name: "移动应用开发讨论区",
+      description: "Android/iOS移动应用开发讨论区",
+      forum_type: 0,
+      is_public: 1,
+      allow_anonymous: 0,
+      post_count: 12,
+      reply_count: 36,
+      status: 0,
+      tags: ["移动开发", "讨论", "Android", "iOS"],
+      create_time: ISODate("2024-03-10T08:00:00.000Z"),
+      update_time: ISODate("2024-03-20T09:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03f12",
+      course_id: "b36f76a6-3726-4b9a-b3cc-ad6ef589920c",
+      forum_name: "线性代数讨论区",
+      description: "线性代数课程讨论区",
+      forum_type: 0,
+      is_public: 0,
+      allow_anonymous: 0,
+      post_count: 8,
+      reply_count: 24,
+      status: 0,
+      tags: ["线性代数", "讨论", "数学"],
+      create_time: ISODate("2024-03-15T08:00:00.000Z"),
+      update_time: ISODate("2024-03-25T10:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03f13",
+      course_id: "bb4824f3-2f97-401e-9a1a-c92558cfc221",
+      forum_name: "数据结构与算法讨论区",
+      description: "数据结构与算法学习讨论区",
+      forum_type: 0,
+      is_public: 1,
+      allow_anonymous: 0,
+      post_count: 15,
+      reply_count: 44,
+      status: 0,
+      tags: ["数据结构", "算法", "讨论"],
+      create_time: ISODate("2024-03-20T08:00:00.000Z"),
+      update_time: ISODate("2024-03-30T09:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03f14",
+      course_id: "c4da4d8c-e5bb-4833-b3c8-4896cd585dc2",
+      forum_name: "软件工程讨论区",
+      description: "软件工程理论与实践讨论区",
+      forum_type: 0,
+      is_public: 1,
+      allow_anonymous: 0,
+      post_count: 11,
+      reply_count: 33,
+      status: 0,
+      tags: ["软件工程", "讨论", "开发"],
+      create_time: ISODate("2024-03-25T08:00:00.000Z"),
+      update_time: ISODate("2024-04-05T10:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03f15",
+      course_id: "cd382d76-2b6f-4239-a309-b2d739d14bfc",
+      forum_name: "大学物理讨论区",
+      description: "大学物理课程讨论区",
+      forum_type: 0,
+      is_public: 0,
+      allow_anonymous: 0,
+      post_count: 9,
+      reply_count: 27,
+      status: 0,
+      tags: ["大学物理", "讨论", "物理"],
+      create_time: ISODate("2024-04-01T08:00:00.000Z"),
+      update_time: ISODate("2024-04-10T09:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03f16",
+      course_id: "cf9ef1c9-beeb-4d4f-8172-e4190f3441a8",
+      forum_name: "数据库系统原理讨论区",
+      description: "数据库系统原理深入讨论区",
+      forum_type: 0,
+      is_public: 1,
+      allow_anonymous: 0,
+      post_count: 13,
+      reply_count: 39,
+      status: 0,
+      tags: ["数据库系统", "讨论", "原理"],
+      create_time: ISODate("2024-04-05T08:00:00.000Z"),
+      update_time: ISODate("2024-04-15T10:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03f17",
+      course_id: "d74b3092-d98a-4bd8-93fc-d2a6226994aa",
+      forum_name: "大学英语讨论区",
+      description: "大学英语学习交流讨论区",
+      forum_type: 0,
+      is_public: 0,
+      allow_anonymous: 0,
+      post_count: 7,
+      reply_count: 21,
+      status: 0,
+      tags: ["大学英语", "讨论", "英语学习"],
+      create_time: ISODate("2024-04-10T08:00:00.000Z"),
+      update_time: ISODate("2024-04-20T09:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03f18",
+      course_id: "df1c0ed1-ce5c-425e-b0fc-eaee54ad7192",
+      forum_name: "人工智能讨论区",
+      description: "人工智能与机器学习讨论区",
+      forum_type: 0,
+      is_public: 1,
+      allow_anonymous: 0,
+      post_count: 14,
+      reply_count: 43,
+      status: 0,
+      tags: ["人工智能", "讨论", "机器学习"],
+      create_time: ISODate("2024-04-15T08:00:00.000Z"),
+      update_time: ISODate("2024-04-25T10:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03f19",
+      course_id: "e0c9c5ac-6e79-421b-b110-07cb1059dc3d",
+      forum_name: "计算机组成原理讨论区",
+      description: "计算机组成原理讨论区",
+      forum_type: 0,
+      is_public: 0,
+      allow_anonymous: 0,
+      post_count: 10,
+      reply_count: 30,
+      status: 0,
+      tags: ["计算机组成", "讨论", "硬件"],
+      create_time: ISODate("2024-04-20T08:00:00.000Z"),
+      update_time: ISODate("2024-04-30T09:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03f20",
+      course_id: "fde4eefd-7583-4f8a-bd09-0e2de4e9194b",
+      forum_name: "机器学习算法讨论区",
+      description: "机器学习算法理论与实践讨论区",
+      forum_type: 0,
+      is_public: 1,
+      allow_anonymous: 0,
+      post_count: 12,
+      reply_count: 37,
+      status: 0,
+      tags: ["机器学习", "讨论", "算法"],
+      create_time: ISODate("2024-04-25T08:00:00.000Z"),
+      update_time: ISODate("2024-05-05T10:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03f21",
+      course_id: "0cf2dbe8-c12d-4be7-b914-545edcf0fad8",
+      forum_name: "高等数学作业区",
+      description: "高等数学课程作业提交与讨论区",
+      forum_type: 2,
+      is_public: 0,
+      allow_anonymous: 0,
+      post_count: 6,
+      reply_count: 18,
+      status: 0,
+      tags: ["高等数学", "作业", "提交"],
+      create_time: ISODate("2024-01-16T08:00:00.000Z"),
+      update_time: ISODate("2024-01-25T10:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03f22",
+      course_id: "0cf2dbe8-c12d-4be7-b914-545edcf0fad8",
+      forum_name: "高等数学公告区",
+      description: "高等数学课程公告发布区",
+      forum_type: 3,
+      is_public: 0,
+      allow_anonymous: 0,
+      post_count: 5,
+      reply_count: 12,
+      status: 0,
+      tags: ["高等数学", "公告", "通知"],
+      create_time: ISODate("2024-01-17T08:00:00.000Z"),
+      update_time: ISODate("2024-01-30T09:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03f23",
+      course_id: "0f2231b3-d310-49c9-913e-1ad5e8f46e47",
+      forum_name: "网络安全问答区",
+      description: "网络安全课程快速问答区",
+      forum_type: 1,
+      is_public: 1,
+      allow_anonymous: 0,
+      post_count: 9,
+      reply_count: 26,
+      status: 0,
+      tags: ["网络安全", "问答", "答疑"],
+      create_time: ISODate("2024-02-02T08:00:00.000Z"),
+      update_time: ISODate("2024-02-12T10:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03f24",
+      course_id: "173432dc-eb2d-4a33-a659-8b5ef9f15900",
+      forum_name: "操作系统问答区",
+      description: "操作系统课程问答专区",
+      forum_type: 1,
+      is_public: 0,
+      allow_anonymous: 0,
+      post_count: 7,
+      reply_count: 20,
+      status: 0,
+      tags: ["操作系统", "问答", "答疑"],
+      create_time: ISODate("2024-02-06T08:00:00.000Z"),
+      update_time: ISODate("2024-02-16T10:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03f25",
+      course_id: "28e0ba83-8b52-448c-a932-b83b536440c8",
+      forum_name: "数据库技术问答区",
+      description: "数据库技术快速问答区",
+      forum_type: 1,
+      is_public: 1,
+      allow_anonymous: 0,
+      post_count: 8,
+      reply_count: 24,
+      status: 0,
+      tags: ["数据库", "问答", "SQL"],
+      create_time: ISODate("2024-02-11T08:00:00.000Z"),
+      update_time: ISODate("2024-02-21T09:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03f26",
+      course_id: "2d9d9b8d-250e-4554-95cd-1539735775f7",
+      forum_name: "编译原理问答区",
+      description: "编译原理课程问答专区",
+      forum_type: 1,
+      is_public: 0,
+      allow_anonymous: 0,
+      post_count: 6,
+      reply_count: 17,
+      status: 0,
+      tags: ["编译原理", "问答", "答疑"],
+      create_time: ISODate("2024-02-16T08:00:00.000Z"),
+      update_time: ISODate("2024-02-26T10:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03f27",
+      course_id: "32e6b5e7-1792-4630-b433-9ba0739b003b",
+      forum_name: "计算机网络问答区",
+      description: "计算机网络课程问答专区",
+      forum_type: 1,
+      is_public: 1,
+      allow_anonymous: 0,
+      post_count: 7,
+      reply_count: 21,
+      status: 0,
+      tags: ["计算机网络", "问答", "协议"],
+      create_time: ISODate("2024-02-21T08:00:00.000Z"),
+      update_time: ISODate("2024-03-02T09:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03f28",
+      course_id: "3a2a3444-31a3-46f6-8322-7d99a25a1796",
+      forum_name: "云计算技术问答区",
+      description: "云计算技术快速问答区",
+      forum_type: 1,
+      is_public: 1,
+      allow_anonymous: 0,
+      post_count: 8,
+      reply_count: 23,
+      status: 0,
+      tags: ["云计算", "问答", "容器"],
+      create_time: ISODate("2024-02-26T08:00:00.000Z"),
+      update_time: ISODate("2024-03-06T10:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03f29",
+      course_id: "7d69b274-deb8-4b9a-8e69-ca93f10dd115",
+      forum_name: "Web前端开发问答区",
+      description: "Web前端开发快速问答区",
+      forum_type: 1,
+      is_public: 1,
+      allow_anonymous: 0,
+      post_count: 9,
+      reply_count: 27,
+      status: 0,
+      tags: ["Web前端", "问答", "开发"],
+      create_time: ISODate("2024-03-02T08:00:00.000Z"),
+      update_time: ISODate("2024-03-12T09:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "78d44b4a-becd-4f65-9461-f2dcdda03f30",
+      course_id: "8caf6fcf-501b-427b-b31d-697c4b53dfbb",
+      forum_name: "大数据技术问答区",
+      description: "大数据技术快速问答区",
+      forum_type: 1,
+      is_public: 1,
+      allow_anonymous: 0,
+      post_count: 7,
+      reply_count: 20,
+      status: 0,
+      tags: ["大数据", "问答", "Hadoop"],
+      create_time: ISODate("2024-03-06T08:00:00.000Z"),
+      update_time: ISODate("2024-03-16T10:00:00.000Z"),
+      is_deleted: 0
+    }
+  ]);
 
-// ----------------------------
-// Documents of mg_forum_reply
-// ----------------------------
-db.getCollection("mg_forum_reply").insert([ {
-    _id: "78d44b4a-becd-4f65-9461-f2dcdda03b01",
-    post_id: "78d44b4a-becd-4f65-9461-f2dcdda03a01",
-    forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f01",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    sys_user_id: "01983258-afb0-79b3-847b-0abf6a991c88",
-    content: "<p>总结得很好！我补充一点，在计算极限时还要注意左右极限是否相等，特别是分段函数和含有绝对值的函数。</p>",
-    reply_to_user_id: "01992cb7-735d-7857-9c8c-edbe566ad0d2",
-    is_anonymous: Int32("0"),
-    attachment_urls: [ ],
-    image_urls: [ ],
-    like_count: Long("5"),
-    reply_count: Long("2"),
-    is_accepted: Int32("0"),
-    floor_number: Int32("1"),
-    status: Int32("0"),
-    ip_address: "192.168.1.100",
-    user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-    create_time: ISODate("2024-01-16T11:30:00.000Z"),
-    update_time: ISODate("2025-10-10T06:02:46.062Z"),
-    is_deleted: Int32("0"),
-    _class: "com.dayz.sapientiacloud_edupivot.course.entity.po.ForumReply"
-} ]);
-db.getCollection("mg_forum_reply").insert([ {
-    _id: "78d44b4a-becd-4f65-9461-f2dcdda03b02",
-    post_id: "78d44b4a-becd-4f65-9461-f2dcdda03a01",
-    forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f01",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    sys_user_id: "01992cb6-d9a7-7841-9e2b-9dcc1c9ea0a7",
-    content: "老师说得对！我经常忘记考虑左右极限，导致答案错误。",
-    parent_reply_id: "78d44b4a-becd-4f65-9461-f2dcdda03b01",
-    reply_to_user_id: "01983258-afb0-79b3-847b-0abf6a991c88",
-    is_anonymous: Int32("0"),
-    attachment_urls: [ ],
-    image_urls: [ ],
-    like_count: Int32("3"),
-    reply_count: Int32("0"),
-    is_accepted: Int32("0"),
-    floor_number: Int32("2"),
-    status: Int32("0"),
-    ip_address: "192.168.1.101",
-    user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-    create_time: ISODate("2024-01-16T12:00:00.000Z"),
-    update_time: ISODate("2024-01-16T12:00:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_forum_reply").insert([ {
-    _id: "78d44b4a-becd-4f65-9461-f2dcdda03b03",
-    post_id: "78d44b4a-becd-4f65-9461-f2dcdda03a01",
-    forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f01",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    sys_user_id: "01992cb7-735d-7857-9c8c-edbe566ad0d2",
-    content: "还有一个常见错误是混淆了无穷大和无穷小，比如把lim(x→0) 1/x当作无穷小，实际上当x→0⁺时，1/x→+∞。",
-    reply_to_user_id: "01992cb7-735d-7857-9c8c-edbe566ad0d2",
-    is_anonymous: Int32("0"),
-    attachment_urls: [ ],
-    image_urls: [ ],
-    like_count: Long("9"),
-    reply_count: Long("1"),
-    is_accepted: Int32("0"),
-    floor_number: Int32("3"),
-    status: Int32("0"),
-    ip_address: "192.168.1.102",
-    user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-    create_time: ISODate("2024-01-16T14:15:00.000Z"),
-    update_time: ISODate("2025-10-10T05:42:59.494Z"),
-    is_deleted: Int32("0"),
-    _class: "com.dayz.sapientiacloud_edupivot.course.entity.po.ForumReply"
-} ]);
-db.getCollection("mg_forum_reply").insert([ {
-    _id: "78d44b4a-becd-4f65-9461-f2dcdda03b12",
-    post_id: "78d44b4a-becd-4f65-9461-f2dcdda03a02",
-    forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f01",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    sys_user_id: "01983258-afb0-79b3-847b-0abf6a991c88",
-    content: "很好的问题！微分的几何意义可以这样理解：\n\n**微分的几何意义：**\n微分dy表示的是函数y=f(x)在点x处的切线在x方向上的增量dx对应的y方向上的增量。\n\n**具体来说：**\n- 当x有一个很小的增量Δx时，函数值的变化Δy ≈ dy = f'(x)Δx\n- 从几何上看，dy就是切线在x方向移动Δx时，y方向的变化量\n- 而Δy是函数曲线在x方向移动Δx时，y方向的实际变化量\n\n**应用区别：**\n- 导数主要用于求切线斜率、判断单调性、求极值等\n- 微分主要用于近似计算、误差估计等\n\n建议你画个图来理解，这样会更直观！",
-    reply_to_user_id: "01992cb6-d9a7-7841-9e2b-9dcc1c9ea0a7",
-    is_anonymous: Int32("0"),
-    attachment_urls: [
-        "http://127.0.0.1:31589/sapientiacloud-edupivot/course-chapters/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20250903152605_5_110.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=root%2F20251004%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20251004T103547Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=1a33844050667bcb236c97d8b36b6c52609e4dc489da04700ee6e265617ef9fe"
-    ],
-    image_urls: [
-        "http://127.0.0.1:31589/sapientiacloud-edupivot/images/differential_geometry_diagram.png"
-    ],
-    like_count: Long("15"),
-    reply_count: Long("2"),
-    is_accepted: Int32("1"),
-    floor_number: Int32("1"),
-    status: Int32("0"),
-    ip_address: "192.168.1.100",
-    user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-    create_time: ISODate("2024-01-19T15:20:00.000Z"),
-    update_time: ISODate("2025-10-10T04:59:01.181Z"),
-    is_deleted: Int32("0"),
-    _class: "com.dayz.sapientiacloud_edupivot.course.entity.po.ForumReply"
-} ]);
-db.getCollection("mg_forum_reply").insert([ {
-    _id: "78d44b4a-becd-4f65-9461-f2dcdda03b15",
-    post_id: "78d44b4a-becd-4f65-9461-f2dcdda03a08",
-    forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f02",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    sys_user_id: "01983258-afb0-79b3-847b-0abf6a991c88",
-    content: "你的解法完全正确！泰勒展开是解决这类问题的标准方法。\n\n**验证过程：**\n使用洛必达法则也可以得到相同结果：\n\n第一次洛必达：\nlim(x→0) (cos x - 1) / (3x²) = 0/0\n\n第二次洛必达：\nlim(x→0) (-sin x) / (6x) = 0/0\n\n第三次洛必达：\nlim(x→0) (-cos x) / 6 = -1/6\n\n**其他方法：**\n还可以使用等价无穷小：\nsin x - x = -x³/6 + o(x³)\n所以原式 = lim(x→0) (-x³/6 + o(x³)) / x³ = -1/6\n\n你的泰勒展开方法是最直观的，很好！",
-    parent_reply_id: null,
-    reply_to_user_id: "01992cb7-735d-7857-9c8c-edbe566ad0d2",
-    is_anonymous: Int32("0"),
-    attachment_urls: [ ],
-    image_urls: [ ],
-    like_count: Int32("12"),
-    reply_count: Int32("1"),
-    is_accepted: Int32("1"),
-    floor_number: Int32("1"),
-    status: Int32("0"),
-    ip_address: "192.168.1.100",
-    user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-    create_time: ISODate("2024-01-19T16:45:00.000Z"),
-    update_time: ISODate("2024-01-19T16:45:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_forum_reply").insert([ {
-    _id: "78d44b4a-becd-4f65-9461-f2dcdda03b18",
-    post_id: "78d44b4a-becd-4f65-9461-f2dcdda03a12",
-    forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f03",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    sys_user_id: "01992cb7-735d-7857-9c8c-edbe566ad0d2",
-    content: "老师，第2题我用了洛必达法则，但是分子分母求导后还是0/0型，应该怎么处理？",
-    parent_reply_id: null,
-    reply_to_user_id: "01983258-afb0-79b3-847b-0abf6a991c88",
-    is_anonymous: Int32("0"),
-    attachment_urls: [ ],
-    image_urls: [ ],
-    like_count: Int32("3"),
-    reply_count: Int32("1"),
-    is_accepted: Int32("0"),
-    floor_number: Int32("1"),
-    status: Int32("0"),
-    ip_address: "192.168.1.102",
-    user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-    create_time: ISODate("2024-01-18T10:20:00.000Z"),
-    update_time: ISODate("2024-01-18T10:20:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_forum_reply").insert([ {
-    _id: "0199cdf5-fa53-72ca-9db7-688043e7fa6d",
-    post_id: "78d44b4a-becd-4f65-9461-f2dcdda03a01",
-    forum_id: "78d44b4a-becd-4f65-9461-f2dcdda03f01",
-    course_id: "78d44b4a-becd-4f65-9461-f2dcdda03e01",
-    sys_user_id: "01983258-afb0-79b3-847b-0abf6a991c88",
-    content: "<p>总结得很好！我补充一点，在计算极限时还要注意左右极限是否相等，特别是分段函数和含有绝对值的函数。</p>",
-    reply_to_user_id: "01992cb7-735d-7857-9c8c-edbe566ad0d2",
-    is_anonymous: Int32("0"),
-    attachment_urls: [ ],
-    image_urls: [ ],
-    like_count: Long("0"),
-    reply_count: Long("0"),
-    is_accepted: Int32("0"),
-    floor_number: Int32("46"),
-    status: Int32("0"),
-    create_time: ISODate("2025-10-10T11:51:13.749Z"),
-    update_time: ISODate("2025-10-10T11:51:13.749Z"),
-    is_deleted: Int32("0"),
-    _class: "com.dayz.sapientiacloud_edupivot.course.entity.po.ForumReply"
-} ]);
+// ============================================
+// 6. mg_question_answer - 题目答案数据
+// ============================================
+print("正在处理 mg_question_answer...");
+db.getCollection("mg_question_answer").deleteMany({});
+db.getCollection("mg_question_answer").insertMany([
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440301",
+      question_id: "550e8400-e29b-41d4-a716-446655440101",
+      sys_user_id: "29408f57-7593-4896-8609-0effde16ee6b",
+      answer_content: "A",
+      is_correct: 1,
+      score: 5,
+      create_time: ISODate("2024-01-12T14:30:00.000Z"),
+      update_time: ISODate("2024-01-12T14:30:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440302",
+      question_id: "550e8400-e29b-41d4-a716-446655440102",
+      sys_user_id: "29408f57-7593-4896-8609-0effde16ee6b",
+      answer_content: "1",
+      is_correct: 1,
+      score: 8,
+      create_time: ISODate("2024-01-12T15:00:00.000Z"),
+      update_time: ISODate("2024-01-12T15:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440303",
+      question_id: "550e8400-e29b-41d4-a716-446655440103",
+      sys_user_id: "29408f57-7593-4896-8609-0effde16ee6b",
+      answer_content: "f'(x) = 3x² + 4x - 5",
+      is_correct: 1,
+      score: 6,
+      create_time: ISODate("2024-01-12T15:30:00.000Z"),
+      update_time: ISODate("2024-01-12T15:30:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440304",
+      question_id: "550e8400-e29b-41d4-a716-446655440104",
+      sys_user_id: "29408f57-7593-4896-8609-0effde16ee6b",
+      answer_content: "∫(x² + 3x + 2)dx = x³/3 + 3x²/2 + 2x + C",
+      is_correct: 1,
+      score: 10,
+      create_time: ISODate("2024-01-18T16:00:00.000Z"),
+      update_time: ISODate("2024-01-18T16:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440305",
+      question_id: "550e8400-e29b-41d4-a716-446655440105",
+      sys_user_id: "29408f57-7593-4896-8609-0effde16ee6b",
+      answer_content: "该级数收敛，因为它是p级数，p=2>1，所以收敛。",
+      is_correct: 1,
+      score: 12,
+      create_time: ISODate("2024-01-18T16:30:00.000Z"),
+      update_time: ISODate("2024-01-18T16:30:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440306",
+      question_id: "550e8400-e29b-41d4-a716-446655440106",
+      sys_user_id: "29408f57-7593-4896-8609-0effde16ee6b",
+      answer_content: "(1) 单调递增区间：(-∞,-1)∪(1,+∞)，单调递减区间：(-1,1)；(2) 极大值：f(-1)=3，极小值：f(1)=-1；(3) 最大值：f(-2)=3，最小值：f(1)=-1",
+      is_correct: 1,
+      score: 20,
+      create_time: ISODate("2024-01-22T10:00:00.000Z"),
+      update_time: ISODate("2024-01-22T10:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440307",
+      question_id: "550e8400-e29b-41d4-a716-446655440107",
+      sys_user_id: "24c7df03-1dd3-4b69-8686-725ec68fd095",
+      answer_content: "B",
+      is_correct: 1,
+      score: 5,
+      create_time: ISODate("2024-02-02T09:00:00.000Z"),
+      update_time: ISODate("2024-02-02T09:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440308",
+      question_id: "550e8400-e29b-41d4-a716-446655440108",
+      sys_user_id: "24c7df03-1dd3-4b69-8686-725ec68fd095",
+      answer_content: "数字签名的主要作用是身份认证和数据完整性验证。它使用私钥对数据进行签名，接收方使用公钥验证签名，确保数据未被篡改且来源可信。",
+      is_correct: 1,
+      score: 8,
+      create_time: ISODate("2024-02-02T10:00:00.000Z"),
+      update_time: ISODate("2024-02-02T10:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440309",
+      question_id: "550e8400-e29b-41d4-a716-446655440109",
+      sys_user_id: "b57f2213-a134-4624-8ac8-7edc4e592f6d",
+      answer_content: "D",
+      is_correct: 1,
+      score: 6,
+      create_time: ISODate("2024-02-06T10:00:00.000Z"),
+      update_time: ISODate("2024-02-06T10:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440310",
+      question_id: "550e8400-e29b-41d4-a716-446655440110",
+      sys_user_id: "b57f2213-a134-4624-8ac8-7edc4e592f6d",
+      answer_content: "死锁产生的四个必要条件是：1) 互斥条件；2) 请求和保持条件；3) 不剥夺条件；4) 环路等待条件。",
+      is_correct: 1,
+      score: 10,
+      create_time: ISODate("2024-02-06T11:00:00.000Z"),
+      update_time: ISODate("2024-02-06T11:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440311",
+      question_id: "550e8400-e29b-41d4-a716-446655440111",
+      sys_user_id: "b6bbcc62-c65b-44d3-85cb-b8ca05a17993",
+      answer_content: "优化方法：1) 在age字段上创建索引；2) 避免使用SELECT *，只选择需要的字段；3) 如果name字段也需要排序，在(name, age)上创建复合索引；4) 考虑使用覆盖索引。",
+      is_correct: 1,
+      score: 12,
+      create_time: ISODate("2024-02-11T09:00:00.000Z"),
+      update_time: ISODate("2024-02-11T09:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440312",
+      question_id: "550e8400-e29b-41d4-a716-446655440112",
+      sys_user_id: "b6bbcc62-c65b-44d3-85cb-b8ca05a17993",
+      answer_content: "ACID特性：1) 原子性(Atomicity)：事务要么全部执行，要么全部不执行；2) 一致性(Consistency)：事务执行前后数据库保持一致状态；3) 隔离性(Isolation)：并发事务之间相互隔离；4) 持久性(Durability)：事务提交后数据永久保存。",
+      is_correct: 1,
+      score: 10,
+      create_time: ISODate("2024-02-11T10:00:00.000Z"),
+      update_time: ISODate("2024-02-11T10:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440313",
+      question_id: "550e8400-e29b-41d4-a716-446655440113",
+      sys_user_id: "b57f2213-a134-4624-8ac8-7edc4e592f6d",
+      answer_content: "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$",
+      is_correct: 1,
+      score: 8,
+      create_time: ISODate("2024-02-16T11:00:00.000Z"),
+      update_time: ISODate("2024-02-16T11:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440314",
+      question_id: "550e8400-e29b-41d4-a716-446655440114",
+      sys_user_id: "b57f2213-a134-4624-8ac8-7edc4e592f6d",
+      answer_content: "需要构建一个NFA，然后转换为DFA。状态转换图包括：初始状态q0，通过(a|b)*到达q1，然后通过a到达q2，再通过b到达q3（接受状态）。",
+      is_correct: 1,
+      score: 15,
+      create_time: ISODate("2024-02-16T12:00:00.000Z"),
+      update_time: ISODate("2024-02-16T12:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440315",
+      question_id: "550e8400-e29b-41d4-a716-446655440115",
+      sys_user_id: "b6bbcc62-c65b-44d3-85cb-b8ca05a17993",
+      answer_content: "TCP三次握手过程：1) 客户端发送SYN包到服务器；2) 服务器收到SYN后发送SYN-ACK包；3) 客户端收到SYN-ACK后发送ACK包。完成三次握手后，连接建立。",
+      is_correct: 1,
+      score: 10,
+      create_time: ISODate("2024-02-21T10:00:00.000Z"),
+      update_time: ISODate("2024-02-21T10:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440316",
+      question_id: "550e8400-e29b-41d4-a716-446655440116",
+      sys_user_id: "b6bbcc62-c65b-44d3-85cb-b8ca05a17993",
+      answer_content: "主要区别：1) HTTPS使用SSL/TLS加密传输，HTTP是明文传输；2) HTTPS默认端口443，HTTP默认端口80；3) HTTPS需要CA证书，HTTP不需要；4) HTTPS更安全，适合传输敏感信息。",
+      is_correct: 1,
+      score: 6,
+      create_time: ISODate("2024-02-21T11:00:00.000Z"),
+      update_time: ISODate("2024-02-21T11:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440317",
+      question_id: "550e8400-e29b-41d4-a716-446655440117",
+      sys_user_id: "da4f9ad2-736c-4c0b-8235-d565edde803e",
+      answer_content: "Docker容器基于Linux的namespace和cgroups技术实现。namespace提供进程隔离，cgroups提供资源限制。容器共享宿主机内核，但拥有独立的文件系统和网络空间。",
+      is_correct: 1,
+      score: 10,
+      create_time: ISODate("2024-02-26T09:00:00.000Z"),
+      update_time: ISODate("2024-02-26T09:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440318",
+      question_id: "550e8400-e29b-41d4-a716-446655440118",
+      sys_user_id: "da4f9ad2-736c-4c0b-8235-d565edde803e",
+      answer_content: "Pod是最小部署单元，包含一个或多个容器；Service提供稳定的网络访问，通过标签选择器关联Pod；Deployment管理Pod的副本数和更新策略，提供滚动更新和回滚功能。",
+      is_correct: 1,
+      score: 15,
+      create_time: ISODate("2024-02-26T10:00:00.000Z"),
+      update_time: ISODate("2024-02-26T10:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440319",
+      question_id: "550e8400-e29b-41d4-a716-446655440119",
+      sys_user_id: "fc65a565-31a5-4ea2-83c1-448426a01155",
+      answer_content: "Vue通过Object.defineProperty或Proxy拦截数据属性的访问和修改。当数据变化时，触发依赖收集，通知所有依赖该数据的视图更新。Vue3使用Proxy实现更完善的响应式系统。",
+      is_correct: 1,
+      score: 12,
+      create_time: ISODate("2024-03-02T08:00:00.000Z"),
+      update_time: ISODate("2024-03-02T08:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440320",
+      question_id: "550e8400-e29b-41d4-a716-446655440120",
+      sys_user_id: "fc65a565-31a5-4ea2-83c1-448426a01155",
+      answer_content: ".container { display: flex; } .left, .right { width: 200px; } .middle { flex: 1; }",
+      is_correct: 1,
+      score: 8,
+      create_time: ISODate("2024-03-02T09:00:00.000Z"),
+      update_time: ISODate("2024-03-02T09:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440321",
+      question_id: "550e8400-e29b-41d4-a716-446655440121",
+      sys_user_id: "4a7bae38-28d2-4b49-a985-d1aa2f3d072e",
+      answer_content: "MapReduce分为Map和Reduce两个阶段。Map阶段将输入数据分割成键值对，Reduce阶段对相同键的值进行聚合。通过分布式计算框架，可以处理大规模数据。",
+      is_correct: 1,
+      score: 15,
+      create_time: ISODate("2024-03-06T10:00:00.000Z"),
+      update_time: ISODate("2024-03-06T10:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440322",
+      question_id: "550e8400-e29b-41d4-a716-446655440122",
+      sys_user_id: "4a7bae38-28d2-4b49-a985-d1aa2f3d072e",
+      answer_content: "Transformation是惰性操作，返回新的RDD，不立即执行；Action是触发操作，返回结果值，会触发整个计算链的执行。常见的transformation有map、filter，常见的action有collect、count。",
+      is_correct: 1,
+      score: 12,
+      create_time: ISODate("2024-03-06T11:00:00.000Z"),
+      update_time: ISODate("2024-03-06T11:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440323",
+      question_id: "550e8400-e29b-41d4-a716-446655440123",
+      sys_user_id: "0db2d446-97ac-45f6-97fe-e2ab9fbb33a7",
+      answer_content: "Activity生命周期方法：onCreate、onStart、onResume、onPause、onStop、onDestroy。onCreate用于初始化，onResume表示可见可交互，onPause表示失去焦点，onDestroy用于清理资源。",
+      is_correct: 1,
+      score: 10,
+      create_time: ISODate("2024-03-11T09:00:00.000Z"),
+      update_time: ISODate("2024-03-11T09:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440324",
+      question_id: "550e8400-e29b-41d4-a716-446655440124",
+      sys_user_id: "0db2d446-97ac-45f6-97fe-e2ab9fbb33a7",
+      answer_content: "ARC（自动引用计数）是iOS的内存管理机制。编译器自动插入retain和release调用，当对象引用计数为0时自动释放。开发者只需管理对象的所有权关系，无需手动管理内存。",
+      is_correct: 1,
+      score: 10,
+      create_time: ISODate("2024-03-11T10:00:00.000Z"),
+      update_time: ISODate("2024-03-11T10:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440325",
+      question_id: "550e8400-e29b-41d4-a716-446655440125",
+      sys_user_id: "d31bc6b3-6bb0-4e07-bf27-9c4d4a94237b",
+      answer_content: "A × B = [[1×5+2×7, 1×6+2×8], [3×5+4×7, 3×6+4×8]] = [[19, 22], [43, 50]]",
+      is_correct: 1,
+      score: 8,
+      create_time: ISODate("2024-03-16T11:00:00.000Z"),
+      update_time: ISODate("2024-03-16T11:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440326",
+      question_id: "550e8400-e29b-41d4-a716-446655440126",
+      sys_user_id: "d31bc6b3-6bb0-4e07-bf27-9c4d4a94237b",
+      answer_content: "特征值：λ₁=3, λ₂=1；对应的特征向量：v₁=[1,1]ᵀ, v₂=[1,-1]ᵀ",
+      is_correct: 1,
+      score: 15,
+      create_time: ISODate("2024-03-16T12:00:00.000Z"),
+      update_time: ISODate("2024-03-16T12:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440327",
+      question_id: "550e8400-e29b-41d4-a716-446655440127",
+      sys_user_id: "da4f9ad2-736c-4c0b-8235-d565edde803e",
+      answer_content: "前序遍历：根-左-右；中序遍历：左-根-右；后序遍历：左-右-根。递归实现：前序先访问根节点，再递归左右子树；中序先递归左子树，访问根，再递归右子树；后序先递归左右子树，最后访问根。",
+      is_correct: 1,
+      score: 10,
+      create_time: ISODate("2024-03-21T08:00:00.000Z"),
+      update_time: ISODate("2024-03-21T08:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440328",
+      question_id: "550e8400-e29b-41d4-a716-446655440128",
+      sys_user_id: "da4f9ad2-736c-4c0b-8235-d565edde803e",
+      answer_content: "快速排序采用分治思想：选择基准元素，将数组分为两部分，左边小于基准，右边大于基准，递归处理。平均时间复杂度O(nlogn)，最坏O(n²)，空间复杂度O(logn)。",
+      is_correct: 1,
+      score: 12,
+      create_time: ISODate("2024-03-21T09:00:00.000Z"),
+      update_time: ISODate("2024-03-21T09:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440329",
+      question_id: "550e8400-e29b-41d4-a716-446655440129",
+      sys_user_id: "cf76a275-f0f4-492e-bd13-71e6ec75de8a",
+      answer_content: "需求分析步骤：1) 需求获取；2) 需求分析；3) 需求规格说明；4) 需求验证；5) 需求管理。包括功能需求、非功能需求、用户需求、系统需求等。",
+      is_correct: 1,
+      score: 12,
+      create_time: ISODate("2024-03-26T10:00:00.000Z"),
+      update_time: ISODate("2024-03-26T10:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440330",
+      question_id: "550e8400-e29b-41d4-a716-446655440130",
+      sys_user_id: "cf76a275-f0f4-492e-bd13-71e6ec75de8a",
+      answer_content: "正常情况：用户名和密码正确，登录成功；异常情况：1) 用户名为空；2) 密码为空；3) 用户名不存在；4) 密码错误；5) 账户被锁定；6) 网络异常。",
+      is_correct: 1,
+      score: 10,
+      create_time: ISODate("2024-03-26T11:00:00.000Z"),
+      update_time: ISODate("2024-03-26T11:00:00.000Z"),
+      is_deleted: 0
+    }
+  ]);
 
-// ----------------------------
-// Collection structure for mg_question
-// ----------------------------
-db.getCollection("mg_question").drop();
-db.createCollection("mg_question");
-db.getCollection("mg_question").createIndex({
-    question_bank_id: Int32("1")
-}, {
-    name: "question_bank_id_1"
-});
-db.getCollection("mg_question").createIndex({
-    sys_user_id: Int32("1")
-}, {
-    name: "sys_user_id_1"
-});
-db.getCollection("mg_question").createIndex({
-    question_type: Int32("1")
-}, {
-    name: "question_type_1"
-});
-db.getCollection("mg_question").createIndex({
-    difficulty: Int32("1")
-}, {
-    name: "difficulty_1"
-});
-db.getCollection("mg_question").createIndex({
-    status: Int32("1")
-}, {
-    name: "status_1"
-});
-db.getCollection("mg_question").createIndex({
-    tags: Int32("1")
-}, {
-    name: "tags_1"
-});
-db.getCollection("mg_question").createIndex({
-    create_time: Int32("-1")
-}, {
-    name: "create_time_-1"
-});
-db.getCollection("mg_question").createIndex({
-    view_count: Int32("-1")
-}, {
-    name: "view_count_-1"
-});
-db.getCollection("mg_question").createIndex({
-    score: Int32("1")
-}, {
-    name: "score_1"
-});
+// ============================================
+// 7. mg_question_option - 题目选项数据
+// ============================================
+print("正在处理 mg_question_option...");
+db.getCollection("mg_question_option").deleteMany({});
+db.getCollection("mg_question_option").insertMany([
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440201",
+      question_id: "550e8400-e29b-41d4-a716-446655440101",
+      option_content: "x ∈ (-∞, -2] ∪ [2, +∞)",
+      option_label: "A",
+      is_correct: 1,
+      create_time: ISODate("2024-01-10T10:35:00.000Z"),
+      update_time: ISODate("2024-01-10T10:35:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440202",
+      question_id: "550e8400-e29b-41d4-a716-446655440101",
+      option_content: "x ∈ [-2, 2]",
+      option_label: "B",
+      is_correct: 0,
+      create_time: ISODate("2024-01-10T10:35:00.000Z"),
+      update_time: ISODate("2024-01-10T10:35:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440203",
+      question_id: "550e8400-e29b-41d4-a716-446655440101",
+      option_content: "x ∈ (-∞, -2) ∪ (2, +∞)",
+      option_label: "C",
+      is_correct: 0,
+      create_time: ISODate("2024-01-10T10:35:00.000Z"),
+      update_time: ISODate("2024-01-10T10:35:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440204",
+      question_id: "550e8400-e29b-41d4-a716-446655440101",
+      option_content: "x ∈ R",
+      option_label: "D",
+      is_correct: 0,
+      create_time: ISODate("2024-01-10T10:35:00.000Z"),
+      update_time: ISODate("2024-01-10T10:35:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440205",
+      question_id: "550e8400-e29b-41d4-a716-446655440107",
+      option_content: "RSA",
+      option_label: "A",
+      is_correct: 0,
+      create_time: ISODate("2024-02-01T09:05:00.000Z"),
+      update_time: ISODate("2024-02-01T09:05:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440206",
+      question_id: "550e8400-e29b-41d4-a716-446655440107",
+      option_content: "AES",
+      option_label: "B",
+      is_correct: 1,
+      create_time: ISODate("2024-02-01T09:05:00.000Z"),
+      update_time: ISODate("2024-02-01T09:05:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440207",
+      question_id: "550e8400-e29b-41d4-a716-446655440107",
+      option_content: "SHA-256",
+      option_label: "C",
+      is_correct: 0,
+      create_time: ISODate("2024-02-01T09:05:00.000Z"),
+      update_time: ISODate("2024-02-01T09:05:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440208",
+      question_id: "550e8400-e29b-41d4-a716-446655440107",
+      option_content: "MD5",
+      option_label: "D",
+      is_correct: 0,
+      create_time: ISODate("2024-02-01T09:05:00.000Z"),
+      update_time: ISODate("2024-02-01T09:05:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440209",
+      question_id: "550e8400-e29b-41d4-a716-446655440108",
+      option_content: "数据加密",
+      option_label: "A",
+      is_correct: 0,
+      create_time: ISODate("2024-02-01T10:05:00.000Z"),
+      update_time: ISODate("2024-02-01T10:05:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440210",
+      question_id: "550e8400-e29b-41d4-a716-446655440108",
+      option_content: "身份认证和数据完整性验证",
+      option_label: "B",
+      is_correct: 1,
+      create_time: ISODate("2024-02-01T10:05:00.000Z"),
+      update_time: ISODate("2024-02-01T10:05:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440211",
+      question_id: "550e8400-e29b-41d4-a716-446655440108",
+      option_content: "数据压缩",
+      option_label: "C",
+      is_correct: 0,
+      create_time: ISODate("2024-02-01T10:05:00.000Z"),
+      update_time: ISODate("2024-02-01T10:05:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440212",
+      question_id: "550e8400-e29b-41d4-a716-446655440108",
+      option_content: "数据备份",
+      option_label: "D",
+      is_correct: 0,
+      create_time: ISODate("2024-02-01T10:05:00.000Z"),
+      update_time: ISODate("2024-02-01T10:05:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440213",
+      question_id: "550e8400-e29b-41d4-a716-446655440109",
+      option_content: "先来先服务（FCFS）",
+      option_label: "A",
+      is_correct: 0,
+      create_time: ISODate("2024-02-05T10:05:00.000Z"),
+      update_time: ISODate("2024-02-05T10:05:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440214",
+      question_id: "550e8400-e29b-41d4-a716-446655440109",
+      option_content: "最短作业优先（SJF）",
+      option_label: "B",
+      is_correct: 0,
+      create_time: ISODate("2024-02-05T10:05:00.000Z"),
+      update_time: ISODate("2024-02-05T10:05:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440215",
+      question_id: "550e8400-e29b-41d4-a716-446655440109",
+      option_content: "时间片轮转（RR）",
+      option_label: "C",
+      is_correct: 0,
+      create_time: ISODate("2024-02-05T10:05:00.000Z"),
+      update_time: ISODate("2024-02-05T10:05:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440216",
+      question_id: "550e8400-e29b-41d4-a716-446655440109",
+      option_content: "随机调度",
+      option_label: "D",
+      is_correct: 1,
+      create_time: ISODate("2024-02-05T10:05:00.000Z"),
+      update_time: ISODate("2024-02-05T10:05:00.000Z"),
+      is_deleted: 0
+    }
+  ]);
 
-// ----------------------------
-// Documents of mg_question
-// ----------------------------
-db.getCollection("mg_question").insert([ {
-    _id: "550e8400-e29b-41d4-a716-446655440101",
-    question_bank_id: "550e8400-e29b-41d4-a716-446655440001",
-    sys_user_id: "0198086c-fcd1-7a09-b3c3-537de3493332",
-    question_title: "函数定义域计算",
-    question_content: "求函数 f(x) = √(x²-4) 的定义域。",
-    question_type: Int32("0"),
-    difficulty: Int32("1"),
-    score: Int32("5"),
-    status: Int32("1"),
-    tags: [
-        "函数",
-        "定义域",
-        "根号函数"
-    ],
-    view_count: Int32("6"),
-    create_time: ISODate("2024-01-10T10:30:00.000Z"),
-    update_time: ISODate("2024-01-10T10:30:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_question").insert([ {
-    _id: "550e8400-e29b-41d4-a716-446655440102",
-    question_bank_id: "550e8400-e29b-41d4-a716-446655440001",
-    sys_user_id: "0198086c-fcd1-7a09-b3c3-537de3493332",
-    question_title: "极限计算",
-    question_content: "计算极限 lim(x→0) sin(x)/x",
-    question_type: Int32("1"),
-    difficulty: Int32("2"),
-    score: Int32("8"),
-    status: Int32("1"),
-    tags: [
-        "极限",
-        "三角函数",
-        "重要极限"
-    ],
-    view_count: Int32("5"),
-    create_time: ISODate("2024-01-10T11:00:00.000Z"),
-    update_time: ISODate("2024-01-10T11:00:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_question").insert([ {
-    _id: "550e8400-e29b-41d4-a716-446655440103",
-    question_bank_id: "550e8400-e29b-41d4-a716-446655440001",
-    sys_user_id: "0198086c-fcd1-7a09-b3c3-537de3493332",
-    question_title: "导数计算",
-    question_content: "求函数 f(x) = x³ + 2x² - 5x + 3 的导数。",
-    question_type: Int32("2"),
-    difficulty: Int32("1"),
-    score: Int32("6"),
-    status: Int32("1"),
-    tags: [
-        "导数",
-        "多项式",
-        "基本求导"
-    ],
-    view_count: Int32("11"),
-    create_time: ISODate("2024-01-10T11:30:00.000Z"),
-    update_time: ISODate("2024-01-10T11:30:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_question").insert([ {
-    _id: "550e8400-e29b-41d4-a716-446655440104",
-    question_bank_id: "550e8400-e29b-41d4-a716-446655440002",
-    sys_user_id: "0198086c-fcd1-7a09-b3c3-537de3493332",
-    question_title: "不定积分计算",
-    question_content: "计算不定积分 ∫(x² + 3x + 2)dx",
-    question_type: Int32("2"),
-    difficulty: Int32("2"),
-    score: "10",
-    tags: [
-        "积分",
-        "不定积分",
-        "多项式积分"
-    ],
-    view_count: Long("180"),
-    status: Int32("1"),
-    create_time: ISODate("2024-01-15T15:00:00.000Z"),
-    update_time: ISODate("2025-10-15T04:05:34.62Z"),
-    is_deleted: Int32("0"),
-    _class: "com.dayz.sapientiacloud_edupivot.course.entity.po.Question"
-} ]);
-db.getCollection("mg_question").insert([ {
-    _id: "550e8400-e29b-41d4-a716-446655440105",
-    question_bank_id: "550e8400-e29b-41d4-a716-446655440002",
-    sys_user_id: "0198086c-fcd1-7a09-b3c3-537de3493332",
-    question_title: "级数收敛性判断",
-    question_content: "判断级数 ∑(n=1 to ∞) 1/n² 的收敛性。",
-    question_type: Int32("2"),
-    difficulty: Int32("3"),
-    score: Int32("12"),
-    status: Int32("1"),
-    tags: [
-        "级数",
-        "收敛性",
-        "p级数"
-    ],
-    view_count: Int32("1142"),
-    create_time: ISODate("2024-01-15T15:30:00.000Z"),
-    update_time: ISODate("2024-01-15T15:30:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_question").insert([ {
-    _id: "550e8400-e29b-41d4-a716-446655440106",
-    question_bank_id: "550e8400-e29b-41d4-a716-446655440003",
-    sys_user_id: "0198086c-fcd1-7a09-b3c3-537de3493332",
-    question_title: "综合应用题",
-    question_content: "已知函数 f(x) = x³ - 3x + 1，求：(1) 函数的单调区间；(2) 函数的极值；(3) 函数在区间[-2,2]上的最大值和最小值。",
-    question_type: Int32("2"),
-    difficulty: Int32("3"),
-    score: Int32("20"),
-    status: Int32("1"),
-    tags: [
-        "综合应用",
-        "单调性",
-        "极值",
-        "最值"
-    ],
-    view_count: Int32("2"),
-    create_time: ISODate("2024-01-20T10:00:00.000Z"),
-    update_time: ISODate("2024-01-20T10:00:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
+// ============================================
+// 8. mg_question - 题目数据
+// ============================================
+print("正在处理 mg_question...");
+db.getCollection("mg_question").deleteMany({});
+db.getCollection("mg_question").insertMany([
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440101",
+      question_bank_id: "550e8400-e29b-41d4-a716-446655440001",
+      sys_user_id: "29408f57-7593-4896-8609-0effde16ee6b",
+      question_title: "函数定义域计算",
+      question_content: "求函数 f(x) = √(x²-4) 的定义域。",
+      question_type: 0,
+      difficulty: 1,
+      score: 5,
+      status: 1,
+      tags: ["函数", "定义域", "根号函数"],
+      view_count: 156,
+      create_time: ISODate("2024-01-10T10:30:00.000Z"),
+      update_time: ISODate("2024-01-10T10:30:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440102",
+      question_bank_id: "550e8400-e29b-41d4-a716-446655440001",
+      sys_user_id: "29408f57-7593-4896-8609-0effde16ee6b",
+      question_title: "极限计算",
+      question_content: "计算极限 lim(x→0) sin(x)/x",
+      question_type: 1,
+      difficulty: 2,
+      score: 8,
+      status: 1,
+      tags: ["极限", "三角函数", "重要极限"],
+      view_count: 245,
+      create_time: ISODate("2024-01-10T11:00:00.000Z"),
+      update_time: ISODate("2024-01-10T11:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440103",
+      question_bank_id: "550e8400-e29b-41d4-a716-446655440001",
+      sys_user_id: "29408f57-7593-4896-8609-0effde16ee6b",
+      question_title: "导数计算",
+      question_content: "求函数 f(x) = x³ + 2x² - 5x + 3 的导数。",
+      question_type: 2,
+      difficulty: 1,
+      score: 6,
+      status: 1,
+      tags: ["导数", "多项式", "基本求导"],
+      view_count: 189,
+      create_time: ISODate("2024-01-10T11:30:00.000Z"),
+      update_time: ISODate("2024-01-10T11:30:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440104",
+      question_bank_id: "550e8400-e29b-41d4-a716-446655440002",
+      sys_user_id: "29408f57-7593-4896-8609-0effde16ee6b",
+      question_title: "不定积分计算",
+      question_content: "计算不定积分 ∫(x² + 3x + 2)dx",
+      question_type: 2,
+      difficulty: 2,
+      score: 10,
+      status: 1,
+      tags: ["积分", "不定积分", "多项式积分"],
+      view_count: 312,
+      create_time: ISODate("2024-01-15T15:00:00.000Z"),
+      update_time: ISODate("2024-01-15T15:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440105",
+      question_bank_id: "550e8400-e29b-41d4-a716-446655440002",
+      sys_user_id: "29408f57-7593-4896-8609-0effde16ee6b",
+      question_title: "级数收敛性判断",
+      question_content: "判断级数 ∑(n=1 to ∞) 1/n² 的收敛性。",
+      question_type: 2,
+      difficulty: 3,
+      score: 12,
+      status: 1,
+      tags: ["级数", "收敛性", "p级数"],
+      view_count: 278,
+      create_time: ISODate("2024-01-15T15:30:00.000Z"),
+      update_time: ISODate("2024-01-15T15:30:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440106",
+      question_bank_id: "550e8400-e29b-41d4-a716-446655440003",
+      sys_user_id: "29408f57-7593-4896-8609-0effde16ee6b",
+      question_title: "综合应用题",
+      question_content: "已知函数 f(x) = x³ - 3x + 1，求：(1) 函数的单调区间；(2) 函数的极值；(3) 函数在区间[-2,2]上的最大值和最小值。",
+      question_type: 2,
+      difficulty: 3,
+      score: 20,
+      status: 1,
+      tags: ["综合应用", "单调性", "极值", "最值"],
+      view_count: 423,
+      create_time: ISODate("2024-01-20T10:00:00.000Z"),
+      update_time: ISODate("2024-01-20T10:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440107",
+      question_bank_id: "550e8400-e29b-41d4-a716-446655440004",
+      sys_user_id: "24c7df03-1dd3-4b69-8686-725ec68fd095",
+      question_title: "对称加密算法",
+      question_content: "以下哪个是对称加密算法？",
+      question_type: 0,
+      difficulty: 1,
+      score: 5,
+      status: 1,
+      tags: ["网络安全", "加密算法", "对称加密"],
+      view_count: 167,
+      create_time: ISODate("2024-02-01T09:00:00.000Z"),
+      update_time: ISODate("2024-02-01T09:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440108",
+      question_bank_id: "550e8400-e29b-41d4-a716-446655440004",
+      sys_user_id: "24c7df03-1dd3-4b69-8686-725ec68fd095",
+      question_title: "数字签名原理",
+      question_content: "数字签名的主要作用是什么？",
+      question_type: 0,
+      difficulty: 2,
+      score: 8,
+      status: 1,
+      tags: ["网络安全", "数字签名", "认证"],
+      view_count: 234,
+      create_time: ISODate("2024-02-01T10:00:00.000Z"),
+      update_time: ISODate("2024-02-01T10:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440109",
+      question_bank_id: "550e8400-e29b-41d4-a716-446655440005",
+      sys_user_id: "b57f2213-a134-4624-8ac8-7edc4e592f6d",
+      question_title: "进程调度算法",
+      question_content: "以下哪个不是常见的进程调度算法？",
+      question_type: 0,
+      difficulty: 2,
+      score: 6,
+      status: 1,
+      tags: ["操作系统", "进程调度", "算法"],
+      view_count: 198,
+      create_time: ISODate("2024-02-05T10:00:00.000Z"),
+      update_time: ISODate("2024-02-05T10:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440110",
+      question_bank_id: "550e8400-e29b-41d4-a716-446655440005",
+      sys_user_id: "b57f2213-a134-4624-8ac8-7edc4e592f6d",
+      question_title: "死锁产生条件",
+      question_content: "死锁产生的四个必要条件是什么？",
+      question_type: 2,
+      difficulty: 2,
+      score: 10,
+      status: 1,
+      tags: ["操作系统", "死锁", "并发"],
+      view_count: 267,
+      create_time: ISODate("2024-02-05T11:00:00.000Z"),
+      update_time: ISODate("2024-02-05T11:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440111",
+      question_bank_id: "550e8400-e29b-41d4-a716-446655440006",
+      sys_user_id: "b6bbcc62-c65b-44d3-85cb-b8ca05a17993",
+      question_title: "SQL查询优化",
+      question_content: "如何优化以下SQL查询：SELECT * FROM users WHERE age > 25 ORDER BY name LIMIT 10",
+      question_type: 2,
+      difficulty: 2,
+      score: 12,
+      status: 1,
+      tags: ["数据库", "SQL", "查询优化", "索引"],
+      view_count: 345,
+      create_time: ISODate("2024-02-10T09:00:00.000Z"),
+      update_time: ISODate("2024-02-10T09:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440112",
+      question_bank_id: "550e8400-e29b-41d4-a716-446655440006",
+      sys_user_id: "b6bbcc62-c65b-44d3-85cb-b8ca05a17993",
+      question_title: "事务ACID特性",
+      question_content: "解释数据库事务的ACID特性。",
+      question_type: 2,
+      difficulty: 2,
+      score: 10,
+      status: 1,
+      tags: ["数据库", "事务", "ACID"],
+      view_count: 289,
+      create_time: ISODate("2024-02-10T10:00:00.000Z"),
+      update_time: ISODate("2024-02-10T10:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440113",
+      question_bank_id: "550e8400-e29b-41d4-a716-446655440007",
+      sys_user_id: "b57f2213-a134-4624-8ac8-7edc4e592f6d",
+      question_title: "正则表达式匹配",
+      question_content: "写出匹配邮箱地址的正则表达式。",
+      question_type: 2,
+      difficulty: 2,
+      score: 8,
+      status: 1,
+      tags: ["编译原理", "正则表达式", "词法分析"],
+      view_count: 223,
+      create_time: ISODate("2024-02-15T11:00:00.000Z"),
+      update_time: ISODate("2024-02-15T11:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440114",
+      question_bank_id: "550e8400-e29b-41d4-a716-446655440007",
+      sys_user_id: "b57f2213-a134-4624-8ac8-7edc4e592f6d",
+      question_title: "有限自动机转换",
+      question_content: "将正则表达式 (a|b)*abb 转换为有限自动机。",
+      question_type: 2,
+      difficulty: 3,
+      score: 15,
+      status: 1,
+      tags: ["编译原理", "有限自动机", "正则表达式"],
+      view_count: 156,
+      create_time: ISODate("2024-02-15T12:00:00.000Z"),
+      update_time: ISODate("2024-02-15T12:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440115",
+      question_bank_id: "550e8400-e29b-41d4-a716-446655440008",
+      sys_user_id: "b6bbcc62-c65b-44d3-85cb-b8ca05a17993",
+      question_title: "TCP三次握手",
+      question_content: "详细说明TCP三次握手的过程。",
+      question_type: 2,
+      difficulty: 2,
+      score: 10,
+      status: 1,
+      tags: ["计算机网络", "TCP", "三次握手"],
+      view_count: 412,
+      create_time: ISODate("2024-02-20T10:00:00.000Z"),
+      update_time: ISODate("2024-02-20T10:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440116",
+      question_bank_id: "550e8400-e29b-41d4-a716-446655440008",
+      sys_user_id: "b6bbcc62-c65b-44d3-85cb-b8ca05a17993",
+      question_title: "HTTP与HTTPS区别",
+      question_content: "HTTP和HTTPS的主要区别是什么？",
+      question_type: 2,
+      difficulty: 1,
+      score: 6,
+      status: 1,
+      tags: ["计算机网络", "HTTP", "HTTPS", "安全"],
+      view_count: 378,
+      create_time: ISODate("2024-02-20T11:00:00.000Z"),
+      update_time: ISODate("2024-02-20T11:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440117",
+      question_bank_id: "550e8400-e29b-41d4-a716-446655440009",
+      sys_user_id: "da4f9ad2-736c-4c0b-8235-d565edde803e",
+      question_title: "Docker容器原理",
+      question_content: "解释Docker容器的实现原理。",
+      question_type: 2,
+      difficulty: 2,
+      score: 10,
+      status: 1,
+      tags: ["云计算", "Docker", "容器"],
+      view_count: 298,
+      create_time: ISODate("2024-02-25T09:00:00.000Z"),
+      update_time: ISODate("2024-02-25T09:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440118",
+      question_bank_id: "550e8400-e29b-41d4-a716-446655440009",
+      sys_user_id: "da4f9ad2-736c-4c0b-8235-d565edde803e",
+      question_title: "Kubernetes核心概念",
+      question_content: "解释Kubernetes中的Pod、Service、Deployment的概念和作用。",
+      question_type: 2,
+      difficulty: 3,
+      score: 15,
+      status: 1,
+      tags: ["云计算", "Kubernetes", "容器编排"],
+      view_count: 267,
+      create_time: ISODate("2024-02-25T10:00:00.000Z"),
+      update_time: ISODate("2024-02-25T10:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440119",
+      question_bank_id: "550e8400-e29b-41d4-a716-446655440010",
+      sys_user_id: "fc65a565-31a5-4ea2-83c1-448426a01155",
+      question_title: "Vue响应式原理",
+      question_content: "解释Vue的响应式数据绑定原理。",
+      question_type: 2,
+      difficulty: 2,
+      score: 12,
+      status: 1,
+      tags: ["Web前端", "Vue", "响应式"],
+      view_count: 456,
+      create_time: ISODate("2024-03-01T08:00:00.000Z"),
+      update_time: ISODate("2024-03-01T08:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440120",
+      question_bank_id: "550e8400-e29b-41d4-a716-446655440010",
+      sys_user_id: "fc65a565-31a5-4ea2-83c1-448426a01155",
+      question_title: "CSS Flexbox布局",
+      question_content: "使用Flexbox实现一个三栏布局，左右固定宽度，中间自适应。",
+      question_type: 2,
+      difficulty: 1,
+      score: 8,
+      status: 1,
+      tags: ["Web前端", "CSS", "Flexbox", "布局"],
+      view_count: 389,
+      create_time: ISODate("2024-03-01T09:00:00.000Z"),
+      update_time: ISODate("2024-03-01T09:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440121",
+      question_bank_id: "550e8400-e29b-41d4-a716-446655440011",
+      sys_user_id: "4a7bae38-28d2-4b49-a985-d1aa2f3d072e",
+      question_title: "MapReduce原理",
+      question_content: "解释MapReduce的工作原理。",
+      question_type: 2,
+      difficulty: 3,
+      score: 15,
+      status: 1,
+      tags: ["大数据", "MapReduce", "Hadoop"],
+      view_count: 234,
+      create_time: ISODate("2024-03-05T10:00:00.000Z"),
+      update_time: ISODate("2024-03-05T10:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440122",
+      question_bank_id: "550e8400-e29b-41d4-a716-446655440011",
+      sys_user_id: "4a7bae38-28d2-4b49-a985-d1aa2f3d072e",
+      question_title: "Spark RDD操作",
+      question_content: "解释Spark中RDD的transformation和action操作的区别。",
+      question_type: 2,
+      difficulty: 3,
+      score: 12,
+      status: 1,
+      tags: ["大数据", "Spark", "RDD"],
+      view_count: 198,
+      create_time: ISODate("2024-03-05T11:00:00.000Z"),
+      update_time: ISODate("2024-03-05T11:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440123",
+      question_bank_id: "550e8400-e29b-41d4-a716-446655440012",
+      sys_user_id: "0db2d446-97ac-45f6-97fe-e2ab9fbb33a7",
+      question_title: "Android生命周期",
+      question_content: "解释Android Activity的生命周期方法。",
+      question_type: 2,
+      difficulty: 2,
+      score: 10,
+      status: 1,
+      tags: ["移动开发", "Android", "Activity", "生命周期"],
+      view_count: 312,
+      create_time: ISODate("2024-03-10T09:00:00.000Z"),
+      update_time: ISODate("2024-03-10T09:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440124",
+      question_bank_id: "550e8400-e29b-41d4-a716-446655440012",
+      sys_user_id: "0db2d446-97ac-45f6-97fe-e2ab9fbb33a7",
+      question_title: "iOS内存管理",
+      question_content: "解释iOS中的ARC（自动引用计数）机制。",
+      question_type: 2,
+      difficulty: 2,
+      score: 10,
+      status: 1,
+      tags: ["移动开发", "iOS", "内存管理", "ARC"],
+      view_count: 267,
+      create_time: ISODate("2024-03-10T10:00:00.000Z"),
+      update_time: ISODate("2024-03-10T10:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440125",
+      question_bank_id: "550e8400-e29b-41d4-a716-446655440013",
+      sys_user_id: "d31bc6b3-6bb0-4e07-bf27-9c4d4a94237b",
+      question_title: "矩阵运算",
+      question_content: "计算矩阵 A = [[1,2],[3,4]] 和 B = [[5,6],[7,8]] 的乘积。",
+      question_type: 2,
+      difficulty: 1,
+      score: 8,
+      status: 1,
+      tags: ["线性代数", "矩阵", "矩阵乘法"],
+      view_count: 189,
+      create_time: ISODate("2024-03-15T11:00:00.000Z"),
+      update_time: ISODate("2024-03-15T11:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440126",
+      question_bank_id: "550e8400-e29b-41d4-a716-446655440013",
+      sys_user_id: "d31bc6b3-6bb0-4e07-bf27-9c4d4a94237b",
+      question_title: "特征值与特征向量",
+      question_content: "求矩阵 A = [[2,1],[1,2]] 的特征值和特征向量。",
+      question_type: 2,
+      difficulty: 3,
+      score: 15,
+      status: 1,
+      tags: ["线性代数", "特征值", "特征向量"],
+      view_count: 145,
+      create_time: ISODate("2024-03-15T12:00:00.000Z"),
+      update_time: ISODate("2024-03-15T12:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440127",
+      question_bank_id: "550e8400-e29b-41d4-a716-446655440014",
+      sys_user_id: "da4f9ad2-736c-4c0b-8235-d565edde803e",
+      question_title: "二叉树遍历",
+      question_content: "写出二叉树的前序、中序、后序遍历算法。",
+      question_type: 2,
+      difficulty: 2,
+      score: 10,
+      status: 1,
+      tags: ["数据结构", "二叉树", "遍历"],
+      view_count: 423,
+      create_time: ISODate("2024-03-20T08:00:00.000Z"),
+      update_time: ISODate("2024-03-20T08:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440128",
+      question_bank_id: "550e8400-e29b-41d4-a716-446655440014",
+      sys_user_id: "da4f9ad2-736c-4c0b-8235-d565edde803e",
+      question_title: "快速排序算法",
+      question_content: "实现快速排序算法，并分析其时间复杂度。",
+      question_type: 2,
+      difficulty: 2,
+      score: 12,
+      status: 1,
+      tags: ["数据结构", "算法", "排序", "快速排序"],
+      view_count: 367,
+      create_time: ISODate("2024-03-20T09:00:00.000Z"),
+      update_time: ISODate("2024-03-20T09:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440129",
+      question_bank_id: "550e8400-e29b-41d4-a716-446655440015",
+      sys_user_id: "cf76a275-f0f4-492e-bd13-71e6ec75de8a",
+      question_title: "软件需求分析",
+      question_content: "如何进行软件需求分析？包括哪些步骤？",
+      question_type: 2,
+      difficulty: 2,
+      score: 12,
+      status: 1,
+      tags: ["软件工程", "需求分析", "系统设计"],
+      view_count: 298,
+      create_time: ISODate("2024-03-25T10:00:00.000Z"),
+      update_time: ISODate("2024-03-25T10:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440130",
+      question_bank_id: "550e8400-e29b-41d4-a716-446655440015",
+      sys_user_id: "cf76a275-f0f4-492e-bd13-71e6ec75de8a",
+      question_title: "测试用例设计",
+      question_content: "设计一个登录功能的测试用例，包括正常情况和异常情况。",
+      question_type: 2,
+      difficulty: 2,
+      score: 10,
+      status: 1,
+      tags: ["软件工程", "测试", "测试用例"],
+      view_count: 345,
+      create_time: ISODate("2024-03-25T11:00:00.000Z"),
+      update_time: ISODate("2024-03-25T11:00:00.000Z"),
+      is_deleted: 0
+    }
+  ]);
 
-// ----------------------------
-// Collection structure for mg_question_answer
-// ----------------------------
-db.getCollection("mg_question_answer").drop();
-db.createCollection("mg_question_answer");
-db.getCollection("mg_question_answer").createIndex({
-    question_id: Int32("1")
-}, {
-    name: "question_id_1"
-});
-db.getCollection("mg_question_answer").createIndex({
-    sys_user_id: Int32("1")
-}, {
-    name: "sys_user_id_1"
-});
-db.getCollection("mg_question_answer").createIndex({
-    is_correct: Int32("1")
-}, {
-    name: "is_correct_1"
-});
-db.getCollection("mg_question_answer").createIndex({
-    score: Int32("1")
-}, {
-    name: "score_1"
-});
-db.getCollection("mg_question_answer").createIndex({
-    create_time: Int32("-1")
-}, {
-    name: "create_time_-1"
-});
+// ============================================
+// 9. mg_course_question_bank - 课程题库数据
+// ============================================
+print("正在处理 mg_course_question_bank...");
+db.getCollection("mg_course_question_bank").deleteMany({});
+db.getCollection("mg_course_question_bank").insertMany([
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440001",
+      course_id: "0cf2dbe8-c12d-4be7-b914-545edcf0fad8",
+      sys_user_id: "29408f57-7593-4896-8609-0effde16ee6b",
+      bank_name: "高等数学基础题库",
+      description: "高等数学基础概念和计算题目的综合题库，涵盖函数、极限、导数等基础内容。",
+      bank_type: 0,
+      difficulty: 1,
+      is_public: 1,
+      tags: ["高等数学", "基础", "函数", "极限"],
+      create_time: ISODate("2024-01-10T10:00:00.000Z"),
+      update_time: ISODate("2024-01-10T10:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440002",
+      course_id: "0cf2dbe8-c12d-4be7-b914-545edcf0fad8",
+      sys_user_id: "29408f57-7593-4896-8609-0effde16ee6b",
+      bank_name: "微积分进阶题库",
+      description: "微积分进阶题目集合，包含积分、微分方程、级数等高级内容。",
+      bank_type: 1,
+      tags: ["微积分", "积分", "微分方程", "级数"],
+      difficulty: 3,
+      is_public: 1,
+      create_time: ISODate("2024-01-15T14:30:00.000Z"),
+      update_time: ISODate("2024-01-15T14:30:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440003",
+      course_id: "0cf2dbe8-c12d-4be7-b914-545edcf0fad8",
+      sys_user_id: "29408f57-7593-4896-8609-0effde16ee6b",
+      bank_name: "期末考试题库",
+      description: "期末考试专用题库，综合各章节重点难点题目。",
+      bank_type: 2,
+      difficulty: 2,
+      is_public: 0,
+      tags: ["期末考试", "综合", "重点"],
+      create_time: ISODate("2024-01-20T09:15:00.000Z"),
+      update_time: ISODate("2024-01-20T09:15:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440004",
+      course_id: "0f2231b3-d310-49c9-913e-1ad5e8f46e47",
+      sys_user_id: "24c7df03-1dd3-4b69-8686-725ec68fd095",
+      bank_name: "网络安全基础题库",
+      description: "涵盖加密算法、认证机制、常见攻击防御等网络安全基础知识。",
+      bank_type: 0,
+      difficulty: 2,
+      is_public: 1,
+      tags: ["网络安全", "加密", "认证", "攻击防御"],
+      create_time: ISODate("2024-02-01T08:00:00.000Z"),
+      update_time: ISODate("2024-02-01T08:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440005",
+      course_id: "173432dc-eb2d-4a33-a659-8b5ef9f15900",
+      sys_user_id: "b57f2213-a134-4624-8ac8-7edc4e592f6d",
+      bank_name: "操作系统进程管理题库",
+      description: "进程、线程、调度算法、同步互斥等操作系统核心概念题目。",
+      bank_type: 0,
+      difficulty: 2,
+      is_public: 1,
+      tags: ["操作系统", "进程", "线程", "调度"],
+      create_time: ISODate("2024-02-05T10:00:00.000Z"),
+      update_time: ISODate("2024-02-05T10:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440006",
+      course_id: "28e0ba83-8b52-448c-a932-b83b536440c8",
+      sys_user_id: "b6bbcc62-c65b-44d3-85cb-b8ca05a17993",
+      bank_name: "数据库SQL练习题库",
+      description: "SQL查询、索引优化、事务处理等数据库应用开发题目。",
+      bank_type: 0,
+      difficulty: 2,
+      is_public: 1,
+      tags: ["数据库", "SQL", "索引", "事务"],
+      create_time: ISODate("2024-02-10T09:00:00.000Z"),
+      update_time: ISODate("2024-02-10T09:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440007",
+      course_id: "2d9d9b8d-250e-4554-95cd-1539735775f7",
+      sys_user_id: "b57f2213-a134-4624-8ac8-7edc4e592f6d",
+      bank_name: "编译原理词法分析题库",
+      description: "词法分析、正则表达式、有限自动机等编译原理基础题目。",
+      bank_type: 0,
+      difficulty: 3,
+      is_public: 1,
+      tags: ["编译原理", "词法分析", "正则表达式", "自动机"],
+      create_time: ISODate("2024-02-15T11:00:00.000Z"),
+      update_time: ISODate("2024-02-15T11:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440008",
+      course_id: "32e6b5e7-1792-4630-b433-9ba0739b003b",
+      sys_user_id: "b6bbcc62-c65b-44d3-85cb-b8ca05a17993",
+      bank_name: "计算机网络协议题库",
+      description: "TCP/IP协议栈、HTTP、DNS、路由算法等网络协议相关题目。",
+      bank_type: 0,
+      difficulty: 2,
+      is_public: 1,
+      tags: ["计算机网络", "TCP/IP", "HTTP", "路由"],
+      create_time: ISODate("2024-02-20T10:00:00.000Z"),
+      update_time: ISODate("2024-02-20T10:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440009",
+      course_id: "3a2a3444-31a3-46f6-8322-7d99a25a1796",
+      sys_user_id: "da4f9ad2-736c-4c0b-8235-d565edde803e",
+      bank_name: "云计算容器技术题库",
+      description: "Docker、Kubernetes、容器编排等云计算基础技术题目。",
+      bank_type: 0,
+      difficulty: 2,
+      is_public: 1,
+      tags: ["云计算", "Docker", "Kubernetes", "容器"],
+      create_time: ISODate("2024-02-25T09:00:00.000Z"),
+      update_time: ISODate("2024-02-25T09:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440010",
+      course_id: "7d69b274-deb8-4b9a-8e69-ca93f10dd115",
+      sys_user_id: "fc65a565-31a5-4ea2-83c1-448426a01155",
+      bank_name: "Web前端开发题库",
+      description: "HTML/CSS/JavaScript基础、Vue/React框架、响应式设计等前端开发题目。",
+      bank_type: 0,
+      difficulty: 1,
+      is_public: 1,
+      tags: ["Web前端", "HTML", "CSS", "JavaScript", "Vue"],
+      create_time: ISODate("2024-03-01T08:00:00.000Z"),
+      update_time: ISODate("2024-03-01T08:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440011",
+      course_id: "8caf6fcf-501b-427b-b31d-697c4b53dfbb",
+      sys_user_id: "4a7bae38-28d2-4b49-a985-d1aa2f3d072e",
+      bank_name: "大数据处理题库",
+      description: "Hadoop、Spark、MapReduce等大数据处理框架和算法题目。",
+      bank_type: 0,
+      difficulty: 3,
+      is_public: 1,
+      tags: ["大数据", "Hadoop", "Spark", "MapReduce"],
+      create_time: ISODate("2024-03-05T10:00:00.000Z"),
+      update_time: ISODate("2024-03-05T10:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440012",
+      course_id: "a772626c-1084-4b54-8d67-086694bd39c0",
+      sys_user_id: "0db2d446-97ac-45f6-97fe-e2ab9fbb33a7",
+      bank_name: "移动应用开发题库",
+      description: "Android/iOS开发、移动UI设计、性能优化等移动应用开发题目。",
+      bank_type: 0,
+      difficulty: 2,
+      is_public: 1,
+      tags: ["移动开发", "Android", "iOS", "UI设计"],
+      create_time: ISODate("2024-03-10T09:00:00.000Z"),
+      update_time: ISODate("2024-03-10T09:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440013",
+      course_id: "b36f76a6-3726-4b9a-b3cc-ad6ef589920c",
+      sys_user_id: "d31bc6b3-6bb0-4e07-bf27-9c4d4a94237b",
+      bank_name: "线性代数矩阵运算题库",
+      description: "矩阵运算、向量空间、特征值特征向量等线性代数核心题目。",
+      bank_type: 0,
+      difficulty: 2,
+      is_public: 1,
+      tags: ["线性代数", "矩阵", "向量空间", "特征值"],
+      create_time: ISODate("2024-03-15T11:00:00.000Z"),
+      update_time: ISODate("2024-03-15T11:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440014",
+      course_id: "bb4824f3-2f97-401e-9a1a-c92558cfc221",
+      sys_user_id: "da4f9ad2-736c-4c0b-8235-d565edde803e",
+      bank_name: "数据结构算法题库",
+      description: "数组、链表、树、图等数据结构及其算法实现题目。",
+      bank_type: 0,
+      difficulty: 2,
+      is_public: 1,
+      tags: ["数据结构", "算法", "树", "图"],
+      create_time: ISODate("2024-03-20T08:00:00.000Z"),
+      update_time: ISODate("2024-03-20T08:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440015",
+      course_id: "c4da4d8c-e5bb-4833-b3c8-4896cd585dc2",
+      sys_user_id: "cf76a275-f0f4-492e-bd13-71e6ec75de8a",
+      bank_name: "软件工程需求分析题库",
+      description: "需求分析、系统设计、测试用例设计等软件工程实践题目。",
+      bank_type: 0,
+      difficulty: 2,
+      is_public: 1,
+      tags: ["软件工程", "需求分析", "系统设计", "测试"],
+      create_time: ISODate("2024-03-25T10:00:00.000Z"),
+      update_time: ISODate("2024-03-25T10:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440016",
+      course_id: "cd382d76-2b6f-4239-a309-b2d739d14bfc",
+      sys_user_id: "0db2d446-97ac-45f6-97fe-e2ab9fbb33a7",
+      bank_name: "大学物理力学题库",
+      description: "牛顿定律、动量守恒、能量守恒等力学基础题目。",
+      bank_type: 0,
+      difficulty: 1,
+      is_public: 1,
+      tags: ["大学物理", "力学", "牛顿定律", "守恒定律"],
+      create_time: ISODate("2024-04-01T09:00:00.000Z"),
+      update_time: ISODate("2024-04-01T09:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440017",
+      course_id: "cf9ef1c9-beeb-4d4f-8172-e4190f3441a8",
+      sys_user_id: "24c7df03-1dd3-4b69-8686-725ec68fd095",
+      bank_name: "数据库系统原理题库",
+      description: "关系模型、范式理论、SQL优化、事务处理等数据库系统核心题目。",
+      bank_type: 0,
+      difficulty: 3,
+      is_public: 1,
+      tags: ["数据库系统", "关系模型", "范式", "SQL优化"],
+      create_time: ISODate("2024-04-05T10:00:00.000Z"),
+      update_time: ISODate("2024-04-05T10:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440018",
+      course_id: "d74b3092-d98a-4bd8-93fc-d2a6226994aa",
+      sys_user_id: "fc65a565-31a5-4ea2-83c1-448426a01155",
+      bank_name: "大学英语阅读题库",
+      description: "学术英语阅读、词汇理解、长难句分析等英语能力提升题目。",
+      bank_type: 0,
+      difficulty: 1,
+      is_public: 1,
+      tags: ["大学英语", "阅读", "词汇", "语法"],
+      create_time: ISODate("2024-04-10T08:00:00.000Z"),
+      update_time: ISODate("2024-04-10T08:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440019",
+      course_id: "df1c0ed1-ce5c-425e-b0fc-eaee54ad7192",
+      sys_user_id: "29408f57-7593-4896-8609-0effde16ee6b",
+      bank_name: "人工智能机器学习题库",
+      description: "监督学习、无监督学习、神经网络、深度学习等AI核心算法题目。",
+      bank_type: 0,
+      difficulty: 3,
+      is_public: 1,
+      tags: ["人工智能", "机器学习", "神经网络", "深度学习"],
+      create_time: ISODate("2024-04-15T11:00:00.000Z"),
+      update_time: ISODate("2024-04-15T11:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440020",
+      course_id: "e0c9c5ac-6e79-421b-b110-07cb1059dc3d",
+      sys_user_id: "4a7bae38-28d2-4b49-a985-d1aa2f3d072e",
+      bank_name: "计算机组成原理题库",
+      description: "CPU结构、指令系统、存储器层次、I/O系统等计算机组成核心题目。",
+      bank_type: 0,
+      difficulty: 3,
+      is_public: 1,
+      tags: ["计算机组成", "CPU", "指令系统", "存储器"],
+      create_time: ISODate("2024-04-20T09:00:00.000Z"),
+      update_time: ISODate("2024-04-20T09:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440021",
+      course_id: "fde4eefd-7583-4f8a-bd09-0e2de4e9194b",
+      sys_user_id: "d31bc6b3-6bb0-4e07-bf27-9c4d4a94237b",
+      bank_name: "机器学习算法题库",
+      description: "分类算法、回归算法、聚类算法、模型评估等机器学习实践题目。",
+      bank_type: 0,
+      difficulty: 3,
+      is_public: 1,
+      tags: ["机器学习", "分类", "回归", "聚类", "模型评估"],
+      create_time: ISODate("2024-04-25T10:00:00.000Z"),
+      update_time: ISODate("2024-04-25T10:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440022",
+      course_id: "0cf2dbe8-c12d-4be7-b914-545edcf0fad8",
+      sys_user_id: "29408f57-7593-4896-8609-0effde16ee6b",
+      bank_name: "高等数学期中考试题库",
+      description: "期中考试专用题库，涵盖前五章重点内容。",
+      bank_type: 2,
+      difficulty: 2,
+      is_public: 0,
+      tags: ["期中考试", "高等数学", "综合"],
+      create_time: ISODate("2024-05-01T08:00:00.000Z"),
+      update_time: ISODate("2024-05-01T08:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440023",
+      course_id: "0f2231b3-d310-49c9-913e-1ad5e8f46e47",
+      sys_user_id: "24c7df03-1dd3-4b69-8686-725ec68fd095",
+      bank_name: "网络安全渗透测试题库",
+      description: "渗透测试、漏洞分析、安全加固等网络安全高级题目。",
+      bank_type: 1,
+      difficulty: 3,
+      is_public: 1,
+      tags: ["网络安全", "渗透测试", "漏洞分析", "安全加固"],
+      create_time: ISODate("2024-05-05T09:00:00.000Z"),
+      update_time: ISODate("2024-05-05T09:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440024",
+      course_id: "173432dc-eb2d-4a33-a659-8b5ef9f15900",
+      sys_user_id: "b57f2213-a134-4624-8ac8-7edc4e592f6d",
+      bank_name: "操作系统内存管理题库",
+      description: "虚拟内存、页面置换算法、内存分配策略等操作系统内存管理题目。",
+      bank_type: 0,
+      difficulty: 3,
+      is_public: 1,
+      tags: ["操作系统", "内存管理", "虚拟内存", "页面置换"],
+      create_time: ISODate("2024-05-10T10:00:00.000Z"),
+      update_time: ISODate("2024-05-10T10:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440025",
+      course_id: "28e0ba83-8b52-448c-a932-b83b536440c8",
+      sys_user_id: "b6bbcc62-c65b-44d3-85cb-b8ca05a17993",
+      bank_name: "数据库ORM框架题库",
+      description: "MyBatis、Hibernate、JPA等ORM框架使用和优化题目。",
+      bank_type: 0,
+      difficulty: 2,
+      is_public: 1,
+      tags: ["数据库", "ORM", "MyBatis", "Hibernate"],
+      create_time: ISODate("2024-05-15T11:00:00.000Z"),
+      update_time: ISODate("2024-05-15T11:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440026",
+      course_id: "2d9d9b8d-250e-4554-95cd-1539735775f7",
+      sys_user_id: "b57f2213-a134-4624-8ac8-7edc4e592f6d",
+      bank_name: "编译原理语法分析题库",
+      description: "语法分析、LR分析、LL分析、语法树构建等编译原理核心题目。",
+      bank_type: 0,
+      difficulty: 3,
+      is_public: 1,
+      tags: ["编译原理", "语法分析", "LR分析", "语法树"],
+      create_time: ISODate("2024-05-20T08:00:00.000Z"),
+      update_time: ISODate("2024-05-20T08:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440027",
+      course_id: "32e6b5e7-1792-4630-b433-9ba0739b003b",
+      sys_user_id: "b6bbcc62-c65b-44d3-85cb-b8ca05a17993",
+      bank_name: "计算机网络应用层题库",
+      description: "HTTP/HTTPS、FTP、SMTP、DNS等应用层协议题目。",
+      bank_type: 0,
+      difficulty: 2,
+      is_public: 1,
+      tags: ["计算机网络", "HTTP", "FTP", "DNS"],
+      create_time: ISODate("2024-05-25T09:00:00.000Z"),
+      update_time: ISODate("2024-05-25T09:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440028",
+      course_id: "3a2a3444-31a3-46f6-8322-7d99a25a1796",
+      sys_user_id: "da4f9ad2-736c-4c0b-8235-d565edde803e",
+      bank_name: "云计算虚拟化技术题库",
+      description: "虚拟化技术、资源调度、负载均衡等云计算核心技术题目。",
+      bank_type: 0,
+      difficulty: 2,
+      is_public: 1,
+      tags: ["云计算", "虚拟化", "资源调度", "负载均衡"],
+      create_time: ISODate("2024-05-30T10:00:00.000Z"),
+      update_time: ISODate("2024-05-30T10:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440029",
+      course_id: "7d69b274-deb8-4b9a-8e69-ca93f10dd115",
+      sys_user_id: "fc65a565-31a5-4ea2-83c1-448426a01155",
+      bank_name: "Web前端框架进阶题库",
+      description: "Vue3、React Hooks、状态管理、性能优化等前端框架高级题目。",
+      bank_type: 1,
+      difficulty: 2,
+      is_public: 1,
+      tags: ["Web前端", "Vue3", "React", "状态管理"],
+      create_time: ISODate("2024-06-01T11:00:00.000Z"),
+      update_time: ISODate("2024-06-01T11:00:00.000Z"),
+      is_deleted: 0
+    },
+    {
+      _id: "550e8400-e29b-41d4-a716-446655440030",
+      course_id: "8caf6fcf-501b-427b-b31d-697c4b53dfbb",
+      sys_user_id: "4a7bae38-28d2-4b49-a985-d1aa2f3d072e",
+      bank_name: "大数据实时处理题库",
+      description: "Kafka、Flink、Storm等实时流处理框架题目。",
+      bank_type: 0,
+      difficulty: 3,
+      is_public: 1,
+      tags: ["大数据", "实时处理", "Kafka", "Flink"],
+      create_time: ISODate("2024-06-05T08:00:00.000Z"),
+      update_time: ISODate("2024-06-05T08:00:00.000Z"),
+      is_deleted: 0
+    }
+  ]);
 
-// ----------------------------
-// Documents of mg_question_answer
-// ----------------------------
-db.getCollection("mg_question_answer").insert([ {
-    _id: "550e8400-e29b-41d4-a716-446655440301",
-    question_id: "550e8400-e29b-41d4-a716-446655440101",
-    sys_user_id: "0198086c-fcd1-7a09-b3c3-537de3493332",
-    answer_content: "A",
-    is_correct: Int32("1"),
-    score: Int32("5"),
-    create_time: ISODate("2024-01-12T14:30:00.000Z"),
-    update_time: ISODate("2024-01-12T14:30:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_question_answer").insert([ {
-    _id: "550e8400-e29b-41d4-a716-446655440302",
-    question_id: "550e8400-e29b-41d4-a716-446655440102",
-    sys_user_id: "0198086c-fcd1-7a09-b3c3-537de3493332",
-    answer_content: "1",
-    is_correct: Int32("1"),
-    score: Int32("8"),
-    create_time: ISODate("2024-01-12T15:00:00.000Z"),
-    update_time: ISODate("2024-01-12T15:00:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_question_answer").insert([ {
-    _id: "550e8400-e29b-41d4-a716-446655440303",
-    question_id: "550e8400-e29b-41d4-a716-446655440103",
-    sys_user_id: "0198086c-fcd1-7a09-b3c3-537de3493332",
-    answer_content: "f'(x) = 3x² + 4x - 5",
-    is_correct: Int32("1"),
-    score: Int32("6"),
-    create_time: ISODate("2024-01-12T15:30:00.000Z"),
-    update_time: ISODate("2024-01-12T15:30:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_question_answer").insert([ {
-    _id: "550e8400-e29b-41d4-a716-446655440304",
-    question_id: "550e8400-e29b-41d4-a716-446655440104",
-    sys_user_id: "0198086c-fcd1-7a09-b3c3-537de3493332",
-    answer_content: "∫(x² + 3x + 2)dx = x³/3 + 3x²/2 + 2x + C",
-    is_correct: Int32("1"),
-    score: Int32("10"),
-    create_time: ISODate("2024-01-18T16:00:00.000Z"),
-    update_time: ISODate("2024-01-18T16:00:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_question_answer").insert([ {
-    _id: "550e8400-e29b-41d4-a716-446655440305",
-    question_id: "550e8400-e29b-41d4-a716-446655440105",
-    sys_user_id: "0198086c-fcd1-7a09-b3c3-537de3493332",
-    answer_content: "该级数收敛，因为它是p级数，p=2>1，所以收敛。",
-    is_correct: Int32("1"),
-    score: Int32("12"),
-    create_time: ISODate("2024-01-18T16:30:00.000Z"),
-    update_time: ISODate("2024-01-18T16:30:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_question_answer").insert([ {
-    _id: "550e8400-e29b-41d4-a716-446655440306",
-    question_id: "550e8400-e29b-41d4-a716-446655440106",
-    sys_user_id: "0198086c-fcd1-7a09-b3c3-537de3493332",
-    answer_content: "(1) 单调递增区间：(-∞,-1)∪(1,+∞)，单调递减区间：(-1,1)；(2) 极大值：f(-1)=3，极小值：f(1)=-1；(3) 最大值：f(-2)=3，最小值：f(1)=-1",
-    is_correct: Int32("1"),
-    score: Int32("20"),
-    create_time: ISODate("2024-01-22T10:00:00.000Z"),
-    update_time: ISODate("2024-01-22T10:00:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
+print("所有数据初始化完成！");
 
-// ----------------------------
-// Collection structure for mg_question_option
-// ----------------------------
-db.getCollection("mg_question_option").drop();
-db.createCollection("mg_question_option");
-db.getCollection("mg_question_option").createIndex({
-    question_id: Int32("1")
-}, {
-    name: "question_id_1"
-});
-db.getCollection("mg_question_option").createIndex({
-    is_correct: Int32("1")
-}, {
-    name: "is_correct_1"
-});
-db.getCollection("mg_question_option").createIndex({
-    option_label: Int32("1")
-}, {
-    name: "option_label_1"
-});
-db.getCollection("mg_question_option").createIndex({
-    create_time: Int32("-1")
-}, {
-    name: "create_time_-1"
-});
-
-// ----------------------------
-// Documents of mg_question_option
-// ----------------------------
-db.getCollection("mg_question_option").insert([ {
-    _id: "550e8400-e29b-41d4-a716-446655440201",
-    question_id: "550e8400-e29b-41d4-a716-446655440101",
-    option_content: "x ∈ (-∞, -2] ∪ [2, +∞)",
-    option_label: "A",
-    is_correct: Int32("1"),
-    create_time: ISODate("2024-01-10T10:35:00.000Z"),
-    update_time: ISODate("2024-01-10T10:35:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_question_option").insert([ {
-    _id: "550e8400-e29b-41d4-a716-446655440202",
-    question_id: "550e8400-e29b-41d4-a716-446655440101",
-    option_content: "x ∈ [-2, 2]",
-    option_label: "B",
-    is_correct: Int32("0"),
-    create_time: ISODate("2024-01-10T10:35:00.000Z"),
-    update_time: ISODate("2024-01-10T10:35:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_question_option").insert([ {
-    _id: "550e8400-e29b-41d4-a716-446655440203",
-    question_id: "550e8400-e29b-41d4-a716-446655440101",
-    option_content: "x ∈ (-∞, -2) ∪ (2, +∞)",
-    option_label: "C",
-    is_correct: Int32("0"),
-    create_time: ISODate("2024-01-10T10:35:00.000Z"),
-    update_time: ISODate("2024-01-10T10:35:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
-db.getCollection("mg_question_option").insert([ {
-    _id: "550e8400-e29b-41d4-a716-446655440204",
-    question_id: "550e8400-e29b-41d4-a716-446655440101",
-    option_content: "x ∈ R",
-    option_label: "D",
-    is_correct: Int32("0"),
-    create_time: ISODate("2024-01-10T10:35:00.000Z"),
-    update_time: ISODate("2024-01-10T10:35:00.000Z"),
-    is_deleted: Int32("0")
-} ]);
