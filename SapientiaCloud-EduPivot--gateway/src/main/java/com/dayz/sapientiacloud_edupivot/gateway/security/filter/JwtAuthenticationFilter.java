@@ -2,9 +2,9 @@ package com.dayz.sapientiacloud_edupivot.gateway.security.filter;
 
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.dayz.sapientiacloud_edupivot.gateway.security.constants.JwtConstants;
+import com.dayz.sapientiacloud_edupivot.gateway.security.utils.JwtUtil;
 import com.dayz.sapientiacloud_edupivot.gateway.security.utils.TokenExtractionUtil;
 import com.dayz.sapientiacloud_edupivot.gateway.security.utils.WhitelistUtil;
-import com.dayz.sapientiacloud_edupivot.gateway.security.utils.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;

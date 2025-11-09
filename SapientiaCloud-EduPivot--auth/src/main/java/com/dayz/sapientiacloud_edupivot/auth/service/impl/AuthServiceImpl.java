@@ -378,9 +378,9 @@ public class AuthServiceImpl implements AuthService {
         // 5. 如果手机号已被使用，获取已存在用户信息
         Result<SysUserBasicInfoVO> existingUserResult = sysUserClient.getUserInfoByMobile(mobile);
         if (existingUserResult != null && existingUserResult.isSuccess() && existingUserResult.getData() != null) {
-            result.setSuccess(false);  // 手机号不可用
-            result.setNeedConfirm(true);  // 需要用户确认
-            result.setExistingUserInfo(existingUserResult.getData());  // 返回已存在用户信息
+            result.setSuccess(false);
+            result.setNeedConfirm(true);
+            result.setExistingUserInfo(existingUserResult.getData());
             return result;
         }
 
