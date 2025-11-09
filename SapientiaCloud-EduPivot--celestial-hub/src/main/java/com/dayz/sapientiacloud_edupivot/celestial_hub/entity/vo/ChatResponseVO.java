@@ -15,7 +15,7 @@ import java.util.UUID;
 public class ChatResponseVO implements Serializable {
 
     @Serial
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = -3367253394232753305L;
 
     @Schema(description = "会话ID")
     private UUID sessionId;

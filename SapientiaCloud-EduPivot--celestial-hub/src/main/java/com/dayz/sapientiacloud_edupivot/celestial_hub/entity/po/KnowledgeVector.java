@@ -29,7 +29,7 @@ import java.util.UUID;
 public class KnowledgeVector extends BaseEntity {
 
     @Serial
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = -7809471544065509632L;
 
     @Id
     @Schema(description = "向量ID")

@@ -21,7 +21,7 @@ import java.util.UUID;
 public class VectorizeRequestDTO implements Serializable {
 
     @Serial
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 6174902419812147722L;
 
     @Schema(description = "课程ID")
     private UUID courseId;

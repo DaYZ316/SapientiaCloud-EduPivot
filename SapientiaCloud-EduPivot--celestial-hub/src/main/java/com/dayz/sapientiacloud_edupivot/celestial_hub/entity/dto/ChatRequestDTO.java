@@ -21,7 +21,7 @@ import java.util.UUID;
 public class ChatRequestDTO implements Serializable {
 
     @Serial
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = -7000375221223238792L;
 
     @Schema(description = "会话ID（新对话时可为空）")
     private UUID sessionId;

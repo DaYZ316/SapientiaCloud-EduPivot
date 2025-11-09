@@ -21,7 +21,7 @@ import java.util.UUID;
 public class KnowledgeItemVO implements Serializable {
 
     @Serial
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 4340269952424819567L;
 
     @Schema(description = "内容ID")
     private UUID id;

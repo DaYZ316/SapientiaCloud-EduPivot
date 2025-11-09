@@ -21,7 +21,7 @@ import java.util.UUID;
 public class KnowledgeRequestDTO implements Serializable {
 
     @Serial
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = -155310913868961743L;
 
     @NotBlank(message = "查询内容不能为空")
     @Schema(description = "查询内容", requiredMode = Schema.RequiredMode.REQUIRED)

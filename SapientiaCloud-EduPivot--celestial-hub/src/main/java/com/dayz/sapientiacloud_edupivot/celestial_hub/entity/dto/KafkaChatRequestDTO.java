@@ -17,9 +17,8 @@ import java.util.UUID;
 @Schema(description = "Kafka转发AI对话请求")
 public class KafkaChatRequestDTO implements Serializable {
 
-
     @Serial
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 2096419073409603074L;
 
     @Schema(description = "会话ID（新对话时可为空）")
     private UUID sessionId;
