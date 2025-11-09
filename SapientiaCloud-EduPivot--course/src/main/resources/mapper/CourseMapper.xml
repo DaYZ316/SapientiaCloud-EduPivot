@@ -52,7 +52,6 @@
         <result column="location" property="location"/>
         <result column="teacher_name" property="teacherName"/>
         <result column="teacher_avatar" property="teacherAvatar"/>
-        <result column="create_time" property="createTime"/>
     </resultMap>
 
     <select id="listCourse" resultMap="CourseVOMap"

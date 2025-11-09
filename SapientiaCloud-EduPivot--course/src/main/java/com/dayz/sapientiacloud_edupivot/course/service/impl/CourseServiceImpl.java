@@ -23,10 +23,12 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -35,8 +37,12 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> implements ICourseService {
 
+    private static final String PUBLIC_COURSE_CACHE_KEY = "PublicCourse::random:six";
+    private static final Duration PUBLIC_COURSE_CACHE_TTL = Duration.ofHours(24);
+
     private final CourseMapper courseMapper;
     private final ICourseStudentService courseStudentService;
+    private final RedisTemplate<String, Object> redisTemplate;
 
     @Override
     public PageInfo<CourseVO> listCoursePage(CourseQueryDTO courseQueryDTO) {
@@ -75,8 +81,7 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
     @Transactional(rollbackFor = Exception.class)
     @Caching(evict = {
             @CacheEvict(value = "Course", allEntries = true),
-            @CacheEvict(value = "CourseTeacher", allEntries = true),
-            @CacheEvict(value = "PublicCourse", allEntries = true)
+            @CacheEvict(value = "CourseTeacher", allEntries = true)
     })
     public CourseVO addCourse(CourseDTO courseDTO) {
         if (courseDTO == null) {
@@ -110,8 +115,7 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
     @Caching(evict = {
             @CacheEvict(value = "Course", key = "#p0.id", condition = "#p0.id != null"),
             @CacheEvict(value = "Course", key = "'all'", condition = "true"),
-            @CacheEvict(value = "CourseTeacher", allEntries = true),
-            @CacheEvict(value = "PublicCourse", allEntries = true)
+            @CacheEvict(value = "CourseTeacher", allEntries = true)
     })
     public Boolean updateCourse(CourseDTO courseDTO) {
         if (courseDTO == null || courseDTO.getId() == null) {
@@ -146,8 +150,7 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
     @Caching(evict = {
             @CacheEvict(value = "Course", key = "#p0", condition = "#p0 != null"),
             @CacheEvict(value = "Course", key = "'all'", condition = "true"),
-            @CacheEvict(value = "CourseTeacher", allEntries = true),
-            @CacheEvict(value = "PublicCourse", allEntries = true)
+            @CacheEvict(value = "CourseTeacher", allEntries = true)
     })
     public Boolean removeCourseById(UUID courseId) {
         if (courseId == null) {
@@ -172,8 +175,7 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
     @Transactional(rollbackFor = Exception.class)
     @Caching(evict = {
             @CacheEvict(value = "Course", allEntries = true),
-            @CacheEvict(value = "CourseTeacher", allEntries = true),
-            @CacheEvict(value = "PublicCourse", allEntries = true)
+            @CacheEvict(value = "CourseTeacher", allEntries = true)
     })
     public Integer removeCourseByIds(List<UUID> courseIds) {
         if (courseIds == null || courseIds.isEmpty()) {
@@ -198,8 +200,23 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "PublicCourse", key = "'random:six'", condition = "true")
     public List<PublicCourseVO> listPublicCourse() {
-        return courseMapper.listPublicCourse();
+        // 尝试从缓存获取
+        Object cached = redisTemplate.opsForValue().get(PUBLIC_COURSE_CACHE_KEY);
+        if (cached != null) {
+            @SuppressWarnings("unchecked")
+            List<PublicCourseVO> result = (List<PublicCourseVO>) cached;
+            return result;
+        }
+        
+        // 缓存未命中，从数据库查询
+        List<PublicCourseVO> result = courseMapper.listPublicCourse();
+        
+        // 存入缓存，设置24小时过期时间
+        if (result != null) {
+            redisTemplate.opsForValue().set(PUBLIC_COURSE_CACHE_KEY, result, PUBLIC_COURSE_CACHE_TTL);
+        }
+        
+        return result;
     }
 }
