@@ -14,9 +14,7 @@ import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -143,27 +141,27 @@ public class ChatMessageHelper {
         if (error == null) {
             return false;
         }
-        
+
         String errorMessage = error.getMessage();
         if (errorMessage == null) {
             return false;
         }
-        
+
         // 网络相关错误可重试
-        if (errorMessage.contains("timeout") || 
-            errorMessage.contains("connection") ||
-            errorMessage.contains("network") ||
-            errorMessage.contains("retry")) {
+        if (errorMessage.contains("timeout") ||
+                errorMessage.contains("connection") ||
+                errorMessage.contains("network") ||
+                errorMessage.contains("retry")) {
             return true;
         }
-        
+
         // 服务不可用可重试
         if (error instanceof org.springframework.web.client.ResourceAccessException ||
-            error instanceof java.net.SocketTimeoutException ||
-            error instanceof java.net.ConnectException) {
+                error instanceof java.net.SocketTimeoutException ||
+                error instanceof java.net.ConnectException) {
             return true;
         }
-        
+
         return false;
     }
 }

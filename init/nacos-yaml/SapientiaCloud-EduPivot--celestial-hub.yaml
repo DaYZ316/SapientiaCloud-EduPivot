@@ -65,16 +65,11 @@ spring:
       chat-request: chat-request-topic
       chat-response: chat-response-topic
 
-# Kafka聊天服务配置
 kafka:
   chat:
-    # 超时时间（秒）
     timeout-seconds: 300
-    # Sink缓存配置
     sink-cache:
-      # 过期时间（分钟）
       expire-after-write-minutes: 10
-      # 最大缓存数量
       maximum-size: 1000
   ai:
     dashscope:

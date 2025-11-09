@@ -9,7 +9,6 @@ import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.KafkaChatReques
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.po.ChatMessage;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.vo.ChatResponseVO;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.IChatMessageService;
-import com.dayz.sapientiacloud_edupivot.celestial_hub.service.KafkaChatService;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -28,7 +27,6 @@ import java.util.UUID;
 public class ChatMessageController extends BaseController {
 
     private final IChatMessageService chatMessageService;
-    private final KafkaChatService kafkaChatService;
 
     @HasPermission(
             summary = "chat",
@@ -100,19 +98,6 @@ public class ChatMessageController extends BaseController {
     ) {
         Boolean result = chatMessageService.feedbackMessage(id, feedback);
         return Result.success(result);
-    }
-
-    @HasPermission(
-            summary = "getRequestIdBySessionId",
-            description = "根据会话ID查询Kafka流式对话请求的requestId",
-            permission = PermissionConstants.CELESTIAL_QUERY
-    )
-    @GetMapping("/kafka/request/{sessionId}")
-    public Result<String> getRequestIdBySessionId(
-            @Parameter(name = "sessionId", description = "会话ID", required = true) @PathVariable("sessionId") UUID sessionId
-    ) {
-        String requestId = kafkaChatService.getRequestIdBySessionId(sessionId);
-        return Result.success(requestId);
     }
 }
 
