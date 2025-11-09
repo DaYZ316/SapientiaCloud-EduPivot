@@ -295,7 +295,7 @@
             AND c.status = 0
         </where>
         ORDER BY RAND()
-        LIMIT 6
+        LIMIT 8
     </select>
 
 </mapper>
