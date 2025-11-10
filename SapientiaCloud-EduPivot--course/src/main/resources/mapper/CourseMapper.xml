@@ -297,5 +297,4 @@
         ORDER BY RAND()
         LIMIT 8
     </select>
-
 </mapper>
