@@ -9,6 +9,8 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.bson.codecs.pojo.annotations.BsonIgnore;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.CompoundIndex;
+import org.springframework.data.mongodb.core.index.CompoundIndexes;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
@@ -22,6 +24,9 @@ import java.util.UUID;
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 @Document(collection = "mg_chat_message")
+@CompoundIndexes({
+        @CompoundIndex(name = "uniq_session_role_request", def = "{'session_id': 1, 'role': 1, 'request_id': 1}", unique = true, sparse = true)
+})
 @Schema(description = "AI对话消息")
 public class ChatMessage extends BaseEntity {
 
@@ -63,6 +68,10 @@ public class ChatMessage extends BaseEntity {
     @Field("attachments")
     @Schema(description = "附件URL列表")
     private List<String> attachments;
+
+    @Field("request_id")
+    @Schema(description = "请求ID（用于幂等），Kafka传入或HTTP生成")
+    private String requestId;
 
     @Field("is_feedback")
     @Schema(description = "用户反馈: 0-无, 1-有用, -1-无用")

@@ -11,6 +11,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import redis.clients.jedis.JedisPooled;
+import redis.clients.jedis.DefaultJedisClientConfig;
+import redis.clients.jedis.HostAndPort;
 
 @Configuration
 public class VectorConfig {
@@ -35,7 +37,7 @@ public class VectorConfig {
     @Value("${spring.data.redis.port:6379}")
     private int redisPort;
 
-    @Value("${spring.data.redis.password:}")
+    @Value("${spring.data.redis.password:zhaosheng123}")
     private String redisPassword;
 
     @Bean
@@ -53,12 +55,12 @@ public class VectorConfig {
 
     @Bean
     public JedisPooled jedisPooled() {
-        // 如果配置了密码，则使用带密码的连接
+        DefaultJedisClientConfig.Builder configBuilder = DefaultJedisClientConfig.builder();
         if (redisPassword != null && !redisPassword.isEmpty()) {
-            return new JedisPooled(redisHost, redisPort, null, redisPassword);
+            configBuilder.password(redisPassword);
         }
-        // 否则使用无密码连接
-        return new JedisPooled(redisHost, redisPort);
+        configBuilder.database(1);
+        return new JedisPooled(new HostAndPort(redisHost, redisPort), configBuilder.build());
     }
 
     @Bean

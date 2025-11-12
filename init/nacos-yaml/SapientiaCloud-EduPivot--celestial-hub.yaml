@@ -64,7 +64,6 @@ spring:
     topic:
       chat-request: chat-request-topic
       chat-response: chat-response-topic
-
 kafka:
   chat:
     timeout-seconds: 300
@@ -83,10 +82,9 @@ kafka:
           model: text-embedding-v1
     vectorstore:
       redis:
-        initialize-schema: true
         index-name: knowledge-vector-index
-        prefix:
-          vector:
+        prefix: vector
+        initialize-schema: true
 
 MONGODB_HOST: localhost
 MONGODB_PORT: 27017

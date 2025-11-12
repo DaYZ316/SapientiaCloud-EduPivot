@@ -10,6 +10,7 @@ spring:
       port: ${REDIS_PORT}
       host: ${REDIS_HOST}
       password: ${REDIS_PASSWORD}
+      database: 0
       timeout: 6000ms
       lettuce:
         pool:

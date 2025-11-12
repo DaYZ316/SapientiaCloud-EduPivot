@@ -1,4 +1,4 @@
-package com.dayz.sapientiacloud_edupivot.celestial_hub.common.utils;
+package com.dayz.sapientiacloud_edupivot.celestial_hub.utils;
 
 import com.dayz.sapientiacloud_edupivot.celestial_hub.constant.AIChatConstants;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.ChatRequestDTO;
@@ -17,6 +17,7 @@ import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -25,17 +26,18 @@ import java.util.stream.Collectors;
  * 用于抽取公共的消息处理逻辑
  */
 @Slf4j
-public class ChatMessageHelper {
+public class ChatMessageUtil {
 
     /**
-     * 构建消息上下文
+     * 构建消息上下文（返回上下文消息与最后一条历史消息）
      */
-    public static List<Message> buildContext(UUID sessionId, ChatRequestDTO request, ChatMessageRepository chatMessageRepository) {
+    public static ChatContext buildContext(UUID sessionId, ChatRequestDTO request, ChatMessageRepository chatMessageRepository) {
         List<Message> messages = new ArrayList<>();
         messages.add(new SystemMessage(AIChatConstants.SYSTEM_PROMPT));
 
         // 获取历史消息
         List<ChatMessage> history = chatMessageRepository.findBySessionIdOrderByCreateTimeAsc(sessionId);
+        ChatMessage last = history.isEmpty() ? null : history.get(history.size() - 1);
         for (ChatMessage msg : history) {
             if (AIChatConstants.ROLE_USER.equals(msg.getRole())) {
                 messages.add(new UserMessage(msg.getContent()));
@@ -46,19 +48,23 @@ public class ChatMessageHelper {
             }
         }
 
-        messages.add(new UserMessage(request.getMessage()));
-        return messages;
+        // 只有当最后一条历史消息不是同一条用户消息时才追加当前请求
+        if (!isSameAsLastUserMessage(last, request.getMessage(), request.getAttachments())) {
+            messages.add(new UserMessage(request.getMessage()));
+        }
+        return new ChatContext(messages, last);
     }
 
     /**
-     * 构建消息上下文（Kafka版本）
+     * 构建消息上下文（Kafka版本，返回上下文消息与最后一条历史消息）
      */
-    public static List<Message> buildContext(UUID sessionId, KafkaChatRequestDTO request, ChatMessageRepository chatMessageRepository) {
+    public static ChatContext buildContext(UUID sessionId, KafkaChatRequestDTO request, ChatMessageRepository chatMessageRepository) {
         List<Message> messages = new ArrayList<>();
         messages.add(new SystemMessage(AIChatConstants.SYSTEM_PROMPT));
 
         // 获取历史消息
         List<ChatMessage> history = chatMessageRepository.findBySessionIdOrderByCreateTimeAsc(sessionId);
+        ChatMessage last = history.isEmpty() ? null : history.get(history.size() - 1);
         for (ChatMessage msg : history) {
             if (AIChatConstants.ROLE_USER.equals(msg.getRole())) {
                 messages.add(new UserMessage(msg.getContent()));
@@ -69,8 +75,11 @@ public class ChatMessageHelper {
             }
         }
 
-        messages.add(new UserMessage(request.getMessage()));
-        return messages;
+        // 只有当最后一条历史消息不是同一条用户消息时才追加当前请求
+        if (!isSameAsLastUserMessage(last, request.getMessage(), request.getAttachments())) {
+            messages.add(new UserMessage(request.getMessage()));
+        }
+        return new ChatContext(messages, last);
     }
 
     /**
@@ -163,6 +172,52 @@ public class ChatMessageHelper {
         }
 
         return false;
+    }
+
+    /**
+     * 上下文返回体：模型消息列表 + 最后一条历史消息
+     */
+    public record ChatContext(List<Message> messages, ChatMessage lastMessage) {}
+
+    /**
+     * 判断当前请求是否与最后一条用户消息相同（用于避免上下文重复追加）
+     */
+    private static boolean isSameAsLastUserMessage(ChatMessage last, String content, List<String> attachments) {
+        if (last == null) {
+            return false;
+        }
+        if (!AIChatConstants.ROLE_USER.equals(last.getRole())) {
+            return false;
+        }
+        if (!Objects.equals(last.getContent(), content)) {
+            return false;
+        }
+        return equalAttachments(last.getAttachments(), attachments);
+    }
+
+    private static boolean equalAttachments(List<String> a, List<String> b) {
+        if (a == null && b == null) {
+            return true;
+        }
+        if (a == null || b == null) {
+            return false;
+        }
+        if (a.size() != b.size()) {
+            return false;
+        }
+        for (int i = 0; i < a.size(); i++) {
+            if (!Objects.equals(a.get(i), b.get(i))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * 对外提供的附件列表比较方法，供其他组件复用，避免重复实现
+     */
+    public static boolean attachmentsEqual(List<String> a, List<String> b) {
+        return equalAttachments(a, b);
     }
 }
 
