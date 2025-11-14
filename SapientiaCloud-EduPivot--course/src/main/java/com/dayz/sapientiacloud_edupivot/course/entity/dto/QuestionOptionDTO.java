@@ -13,12 +13,6 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * 题目选项数据传输对象
- *
- * @author SapientiaCloud
- * @since 2024-01-01
- */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

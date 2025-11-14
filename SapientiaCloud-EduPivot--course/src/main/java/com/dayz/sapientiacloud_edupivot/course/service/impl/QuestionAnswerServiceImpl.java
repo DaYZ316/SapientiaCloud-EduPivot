@@ -1,10 +1,7 @@
 package com.dayz.sapientiacloud_edupivot.course.service.impl;
 
-import com.dayz.sapientiacloud_edupivot.course.common.clients.SysUserClient;
-import com.dayz.sapientiacloud_edupivot.course.common.entity.vo.SysUserVO;
 import com.dayz.sapientiacloud_edupivot.course.common.enums.DeletedEnum;
 import com.dayz.sapientiacloud_edupivot.course.common.exception.BusinessException;
-import com.dayz.sapientiacloud_edupivot.course.common.result.Result;
 import com.dayz.sapientiacloud_edupivot.course.constant.QuestionAnswerConstants;
 import com.dayz.sapientiacloud_edupivot.course.entity.dto.QuestionAnswerDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.po.QuestionAnswer;
@@ -13,15 +10,12 @@ import com.dayz.sapientiacloud_edupivot.course.enums.QuestionAnswerEnum;
 import com.dayz.sapientiacloud_edupivot.course.repository.QuestionAnswerRepository;
 import com.dayz.sapientiacloud_edupivot.course.service.IQuestionAnswerService;
 import com.github.f4b6a3.uuid.UuidCreator;
-import com.github.pagehelper.PageInfo;
 import com.mongodb.client.result.UpdateResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -32,9 +26,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -42,48 +39,11 @@ public class QuestionAnswerServiceImpl implements IQuestionAnswerService {
 
     private final QuestionAnswerRepository questionAnswerRepository;
     private final MongoTemplate mongoTemplate;
-    private final SysUserClient sysUserClient;
-
-    @Override
-    @Transactional(readOnly = true)
-    public PageInfo<QuestionAnswerVO> listQuestionAnswer(Integer pageNum, Integer pageSize) {
-        if (pageNum == null || pageSize == null) {
-            throw new BusinessException(QuestionAnswerEnum.QUESTION_ANSWER_REQUIRED);
-        }
-
-        Query query = new Query();
-        Criteria criteria = new Criteria();
-        criteria.and(QuestionAnswerConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode());
-        query.addCriteria(criteria);
-        query.with(Sort.by(Sort.Direction.DESC, QuestionAnswerConstants.FIELD_CREATE_TIME));
-
-        Query countQuery = new Query();
-        countQuery.addCriteria(criteria);
-
-        Pageable pageable = PageRequest.of(
-                pageNum - QuestionAnswerConstants.PAGE_NUM_OFFSET,
-                pageSize
-        );
-        query.with(pageable);
-
-        List<QuestionAnswer> answers = mongoTemplate.find(query, QuestionAnswer.class);
-        long total = mongoTemplate.count(countQuery, QuestionAnswer.class);
-
-        List<QuestionAnswerVO> answerVOList = convertToVOList(answers);
-
-        PageInfo<QuestionAnswerVO> pageInfo = new PageInfo<>(answerVOList);
-        pageInfo.setTotal(total);
-        pageInfo.setPageNum(pageNum);
-        pageInfo.setPageSize(pageSize);
-        pageInfo.setPages((int) Math.ceil((double) total / pageSize));
-
-        return pageInfo;
-    }
 
     @Override
     @Transactional(readOnly = true)
     @Cacheable(value = "QuestionAnswer", key = "'question:' + #p0", condition = "#p0 != null")
-    public List<QuestionAnswerVO> listAllQuestionAnswerByQuestionId(UUID questionId) {
+    public List<QuestionAnswerVO> listQuestionAnswerByQuestionId(UUID questionId) {
         if (questionId == null) {
             throw new BusinessException(QuestionAnswerEnum.QUESTION_ID_REQUIRED);
         }
@@ -93,55 +53,10 @@ public class QuestionAnswerServiceImpl implements IQuestionAnswerService {
         criteria.and(QuestionAnswerConstants.FIELD_QUESTION_ID).is(questionId);
         criteria.and(QuestionAnswerConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode());
         query.addCriteria(criteria);
-        query.with(Sort.by(Sort.Direction.DESC, QuestionAnswerConstants.FIELD_CREATE_TIME));
+        query.with(Sort.by(Sort.Direction.ASC, QuestionAnswerConstants.FIELD_SORT_ORDER));
 
         List<QuestionAnswer> answers = mongoTemplate.find(query, QuestionAnswer.class);
         return convertToVOList(answers);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    @Cacheable(value = "QuestionAnswer", key = "'user:' + #p0", condition = "#p0 != null")
-    public List<QuestionAnswerVO> listAllQuestionAnswerBySysUserId(UUID sysUserId) {
-        if (sysUserId == null) {
-            throw new BusinessException(QuestionAnswerEnum.SYS_USER_ID_REQUIRED);
-        }
-
-        Query query = new Query();
-        Criteria criteria = new Criteria();
-        criteria.and(QuestionAnswerConstants.FIELD_SYS_USER_ID).is(sysUserId);
-        criteria.and(QuestionAnswerConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode());
-        query.addCriteria(criteria);
-        query.with(Sort.by(Sort.Direction.DESC, QuestionAnswerConstants.FIELD_CREATE_TIME));
-
-        List<QuestionAnswer> answers = mongoTemplate.find(query, QuestionAnswer.class);
-        return convertToVOList(answers);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    @Cacheable(value = "QuestionAnswer", key = "'question:' + #p0 + ':user:' + #p1", condition = "#p0 != null && #p1 != null")
-    public QuestionAnswerVO getQuestionAnswerByQuestionIdAndSysUserId(UUID questionId, UUID sysUserId) {
-        if (questionId == null) {
-            throw new BusinessException(QuestionAnswerEnum.QUESTION_ID_REQUIRED);
-        }
-        if (sysUserId == null) {
-            throw new BusinessException(QuestionAnswerEnum.SYS_USER_ID_REQUIRED);
-        }
-
-        Query query = new Query();
-        Criteria criteria = new Criteria();
-        criteria.and(QuestionAnswerConstants.FIELD_QUESTION_ID).is(questionId);
-        criteria.and(QuestionAnswerConstants.FIELD_SYS_USER_ID).is(sysUserId);
-        criteria.and(QuestionAnswerConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode());
-        query.addCriteria(criteria);
-
-        QuestionAnswer answer = mongoTemplate.findOne(query, QuestionAnswer.class);
-        if (answer == null) {
-            return null;
-        }
-
-        return convertToVO(answer);
     }
 
     @Override
@@ -170,7 +85,6 @@ public class QuestionAnswerServiceImpl implements IQuestionAnswerService {
     @Transactional
     @Caching(evict = {
             @CacheEvict(value = "QuestionAnswer", key = "'question:' + #p0.questionId"),
-            @CacheEvict(value = "QuestionAnswer", key = "'user:' + #p0.sysUserId"),
             @CacheEvict(value = "QuestionAnswer", allEntries = true)
     })
     public QuestionAnswerVO addQuestionAnswer(QuestionAnswerDTO questionAnswerDTO) {
@@ -186,23 +100,27 @@ public class QuestionAnswerServiceImpl implements IQuestionAnswerService {
             throw new BusinessException(QuestionAnswerEnum.QUESTION_ANSWER_CONTENT_REQUIRED);
         }
 
-        if (questionAnswerDTO.getIsCorrect() == null) {
-            throw new BusinessException(QuestionAnswerEnum.QUESTION_ANSWER_IS_CORRECT_REQUIRED);
+        if (questionAnswerDTO.getScore() != null) {
+            validateScore(questionAnswerDTO.getScore());
         }
 
-        if (questionAnswerDTO.getScore() == null) {
-            throw new BusinessException(QuestionAnswerEnum.QUESTION_ANSWER_SCORE_REQUIRED);
-        }
-
-        if (questionAnswerDTO.getIsCorrect() < QuestionAnswerConstants.IS_CORRECT_MIN ||
-                questionAnswerDTO.getIsCorrect() > QuestionAnswerConstants.IS_CORRECT_MAX) {
-            throw new BusinessException(QuestionAnswerEnum.QUESTION_ANSWER_IS_CORRECT_REQUIRED);
+        Integer sortOrder = questionAnswerDTO.getSortOrder();
+        if (sortOrder != null) {
+            ensureSortOrderUnique(questionAnswerDTO.getQuestionId(), sortOrder, null);
         }
 
         QuestionAnswer answer = new QuestionAnswer();
         BeanUtils.copyProperties(questionAnswerDTO, answer);
 
         answer.setId(UuidCreator.getTimeOrderedEpoch());
+
+        if (answer.getScore() == null) {
+            answer.setScore(QuestionAnswerConstants.DEFAULT_SCORE);
+        }
+
+        if (answer.getSortOrder() == null) {
+            answer.setSortOrder(calculateNextSortOrder(questionAnswerDTO.getQuestionId()));
+        }
 
         LocalDateTime now = LocalDateTime.now();
         answer.setCreateTime(now);
@@ -238,7 +156,6 @@ public class QuestionAnswerServiceImpl implements IQuestionAnswerService {
     @Caching(evict = {
             @CacheEvict(value = "QuestionAnswer", key = "#p0.id"),
             @CacheEvict(value = "QuestionAnswer", key = "'question:' + #p0.questionId"),
-            @CacheEvict(value = "QuestionAnswer", key = "'user:' + #p0.sysUserId"),
             @CacheEvict(value = "QuestionAnswer", allEntries = true)
     })
     public Boolean updateQuestionAnswer(QuestionAnswerDTO questionAnswerDTO) {
@@ -260,14 +177,17 @@ public class QuestionAnswerServiceImpl implements IQuestionAnswerService {
         if (StringUtils.hasText(questionAnswerDTO.getAnswerContent())) {
             existingAnswer.setAnswerContent(questionAnswerDTO.getAnswerContent());
         }
-        if (StringUtils.hasText(questionAnswerDTO.getAnswerText())) {
-            existingAnswer.setAnswerText(questionAnswerDTO.getAnswerText());
-        }
-        if (questionAnswerDTO.getIsCorrect() != null) {
-            existingAnswer.setIsCorrect(questionAnswerDTO.getIsCorrect());
+        if (StringUtils.hasText(questionAnswerDTO.getExplanation())) {
+            existingAnswer.setExplanation(questionAnswerDTO.getExplanation());
         }
         if (questionAnswerDTO.getScore() != null) {
+            validateScore(questionAnswerDTO.getScore());
             existingAnswer.setScore(questionAnswerDTO.getScore());
+        }
+        if (questionAnswerDTO.getSortOrder() != null &&
+                !Objects.equals(questionAnswerDTO.getSortOrder(), existingAnswer.getSortOrder())) {
+            ensureSortOrderUnique(existingAnswer.getQuestionId(), questionAnswerDTO.getSortOrder(), existingAnswer.getId());
+            existingAnswer.setSortOrder(questionAnswerDTO.getSortOrder());
         }
 
         existingAnswer.setUpdateTime(LocalDateTime.now());
@@ -327,9 +247,10 @@ public class QuestionAnswerServiceImpl implements IQuestionAnswerService {
             return true;
         }
 
+        LocalDateTime now = LocalDateTime.now();
         for (QuestionAnswer answer : answers) {
             answer.setDeleted(DeletedEnum.DELETED.getCode());
-            answer.setUpdateTime(LocalDateTime.now());
+            answer.setUpdateTime(now);
         }
 
         questionAnswerRepository.saveAll(answers);
@@ -347,7 +268,6 @@ public class QuestionAnswerServiceImpl implements IQuestionAnswerService {
             throw new BusinessException(QuestionAnswerEnum.QUESTION_ANSWER_IDS_REQUIRED);
         }
 
-        // 使用批量操作避免N+1问题
         Query query = new Query(Criteria.where(QuestionAnswerConstants.FIELD_ID).in(ids)
                 .and(QuestionAnswerConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode()));
         Update update = new Update()
@@ -355,9 +275,59 @@ public class QuestionAnswerServiceImpl implements IQuestionAnswerService {
                 .set(QuestionAnswerConstants.FIELD_UPDATE_TIME, LocalDateTime.now());
 
         UpdateResult updateResult = mongoTemplate.updateMulti(query, update, QuestionAnswer.class);
-        int deletedCount = (int) updateResult.getModifiedCount();
+        return (int) updateResult.getModifiedCount();
+    }
 
-        return deletedCount;
+    private void validateScore(BigDecimal score) {
+        if (score == null) {
+            return;
+        }
+        if (score.compareTo(QuestionAnswerConstants.MIN_SCORE) < 0 ||
+                score.compareTo(QuestionAnswerConstants.MAX_SCORE) > 0) {
+            throw new BusinessException(QuestionAnswerEnum.QUESTION_ANSWER_SCORE_INVALID);
+        }
+    }
+
+    private void ensureSortOrderUnique(UUID questionId, Integer sortOrder, UUID excludeId) {
+        if (questionId == null || sortOrder == null) {
+            return;
+        }
+
+        Query query = new Query();
+        Criteria criteria = new Criteria();
+        criteria.and(QuestionAnswerConstants.FIELD_QUESTION_ID).is(questionId);
+        criteria.and(QuestionAnswerConstants.FIELD_SORT_ORDER).is(sortOrder);
+        criteria.and(QuestionAnswerConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode());
+        if (excludeId != null) {
+            criteria.and(QuestionAnswerConstants.FIELD_ID).ne(excludeId);
+        }
+        query.addCriteria(criteria);
+
+        boolean exists = mongoTemplate.exists(query, QuestionAnswer.class);
+        if (exists) {
+            throw new BusinessException(QuestionAnswerEnum.QUESTION_ANSWER_ALREADY_EXISTS);
+        }
+    }
+
+    private Integer calculateNextSortOrder(UUID questionId) {
+        if (questionId == null) {
+            return QuestionAnswerConstants.DEFAULT_SORT_ORDER;
+        }
+
+        Query query = new Query();
+        Criteria criteria = new Criteria();
+        criteria.and(QuestionAnswerConstants.FIELD_QUESTION_ID).is(questionId);
+        criteria.and(QuestionAnswerConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode());
+        query.addCriteria(criteria);
+        query.with(Sort.by(Sort.Direction.DESC, QuestionAnswerConstants.FIELD_SORT_ORDER));
+        query.limit(1);
+
+        QuestionAnswer lastAnswer = mongoTemplate.findOne(query, QuestionAnswer.class);
+        if (lastAnswer == null || lastAnswer.getSortOrder() == null) {
+            return QuestionAnswerConstants.DEFAULT_SORT_ORDER;
+        }
+
+        return lastAnswer.getSortOrder() + 1;
     }
 
     private List<QuestionAnswerVO> convertToVOList(List<QuestionAnswer> answers) {
@@ -365,10 +335,8 @@ public class QuestionAnswerServiceImpl implements IQuestionAnswerService {
             return new ArrayList<>();
         }
 
-        Map<UUID, SysUserVO> userMap = getUserMap();
-
         return answers.stream()
-                .map(answer -> convertToVOWithUserMap(answer, userMap))
+                .map(this::convertToVO)
                 .toList();
     }
 
@@ -377,63 +345,9 @@ public class QuestionAnswerServiceImpl implements IQuestionAnswerService {
             return null;
         }
 
-        Map<UUID, SysUserVO> userMap = getUserMap();
-
-        return convertToVOWithUserMap(answer, userMap);
-    }
-
-    private QuestionAnswerVO convertToVOWithUserMap(QuestionAnswer answer, Map<UUID, SysUserVO> userMap) {
-        if (answer == null) {
-            return null;
-        }
-
         QuestionAnswerVO vo = new QuestionAnswerVO();
         BeanUtils.copyProperties(answer, vo);
-
-        fillUserInfoWithMap(vo, answer.getSysUserId(), userMap);
-        fillIsCorrectName(vo, answer.getIsCorrect());
-
         return vo;
     }
-
-    private Map<UUID, SysUserVO> getUserMap() {
-        Result<List<SysUserVO>> result = sysUserClient.listAllSysUser();
-        if (result != null && result.getData() != null) {
-            return result.getData().stream()
-                    .collect(Collectors.toMap(SysUserVO::getId, user -> user));
-        }
-        return new HashMap<>();
-    }
-
-    private void fillUserInfoWithMap(QuestionAnswerVO vo, UUID sysUserId, Map<UUID, SysUserVO> userMap) {
-        if (sysUserId == null || userMap.isEmpty()) {
-            return;
-        }
-
-        SysUserVO user = userMap.get(sysUserId);
-        if (user != null) {
-            vo.setSysUserName(user.getNickName() != null ? user.getNickName() : user.getUsername());
-        }
-    }
-
-    private void fillIsCorrectName(QuestionAnswerVO vo, Integer isCorrect) {
-        if (isCorrect == null) {
-            return;
-        }
-
-        switch (isCorrect) {
-            case QuestionAnswerConstants.IS_CORRECT_WRONG:
-                vo.setIsCorrectName(QuestionAnswerConstants.IS_CORRECT_NAME_WRONG);
-                break;
-            case QuestionAnswerConstants.IS_CORRECT_CORRECT:
-                vo.setIsCorrectName(QuestionAnswerConstants.IS_CORRECT_NAME_CORRECT);
-                break;
-            case QuestionAnswerConstants.IS_CORRECT_PARTIAL:
-                vo.setIsCorrectName(QuestionAnswerConstants.IS_CORRECT_NAME_PARTIAL);
-                break;
-            default:
-                vo.setIsCorrectName("未知");
-                break;
-        }
-    }
 }
+

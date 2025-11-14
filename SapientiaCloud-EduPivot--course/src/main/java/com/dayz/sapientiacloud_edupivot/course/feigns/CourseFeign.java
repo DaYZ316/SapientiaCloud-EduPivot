@@ -32,7 +32,6 @@ public class CourseFeign {
 	private final ICourseQuestionBankService courseQuestionBankService;
 	private final IQuestionService questionService;
 	private final IQuestionOptionService questionOptionService;
-	private final IQuestionAnswerService questionAnswerService;
 
 	@Operation(summary = "根据课程ID查询课程")
 	@GetMapping("/internal/{id}")
@@ -146,18 +145,6 @@ public class CourseFeign {
 	@GetMapping("/internal/question-option/question/{questionId}")
 	public Result<List<QuestionOptionVO>> listOptionsByQuestionId(@PathVariable("questionId") UUID questionId) {
 		return Result.success(questionOptionService.listQuestionOptionByQuestionId(questionId));
-	}
-
-	@Operation(summary = "根据答案ID查询答案")
-	@GetMapping("/internal/question-answer/{id}")
-	public Result<QuestionAnswerVO> getQuestionAnswerById(@PathVariable("id") UUID id) {
-		return Result.success(questionAnswerService.getQuestionAnswerById(id));
-	}
-
-	@Operation(summary = "根据题目ID查询答案列表")
-	@GetMapping("/internal/question-answer/question/{questionId}")
-	public Result<List<QuestionAnswerVO>> listQuestionAnswersByQuestionId(@PathVariable("questionId") UUID questionId) {
-		return Result.success(questionAnswerService.listAllQuestionAnswerByQuestionId(questionId));
 	}
 }
 

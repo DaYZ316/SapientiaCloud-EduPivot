@@ -5,7 +5,6 @@ import com.dayz.sapientiacloud_edupivot.course.common.result.Result;
 import com.dayz.sapientiacloud_edupivot.course.common.result.TableDataResult;
 import com.dayz.sapientiacloud_edupivot.course.common.security.annotation.HasPermission;
 import com.dayz.sapientiacloud_edupivot.course.constant.PermissionConstants;
-import com.dayz.sapientiacloud_edupivot.course.entity.dto.QuestionAddDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.dto.QuestionDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.dto.QuestionQueryDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.vo.QuestionVO;
@@ -90,8 +89,8 @@ public class QuestionController extends BaseController {
             permission = PermissionConstants.QUESTION_ADD
     )
     @PostMapping("/add")
-    public Result<QuestionVO> addQuestion(@Valid @RequestBody QuestionAddDTO questionAddDTO) {
-        QuestionVO questionVO = questionService.addQuestion(questionAddDTO);
+    public Result<QuestionVO> addQuestion(@Valid @RequestBody QuestionDTO questionDTO) {
+        QuestionVO questionVO = questionService.addQuestion(questionDTO);
         return Result.success(questionVO);
     }
 
