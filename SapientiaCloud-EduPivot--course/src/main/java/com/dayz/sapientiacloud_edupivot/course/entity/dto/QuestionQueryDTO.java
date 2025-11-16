@@ -12,12 +12,6 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * 题目查询数据传输对象
- *
- * @author SapientiaCloud
- * @since 2024-01-01
- */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -30,6 +24,9 @@ public class QuestionQueryDTO extends PageEntity implements Serializable {
 
     @Schema(name = "questionBankId", description = "题库ID")
     private UUID questionBankId;
+
+    @Schema(name = "sysUserId", description = "创建用户ID")
+    private UUID sysUserId;
 
     @Schema(name = "questionTitle", description = "题目标题")
     private String questionTitle;
