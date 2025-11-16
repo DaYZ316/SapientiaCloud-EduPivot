@@ -2,13 +2,13 @@ package com.dayz.sapientiacloud_edupivot.celestial_hub.service;
 
 import com.alibaba.fastjson2.JSON;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.common.exception.BusinessException;
-import com.dayz.sapientiacloud_edupivot.celestial_hub.utils.ChatMessageUtil;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.constant.AIChatConstants;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.KafkaChatRequestDTO;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.po.ChatMessage;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.vo.ChatSessionVO;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.enums.AIChatEnum;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.repository.ChatMessageRepository;
+import com.dayz.sapientiacloud_edupivot.celestial_hub.utils.ChatMessageUtil;
 import com.github.f4b6a3.uuid.UuidCreator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -118,6 +118,7 @@ public class KafkaChatConsumer {
             // 获取或创建会话
             ChatSessionVO sessionVO = getOrCreateSession(request);
             final UUID sessionId = sessionVO.getId();
+            final UUID userId = sessionVO.getSysUserId();
 
             // 构建消息上下文（使用工具类）
             ChatMessageUtil.ChatContext chatContext = ChatMessageUtil.buildContext(sessionId, request, chatMessageRepository);
@@ -132,10 +133,11 @@ public class KafkaChatConsumer {
             }
 
             // 先保存用户消息（在AI调用前保存），带去重/幂等以避免重试重复
-            addUserMessageIfNotDuplicate(sessionId, request.getMessage(), request.getAttachments(), chatContext.lastMessage(), finalRequestId);
+            ChatMessage userMessage = addUserMessageIfNotDuplicate(sessionId, request.getMessage(), request.getAttachments(), chatContext.lastMessage(), finalRequestId);
 
             // 使用流式处理，将结果发送到Kafka响应主题
             final StringBuilder fullResponse = new StringBuilder();
+            final String userQuery = request.getMessage();
 
             chatClient
                     .prompt()
@@ -151,9 +153,23 @@ public class KafkaChatConsumer {
                     .doOnComplete(() -> {
                         // AI调用成功后才保存助手消息
                         String completeResponse = fullResponse.toString();
+                        ChatMessage assistantMessage = null;
                         if (!completeResponse.isEmpty()) {
-                            saveAssistantMessage(sessionId, completeResponse);
+                            assistantMessage = saveAssistantMessage(sessionId, completeResponse);
                             chatSessionService.updateSessionLastMessage(sessionId, completeResponse);
+                        }
+
+                        // 向量化对话内容（Q&A对格式）
+                        if (userQuery != null && !userQuery.trim().isEmpty()
+                                && completeResponse != null && !completeResponse.trim().isEmpty()) {
+                            UUID messageId = assistantMessage != null ? assistantMessage.getId() : null;
+                            UUID courseId = request.getCourseId();
+                            try {
+                                knowledgeService.vectorizeChatContent(userQuery, completeResponse, sessionId, messageId, courseId, userId);
+                            } catch (Exception e) {
+                                log.warn("向量化对话内容失败，但不影响聊天流程: sessionId={}, messageId={}, userId={}, error={}",
+                                        sessionId, messageId, userId, e.getMessage());
+                            }
                         }
 
                         // 完成响应流

@@ -1,5 +1,6 @@
 package com.dayz.sapientiacloud_edupivot.celestial_hub.common.entity.vo;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -52,8 +53,10 @@ public class QuestionOptionVO implements Serializable {
     private String explanation;
 
     @Schema(name = "createTime", description = "创建时间")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createTime;
 
     @Schema(name = "updateTime", description = "更新时间")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updateTime;
 }

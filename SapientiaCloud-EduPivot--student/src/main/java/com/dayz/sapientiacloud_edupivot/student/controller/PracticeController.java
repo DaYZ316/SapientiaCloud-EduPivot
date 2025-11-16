@@ -2,8 +2,6 @@ package com.dayz.sapientiacloud_edupivot.student.controller;
 
 import com.dayz.sapientiacloud_edupivot.student.common.controller.BaseController;
 import com.dayz.sapientiacloud_edupivot.student.common.result.Result;
-import com.dayz.sapientiacloud_edupivot.student.common.security.annotation.HasPermission;
-import com.dayz.sapientiacloud_edupivot.student.constant.PermissionConstants;
 import com.dayz.sapientiacloud_edupivot.student.entity.dto.QuestionStudentSubmitDTO;
 import com.dayz.sapientiacloud_edupivot.student.entity.po.QuestionStudent;
 import com.dayz.sapientiacloud_edupivot.student.service.IQuestionStudentService;

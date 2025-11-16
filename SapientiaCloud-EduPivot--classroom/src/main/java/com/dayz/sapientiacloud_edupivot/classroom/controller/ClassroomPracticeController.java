@@ -1,5 +1,6 @@
 package com.dayz.sapientiacloud_edupivot.classroom.controller;
 
+import com.dayz.sapientiacloud_edupivot.classroom.common.clients.StudentPracticeClient;
 import com.dayz.sapientiacloud_edupivot.classroom.common.controller.BaseController;
 import com.dayz.sapientiacloud_edupivot.classroom.common.result.Result;
 import com.dayz.sapientiacloud_edupivot.classroom.common.result.TableDataResult;
@@ -10,7 +11,6 @@ import com.dayz.sapientiacloud_edupivot.classroom.entity.dto.ClassroomQuestionQu
 import com.dayz.sapientiacloud_edupivot.classroom.entity.vo.ClassroomQuestionVO;
 import com.dayz.sapientiacloud_edupivot.classroom.service.IClassroomQuestionService;
 import com.github.pagehelper.PageInfo;
-import com.dayz.sapientiacloud_edupivot.classroom.common.clients.StudentPracticeClient;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -79,9 +79,9 @@ public class ClassroomPracticeController extends BaseController {
     }
 
     @HasPermission(
-        summary = "updateClassroomPractice",
-        description = "更新课堂练习题目配置",
-        permission = PermissionConstants.CLASSROOM_PRACTICE_EDIT
+            summary = "updateClassroomPractice",
+            description = "更新课堂练习题目配置",
+            permission = PermissionConstants.CLASSROOM_PRACTICE_EDIT
     )
     @PutMapping
     public Result<Boolean> updateClassroomPractice(@Valid @RequestBody ClassroomQuestionDTO dto) {
@@ -89,9 +89,9 @@ public class ClassroomPracticeController extends BaseController {
     }
 
     @HasPermission(
-        summary = "removeClassroomPractice",
-        description = "删除课堂已发布的练习题目",
-        permission = PermissionConstants.CLASSROOM_PRACTICE_DELETE
+            summary = "removeClassroomPractice",
+            description = "删除课堂已发布的练习题目",
+            permission = PermissionConstants.CLASSROOM_PRACTICE_DELETE
     )
     @DeleteMapping("/{id}")
     public Result<Boolean> removeClassroomPractice(

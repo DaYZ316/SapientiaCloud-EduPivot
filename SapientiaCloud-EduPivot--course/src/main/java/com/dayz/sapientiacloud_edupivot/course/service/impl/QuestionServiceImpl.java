@@ -13,7 +13,6 @@ import com.dayz.sapientiacloud_edupivot.course.entity.dto.QuestionDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.dto.QuestionOptionDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.dto.QuestionQueryDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.po.Question;
-import com.dayz.sapientiacloud_edupivot.course.entity.vo.QuestionAnswerVO;
 import com.dayz.sapientiacloud_edupivot.course.entity.vo.QuestionVO;
 import com.dayz.sapientiacloud_edupivot.course.enums.QuestionEnum;
 import com.dayz.sapientiacloud_edupivot.course.repository.QuestionRepository;
@@ -544,7 +543,7 @@ public class QuestionServiceImpl implements IQuestionService {
     /**
      * 更新题目字段
      *
-     * @param question 题目实体
+     * @param question    题目实体
      * @param questionDTO 更新DTO
      */
     private void updateQuestionFields(Question question, QuestionDTO questionDTO) {

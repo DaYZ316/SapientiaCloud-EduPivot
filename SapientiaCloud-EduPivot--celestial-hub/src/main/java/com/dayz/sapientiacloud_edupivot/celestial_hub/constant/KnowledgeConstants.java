@@ -27,8 +27,9 @@ public class KnowledgeConstants {
 
     public static final Integer CONTENT_TYPE_CHAPTER = 0;
     public static final Integer CONTENT_TYPE_QUESTION = 1;
-    public static final Integer CONTENT_TYPE_ANSWER = 2;
+    public static final Integer CONTENT_TYPE_TASK = 2;
     public static final Integer CONTENT_TYPE_FORUM = 3;
+    public static final Integer CONTENT_TYPE_CHAT = 4;
 
     // ==================== 元数据键 ====================
 
@@ -36,6 +37,14 @@ public class KnowledgeConstants {
     public static final String METADATA_CONTENT_ID = "contentId";
     public static final String METADATA_COURSE_ID = "courseId";
     public static final String METADATA_CHAPTER_ID = "chapterId";
+    public static final String METADATA_QUESTION_BANK_ID = "questionBankId";
+    public static final String METADATA_QUESTION_ID = "questionId";
+    public static final String METADATA_TASK_ID = "taskId";
+    public static final String METADATA_FORUM_ID = "forumId";
+    public static final String METADATA_POST_ID = "postId";
+    public static final String METADATA_CHAT_SESSION_ID = "chatSessionId";
+    public static final String METADATA_CHAT_MESSAGE_ID = "chatMessageId";
+    public static final String METADATA_USER_ID = "userId";
     public static final String METADATA_TITLE = "title";
     public static final String METADATA_SCORE = "score";
 
@@ -51,6 +60,13 @@ public class KnowledgeConstants {
     // ==================== 向量模型 ====================
 
     public static final String EMBEDDING_MODEL_TEXT_V1 = "text-embedding-v1";
+
+    // ==================== 批次处理 ====================
+
+    /**
+     * DashScope API 单次请求的文本数量限制
+     */
+    public static final int EMBEDDING_BATCH_SIZE = 25;
 
     // ==================== 删除标记 ====================
 

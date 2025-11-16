@@ -44,6 +44,21 @@ public class KnowledgeItemVO implements Serializable {
     @Schema(description = "章节ID")
     private UUID chapterId;
 
+    @Schema(description = "题库ID（问题类型时使用）")
+    private UUID questionBankId;
+
+    @Schema(description = "问题ID（问题类型时使用）")
+    private UUID questionId;
+
+    @Schema(description = "任务ID（任务类型时使用）")
+    private UUID taskId;
+
+    @Schema(description = "论坛ID（论坛类型时使用）")
+    private UUID forumId;
+
+    @Schema(description = "帖子ID（论坛类型时使用）")
+    private UUID postId;
+
     @Schema(description = "标签列表")
     private List<String> tags;
 

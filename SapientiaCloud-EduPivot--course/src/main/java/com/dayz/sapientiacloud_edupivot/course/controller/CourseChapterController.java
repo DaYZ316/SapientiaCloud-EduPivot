@@ -55,6 +55,17 @@ public class CourseChapterController extends BaseController {
     }
 
     @HasPermission(
+            summary = "listAllCourseChapter",
+            description = "获取所有课程章节列表。",
+            permission = PermissionConstants.CHAPTER_QUERY
+    )
+    @GetMapping("/all")
+    public Result<List<CourseChapterVO>> listAllCourseChapter() {
+        List<CourseChapterVO> chapterVOList = courseChapterService.listAllCourseChapter();
+        return Result.success(chapterVOList);
+    }
+
+    @HasPermission(
             summary = "listCourseChapterTree",
             description = "获取课程章节的树形结构。",
             permission = PermissionConstants.CHAPTER_QUERY

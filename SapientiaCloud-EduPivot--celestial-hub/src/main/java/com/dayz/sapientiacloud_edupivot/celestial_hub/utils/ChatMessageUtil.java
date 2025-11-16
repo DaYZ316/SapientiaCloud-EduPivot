@@ -175,11 +175,6 @@ public class ChatMessageUtil {
     }
 
     /**
-     * 上下文返回体：模型消息列表 + 最后一条历史消息
-     */
-    public record ChatContext(List<Message> messages, ChatMessage lastMessage) {}
-
-    /**
      * 判断当前请求是否与最后一条用户消息相同（用于避免上下文重复追加）
      */
     private static boolean isSameAsLastUserMessage(ChatMessage last, String content, List<String> attachments) {
@@ -218,6 +213,12 @@ public class ChatMessageUtil {
      */
     public static boolean attachmentsEqual(List<String> a, List<String> b) {
         return equalAttachments(a, b);
+    }
+
+    /**
+     * 上下文返回体：模型消息列表 + 最后一条历史消息
+     */
+    public record ChatContext(List<Message> messages, ChatMessage lastMessage) {
     }
 }
 

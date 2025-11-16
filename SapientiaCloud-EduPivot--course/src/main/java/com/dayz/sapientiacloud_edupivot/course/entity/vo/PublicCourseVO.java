@@ -1,12 +1,10 @@
 package com.dayz.sapientiacloud_edupivot.course.entity.vo;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data

@@ -208,15 +208,15 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
             List<PublicCourseVO> result = (List<PublicCourseVO>) cached;
             return result;
         }
-        
+
         // 缓存未命中，从数据库查询
         List<PublicCourseVO> result = courseMapper.listPublicCourse();
-        
+
         // 存入缓存，设置24小时过期时间
         if (result != null) {
             redisTemplate.opsForValue().set(PUBLIC_COURSE_CACHE_KEY, result, PUBLIC_COURSE_CACHE_TTL);
         }
-        
+
         return result;
     }
 }

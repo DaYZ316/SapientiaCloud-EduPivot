@@ -19,6 +19,11 @@ public interface KnowledgeVectorRepository extends MongoRepository<KnowledgeVect
     List<KnowledgeVector> findByChapterId(UUID chapterId);
 
     /**
+     * 根据章节ID删除向量
+     */
+    void deleteByChapterId(UUID chapterId);
+
+    /**
      * 根据课程ID删除向量
      */
     void deleteByCourseId(UUID courseId);
@@ -27,5 +32,15 @@ public interface KnowledgeVectorRepository extends MongoRepository<KnowledgeVect
      * 统计课程的向量数量
      */
     long countByCourseId(UUID courseId);
+
+    /**
+     * 根据向量ID查询向量
+     */
+    KnowledgeVector findByVectorId(String vectorId);
+
+    /**
+     * 根据向量ID列表批量查询向量
+     */
+    List<KnowledgeVector> findByVectorIdIn(List<String> vectorIds);
 }
 

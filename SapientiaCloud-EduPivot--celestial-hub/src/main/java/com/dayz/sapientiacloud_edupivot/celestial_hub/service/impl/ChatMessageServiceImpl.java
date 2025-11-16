@@ -2,7 +2,6 @@ package com.dayz.sapientiacloud_edupivot.celestial_hub.service.impl;
 
 import com.dayz.sapientiacloud_edupivot.celestial_hub.common.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.common.security.utils.UserContextUtil;
-import com.dayz.sapientiacloud_edupivot.celestial_hub.utils.ChatMessageUtil;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.constant.AIChatConstants;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.ChatRequestDTO;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.KafkaChatRequestDTO;
@@ -15,6 +14,7 @@ import com.dayz.sapientiacloud_edupivot.celestial_hub.service.IChatMessageServic
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.IChatSessionService;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.KafkaChatService;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.KnowledgeService;
+import com.dayz.sapientiacloud_edupivot.celestial_hub.utils.ChatMessageUtil;
 import com.github.f4b6a3.uuid.UuidCreator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.client.ChatClient;

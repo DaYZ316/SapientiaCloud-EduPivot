@@ -10,6 +10,8 @@ public interface KnowledgeService {
 
     void vectorizeCourseContent(VectorizeRequestDTO request);
 
+    void vectorizeChatContent(String userQuery, String aiResponse, UUID sessionId, UUID messageId, UUID courseId, UUID userId);
+
     KnowledgeSearchVO searchKnowledge(KnowledgeRequestDTO query);
 
     void deleteCourseVectors(UUID courseId);
