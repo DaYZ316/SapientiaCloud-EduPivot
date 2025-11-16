@@ -1,6 +1,5 @@
 package com.dayz.sapientiacloud_edupivot.course.service;
 
-import com.dayz.sapientiacloud_edupivot.course.entity.dto.QuestionAddDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.dto.QuestionDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.dto.QuestionQueryDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.vo.QuestionVO;
@@ -19,7 +18,7 @@ public interface IQuestionService {
 
     List<QuestionVO> listQuestionByQuestionBankId(UUID questionBankId);
 
-    QuestionVO addQuestion(QuestionAddDTO questionAddDTO);
+    QuestionVO addQuestion(QuestionDTO questionDTO);
 
     Boolean updateQuestion(QuestionDTO questionDTO);
 

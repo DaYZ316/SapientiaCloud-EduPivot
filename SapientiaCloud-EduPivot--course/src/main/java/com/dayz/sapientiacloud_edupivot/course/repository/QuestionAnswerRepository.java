@@ -12,15 +12,10 @@ public interface QuestionAnswerRepository extends MongoRepository<QuestionAnswer
 
     List<QuestionAnswer> findByQuestionIdAndDeleted(UUID questionId, Integer deleted);
 
-    List<QuestionAnswer> findBySysUserIdAndDeleted(UUID sysUserId, Integer deleted);
+    QuestionAnswer findByQuestionIdAndSortOrderAndDeleted(UUID questionId, Integer sortOrder, Integer deleted);
 
-    QuestionAnswer findByQuestionIdAndSysUserIdAndDeleted(UUID questionId, UUID sysUserId, Integer deleted);
-
-    List<QuestionAnswer> findByIsCorrectAndDeleted(Integer isCorrect, Integer deleted);
-
-    List<QuestionAnswer> findByQuestionIdAndIsCorrectAndDeleted(UUID questionId, Integer isCorrect, Integer deleted);
-
-    List<QuestionAnswer> findBySysUserIdAndIsCorrectAndDeleted(UUID sysUserId, Integer isCorrect, Integer deleted);
+    QuestionAnswer findTopByQuestionIdAndDeletedOrderBySortOrderDesc(UUID questionId, Integer deleted);
 
     List<QuestionAnswer> findByQuestionIdInAndDeleted(List<UUID> questionIds, Integer deleted);
 }
+

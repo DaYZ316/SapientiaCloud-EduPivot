@@ -12,16 +12,10 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.UUID;
 
-/**
- * 题目答案数据传输对象
- *
- * @author SapientiaCloud
- * @since 2024-01-01
- */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Schema(description = "题目答案数据传输对象")
+@Schema(description = "填空简答数据传输对象")
 public class QuestionAnswerDTO implements Serializable {
 
     @Serial
@@ -33,21 +27,15 @@ public class QuestionAnswerDTO implements Serializable {
     @Schema(name = "questionId", description = "题目ID")
     private UUID questionId;
 
-    @Schema(name = "sysUserId", description = "用户ID")
-    private UUID sysUserId;
-
-    @Schema(name = "answerContent", description = "答案内容")
-    @NotBlank(message = "答案内容不能为空")
+    @Schema(name = "answerContent", description = "本空答案")
     private String answerContent;
 
-    @Schema(name = "answerText", description = "文本答案 (填空题、简答题)")
-    private String answerText;
+    @Schema(name = "explanation", description = "本空解析")
+    private String explanation;
 
-    @Schema(name = "isCorrect", description = "是否正确 (0=错误, 1=正确, 2=部分正确)")
-    @NotNull(message = "是否正确不能为空")
-    private Integer isCorrect;
-
-    @Schema(name = "score", description = "得分")
-    @NotNull(message = "得分不能为空")
+    @Schema(name = "score", description = "分数")
     private BigDecimal score;
+
+    @Schema(name = "sortOrder", description = "本空序号")
+    private Integer sortOrder;
 }

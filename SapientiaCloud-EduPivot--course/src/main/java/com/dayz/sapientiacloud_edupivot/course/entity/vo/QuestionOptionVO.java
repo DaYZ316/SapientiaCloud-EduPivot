@@ -1,5 +1,6 @@
 package com.dayz.sapientiacloud_edupivot.course.entity.vo;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -12,12 +13,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * 题目选项视图对象
- *
- * @author SapientiaCloud
- * @since 2024-01-01
- */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -52,8 +47,10 @@ public class QuestionOptionVO implements Serializable {
     private String explanation;
 
     @Schema(name = "createTime", description = "创建时间")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createTime;
 
     @Schema(name = "updateTime", description = "更新时间")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updateTime;
 }
