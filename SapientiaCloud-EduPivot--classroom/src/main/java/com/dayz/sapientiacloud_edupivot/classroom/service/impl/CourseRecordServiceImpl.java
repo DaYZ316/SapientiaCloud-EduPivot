@@ -251,4 +251,13 @@ public class CourseRecordServiceImpl extends ServiceImpl<CourseRecordMapper, Cou
 
         return this.updateById(courseRecord);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public LocalDateTime getCourseEndTimeById(UUID id) {
+        if (id == null) {
+            throw new BusinessException(CourseRecordEnum.COURSE_RECORD_ID_REQUIRED);
+        }
+        return courseRecordMapper.getOverTimeById(id);
+    }
 }

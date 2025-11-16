@@ -5,6 +5,7 @@ import com.dayz.sapientiacloud_edupivot.classroom.entity.dto.CourseRecordQueryDT
 import com.dayz.sapientiacloud_edupivot.classroom.entity.vo.CourseRecordVO;
 import com.github.pagehelper.PageInfo;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -29,4 +30,6 @@ public interface ICourseRecordService {
     List<CourseRecordVO> listCourseRecordByTeacherId(UUID teacherId);
 
     Boolean endCourseRecord(UUID id);
+
+    LocalDateTime getCourseEndTimeById(UUID id);
 }

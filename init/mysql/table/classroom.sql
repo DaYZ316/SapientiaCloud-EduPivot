@@ -32,8 +32,6 @@ CREATE TABLE `mg_course_record`  (
   `id` binary(16) NOT NULL COMMENT '课程记录ID',
   `course_id` binary(16) NOT NULL COMMENT '关联课程ID',
   `teacher_id` binary(16) NOT NULL COMMENT '授课教师系统用户ID',
-  `student_ids` json NULL COMMENT '参与学生ID列表(JSON数组)',
-  `question_ids` json NULL COMMENT '课堂互动题目ID列表(JSON数组)',
   `model_type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '教室模型类型(classroomSmall, classroomMiddle, classroomLarge)',
   `total_desks` int NULL DEFAULT NULL COMMENT '桌椅总数(1-200)',
   `layout_rows` int NULL DEFAULT NULL COMMENT '行数(仅传统布局或对齐布局使用)',

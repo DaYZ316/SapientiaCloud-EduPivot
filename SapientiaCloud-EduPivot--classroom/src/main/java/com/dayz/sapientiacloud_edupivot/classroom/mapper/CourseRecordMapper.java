@@ -22,4 +22,6 @@ public interface CourseRecordMapper extends BaseMapper<CourseRecord> {
     List<CourseRecordVO> listCourseRecordByCourseId(@Param("courseId") UUID courseId);
 
     List<CourseRecordVO> listCourseRecordByTeacherId(@Param("teacherId") UUID teacherId);
+
+    java.time.LocalDateTime getOverTimeById(@Param("id") UUID id);
 }

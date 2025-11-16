@@ -104,6 +104,13 @@
         AND cr.id = #{id}
     </select>
 
+    <select id="getOverTimeById" resultType="java.time.LocalDateTime">
+        SELECT cr.over_time
+        FROM mg_course_record cr
+        WHERE cr.is_deleted = 0
+          AND cr.id = #{id}
+    </select>
+
     <!-- 根据课程ID查询课程记录列表 -->
     <select id="listCourseRecordByCourseId" resultMap="CourseRecordVOMap">
         SELECT

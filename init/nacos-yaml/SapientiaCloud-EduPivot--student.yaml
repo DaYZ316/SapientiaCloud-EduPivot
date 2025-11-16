@@ -34,3 +34,19 @@ spring:
     show-sql: true
     hibernate:
       ddl-auto: update
+  data:
+    mongodb:
+      host: ${MONGODB_HOST}
+      port: ${MONGODB_PORT}
+      database: ${MONGODB_DATABASE}
+      username: ${MONGODB_USERNAME}
+      password: ${MONGODB_PASSWORD}
+      authentication-database: ${MONGODB_AUTH_DATABASE}
+      type-mapper: none
+
+MONGODB_HOST: localhost
+MONGODB_PORT: 27017
+MONGODB_DATABASE: sapientiacloud_edupivot
+MONGODB_USERNAME: root
+MONGODB_PASSWORD: zhaosheng123
+MONGODB_AUTH_DATABASE: admin
