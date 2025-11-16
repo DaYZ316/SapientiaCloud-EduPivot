@@ -21,6 +21,7 @@
         <module>SapientiaCloud-EduPivot--course</module>
         <module>SapientiaCloud-EduPivot--classroom</module>
         <module>SapientiaCloud-EduPivot--celestial-hub</module>
+        <module>SapientiaCloud-EduPivot--live</module>
     </modules>
 
 </project>
