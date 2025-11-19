@@ -2,9 +2,72 @@ minio:
   config:
     ip: ${MINIO_IP}
     port: ${MINIO_PORT}
+    secure: ${MINIO_SECURE:false}
     accessKey: ${MINIO_USERNAME}
     secretKey: ${MINIO_PASSWORD}
     bucketName: ${MINIO_BUCKET_NAME}
+    defaultBucketCode: USER_AVATAR
+    buckets:
+      - code: USER_AVATAR
+        bucketName: ${MINIO_BUCKET_USER_AVATAR:sapientiacloud-user-avatar}
+        description: 用户头像/证件照
+        access: PRIVATE
+        refreshCdnOnWrite: true
+        versioning:
+          enabled: true
+        lifecycle:
+          numVersions: 3
+        audit:
+          bucketLogging: true
+          notifyOnWrite: true
+      - code: COURSE_PUBLIC
+        bucketName: ${MINIO_BUCKET_COURSE_PUBLIC:sapientiacloud-course-public}
+        description: 课程公开课件/论坛封面
+        access: PUBLIC_READ
+        objectLockEnabled: true
+        objectLockMode: GOVERNANCE
+        objectLockRetentionDays: 7
+        versioning:
+          enabled: true
+        lifecycle:
+          numVersions: 10
+          transitionToInfrequentDays: 45
+        audit:
+          bucketLogging: true
+      - code: COURSE_PRIVATE
+        bucketName: ${MINIO_BUCKET_COURSE_PRIVATE:sapientiacloud-course-private}
+        description: 学员/教师私有资料
+        access: TOKEN_ONLY
+        versioning:
+          enabled: true
+        lifecycle:
+          transitionToInfrequentDays: 90
+          transitionToArchiveDays: 180
+        audit:
+          bucketLogging: true
+          objectTagging: true
+      - code: LIVE_PLAYBACK
+        bucketName: ${MINIO_BUCKET_LIVE_PLAYBACK:sapientiacloud-live-playback}
+        description: 直播录制
+        access: TOKEN_ONLY
+        versioning:
+          enabled: true
+        lifecycle:
+          transitionToInfrequentDays: 30
+          transitionToArchiveDays: 120
+        audit:
+          notifyOnWrite: true
+      - code: AI_QA_ASSET
+        bucketName: ${MINIO_BUCKET_AI_QA:sapientiacloud-ai-qa}
+        description: AI 问答资产
+        access: TOKEN_ONLY
+        versioning:
+          enabled: true
+        lifecycle:
+          expireAfterDays: 90
+        audit:
+          objectTagging: true
+          notifyOnWrite: true
 
 spring:
   servlet:
@@ -19,6 +82,11 @@ MINIO_PORT: 31589
 MINIO_USERNAME: root
 MINIO_PASSWORD: zhaosheng123
 MINIO_BUCKET_NAME: sapientiacloud-edupivot
+MINIO_BUCKET_USER_AVATAR: sapientiacloud-user-avatar
+MINIO_BUCKET_COURSE_PUBLIC: sapientiacloud-course-public
+MINIO_BUCKET_COURSE_PRIVATE: sapientiacloud-course-private
+MINIO_BUCKET_LIVE_PLAYBACK: sapientiacloud-live-playback
+MINIO_BUCKET_AI_QA: sapientiacloud-ai-qa
 
 # 服务器
 #MINIO_IP: 117.72.***.***(服务器地址)

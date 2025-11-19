@@ -6,31 +6,35 @@ import com.dayz.sapientiacloud_edupivot.minio.enums.FileEnum;
 import com.dayz.sapientiacloud_edupivot.minio.exception.BusinessException;
 import io.minio.*;
 import io.minio.http.Method;
-import io.minio.messages.Bucket;
-import io.minio.messages.DeleteError;
-import io.minio.messages.DeleteObject;
-import io.minio.messages.Item;
+import io.minio.messages.*;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
- * MinIO工具类，提供文件上传、下载、删除等操作
+ * MinIO工具类，提供文件上传、下载、删除等操作，并对多业务桶策略进行治理
  *
  * @author LANDH
  */
+@Slf4j
 @Component
 public class MinIOUtil {
+
+    private static final String LEGACY_BUCKET_CODE = "LEGACY_DEFAULT";
 
     @Resource
     private MinioProperties minioProperties;
@@ -40,7 +44,7 @@ public class MinIOUtil {
     @PostConstruct
     private void init() {
         createMinioClient();
-        createBucketIfNotExists();
+        initializeBuckets();
     }
 
     /**
@@ -48,7 +52,8 @@ public class MinIOUtil {
      */
     private void createMinioClient() {
         try {
-            String endpoint = "http://" + minioProperties.getIp() + ":" + minioProperties.getPort();
+            String protocol = minioProperties.isSecure() ? "https" : "http";
+            String endpoint = protocol + "://" + minioProperties.getIp() + ":" + minioProperties.getPort();
             minioClient = MinioClient.builder()
                     .endpoint(endpoint)
                     .credentials(minioProperties.getAccessKey(), minioProperties.getSecretKey())
@@ -59,17 +64,95 @@ public class MinIOUtil {
     }
 
     /**
+     * 初始化所需的业务桶
+     */
+    private void initializeBuckets() {
+        if (CollectionUtils.isEmpty(minioProperties.getBuckets())) {
+            String bucketName = minioProperties.getBucketName();
+            if (StringUtils.hasText(bucketName)) {
+                createBucketIfNotExists(bucketName, false);
+            }
+            return;
+        }
+        minioProperties.getBuckets().stream()
+                .filter(bucket -> StringUtils.hasText(bucket.getBucketName()))
+                .forEach(this::ensureBucketProvisioned);
+    }
+
+    private void ensureBucketProvisioned(MinioProperties.BucketPolicy bucketPolicy) {
+        String bucketName = bucketPolicy.getBucketName();
+        createBucketIfNotExists(bucketName, bucketPolicy.isObjectLockEnabled());
+        configureBucketVersioning(bucketPolicy);
+        configureBucketPolicy(bucketPolicy);
+    }
+
+    private void configureBucketVersioning(MinioProperties.BucketPolicy bucketPolicy) {
+        if (bucketPolicy.getVersioning() == null || !bucketPolicy.getVersioning().isEnabled()) {
+            return;
+        }
+        try {
+            minioClient.setBucketVersioning(
+                    SetBucketVersioningArgs.builder()
+                            .bucket(bucketPolicy.getBucketName())
+                            .config(new VersioningConfiguration(VersioningConfiguration.Status.ENABLED, false))
+                            .build()
+            );
+        } catch (Exception e) {
+            log.warn("启用桶 [{}] 版本控制失败: {}", bucketPolicy.getBucketName(), e.getMessage());
+        }
+    }
+
+    private void configureBucketPolicy(MinioProperties.BucketPolicy bucketPolicy) {
+        if (bucketPolicy.getAccess() != MinioProperties.BucketAccess.PUBLIC_READ) {
+            return;
+        }
+        try {
+            String policyJson = buildPublicReadPolicy(bucketPolicy.getBucketName());
+            minioClient.setBucketPolicy(
+                    SetBucketPolicyArgs.builder()
+                            .bucket(bucketPolicy.getBucketName())
+                            .config(policyJson)
+                            .build()
+            );
+        } catch (Exception e) {
+            log.warn("设置桶 [{}] 公共读策略失败: {}", bucketPolicy.getBucketName(), e.getMessage());
+        }
+    }
+
+    private String buildPublicReadPolicy(String bucketName) {
+        return """
+                {
+                  "Version": "2012-10-17",
+                  "Statement": [
+                    {
+                      "Effect": "Allow",
+                      "Principal": {"AWS": ["*"]},
+                      "Action": ["s3:GetObject"],
+                      "Resource": ["arn:aws:s3:::%s/*"]
+                    }
+                  ]
+                }
+                """.formatted(bucketName);
+    }
+
+    /**
      * 如果存储桶不存在，则创建
      */
-    private void createBucketIfNotExists() {
+    private void createBucketIfNotExists(String bucketName, boolean objectLockEnabled) {
+        if (!StringUtils.hasText(bucketName)) {
+            return;
+        }
         try {
             boolean bucketExists = minioClient.bucketExists(BucketExistsArgs.builder()
-                    .bucket(minioProperties.getBucketName())
+                    .bucket(bucketName)
                     .build());
             if (!bucketExists) {
-                minioClient.makeBucket(MakeBucketArgs.builder()
-                        .bucket(minioProperties.getBucketName())
-                        .build());
+                MakeBucketArgs.Builder builder = MakeBucketArgs.builder()
+                        .bucket(bucketName);
+                if (objectLockEnabled) {
+                    builder.objectLock(true);
+                }
+                minioClient.makeBucket(builder.build());
             }
         } catch (Exception e) {
             throw new BusinessException(FileEnum.MINIO_BUCKET_CREATE_FAILED.getMessage() + ": " + e.getMessage());
@@ -93,31 +176,30 @@ public class MinIOUtil {
      * 上传文件
      *
      * @param file        文件
+     * @param bucketCode  业务桶编码
      * @param objectName  对象名，为空时使用文件原名
      * @param contentType 内容类型，为空时自动检测
-     * @return 文件访问URL
+     * @return 对象名称
      */
-    public String uploadFile(MultipartFile file, String objectName, String contentType) {
+    public String uploadFile(MultipartFile file, String bucketCode, String objectName, String contentType) {
         try {
             if (file == null || file.isEmpty()) {
                 throw new BusinessException(FileEnum.FILE_CANNOT_BE_EMPTY.getMessage());
             }
+            BucketContext bucketContext = resolveBucketContext(bucketCode);
 
-            // 生成文件名
             String fileName = objectName;
-            if (fileName == null || fileName.isEmpty()) {
+            if (!StringUtils.hasText(fileName)) {
                 fileName = generateUniqueFileName(Objects.requireNonNull(file.getOriginalFilename()));
             }
 
-            // 检测内容类型
             String fileContentType = contentType;
-            if (fileContentType == null || fileContentType.isEmpty()) {
+            if (!StringUtils.hasText(fileContentType)) {
                 fileContentType = file.getContentType();
             }
 
-            // 上传文件
             minioClient.putObject(PutObjectArgs.builder()
-                    .bucket(minioProperties.getBucketName())
+                    .bucket(bucketContext.bucketName())
                     .object(fileName)
                     .stream(file.getInputStream(), file.getSize(), -1)
                     .contentType(fileContentType)
@@ -134,26 +216,27 @@ public class MinIOUtil {
     /**
      * 上传文件(简化版)
      *
-     * @param file 文件
-     * @return 文件访问URL
+     * @param file       文件
+     * @param bucketCode 业务桶编码
+     * @return 对象名称
      */
+    public String uploadFile(MultipartFile file, String bucketCode) {
+        return uploadFile(file, bucketCode, null, null);
+    }
+
     public String uploadFile(MultipartFile file) {
-        return uploadFile(file, null, null);
+        return uploadFile(file, null, null, null);
     }
 
     /**
      * 上传字节数组
-     *
-     * @param bytes       字节数组
-     * @param objectName  对象名
-     * @param contentType 内容类型
-     * @return 文件访问URL
      */
-    public String uploadBytes(byte[] bytes, String objectName, String contentType) {
+    public String uploadBytes(byte[] bytes, String bucketCode, String objectName, String contentType) {
         try {
+            BucketContext bucketContext = resolveBucketContext(bucketCode);
             ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
             minioClient.putObject(PutObjectArgs.builder()
-                    .bucket(minioProperties.getBucketName())
+                    .bucket(bucketContext.bucketName())
                     .object(objectName)
                     .stream(bais, bytes.length, -1)
                     .contentType(contentType)
@@ -166,18 +249,16 @@ public class MinIOUtil {
 
     /**
      * 下载文件
-     *
-     * @param objectName 对象名称
-     * @return 文件流
      */
-    public InputStream downloadFile(String objectName) {
+    public InputStream downloadFile(String objectName, String bucketCode) {
         try {
-            if (!doesObjectExist(objectName)) {
+            BucketContext bucketContext = resolveBucketContext(bucketCode);
+            if (!doesObjectExist(objectName, bucketContext)) {
                 throw new BusinessException(FileEnum.FILE_NOT_FOUND.getMessage());
             }
 
             return minioClient.getObject(GetObjectArgs.builder()
-                    .bucket(minioProperties.getBucketName())
+                    .bucket(bucketContext.bucketName())
                     .object(objectName)
                     .build());
         } catch (BusinessException e) {
@@ -189,20 +270,17 @@ public class MinIOUtil {
 
     /**
      * 获取文件外链
-     *
-     * @param objectName 对象名称
-     * @param expiry     过期时间（以秒为单位），默认7天
-     * @return 文件URL
      */
-    public String getPresignedObjectUrl(String objectName, Integer expiry) {
+    public String getPresignedObjectUrl(String objectName, Integer expiry, String bucketCode) {
         try {
-            if (!doesObjectExist(objectName)) {
+            BucketContext bucketContext = resolveBucketContext(bucketCode);
+            if (!doesObjectExist(objectName, bucketContext)) {
                 throw new BusinessException(FileEnum.FILE_NOT_FOUND.getMessage());
             }
 
             int expiryTime = expiry != null ? expiry : 7 * 24 * 3600;
             return minioClient.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
-                    .bucket(minioProperties.getBucketName())
+                    .bucket(bucketContext.bucketName())
                     .object(objectName)
                     .method(Method.GET)
                     .expiry(expiryTime, TimeUnit.SECONDS)
@@ -214,49 +292,38 @@ public class MinIOUtil {
         }
     }
 
-    /**
-     * 获取文件外链（默认过期时间）
-     *
-     * @param objectName 对象名称
-     * @return 文件URL
-     */
     public String getPresignedObjectUrl(String objectName) {
-        return getPresignedObjectUrl(objectName, null);
+        return getPresignedObjectUrl(objectName, null, null);
     }
 
     /**
      * 删除文件
-     *
-     * @param objectName 对象名称
-     * @return 是否删除成功
      */
-    public boolean removeObject(String objectName) {
+    public boolean removeObject(String objectName, String bucketCode) {
         try {
-            if (!doesObjectExist(objectName)) {
+            BucketContext bucketContext = resolveBucketContext(bucketCode);
+            if (!doesObjectExist(objectName, bucketContext)) {
                 return true;
             }
 
             minioClient.removeObject(RemoveObjectArgs.builder()
-                    .bucket(minioProperties.getBucketName())
+                    .bucket(bucketContext.bucketName())
                     .object(objectName)
                     .build());
             return true;
         } catch (Exception e) {
-            throw new BusinessException("删除文件失败: " + e.getMessage());
+            throw new BusinessException(FileEnum.FILE_DELETE_FAILED.getMessage() + ": " + e.getMessage());
         }
     }
 
     /**
      * 批量删除文件
-     *
-     * @param objectNames 对象名称列表
-     * @return 删除结果
      */
-    public Map<String, String> removeObjects(List<String> objectNames) {
+    public Map<String, String> removeObjects(List<String> objectNames, String bucketCode) {
         Map<String, String> result = new HashMap<>(objectNames.size());
         List<DeleteObject> objects = new ArrayList<>(objectNames.size());
+        BucketContext bucketContext = resolveBucketContext(bucketCode);
 
-        // 构建删除对象列表
         for (String objectName : objectNames) {
             objects.add(new DeleteObject(objectName));
             result.put(objectName, "成功");
@@ -264,11 +331,10 @@ public class MinIOUtil {
 
         try {
             Iterable<Result<DeleteError>> results = minioClient.removeObjects(RemoveObjectsArgs.builder()
-                    .bucket(minioProperties.getBucketName())
+                    .bucket(bucketContext.bucketName())
                     .objects(objects)
                     .build());
 
-            // 收集删除失败的对象
             for (Result<DeleteError> r : results) {
                 DeleteError error = r.get();
                 result.put(error.objectName(), "失败: " + error.message());
@@ -282,14 +348,15 @@ public class MinIOUtil {
 
     /**
      * 检查文件是否存在
-     *
-     * @param objectName 对象名称
-     * @return 是否存在
      */
-    public boolean doesObjectExist(String objectName) {
+    public boolean doesObjectExist(String objectName, String bucketCode) {
+        return doesObjectExist(objectName, resolveBucketContext(bucketCode));
+    }
+
+    private boolean doesObjectExist(String objectName, BucketContext bucketContext) {
         try {
             minioClient.statObject(StatObjectArgs.builder()
-                    .bucket(minioProperties.getBucketName())
+                    .bucket(bucketContext.bucketName())
                     .object(objectName)
                     .build());
             return true;
@@ -300,15 +367,13 @@ public class MinIOUtil {
 
     /**
      * 列出指定前缀的对象
-     *
-     * @param prefix 前缀
-     * @return 对象列表
      */
-    public List<Item> listObjects(String prefix) {
+    public List<Item> listObjects(String prefix, String bucketCode) {
         List<Item> items = new ArrayList<>();
+        BucketContext bucketContext = resolveBucketContext(bucketCode);
         try {
             Iterable<Result<Item>> results = minioClient.listObjects(ListObjectsArgs.builder()
-                    .bucket(minioProperties.getBucketName())
+                    .bucket(bucketContext.bucketName())
                     .prefix(prefix)
                     .recursive(true)
                     .build());
@@ -323,43 +388,34 @@ public class MinIOUtil {
 
     /**
      * 生成唯一文件名
-     *
-     * @param originalFilename 原始文件名
-     * @return 唯一文件名
      */
     private String generateUniqueFileName(String originalFilename) {
-        // 获取文件后缀
         String suffix = "";
         if (originalFilename.contains(".")) {
             suffix = originalFilename.substring(originalFilename.lastIndexOf("."));
         }
 
-        // 生成UUID作为文件名，并按日期分目录
         String uuid = UUID.randomUUID().toString().replace("-", "");
-        String date = new java.text.SimpleDateFormat("yyyy/MM/dd").format(new Date());
+        String date = new SimpleDateFormat("yyyy/MM/dd").format(new Date());
 
         return date + "/" + uuid + suffix;
     }
 
     /**
      * 获取文件详细信息
-     *
-     * @param objectName 对象名称
-     * @return 文件详细信息
      */
-    public FileInfoDTO getFileInfo(String objectName) {
+    public FileInfoDTO getFileInfo(String objectName, String bucketCode) {
         try {
-            if (!doesObjectExist(objectName)) {
+            BucketContext bucketContext = resolveBucketContext(bucketCode);
+            if (!doesObjectExist(objectName, bucketContext)) {
                 throw new BusinessException(FileEnum.FILE_NOT_FOUND.getMessage());
             }
 
-            // 获取对象统计信息
             StatObjectResponse statObject = minioClient.statObject(StatObjectArgs.builder()
-                    .bucket(minioProperties.getBucketName())
+                    .bucket(bucketContext.bucketName())
                     .object(objectName)
                     .build());
 
-            // 从对象名中提取文件名和路径
             String fileName = objectName;
             String path = "";
             if (objectName.contains("/")) {
@@ -367,16 +423,13 @@ public class MinIOUtil {
                 path = objectName.substring(0, objectName.lastIndexOf("/") + 1);
             }
 
-            // 获取文件扩展名
             String extension = "";
             if (fileName.contains(".")) {
                 extension = fileName.substring(fileName.lastIndexOf("."));
             }
 
-            // 获取文件访问URL
-            String url = getPresignedObjectUrl(objectName);
+            String url = getPresignedObjectUrl(objectName, null, bucketContext.code());
 
-            // 转换时间
             LocalDateTime lastModified = LocalDateTime.ofInstant(
                     statObject.lastModified().toInstant(),
                     ZoneId.systemDefault()
@@ -393,7 +446,8 @@ public class MinIOUtil {
                     .url(url)
                     .extension(extension)
                     .path(path)
-                    .bucketName(minioProperties.getBucketName())
+                    .bucketName(bucketContext.bucketName())
+                    .bucketCode(bucketContext.code())
                     .build();
 
         } catch (BusinessException e) {
@@ -404,53 +458,31 @@ public class MinIOUtil {
     }
 
     /**
-     * 获取文件详细信息（通过路径）
-     *
-     * @param filePath 文件路径
-     * @return 文件详细信息
+     * 获取文件详细信息（通过路径或URL）
      */
-    public FileInfoDTO getFileInfoByPath(String filePath) {
-        // 确保路径格式正确
-        String objectName = filePath;
-        if (!objectName.startsWith("/")) {
-            objectName = "/" + objectName;
-        }
-        if (objectName.startsWith("/")) {
-            objectName = objectName.substring(1);
-        }
-
-        return getFileInfo(objectName);
+    public FileInfoDTO getFileInfoByPath(String filePath, String bucketCode) {
+        ObjectLocator locator = resolveLocatorByPath(filePath, bucketCode)
+                .orElseThrow(() -> new BusinessException("无法解析文件路径: " + filePath));
+        return getFileInfo(locator.objectName(), locator.bucketContext().code());
     }
 
     /**
      * 批量获取文件详细信息
-     *
-     * @param objectNames 对象名称数组
-     * @return 文件详细信息列表
-     * @throws Exception 异常
      */
-    public List<FileInfoDTO> getBatchFileInfo(String[] objectNames) throws Exception {
+    public List<FileInfoDTO> getBatchFileInfo(String[] objectNames, String bucketCode) {
+        BucketContext bucketContext = resolveBucketContext(bucketCode);
         List<FileInfoDTO> fileInfoList = new ArrayList<>();
 
         for (String input : objectNames) {
             try {
-                // 判断输入是否为URL，如果是则提取对象名称
-                String objectName = isMinIOUrl(input) ? extractObjectNameFromUrl(input) : input;
-
-                FileInfoDTO fileInfo = getFileInfo(objectName);
+                String objectName = normalizeObjectName(
+                        isMinIOUrl(input)
+                                ? resolveLocatorByPath(input, bucketContext.code()).map(ObjectLocator::objectName).orElse(input)
+                                : input);
+                FileInfoDTO fileInfo = getFileInfo(objectName, bucketContext.code());
                 fileInfoList.add(fileInfo);
             } catch (Exception e) {
-                // 创建一个包含错误信息的FileInfoDTO
-                FileInfoDTO errorFileInfo = new FileInfoDTO();
-                errorFileInfo.setObjectName(input);
-                errorFileInfo.setFileName(extractFileName(input));
-                errorFileInfo.setSize(0L);
-                errorFileInfo.setContentType("unknown");
-                errorFileInfo.setLastModified(null);
-                errorFileInfo.setEtag("error");
-                errorFileInfo.setError(true);
-                errorFileInfo.setErrorMessage(e.getMessage());
-                fileInfoList.add(errorFileInfo);
+                fileInfoList.add(buildErrorFileInfo(input, e.getMessage()));
             }
         }
 
@@ -459,114 +491,50 @@ public class MinIOUtil {
 
     /**
      * 通过路径数组批量获取文件详细信息
-     *
-     * @param filePaths 文件路径数组
-     * @return 文件详细信息列表
-     * @throws Exception 异常
      */
-    public List<FileInfoDTO> getBatchFileInfoByPath(String[] filePaths) throws Exception {
+    public List<FileInfoDTO> getBatchFileInfoByPath(String[] filePaths, String bucketCode) {
         List<FileInfoDTO> fileInfoList = new ArrayList<>();
-
         for (String input : filePaths) {
             try {
-                // 判断输入是否为URL，如果是则提取对象名称
-                String objectName = isMinIOUrl(input) ? extractObjectNameFromUrl(input) : input;
-
-                FileInfoDTO fileInfo = getFileInfoByPath(objectName);
+                FileInfoDTO fileInfo = getFileInfoByPath(input, bucketCode);
                 fileInfoList.add(fileInfo);
             } catch (Exception e) {
-                // 创建一个包含错误信息的FileInfoDTO
-                FileInfoDTO errorFileInfo = new FileInfoDTO();
-                errorFileInfo.setObjectName(input);
-                errorFileInfo.setFileName(extractFileName(input));
-                errorFileInfo.setSize(0L);
-                errorFileInfo.setContentType("unknown");
-                errorFileInfo.setLastModified(null);
-                errorFileInfo.setEtag("error");
-                errorFileInfo.setError(true);
-                errorFileInfo.setErrorMessage(e.getMessage());
-                fileInfoList.add(errorFileInfo);
+                fileInfoList.add(buildErrorFileInfo(input, e.getMessage()));
             }
         }
-
         return fileInfoList;
+    }
+
+    private FileInfoDTO buildErrorFileInfo(String input, String errorMessage) {
+        FileInfoDTO errorFileInfo = new FileInfoDTO();
+        errorFileInfo.setObjectName(input);
+        errorFileInfo.setFileName(extractFileName(input));
+        errorFileInfo.setSize(0L);
+        errorFileInfo.setContentType("unknown");
+        errorFileInfo.setLastModified(null);
+        errorFileInfo.setEtag("error");
+        errorFileInfo.setError(true);
+        errorFileInfo.setErrorMessage(errorMessage);
+        return errorFileInfo;
     }
 
     /**
      * 从路径中提取文件名
-     *
-     * @param path 文件路径
-     * @return 文件名
      */
     private String extractFileName(String path) {
-        if (path == null || path.isEmpty()) {
+        if (!StringUtils.hasText(path)) {
             return "unknown";
         }
-
-        // 处理路径分隔符
         String normalizedPath = path.replace("\\", "/");
         int lastSlashIndex = normalizedPath.lastIndexOf("/");
-
         if (lastSlashIndex >= 0 && lastSlashIndex < normalizedPath.length() - 1) {
             return normalizedPath.substring(lastSlashIndex + 1);
         }
-
         return normalizedPath;
     }
 
     /**
-     * 从MinIO URL中提取对象名称
-     *
-     * @param url MinIO URL
-     * @return 对象名称
-     */
-    private String extractObjectNameFromUrl(String url) {
-        if (url == null || url.isEmpty()) {
-            return "";
-        }
-
-        try {
-            // 移除查询参数
-            String urlWithoutQuery = url.split("\\?")[0];
-
-            // 查找bucket名称后的路径部分
-            // URL格式: http://host:port/bucket-name/object-path
-            String[] parts = urlWithoutQuery.split("/");
-
-            // 找到bucket名称后的部分
-            boolean foundBucket = false;
-            StringBuilder objectName = new StringBuilder();
-
-            for (String part : parts) {
-                if (foundBucket) {
-                    if (objectName.length() > 0) {
-                        objectName.append("/");
-                    }
-                    objectName.append(part);
-                } else if (part.contains("sapientiacloud-edupivot")) {
-                    // 找到bucket名称
-                    foundBucket = true;
-                }
-            }
-
-            String result = objectName.toString();
-
-            // URL解码
-            if (!result.isEmpty()) {
-                result = URLDecoder.decode(result, StandardCharsets.UTF_8);
-            }
-
-            return result;
-        } catch (Exception e) {
-            return url;
-        }
-    }
-
-    /**
      * 判断输入是否为MinIO URL
-     *
-     * @param input 输入字符串
-     * @return 是否为URL
      */
     private boolean isMinIOUrl(String input) {
         return input != null && (input.startsWith("http://") || input.startsWith("https://"));
@@ -574,22 +542,12 @@ public class MinIOUtil {
 
     /**
      * 根据文件路径删除文件
-     *
-     * @param filePath 文件路径
-     * @return 是否删除成功
      */
-    public boolean removeObjectByPath(String filePath) {
+    public boolean removeObjectByPath(String filePath, String bucketCode) {
         try {
-            if (!isMinIOUrl(filePath)) {
-                throw new BusinessException("无效的URL格式");
-            }
-
-            String objectName = extractObjectNameFromUrl(filePath);
-            if (objectName.isEmpty()) {
-                throw new BusinessException("无法从URL中提取对象名称");
-            }
-
-            return removeObject(objectName);
+            ObjectLocator locator = resolveLocatorByPath(filePath, bucketCode)
+                    .orElseThrow(() -> new BusinessException("无法从路径中解析对象: " + filePath));
+            return removeObject(locator.objectName(), locator.bucketContext().code());
         } catch (BusinessException e) {
             throw e;
         } catch (Exception e) {
@@ -599,66 +557,126 @@ public class MinIOUtil {
 
     /**
      * 根据文件路径批量删除文件
-     *
-     * @param filePaths 文件路径列表
-     * @return 删除结果
      */
-    public Map<String, String> removeObjectsByPath(List<String> filePaths) {
+    public Map<String, String> removeObjectsByPath(List<String> filePaths, String bucketCode) {
         Map<String, String> result = new HashMap<>(filePaths.size());
-        List<String> objectNames = new ArrayList<>();
+        Map<BucketContext, List<String>> bucketObjects = new HashMap<>();
 
-        // 提取所有文件路径中的对象名称
         for (String filePath : filePaths) {
             try {
-                if (!isMinIOUrl(filePath)) {
-                    result.put(filePath, "失败: 无效的URL格式");
-                    continue;
-                }
-
-                String objectName = extractObjectNameFromUrl(filePath);
-                if (objectName.isEmpty()) {
-                    result.put(filePath, "失败: 无法从URL中提取对象名称");
-                    continue;
-                }
-
-                objectNames.add(objectName);
+                ObjectLocator locator = resolveLocatorByPath(filePath, bucketCode)
+                        .orElseThrow(() -> new BusinessException("无法从路径中解析对象: " + filePath));
+                bucketObjects.computeIfAbsent(locator.bucketContext(), key -> new ArrayList<>()).add(locator.objectName());
                 result.put(filePath, "成功");
             } catch (Exception e) {
                 result.put(filePath, "失败: " + e.getMessage());
             }
         }
 
-        // 如果没有有效的对象名称，直接返回结果
-        if (objectNames.isEmpty()) {
-            return result;
+        for (Map.Entry<BucketContext, List<String>> entry : bucketObjects.entrySet()) {
+            BucketContext context = entry.getKey();
+            List<String> objects = entry.getValue();
+            try {
+                Map<String, String> deleteResult = removeObjects(objects, context.code());
+                result.replaceAll((path, status) -> {
+                    if (!"成功".equals(status)) {
+                        return status;
+                    }
+                    ObjectLocator locator = resolveLocatorByPath(path, context.code()).orElse(null);
+                    if (locator == null) {
+                        return status;
+                    }
+                    return deleteResult.getOrDefault(locator.objectName(), status);
+                });
+            } catch (Exception e) {
+                log.error("批量删除桶 [{}] 对象失败: {}", context.bucketName(), e.getMessage());
+                objects.forEach(object -> result.put(object, "失败: " + e.getMessage()));
+            }
+        }
+        return result;
+    }
+
+    /**
+     * 解析文件路径
+     */
+    private Optional<ObjectLocator> resolveLocatorByPath(String input, String bucketCode) {
+        if (!StringUtils.hasText(input)) {
+            return Optional.empty();
         }
 
-        try {
-            // 执行批量删除
-            Map<String, String> deleteResult = removeObjects(objectNames);
+        if (isMinIOUrl(input)) {
+            return extractObjectLocatorFromUrl(input);
+        }
 
-            // 更新结果，将对象名称映射回文件路径
-            Map<String, String> finalResult = new HashMap<>();
-            for (Map.Entry<String, String> entry : result.entrySet()) {
-                String filePath = entry.getKey();
-                String status = entry.getValue();
+        BucketContext bucketContext = resolveBucketContext(bucketCode);
+        return Optional.of(new ObjectLocator(bucketContext, normalizeObjectName(input)));
+    }
 
-                if ("成功".equals(status)) {
-                    String objectName = extractObjectNameFromUrl(filePath);
-                    String deleteStatus = deleteResult.get(objectName);
-                    if (deleteStatus != null) {
-                        finalResult.put(filePath, deleteStatus);
-                    } else {
-                        finalResult.put(filePath, "成功");
-                    }
-                } else {
-                    finalResult.put(filePath, status);
+    private Optional<ObjectLocator> extractObjectLocatorFromUrl(String url) {
+        if (!StringUtils.hasText(url)) {
+            return Optional.empty();
+        }
+        String urlWithoutQuery = url.split("\\?")[0];
+
+        if (!CollectionUtils.isEmpty(minioProperties.getBuckets())) {
+            for (MinioProperties.BucketPolicy policy : minioProperties.getBuckets()) {
+                ObjectLocator locator = matchBucketInUrl(urlWithoutQuery, policy.normalizedCode(), policy.getBucketName());
+                if (locator != null) {
+                    return Optional.of(locator);
                 }
             }
-
-            return finalResult;
-        } catch (Exception e) {
-            throw new BusinessException("根据文件路径批量删除文件失败: " + e.getMessage());
         }
+
+        if (StringUtils.hasText(minioProperties.getBucketName())) {
+            ObjectLocator locator = matchBucketInUrl(urlWithoutQuery, LEGACY_BUCKET_CODE, minioProperties.getBucketName());
+            if (locator != null) {
+                return Optional.of(locator);
+            }
+        }
+
+        return Optional.empty();
     }
-} 
+
+    private ObjectLocator matchBucketInUrl(String url, String bucketCode, String bucketName) {
+        String marker = "/" + bucketName + "/";
+        int index = url.indexOf(marker);
+        if (index < 0) {
+            return null;
+        }
+        String objectName = url.substring(index + marker.length());
+        objectName = URLDecoder.decode(objectName, StandardCharsets.UTF_8);
+        return new ObjectLocator(new BucketContext(bucketCode, bucketName), objectName);
+    }
+
+    private BucketContext resolveBucketContext(String bucketCode) {
+        if (StringUtils.hasText(bucketCode)) {
+            return minioProperties.findBucket(bucketCode)
+                    .map(policy -> new BucketContext(policy.normalizedCode(), policy.getBucketName()))
+                    .orElseThrow(() -> new BusinessException("未配置编码为 " + bucketCode + " 的存储桶"));
+        }
+
+        return minioProperties.resolveDefaultBucket()
+                .map(policy -> new BucketContext(policy.normalizedCode(), policy.getBucketName()))
+                .or(() -> StringUtils.hasText(minioProperties.getBucketName())
+                        ? Optional.of(new BucketContext(LEGACY_BUCKET_CODE, minioProperties.getBucketName()))
+                        : Optional.empty())
+                .orElseThrow(() -> new BusinessException("MinIO默认存储桶未配置"));
+    }
+
+    private String normalizeObjectName(String objectName) {
+        if (!StringUtils.hasText(objectName)) {
+            return "";
+        }
+        String normalized = objectName.trim();
+        if (normalized.startsWith("/")) {
+            normalized = normalized.substring(1);
+        }
+        return normalized;
+    }
+
+    private record BucketContext(String code, String bucketName) {
+    }
+
+    private record ObjectLocator(BucketContext bucketContext, String objectName) {
+    }
+}

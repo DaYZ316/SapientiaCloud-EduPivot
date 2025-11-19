@@ -58,6 +58,9 @@ public class FileInfoDTO implements Serializable {
     @Schema(description = "存储桶名称", example = "edupivot-files")
     private String bucketName;
 
+    @Schema(description = "业务桶编码", example = "COURSE_PUBLIC")
+    private String bucketCode;
+
     @Schema(description = "是否有错误", example = "false")
     private Boolean error;
 
