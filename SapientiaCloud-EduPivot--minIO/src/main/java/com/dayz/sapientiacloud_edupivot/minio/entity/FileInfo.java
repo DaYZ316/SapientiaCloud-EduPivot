@@ -1,4 +1,4 @@
-package com.dayz.sapientiacloud_edupivot.minio.entity.dto;
+package com.dayz.sapientiacloud_edupivot.minio.entity;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -20,7 +20,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Schema(description = "文件详细信息")
-public class FileInfoDTO implements Serializable {
+public class FileInfo implements Serializable {
 
     @Serial
     private static final long serialVersionUID = -2783247409318597554L;
@@ -57,6 +57,9 @@ public class FileInfoDTO implements Serializable {
 
     @Schema(description = "存储桶名称", example = "edupivot-files")
     private String bucketName;
+
+    @Schema(description = "业务桶编码", example = "COURSE_PUBLIC")
+    private String bucketCode;
 
     @Schema(description = "是否有错误", example = "false")
     private Boolean error;
