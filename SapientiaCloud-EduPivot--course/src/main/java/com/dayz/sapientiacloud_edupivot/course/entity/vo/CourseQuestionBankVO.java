@@ -56,9 +56,6 @@ public class CourseQuestionBankVO implements Serializable {
     @Schema(name = "difficulty", description = "整体难度等级 (1=简单, 2=中等, 3=困难)")
     private Integer difficulty;
 
-    @Schema(name = "isPublic", description = "是否公开 (0=私有, 1=公开)")
-    private Integer isPublic;
-
     @Schema(name = "questionCount", description = "题目数量")
     private Long questionCount;
 

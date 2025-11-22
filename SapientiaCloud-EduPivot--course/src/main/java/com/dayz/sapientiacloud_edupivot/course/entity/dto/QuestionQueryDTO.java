@@ -25,6 +25,9 @@ public class QuestionQueryDTO extends PageEntity implements Serializable {
     @Schema(name = "questionBankId", description = "题库ID")
     private UUID questionBankId;
 
+    @Schema(name = "courseId", description = "课程ID")
+    private UUID courseId;
+
     @Schema(name = "sysUserId", description = "创建用户ID")
     private UUID sysUserId;
 

@@ -66,4 +66,8 @@ public class Course extends BaseEntity implements Serializable {
     @Schema(name = "status", description = "课程状态 (0=正常, 1=停课)", example = "0")
     @TableField("status")
     private Integer status;
+
+    @Schema(name = "isPublic", description = "是否公开 (0=仅课程成员, 1=公开)")
+    @TableField("is_public")
+    private Integer isPublic;
 }

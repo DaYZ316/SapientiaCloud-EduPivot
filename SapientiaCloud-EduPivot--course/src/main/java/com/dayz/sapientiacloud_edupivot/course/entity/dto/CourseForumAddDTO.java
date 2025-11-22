@@ -35,12 +35,6 @@ public class CourseForumAddDTO implements Serializable {
     @Max(value = 3, message = "论坛类型输入不正确")
     private Integer forumType;
 
-    @Schema(name = "isPublic", description = "是否公开 (0=仅课程成员, 1=公开)")
-    @NotNull(message = "公开标识不能为空")
-    @Min(value = 0, message = "公开标识输入不正确")
-    @Max(value = 1, message = "公开标识输入不正确")
-    private Integer isPublic;
-
     @Schema(name = "allowAnonymous", description = "是否允许匿名发帖 (0=不允许, 1=允许)")
     @NotNull(message = "匿名发帖标识不能为空")
     @Min(value = 0, message = "匿名发帖标识输入不正确")

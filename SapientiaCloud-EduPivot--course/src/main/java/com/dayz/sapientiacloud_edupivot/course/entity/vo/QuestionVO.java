@@ -31,6 +31,9 @@ public class QuestionVO implements Serializable {
     @Schema(name = "questionBankName", description = "所属题库名称")
     private String questionBankName;
 
+    @Schema(name = "courseId", description = "所属课程ID")
+    private UUID courseId;
+
     @Schema(name = "sysUserId", description = "创建用户ID")
     private UUID sysUserId;
 

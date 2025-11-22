@@ -28,5 +28,5 @@ public interface CourseMapper extends BaseMapper<Course> {
 
     CourseVO getCourseById(@Param("courseId") UUID courseId);
 
-    List<PublicCourseVO> listPublicCourse();
+    List<PublicCourseVO> listPublicCourse(@Param("isPublic") Integer isPublic);
 }

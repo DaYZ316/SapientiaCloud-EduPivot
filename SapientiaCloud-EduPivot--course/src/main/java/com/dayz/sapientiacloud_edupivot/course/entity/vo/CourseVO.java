@@ -53,6 +53,9 @@ public class CourseVO implements Serializable {
     @Schema(name = "status", description = "课程状态 (0=正常, 1=停课)", example = "0")
     private Integer status;
 
+    @Schema(name = "isPublic", description = "是否公开 (0=仅课程成员, 1=公开)")
+    private Integer isPublic;
+
     @Schema(name = "createTime", description = "创建时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createTime;

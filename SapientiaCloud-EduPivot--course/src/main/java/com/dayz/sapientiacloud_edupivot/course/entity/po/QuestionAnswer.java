@@ -34,6 +34,10 @@ public class QuestionAnswer extends BaseEntity implements Serializable {
     @Field("question_id")
     private UUID questionId;
 
+    @Schema(name = "courseId", description = "所属课程ID")
+    @Field("course_id")
+    private UUID courseId;
+
     @Schema(name = "answerContent", description = "本空答案")
     @Field("answer_content")
     private String answerContent;

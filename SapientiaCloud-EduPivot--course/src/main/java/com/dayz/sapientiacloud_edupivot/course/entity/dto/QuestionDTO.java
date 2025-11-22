@@ -29,6 +29,10 @@ public class QuestionDTO implements Serializable {
     @NotNull(message = "题库ID不能为空")
     private UUID questionBankId;
 
+    @Schema(name = "courseId", description = "所属课程ID")
+    @NotNull(message = "课程ID不能为空")
+    private UUID courseId;
+
     @Schema(name = "sysUserId", description = "创建用户ID（新增时必填，更新时不需要）")
     private UUID sysUserId;
 

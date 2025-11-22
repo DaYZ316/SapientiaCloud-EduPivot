@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dayz.sapientiacloud_edupivot.course.common.enums.DeletedEnum;
 import com.dayz.sapientiacloud_edupivot.course.common.enums.StatusEnum;
 import com.dayz.sapientiacloud_edupivot.course.common.exception.BusinessException;
+import com.dayz.sapientiacloud_edupivot.course.constant.CourseConstants;
 import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseQueryDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.po.Course;
@@ -88,6 +89,8 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
             throw new BusinessException(CourseEnum.COURSE_INFO_REQUIRED);
         }
 
+        validateIsPublic(courseDTO.getIsPublic());
+
         LambdaQueryWrapper<Course> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(Course::getCourseName, courseDTO.getCourseName());
         if (this.count(queryWrapper) > 0) {
@@ -96,6 +99,9 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
 
         Course course = new Course();
         BeanUtils.copyProperties(courseDTO, course);
+        if (course.getIsPublic() == null) {
+            course.setIsPublic(CourseConstants.DEFAULT_IS_PUBLIC);
+        }
 
         course.setId(UuidCreator.getTimeOrderedEpoch());
         course.setStatus(StatusEnum.NORMAL.getCode());
@@ -104,6 +110,7 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
         course.setUpdateTime(LocalDateTime.now());
 
         this.save(course);
+        clearPublicCourseCache();
 
         CourseVO courseVO = new CourseVO();
         BeanUtils.copyProperties(course, courseVO);
@@ -127,6 +134,11 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
             throw new BusinessException(CourseEnum.COURSE_NOT_EXISTS);
         }
 
+        // 检查是否尝试更新公开状态，如果公开字段不一样，则抛出异常
+        if (courseDTO.getIsPublic() != null && !courseDTO.getIsPublic().equals(existingCourse.getIsPublic())) {
+            throw new BusinessException(CourseEnum.COURSE_PUBLIC_STATUS_CANNOT_UPDATE);
+        }
+
         // 检查课程名称是否重复（排除自身）
         if (StringUtils.hasText(courseDTO.getCourseName()) &&
                 !courseDTO.getCourseName().equals(existingCourse.getCourseName())) {
@@ -140,9 +152,15 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
 
         Course course = new Course();
         BeanUtils.copyProperties(courseDTO, course);
+        // 确保公开状态不被更新，保持原值
+        course.setIsPublic(existingCourse.getIsPublic());
         course.setUpdateTime(LocalDateTime.now());
 
-        return this.updateById(course);
+        boolean updated = this.updateById(course);
+        if (updated) {
+            clearPublicCourseCache();
+        }
+        return updated;
     }
 
     @Override
@@ -167,7 +185,11 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
             throw new BusinessException(CourseEnum.COURSE_HAS_STUDENTS);
         }
 
-        return this.removeById(courseId);
+        boolean removed = this.removeById(courseId);
+        if (removed) {
+            clearPublicCourseCache();
+        }
+        return removed;
     }
 
     // 弃用
@@ -195,6 +217,9 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
         }
 
         boolean removeResult = this.removeBatchByIds(courseIds);
+        if (removeResult) {
+            clearPublicCourseCache();
+        }
         return Math.toIntExact(removeResult ? courseIds.size() : 0);
     }
 
@@ -210,7 +235,7 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
         }
 
         // 缓存未命中，从数据库查询
-        List<PublicCourseVO> result = courseMapper.listPublicCourse();
+        List<PublicCourseVO> result = courseMapper.listPublicCourse(CourseConstants.IS_PUBLIC_MAX);
 
         // 存入缓存，设置24小时过期时间
         if (result != null) {
@@ -218,5 +243,18 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
         }
 
         return result;
+    }
+
+    private void validateIsPublic(Integer isPublic) {
+        if (isPublic == null) {
+            return;
+        }
+        if (isPublic < CourseConstants.IS_PUBLIC_MIN || isPublic > CourseConstants.IS_PUBLIC_MAX) {
+            throw new BusinessException(CourseEnum.COURSE_PUBLIC_STATUS_INVALID);
+        }
+    }
+
+    private void clearPublicCourseCache() {
+        redisTemplate.delete(PUBLIC_COURSE_CACHE_KEY);
     }
 }

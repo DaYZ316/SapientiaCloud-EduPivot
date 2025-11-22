@@ -35,6 +35,10 @@ public class QuestionOption extends BaseEntity implements Serializable {
     @Field("question_id")
     private UUID questionId;
 
+    @Schema(name = "courseId", description = "所属课程ID")
+    @Field("course_id")
+    private UUID courseId;
+
     @Schema(name = "optionContent", description = "选项内容")
     @Field("option_content")
     private String optionContent;

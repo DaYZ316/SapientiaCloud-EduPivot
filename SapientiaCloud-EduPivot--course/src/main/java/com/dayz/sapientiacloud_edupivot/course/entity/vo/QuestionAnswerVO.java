@@ -26,6 +26,9 @@ public class QuestionAnswerVO implements Serializable {
     @Schema(name = "questionId", description = "题目ID")
     private UUID questionId;
 
+    @Schema(name = "courseId", description = "所属课程ID")
+    private UUID courseId;
+
     @Schema(name = "answerContent", description = "本空答案")
     private String answerContent;
 

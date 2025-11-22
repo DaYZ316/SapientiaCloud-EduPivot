@@ -34,9 +34,6 @@ public class CourseQuestionBankQueryDTO extends PageEntity implements Serializab
     @Schema(name = "difficulty", description = "难度等级")
     private Integer difficulty;
 
-    @Schema(name = "isPublic", description = "是否公开")
-    private Integer isPublic;
-
     @Schema(name = "tags", description = "标签列表")
     private List<String> tags;
 

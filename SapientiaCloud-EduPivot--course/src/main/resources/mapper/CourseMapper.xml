@@ -16,6 +16,7 @@
                 typeHandler="com.dayz.sapientiacloud_edupivot.course.common.config.UuidListTypeHandler"/>
         <result column="cover_image_url" property="coverImageUrl"/>
         <result column="status" property="status"/>
+        <result column="is_public" property="isPublic"/>
         <result column="create_time" property="createTime"/>
         <result column="update_time" property="updateTime"/>
     </resultMap>
@@ -52,6 +53,7 @@
         <result column="location" property="location"/>
         <result column="teacher_name" property="teacherName"/>
         <result column="teacher_avatar" property="teacherAvatar"/>
+        <result column="is_public" property="isPublic"/>
     </resultMap>
 
     <select id="listCourse" resultMap="CourseVOMap"
@@ -69,6 +71,7 @@
         c.assistant_teacher_ids,
         c.cover_image_url,
         c.status,
+        c.is_public,
         c.create_time,
         c.update_time
         FROM mg_course c
@@ -90,6 +93,9 @@
             </if>
             <if test="status != null">
                 AND c.status = #{status}
+            </if>
+            <if test="isPublic != null">
+                AND c.is_public = #{isPublic}
             </if>
             <if test="startTime != null or endTime != null">
                 <choose>
@@ -128,6 +134,7 @@
         c.assistant_teacher_ids,
         c.cover_image_url,
         c.status,
+        c.is_public,
         c.create_time,
         c.update_time
         FROM mg_course c
@@ -173,6 +180,7 @@
         c.assistant_teacher_ids,
         c.cover_image_url,
         c.status,
+        c.is_public,
         c.create_time,
         c.update_time
         FROM mg_course c
@@ -197,6 +205,7 @@
         c.assistant_teacher_ids,
         c.cover_image_url,
         c.status,
+        c.is_public,
         c.create_time,
         c.update_time
         FROM mg_course c
@@ -222,6 +231,7 @@
         c.assistant_teacher_ids,
         c.cover_image_url,
         c.status,
+        c.is_public,
         c.create_time,
         c.update_time
         FROM mg_course c
@@ -274,7 +284,7 @@
         ORDER BY t.create_time DESC
     </select>
 
-    <select id="listPublicCourse" resultMap="PublicCourseVOMap">
+    <select id="listPublicCourse" resultMap="PublicCourseVOMap" parameterType="java.lang.Integer">
         SELECT
         c.id,
         c.course_name,
@@ -285,6 +295,7 @@
         c.location,
         t.real_name as teacher_name,
         u.avatar as teacher_avatar,
+        c.is_public,
         c.create_time
         FROM mg_course c
         LEFT JOIN mg_teacher t ON c.teacher_id = t.id
@@ -293,6 +304,7 @@
             c.is_deleted = 0
             AND (t.is_deleted = 0 OR t.id IS NULL)
             AND c.status = 0
+            AND c.is_public = #{isPublic}
         </where>
         ORDER BY RAND()
         LIMIT 8

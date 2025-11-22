@@ -1,6 +1,7 @@
 package com.dayz.sapientiacloud_edupivot.course.entity.dto;
 
 import com.dayz.sapientiacloud_edupivot.course.common.entity.base.PageEntity;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -25,9 +26,6 @@ public class CourseForumQueryDTO extends PageEntity implements Serializable {
 
     @Schema(name = "forumType", description = "论坛类型 (0=讨论区, 1=问答区, 2=作业区, 3=公告区)")
     private Integer forumType;
-
-    @Schema(name = "isPublic", description = "是否公开 (0=仅课程成员, 1=公开)")
-    private Integer isPublic;
 
     @Schema(name = "allowAnonymous", description = "是否允许匿名发帖 (0=不允许, 1=允许)")
     private Integer allowAnonymous;
