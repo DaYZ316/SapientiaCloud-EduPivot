@@ -10,7 +10,6 @@
         <result column="student_code" property="studentCode"/>
         <result column="student_avatar" property="studentAvatar"/>
         <result column="course_id" property="courseId"/>
-        <result column="course_name" property="courseName"/>
         <result column="seat_index" property="seatIndex"/>
         <result column="location_x" property="locationX"/>
         <result column="location_y" property="locationY"/>
@@ -36,8 +35,7 @@
         <include refid="Base_Column_List"/>,
         s.real_name AS student_name,
         s.student_code,
-        su.avatar AS student_avatar,
-        c.course_name
+        su.avatar AS student_avatar
     </sql>
 
     <!-- 分页查询学生座位记录列表 -->
@@ -47,7 +45,6 @@
         FROM mg_course_record_student crs
         LEFT JOIN mg_student s ON crs.student_id = s.id AND s.is_deleted = 0
         LEFT JOIN sys_user su ON s.sys_user_id = su.id AND su.is_deleted = 0
-        LEFT JOIN mg_course c ON crs.course_id = c.id AND c.is_deleted = 0
         WHERE 1=1
         <if test="recordId != null">
             AND crs.record_id = #{recordId}
@@ -74,7 +71,6 @@
         FROM mg_course_record_student crs
         LEFT JOIN mg_student s ON crs.student_id = s.id AND s.is_deleted = 0
         LEFT JOIN sys_user su ON s.sys_user_id = su.id AND su.is_deleted = 0
-        LEFT JOIN mg_course c ON crs.course_id = c.id AND c.is_deleted = 0
         ORDER BY crs.create_time DESC
     </select>
 
@@ -85,7 +81,6 @@
         FROM mg_course_record_student crs
         LEFT JOIN mg_student s ON crs.student_id = s.id AND s.is_deleted = 0
         LEFT JOIN sys_user su ON s.sys_user_id = su.id AND su.is_deleted = 0
-        LEFT JOIN mg_course c ON crs.course_id = c.id AND c.is_deleted = 0
         WHERE crs.record_id = #{recordId}
         ORDER BY crs.seat_index ASC
     </select>
@@ -97,7 +92,6 @@
         FROM mg_course_record_student crs
         LEFT JOIN mg_student s ON crs.student_id = s.id AND s.is_deleted = 0
         LEFT JOIN sys_user su ON s.sys_user_id = su.id AND su.is_deleted = 0
-        LEFT JOIN mg_course c ON crs.course_id = c.id AND c.is_deleted = 0
         WHERE crs.record_id = #{recordId}
         AND crs.student_id = #{studentId}
     </select>
@@ -124,7 +118,6 @@
         FROM mg_course_record_student crs
         LEFT JOIN mg_student s ON crs.student_id = s.id AND s.is_deleted = 0
         LEFT JOIN sys_user su ON s.sys_user_id = su.id AND su.is_deleted = 0
-        LEFT JOIN mg_course c ON crs.course_id = c.id AND c.is_deleted = 0
         WHERE crs.record_id IN
         <foreach collection="recordIds" item="recordId" open="(" separator="," close=")">
             #{recordId}

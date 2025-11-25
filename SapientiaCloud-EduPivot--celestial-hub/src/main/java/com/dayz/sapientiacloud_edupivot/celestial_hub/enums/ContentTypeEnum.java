@@ -14,7 +14,8 @@ public enum ContentTypeEnum implements BaseEnum {
     QUESTION(1, "问题", "question"),
     TASK(2, "任务", "task"),
     FORUM(3, "论坛帖子", "forum"),
-    CHAT(4, "对话内容", "chat");
+    CHAT(4, "对话内容", "chat"),
+    FILE(5, "文件文档", "file");
 
     @EnumValue
     private final int code;

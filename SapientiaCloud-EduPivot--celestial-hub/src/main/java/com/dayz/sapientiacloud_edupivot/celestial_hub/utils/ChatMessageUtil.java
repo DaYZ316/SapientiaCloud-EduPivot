@@ -8,6 +8,7 @@ import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.po.ChatMessage;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.vo.KnowledgeSearchVO;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.repository.ChatMessageRepository;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.KnowledgeService;
+import com.github.f4b6a3.uuid.UuidCreator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
@@ -15,6 +16,7 @@ import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.util.CollectionUtils;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -86,7 +88,10 @@ public class ChatMessageUtil {
      * 检索知识（ChatRequestDTO版本）
      */
     public static String retrieveKnowledge(ChatRequestDTO request, KnowledgeService knowledgeService) {
+        StringBuilder context = new StringBuilder();
+
         try {
+            // 1. 检索知识库内容
             KnowledgeRequestDTO query = new KnowledgeRequestDTO();
             query.setQuery(request.getMessage());
             query.setCourseId(request.getCourseId());
@@ -96,24 +101,50 @@ public class ChatMessageUtil {
 
             KnowledgeSearchVO result = knowledgeService.searchKnowledge(query);
             if (result != null && !CollectionUtils.isEmpty(result.getItems())) {
-                return result.getItems().stream()
+                String knowledgeContext = result.getItems().stream()
                         .map(item -> String.format(AIChatConstants.RAG_ITEM_FORMAT,
                                 item.getTitle(),
                                 item.getContentType(),
                                 item.getContent()))
                         .collect(Collectors.joining(AIChatConstants.RAG_SEPARATOR));
+                if (knowledgeContext != null && !knowledgeContext.isEmpty()) {
+                    context.append(knowledgeContext);
+                }
             }
         } catch (Exception e) {
             log.error("检索知识失败", e);
         }
-        return null;
+
+        // 2. 检索文件内容（如果提供了文件ID列表）
+        try {
+            if (request.getFileIds() != null && !request.getFileIds().isEmpty()) {
+                String fileContext = knowledgeService.retrieveFileContext(
+                        request.getFileIds(),
+                        request.getMessage(),
+                        AIChatConstants.DEFAULT_RAG_TOP_K
+                );
+                if (fileContext != null && !fileContext.isEmpty()) {
+                    if (context.length() > 0) {
+                        context.append(AIChatConstants.RAG_SEPARATOR);
+                    }
+                    context.append("【文件内容】\n").append(fileContext);
+                }
+            }
+        } catch (Exception e) {
+            log.error("检索文件内容失败", e);
+        }
+
+        return context.length() > 0 ? context.toString() : null;
     }
 
     /**
      * 检索知识（KafkaChatRequestDTO版本）
      */
     public static String retrieveKnowledge(KafkaChatRequestDTO request, KnowledgeService knowledgeService) {
+        StringBuilder context = new StringBuilder();
+
         try {
+            // 1. 检索知识库内容
             KnowledgeRequestDTO query = new KnowledgeRequestDTO();
             query.setQuery(request.getMessage());
             query.setCourseId(request.getCourseId());
@@ -123,17 +154,40 @@ public class ChatMessageUtil {
 
             KnowledgeSearchVO result = knowledgeService.searchKnowledge(query);
             if (result != null && result.getItems() != null && !result.getItems().isEmpty()) {
-                return result.getItems().stream()
+                String knowledgeContext = result.getItems().stream()
                         .map(item -> String.format(AIChatConstants.RAG_ITEM_FORMAT,
                                 item.getTitle(),
                                 item.getContentType(),
                                 item.getContent()))
                         .collect(Collectors.joining(AIChatConstants.RAG_SEPARATOR));
+                if (knowledgeContext != null && !knowledgeContext.isEmpty()) {
+                    context.append(knowledgeContext);
+                }
             }
         } catch (Exception e) {
             log.error("检索知识失败", e);
         }
-        return null;
+
+        // 2. 检索文件内容（如果提供了文件ID列表）
+        try {
+            if (request.getFileIds() != null && !request.getFileIds().isEmpty()) {
+                String fileContext = knowledgeService.retrieveFileContext(
+                        request.getFileIds(),
+                        request.getMessage(),
+                        AIChatConstants.DEFAULT_RAG_TOP_K
+                );
+                if (fileContext != null && !fileContext.isEmpty()) {
+                    if (context.length() > 0) {
+                        context.append(AIChatConstants.RAG_SEPARATOR);
+                    }
+                    context.append("【文件内容】\n").append(fileContext);
+                }
+            }
+        } catch (Exception e) {
+            log.error("检索文件内容失败", e);
+        }
+
+        return context.length() > 0 ? context.toString() : null;
     }
 
     /**
@@ -213,6 +267,96 @@ public class ChatMessageUtil {
      */
     public static boolean attachmentsEqual(List<String> a, List<String> b) {
         return equalAttachments(a, b);
+    }
+
+    /**
+     * 创建用户消息
+     *
+     * @param sessionId             会话ID
+     * @param content               消息内容
+     * @param attachments           附件列表
+     * @param requestId             请求ID（用于幂等性）
+     * @param chatMessageRepository 消息仓库
+     * @return 保存的用户消息
+     */
+    public static ChatMessage addUserMessage(UUID sessionId, String content, List<String> attachments,
+                                             String requestId, ChatMessageRepository chatMessageRepository) {
+        ChatMessage message = new ChatMessage();
+        message.setId(UuidCreator.getTimeOrderedEpoch());
+        message.setSessionId(sessionId);
+        message.setRole(AIChatConstants.ROLE_USER);
+        message.setContent(content);
+        message.setMessageType(AIChatConstants.MESSAGE_TYPE_TEXT);
+        message.setAttachments(attachments);
+        message.setRequestId(requestId);
+        message.setIsFeedback(AIChatConstants.FEEDBACK_NONE);
+        message.setCreateTime(LocalDateTime.now());
+        message.setUpdateTime(LocalDateTime.now());
+
+        try {
+            return chatMessageRepository.save(message);
+        } catch (org.springframework.dao.DuplicateKeyException dup) {
+            if (requestId != null) {
+                return chatMessageRepository.findFirstBySessionIdAndRoleAndRequestId(
+                        sessionId, AIChatConstants.ROLE_USER, requestId);
+            }
+            throw dup;
+        }
+    }
+
+    /**
+     * 保存助手消息
+     *
+     * @param sessionId             会话ID
+     * @param content               消息内容
+     * @param chatMessageRepository 消息仓库
+     * @return 保存的助手消息
+     */
+    public static ChatMessage saveAssistantMessage(UUID sessionId, String content,
+                                                   ChatMessageRepository chatMessageRepository) {
+        ChatMessage message = new ChatMessage();
+        message.setId(UuidCreator.getTimeOrderedEpoch());
+        message.setSessionId(sessionId);
+        message.setRole(AIChatConstants.ROLE_ASSISTANT);
+        message.setContent(content);
+        message.setMessageType(AIChatConstants.MESSAGE_TYPE_TEXT);
+        message.setModelName(AIChatConstants.MODEL_QWEN3_MAX);
+        message.setTokenCount(estimateTokens(content));
+        message.setIsFeedback(AIChatConstants.FEEDBACK_NONE);
+        message.setCreateTime(LocalDateTime.now());
+        message.setUpdateTime(LocalDateTime.now());
+
+        return chatMessageRepository.save(message);
+    }
+
+    /**
+     * 仅当与最后一条用户消息不相同时才保存；若提供 requestId 则走幂等插入
+     *
+     * @param sessionId              会话ID
+     * @param content                消息内容
+     * @param attachments            附件列表
+     * @param lastMessageFromContext 上下文中的最后一条消息
+     * @param requestId              请求ID（用于幂等性）
+     * @param chatMessageRepository  消息仓库
+     * @return 保存或已存在的用户消息
+     */
+    public static ChatMessage addUserMessageIfNotDuplicate(UUID sessionId, String content,
+                                                           List<String> attachments,
+                                                           ChatMessage lastMessageFromContext,
+                                                           String requestId,
+                                                           ChatMessageRepository chatMessageRepository) {
+        if (requestId != null) {
+            // 幂等插入，数据库层唯一索引保障
+            return addUserMessage(sessionId, content, attachments, requestId, chatMessageRepository);
+        }
+        ChatMessage last = lastMessageFromContext;
+        if (last != null
+                && Objects.equals(last.getRole(), AIChatConstants.ROLE_USER)
+                && Objects.equals(last.getContent(), content)
+                && attachmentsEqual(last.getAttachments(), attachments)) {
+            return last;
+        }
+        return addUserMessage(sessionId, content, attachments, null, chatMessageRepository);
     }
 
     /**

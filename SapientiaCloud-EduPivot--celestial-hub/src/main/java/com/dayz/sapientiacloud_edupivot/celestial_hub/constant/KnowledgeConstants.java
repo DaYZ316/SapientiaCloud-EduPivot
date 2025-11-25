@@ -30,6 +30,7 @@ public class KnowledgeConstants {
     public static final Integer CONTENT_TYPE_TASK = 2;
     public static final Integer CONTENT_TYPE_FORUM = 3;
     public static final Integer CONTENT_TYPE_CHAT = 4;
+    public static final Integer CONTENT_TYPE_FILE = 5;
 
     // ==================== 元数据键 ====================
 
@@ -45,6 +46,7 @@ public class KnowledgeConstants {
     public static final String METADATA_CHAT_SESSION_ID = "chatSessionId";
     public static final String METADATA_CHAT_MESSAGE_ID = "chatMessageId";
     public static final String METADATA_USER_ID = "userId";
+    public static final String METADATA_FILE_ID = "fileId";
     public static final String METADATA_TITLE = "title";
     public static final String METADATA_SCORE = "score";
 
@@ -77,6 +79,105 @@ public class KnowledgeConstants {
 
     public static final int STATUS_NORMAL = 0;
     public static final int STATUS_DISABLED = 1;
+
+    // ==================== 元数据标签键 ====================
+
+    /**
+     * 标签元数据键
+     */
+    public static final String METADATA_TAGS = "tags";
+
+    /**
+     * Chunk索引字段
+     */
+    public static final String METADATA_CHUNK_INDEX = "chunk_index";
+
+    // ==================== 聊天内容格式 ====================
+
+    /**
+     * 用户消息前缀
+     */
+    public static final String CHAT_USER_PREFIX = "User: ";
+
+    /**
+     * AI消息前缀
+     */
+    public static final String CHAT_AI_PREFIX = "\nAI: ";
+
+    // ==================== 问题文本构建 ====================
+
+    /**
+     * 选项标签
+     */
+    public static final String QUESTION_OPTIONS_LABEL = "\n选项：\n";
+
+    /**
+     * 答案标签
+     */
+    public static final String QUESTION_ANSWERS_LABEL = "\n答案：\n";
+
+    /**
+     * 答案序号前缀
+     */
+    public static final String ANSWER_ORDER_PREFIX = "第";
+
+    /**
+     * 答案序号后缀
+     */
+    public static final String ANSWER_ORDER_SUFFIX = "空：";
+
+    // ==================== 文本分片参数 ====================
+
+    /**
+     * 默认文本分片大小
+     */
+    public static final int DEFAULT_CHUNK_SIZE = 1000;
+
+    /**
+     * 默认文本分片重叠大小
+     */
+    public static final int DEFAULT_CHUNK_OVERLAP = 150;
+
+    // ==================== 标题处理 ====================
+
+    /**
+     * 标题最大长度
+     */
+    public static final int MAX_TITLE_LENGTH = 120;
+
+    // ==================== 调试分数行前缀 ====================
+
+    /**
+     * 距离分数行前缀
+     */
+    public static final String DEBUG_DISTANCE_PREFIX = "distance:";
+
+    /**
+     * 向量分数行前缀
+     */
+    public static final String DEBUG_VECTOR_SCORE_PREFIX = "vector_score:";
+
+    /**
+     * 距离元数据键
+     */
+    public static final String METADATA_DISTANCE = "distance";
+
+    /**
+     * 向量分数元数据键
+     */
+    public static final String METADATA_VECTOR_SCORE = "vector_score";
+
+    // ==================== 文件片段格式 ====================
+
+    /**
+     * 文件片段前缀
+     */
+    public static final String FILE_CHUNK_PREFIX = "【文件片段 ";
+
+    /**
+     * 文件片段后缀
+     */
+    public static final String FILE_CHUNK_SUFFIX = "】\n";
 
     private KnowledgeConstants() {
         // 禁止实例化

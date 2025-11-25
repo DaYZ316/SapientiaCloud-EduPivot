@@ -34,9 +34,6 @@ public class CourseRecordStudentVO implements Serializable {
     @Schema(description = "课程ID")
     private UUID courseId;
 
-    @Schema(description = "课程名称")
-    private String courseName;
-
     @Schema(description = "座位编号 (从0开始)")
     private Integer seatIndex;
 

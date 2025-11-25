@@ -6,6 +6,7 @@ import com.dayz.sapientiacloud_edupivot.celestial_hub.common.enums.StatusEnum;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.common.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.common.result.Result;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.common.security.utils.UserContextUtil;
+import com.dayz.sapientiacloud_edupivot.celestial_hub.constant.FileParserConstants;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.constant.KnowledgeConstants;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.KnowledgeRequestDTO;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.VectorizeRequestDTO;
@@ -25,6 +26,7 @@ import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -149,7 +151,8 @@ public class KnowledgeServiceImpl implements KnowledgeService {
         if (firstLine.isEmpty()) {
             return KnowledgeConstants.DEFAULT_EMPTY_STRING;
         }
-        return firstLine.length() > 120 ? firstLine.substring(0, 120) : firstLine;
+        return firstLine.length() > KnowledgeConstants.MAX_TITLE_LENGTH ?
+                firstLine.substring(0, KnowledgeConstants.MAX_TITLE_LENGTH) : firstLine;
     }
 
     private static String sanitizeContent(String content) {
@@ -165,7 +168,8 @@ public class KnowledgeServiceImpl implements KnowledgeService {
             String trimmed = line.trim();
             // 过滤向量检索附带的调试分数行
             String lower = trimmed.toLowerCase();
-            if (lower.startsWith("distance:") || lower.startsWith("vector_score:")) {
+            if (lower.startsWith(KnowledgeConstants.DEBUG_DISTANCE_PREFIX) ||
+                    lower.startsWith(KnowledgeConstants.DEBUG_VECTOR_SCORE_PREFIX)) {
                 continue;
             }
             sb.append(line).append("\n");
@@ -186,7 +190,7 @@ public class KnowledgeServiceImpl implements KnowledgeService {
 
         // 添加选项（如果有）
         if (q.getOptions() != null && !q.getOptions().isEmpty()) {
-            sb.append("\n选项：\n");
+            sb.append(KnowledgeConstants.QUESTION_OPTIONS_LABEL);
             for (var option : q.getOptions()) {
                 if (option == null) {
                     continue;
@@ -203,7 +207,7 @@ public class KnowledgeServiceImpl implements KnowledgeService {
 
         // 添加答案（如果有）
         if (q.getAnswers() != null && !q.getAnswers().isEmpty()) {
-            sb.append("\n答案：\n");
+            sb.append(KnowledgeConstants.QUESTION_ANSWERS_LABEL);
             for (var answer : q.getAnswers()) {
                 if (answer == null) {
                     continue;
@@ -214,9 +218,11 @@ public class KnowledgeServiceImpl implements KnowledgeService {
                     String plainAnswerContent = HtmlTextUtil.stripHtmlPreserveLines(answerContent);
                     // 如果有序号，显示序号
                     if (answer.getSortOrder() != null) {
-                        sb.append("第").append(answer.getSortOrder()).append("空：");
+                        sb.append(KnowledgeConstants.ANSWER_ORDER_PREFIX)
+                                .append(answer.getSortOrder())
+                                .append(KnowledgeConstants.ANSWER_ORDER_SUFFIX);
                     }
-                    sb.append(plainAnswerContent).append("\n");
+                    sb.append(plainAnswerContent).append(FileParserConstants.LINE_SEPARATOR);
                 }
             }
         }
@@ -401,7 +407,7 @@ public class KnowledgeServiceImpl implements KnowledgeService {
             }
 
             // 按照 Q&A 对格式构建内容
-            String content = "User: " + userQuery + "\nAI: " + aiResponse;
+            String content = KnowledgeConstants.CHAT_USER_PREFIX + userQuery + KnowledgeConstants.CHAT_AI_PREFIX + aiResponse;
 
             // 构建元数据
             Map<String, Object> metadata = buildBaseMetadata(
@@ -610,13 +616,16 @@ public class KnowledgeServiceImpl implements KnowledgeService {
             String plain = HtmlTextUtil.stripHtmlPreserveLines(rawHtml);
             String enriched = HtmlTextUtil.buildChapterText(title, plain);
 
-            List<String> chunks = HtmlTextUtil.chunkText(enriched, 1000, 150);
+            List<String> chunks = HtmlTextUtil.chunkText(enriched,
+                    KnowledgeConstants.DEFAULT_CHUNK_SIZE,
+                    KnowledgeConstants.DEFAULT_CHUNK_OVERLAP);
             if (chunks.isEmpty()) {
                 log.warn("Chapter produces no chunks: chapterId={}, title='{}', rawLen={}, plainLen={}",
                         id, title, rawHtml.length(), plain.length());
             } else {
                 log.debug("Chapter chunked: chapterId={}, title='{}', rawLen={}, plainLen={}, chunkCount={}, chunkSize={}, overlap={}",
-                        id, title, rawHtml.length(), plain.length(), chunks.size(), 1000, 150);
+                        id, title, rawHtml.length(), plain.length(), chunks.size(),
+                        KnowledgeConstants.DEFAULT_CHUNK_SIZE, KnowledgeConstants.DEFAULT_CHUNK_OVERLAP);
             }
             int chunkIndex = 0;
             for (String chunk : chunks) {
@@ -625,7 +634,7 @@ public class KnowledgeServiceImpl implements KnowledgeService {
                 }
                 Map<String, Object> metadata = buildBaseMetadata(
                         ContentTypeEnum.CHAPTER.getCode(), id, courseId, id, title);
-                metadata.put("chunk_index", chunkIndex++);
+                metadata.put(KnowledgeConstants.METADATA_CHUNK_INDEX, chunkIndex++);
                 documents.add(new Document(chunk, metadata));
             }
         }
@@ -659,6 +668,8 @@ public class KnowledgeServiceImpl implements KnowledgeService {
             }
 
             // 为每个题库ID查询对应的课程ID
+            // TODO: 性能优化建议 - 如果 CourseClient 提供批量查询接口 listQuestionBanksByIds(List<UUID> bankIds)，
+            // 应该使用批量查询替代循环中的单个查询，以避免 N+1 查询问题
             for (UUID bankId : bankIds) {
                 Result<CourseQuestionBankVO> bankResult = courseClient.getQuestionBankById(bankId);
                 if (bankResult != null && bankResult.isSuccess() && bankResult.getData() != null) {
@@ -671,36 +682,10 @@ public class KnowledgeServiceImpl implements KnowledgeService {
 
             // 处理所有问题
             for (QuestionVO q : allQuestionsResult.getData()) {
-                if (q == null || q.getId() == null) {
-                    continue;
+                Document doc = buildQuestionDocument(q, bankIdToCourseId);
+                if (doc != null) {
+                    documents.add(doc);
                 }
-                String content = buildQuestionText(q);
-                if (content == null || content.trim().isEmpty()) {
-                    continue; // 跳过空内容
-                }
-
-                Map<String, Object> metadata = buildBaseMetadata(
-                        ContentTypeEnum.QUESTION.getCode(),
-                        q.getId().toString(),
-                        safeString(bankIdToCourseId.get(q.getQuestionBankId())),
-                        null,
-                        emptyToNull(q.getQuestionTitle()));
-                // 添加问题相关的ID到metadata
-                if (q.getQuestionBankId() != null) {
-                    metadata.put(KnowledgeConstants.METADATA_QUESTION_BANK_ID, q.getQuestionBankId().toString());
-                }
-                metadata.put(KnowledgeConstants.METADATA_QUESTION_ID, q.getId().toString());
-                // 保存tags到metadata，过滤掉null元素
-                if (q.getTags() != null && !q.getTags().isEmpty()) {
-                    List<String> filteredTags = q.getTags().stream()
-                            .filter(tag -> tag != null && !tag.isEmpty())
-                            .toList();
-                    if (!filteredTags.isEmpty()) {
-                        metadata.put("tags", filteredTags);
-                    }
-                }
-
-                documents.add(new Document(content, metadata));
             }
         } else {
             // courseId不为空时，使用原有逻辑
@@ -716,6 +701,8 @@ public class KnowledgeServiceImpl implements KnowledgeService {
                 }
             }
 
+            // TODO: 性能优化建议 - 如果 CourseClient 提供批量查询接口 listQuestionsByBankIds(List<UUID> bankIds)，
+            // 应该使用批量查询替代循环中的单个查询，以避免 N+1 查询问题
             for (CourseQuestionBankVO bank : bankResult.getData()) {
                 if (bank == null || bank.getId() == null) {
                     continue;
@@ -725,41 +712,55 @@ public class KnowledgeServiceImpl implements KnowledgeService {
                     continue;
                 }
                 for (QuestionVO q : questionsResult.getData()) {
-                    if (q == null || q.getId() == null) {
-                        continue;
+                    Document doc = buildQuestionDocument(q, bankIdToCourseId);
+                    if (doc != null) {
+                        documents.add(doc);
                     }
-                    String content = buildQuestionText(q);
-                    if (content == null || content.trim().isEmpty()) {
-                        continue; // 跳过空内容
-                    }
-
-                    Map<String, Object> metadata = buildBaseMetadata(
-                            ContentTypeEnum.QUESTION.getCode(),
-                            q.getId().toString(),
-                            safeString(bankIdToCourseId.get(q.getQuestionBankId())),
-                            null,
-                            emptyToNull(q.getQuestionTitle()));
-                    // 添加问题相关的ID到metadata
-                    if (q.getQuestionBankId() != null) {
-                        metadata.put(KnowledgeConstants.METADATA_QUESTION_BANK_ID, q.getQuestionBankId().toString());
-                    }
-                    metadata.put(KnowledgeConstants.METADATA_QUESTION_ID, q.getId().toString());
-                    // 保存tags到metadata，过滤掉null元素
-                    if (q.getTags() != null && !q.getTags().isEmpty()) {
-                        List<String> filteredTags = q.getTags().stream()
-                                .filter(tag -> tag != null && !tag.isEmpty())
-                                .toList();
-                        if (!filteredTags.isEmpty()) {
-                            metadata.put("tags", filteredTags);
-                        }
-                    }
-
-                    documents.add(new Document(content, metadata));
                 }
             }
         }
         log.debug("Prepared question documents: count={}, courseId={}", documents.size(), request.getCourseId());
         return documents;
+    }
+
+    /**
+     * 构建问题 Document（提取公共逻辑，避免代码重复）
+     *
+     * @param q                问题VO
+     * @param bankIdToCourseId 题库ID到课程ID的映射
+     * @return Document对象，如果问题无效则返回null
+     */
+    private Document buildQuestionDocument(QuestionVO q, Map<UUID, UUID> bankIdToCourseId) {
+        if (q == null || q.getId() == null) {
+            return null;
+        }
+        String content = buildQuestionText(q);
+        if (content == null || content.trim().isEmpty()) {
+            return null; // 跳过空内容
+        }
+
+        Map<String, Object> metadata = buildBaseMetadata(
+                ContentTypeEnum.QUESTION.getCode(),
+                q.getId().toString(),
+                safeString(bankIdToCourseId.get(q.getQuestionBankId())),
+                null,
+                emptyToNull(q.getQuestionTitle()));
+        // 添加问题相关的ID到metadata
+        if (q.getQuestionBankId() != null) {
+            metadata.put(KnowledgeConstants.METADATA_QUESTION_BANK_ID, q.getQuestionBankId().toString());
+        }
+        metadata.put(KnowledgeConstants.METADATA_QUESTION_ID, q.getId().toString());
+        // 保存tags到metadata，过滤掉null元素
+        if (q.getTags() != null && !q.getTags().isEmpty()) {
+            List<String> filteredTags = q.getTags().stream()
+                    .filter(tag -> tag != null && !tag.isEmpty())
+                    .toList();
+            if (!filteredTags.isEmpty()) {
+                metadata.put(KnowledgeConstants.METADATA_TAGS, filteredTags);
+            }
+        }
+
+        return new Document(content, metadata);
     }
 
     private List<Document> fetchTaskContent(VectorizeRequestDTO request) {
@@ -849,7 +850,7 @@ public class KnowledgeServiceImpl implements KnowledgeService {
                         .filter(tag -> tag != null && !tag.isEmpty())
                         .toList();
                 if (!filteredTags.isEmpty()) {
-                    metadata.put("tags", filteredTags);
+                    metadata.put(KnowledgeConstants.METADATA_TAGS, filteredTags);
                 }
             }
 
@@ -896,7 +897,7 @@ public class KnowledgeServiceImpl implements KnowledgeService {
         vector.setEmbeddingModel(KnowledgeConstants.EMBEDDING_MODEL_TEXT_V1);
         vector.setMetadata(metadata);
         // 从metadata中提取tags并保存
-        Object tagsObj = metadata.get("tags");
+        Object tagsObj = metadata.get(KnowledgeConstants.METADATA_TAGS);
         if (tagsObj instanceof List) {
             @SuppressWarnings("unchecked")
             List<String> tags = (List<String>) tagsObj;
@@ -970,8 +971,8 @@ public class KnowledgeServiceImpl implements KnowledgeService {
         Double score = safeParseDouble(scoreObj);
         if (score == null) {
             // 尝试从metadata中的distance或vector_score获取
-            Object distanceObj = metadata.get("distance");
-            Object vectorScoreObj = metadata.get("vector_score");
+            Object distanceObj = metadata.get(KnowledgeConstants.METADATA_DISTANCE);
+            Object vectorScoreObj = metadata.get(KnowledgeConstants.METADATA_VECTOR_SCORE);
             if (distanceObj != null) {
                 score = safeParseDouble(distanceObj);
             } else if (vectorScoreObj != null) {
@@ -1030,7 +1031,7 @@ public class KnowledgeServiceImpl implements KnowledgeService {
         item.setPostId(postId);
 
         // 设置tags（优先从metadata，其次从数据库）
-        Object tagsObj = metadata.get("tags");
+        Object tagsObj = metadata.get(KnowledgeConstants.METADATA_TAGS);
         if (tagsObj instanceof List) {
             @SuppressWarnings("unchecked")
             List<String> tags = (List<String>) tagsObj;
@@ -1046,6 +1047,72 @@ public class KnowledgeServiceImpl implements KnowledgeService {
         item.setMetadata(metadata);
 
         return item;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void vectorizeFileDocument(UUID fileId) {
+        // 注意：此方法存在循环依赖问题（KnowledgeService <-> FileDocumentService）
+        // 已通过 @Lazy 注解在 FileDocumentServiceImpl 中解决循环依赖
+        // 实际的文件向量化逻辑在 FileDocumentServiceImpl 中通过 Kafka 异步处理
+        // 如果需要直接调用，应该通过事件机制（Spring Events）或独立的服务类来解耦
+        log.warn("vectorizeFileDocument called but should be implemented via Kafka or event mechanism to avoid circular dependency. fileId: {}", fileId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public String retrieveFileContext(List<UUID> fileIds, String query, Integer topK) {
+        if (fileIds == null || fileIds.isEmpty() || !StringUtils.hasText(query)) {
+            return null;
+        }
+
+        int searchTopK = normalizeTopK(topK);
+        double threshold = KnowledgeConstants.DEFAULT_SIMILARITY_THRESHOLD;
+
+        SearchRequest searchRequest = SearchRequest.builder()
+                .query(query)
+                .topK(searchTopK)
+                .similarityThreshold(threshold)
+                .build();
+
+        List<Document> results = vectorStore.similaritySearch(searchRequest);
+
+        if (results == null || results.isEmpty()) {
+            return null;
+        }
+
+        // 过滤出属于指定文件的内容
+        StringBuilder context = new StringBuilder();
+        int count = 0;
+        for (Document doc : results) {
+            Map<String, Object> metadata = doc.getMetadata();
+            if (metadata != null) {
+                Object fileIdObj = metadata.get(KnowledgeConstants.METADATA_FILE_ID);
+                if (fileIdObj != null) {
+                    try {
+                        UUID docFileId = UUID.fromString(fileIdObj.toString());
+                        if (fileIds.contains(docFileId) && count < searchTopK) {
+                            String content = doc.getFormattedContent();
+                            if (StringUtils.hasText(content)) {
+                                if (count > 0) {
+                                    context.append(FileParserConstants.LINE_SEPARATOR)
+                                            .append(FileParserConstants.LINE_SEPARATOR);
+                                }
+                                context.append(KnowledgeConstants.FILE_CHUNK_PREFIX)
+                                        .append(count + 1)
+                                        .append(KnowledgeConstants.FILE_CHUNK_SUFFIX);
+                                context.append(content);
+                                count++;
+                            }
+                        }
+                    } catch (Exception e) {
+                        log.warn("Failed to parse fileId from metadata: {}", fileIdObj, e);
+                    }
+                }
+            }
+        }
+
+        return count > 0 ? context.toString() : null;
     }
 }
 

@@ -33,10 +33,15 @@ import java.util.regex.Pattern;
 @Component
 public class CourseAccessInterceptor implements HandlerInterceptor {
 
+    // 课程ID可能出现的参数名
+    private static final String[] COURSE_ID_PARAM_NAMES = {"courseId", "course_id", "id"};
+    // UUID正则表达式
+    private static final Pattern UUID_PATTERN = Pattern.compile(
+            "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+    );
     private final CourseMapper courseMapper;
     private final CourseStudentMapper courseStudentMapper;
     private final StudentClient studentClient;
-
     public CourseAccessInterceptor(
             CourseMapper courseMapper,
             CourseStudentMapper courseStudentMapper,
@@ -46,18 +51,11 @@ public class CourseAccessInterceptor implements HandlerInterceptor {
         this.studentClient = studentClient;
     }
 
-    // 课程ID可能出现的参数名
-    private static final String[] COURSE_ID_PARAM_NAMES = {"courseId", "course_id", "id"};
-    // UUID正则表达式
-    private static final Pattern UUID_PATTERN = Pattern.compile(
-            "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-    );
-
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         // 提取课程ID
         UUID courseId = extractCourseId(request);
-        
+
         // 如果没有课程ID，说明不是课程相关接口，直接放行
         if (courseId == null) {
             return true;
@@ -84,7 +82,7 @@ public class CourseAccessInterceptor implements HandlerInterceptor {
         // 课程是私有的，需要验证学生身份
         // 获取当前用户ID
         UUID currentUserId = UserContextUtil.getCurrentUserId();
-        
+
         // 从学生表中查询学生信息
         Result<StudentVO> studentResult = studentClient.getStudentByUserId(currentUserId);
         if (studentResult == null || !studentResult.isSuccess() || studentResult.getData() == null) {

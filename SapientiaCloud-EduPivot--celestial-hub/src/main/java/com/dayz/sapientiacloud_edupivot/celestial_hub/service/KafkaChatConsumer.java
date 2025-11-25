@@ -9,7 +9,6 @@ import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.vo.ChatSessionVO;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.enums.AIChatEnum;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.repository.ChatMessageRepository;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.utils.ChatMessageUtil;
-import com.github.f4b6a3.uuid.UuidCreator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
@@ -24,9 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import reactor.core.scheduler.Schedulers;
 
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -133,7 +130,8 @@ public class KafkaChatConsumer {
             }
 
             // 先保存用户消息（在AI调用前保存），带去重/幂等以避免重试重复
-            ChatMessage userMessage = addUserMessageIfNotDuplicate(sessionId, request.getMessage(), request.getAttachments(), chatContext.lastMessage(), finalRequestId);
+            ChatMessage userMessage = ChatMessageUtil.addUserMessageIfNotDuplicate(sessionId, request.getMessage(),
+                    request.getAttachments(), chatContext.lastMessage(), finalRequestId, chatMessageRepository);
 
             // 使用流式处理，将结果发送到Kafka响应主题
             final StringBuilder fullResponse = new StringBuilder();
@@ -155,7 +153,7 @@ public class KafkaChatConsumer {
                         String completeResponse = fullResponse.toString();
                         ChatMessage assistantMessage = null;
                         if (!completeResponse.isEmpty()) {
-                            assistantMessage = saveAssistantMessage(sessionId, completeResponse);
+                            assistantMessage = ChatMessageUtil.saveAssistantMessage(sessionId, completeResponse, chatMessageRepository);
                             chatSessionService.updateSessionLastMessage(sessionId, completeResponse);
                         }
 
@@ -188,8 +186,12 @@ public class KafkaChatConsumer {
             log.error("处理聊天请求失败, requestId: {}, 耗时: {}ms",
                     finalRequestId, System.currentTimeMillis() - startTime, e);
             kafkaChatService.handleError(finalRequestId, e);
-            // TODO 如果处理失败，可以考虑回滚已保存的用户消息
-            // 但为了数据完整性，这里保留用户消息
+            // 如果处理失败，可以考虑标记用户消息为"待处理"状态或删除已保存的用户消息
+            // 但为了数据完整性，这里保留用户消息，以便后续可以重试或人工处理
+            // 如果需要实现事务回滚，可以考虑：
+            // 1. 使用 Spring 事务管理，但需要注意 Kafka 消息确认的时机
+            // 2. 实现补偿机制，在失败时删除已保存的用户消息
+            // 3. 添加消息状态字段，标记为"待处理"，由后台任务重试
             throw e;
         }
     }
@@ -209,65 +211,5 @@ public class KafkaChatConsumer {
         return chatSessionService.addChatSession(userId, request.getCourseId(), request.getSessionType(), null);
     }
 
-    /**
-     * 添加用户消息
-     */
-    private ChatMessage addUserMessage(UUID sessionId, String content, List<String> attachments, String requestId) {
-        ChatMessage message = new ChatMessage();
-        message.setId(UuidCreator.getTimeOrderedEpoch());
-        message.setSessionId(sessionId);
-        message.setRole(AIChatConstants.ROLE_USER);
-        message.setContent(content);
-        message.setMessageType(AIChatConstants.MESSAGE_TYPE_TEXT);
-        message.setAttachments(attachments);
-        message.setRequestId(requestId);
-        message.setIsFeedback(AIChatConstants.FEEDBACK_NONE);
-        message.setCreateTime(LocalDateTime.now());
-        message.setUpdateTime(LocalDateTime.now());
-        try {
-            return chatMessageRepository.save(message);
-        } catch (org.springframework.dao.DuplicateKeyException dup) {
-            if (requestId != null) {
-                return chatMessageRepository.findFirstBySessionIdAndRoleAndRequestId(sessionId, AIChatConstants.ROLE_USER, requestId);
-            }
-            throw dup;
-        }
-    }
-
-    /**
-     * 保存助手消息
-     */
-    private ChatMessage saveAssistantMessage(UUID sessionId, String content) {
-        ChatMessage message = new ChatMessage();
-        message.setId(UuidCreator.getTimeOrderedEpoch());
-        message.setSessionId(sessionId);
-        message.setRole(AIChatConstants.ROLE_ASSISTANT);
-        message.setContent(content);
-        message.setMessageType(AIChatConstants.MESSAGE_TYPE_TEXT);
-        message.setModelName(AIChatConstants.MODEL_QWEN3_MAX);
-        message.setTokenCount(ChatMessageUtil.estimateTokens(content));
-        message.setIsFeedback(AIChatConstants.FEEDBACK_NONE);
-        message.setCreateTime(LocalDateTime.now());
-        message.setUpdateTime(LocalDateTime.now());
-        return chatMessageRepository.save(message);
-    }
-
-    /**
-     * 仅当与最后一条用户消息不相同时才保存，避免重试导致重复
-     */
-    private ChatMessage addUserMessageIfNotDuplicate(UUID sessionId, String content, List<String> attachments,
-                                                     ChatMessage lastMessageFromContext, String requestId) {
-        if (requestId != null) {
-            return addUserMessage(sessionId, content, attachments, requestId);
-        }
-        ChatMessage last = lastMessageFromContext;
-        if (last != null
-                && Objects.equals(last.getRole(), AIChatConstants.ROLE_USER)
-                && Objects.equals(last.getContent(), content)
-                && ChatMessageUtil.attachmentsEqual(last.getAttachments(), attachments)) {
-            return last;
-        }
-        return addUserMessage(sessionId, content, attachments, null);
-    }
 
 }

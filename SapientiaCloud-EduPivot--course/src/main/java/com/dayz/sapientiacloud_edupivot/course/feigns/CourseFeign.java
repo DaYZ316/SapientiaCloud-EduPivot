@@ -31,7 +31,6 @@ public class CourseFeign {
     private final IForumReplyService forumReplyService;
     private final ICourseQuestionBankService courseQuestionBankService;
     private final IQuestionService questionService;
-    private final IQuestionOptionService questionOptionService;
 
     @Operation(summary = "根据课程ID查询课程")
     @GetMapping("/internal/{id}")

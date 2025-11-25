@@ -3,6 +3,7 @@ package com.dayz.sapientiacloud_edupivot.celestial_hub.service.impl;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.common.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.common.security.utils.UserContextUtil;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.constant.AIChatConstants;
+import com.dayz.sapientiacloud_edupivot.celestial_hub.constant.FileDocumentConstants;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.ChatSessionQueryDTO;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.po.ChatMessage;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.po.ChatSession;
@@ -20,10 +21,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.aggregation.Aggregation;
-import org.springframework.data.mongodb.core.aggregation.AggregationResults;
-import org.springframework.data.mongodb.core.aggregation.GroupOperation;
-import org.springframework.data.mongodb.core.aggregation.MatchOperation;
+import org.springframework.data.mongodb.core.aggregation.*;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
@@ -57,7 +55,8 @@ public class ChatSessionServiceImpl implements IChatSessionService {
         }
 
         if (StringUtils.hasText(chatSessionQueryDTO.getSessionTitle())) {
-            criteria.and(AIChatConstants.FIELD_SESSION_TITLE).regex(chatSessionQueryDTO.getSessionTitle(), "i");
+            criteria.and(AIChatConstants.FIELD_SESSION_TITLE).regex(chatSessionQueryDTO.getSessionTitle(),
+                    FileDocumentConstants.REGEX_CASE_INSENSITIVE);
         }
 
         if (chatSessionQueryDTO.getSessionType() != null) {
@@ -309,25 +308,77 @@ public class ChatSessionServiceImpl implements IChatSessionService {
                 .map(ChatSession::getId)
                 .collect(Collectors.toList());
 
-        Query lastMessageQuery = new Query();
-        lastMessageQuery.addCriteria(Criteria.where(AIChatConstants.FIELD_SESSION_ID).in(sessionIds));
-        lastMessageQuery.with(Sort.by(Sort.Order.desc(AIChatConstants.FIELD_CREATE_TIME)));
-        List<ChatMessage> allMessages = mongoTemplate.find(lastMessageQuery, ChatMessage.class);
-
+        // 使用聚合查询获取每个会话的最后一条消息（优化：只返回每个会话的最新消息）
+        // 如果 sessionIds 数量较少，可以为每个单独查询；否则使用聚合查询
         Map<UUID, ChatMessage> lastMessageMap = new HashMap<>();
-        for (ChatMessage msg : allMessages) {
-            lastMessageMap.putIfAbsent(msg.getSessionId(), msg);
+        if (sessionIds.size() <= 10) {
+            // 数量少时，直接查询每个会话的最后一条消息
+            for (UUID sessionId : sessionIds) {
+                ChatMessage lastMessage = chatMessageRepository
+                        .findFirstBySessionIdOrderByCreateTimeDesc(sessionId);
+                if (lastMessage != null) {
+                    lastMessageMap.put(sessionId, lastMessage);
+                }
+            }
+        } else {
+            // 数量多时，使用聚合查询优化
+            MatchOperation matchLastMessage = Aggregation.match(
+                    Criteria.where(AIChatConstants.FIELD_SESSION_ID).in(sessionIds));
+            SortOperation sortByCreateTime = Aggregation.sort(Sort.Direction.DESC, AIChatConstants.FIELD_CREATE_TIME);
+            GroupOperation groupBySession = Aggregation.group(AIChatConstants.FIELD_SESSION_ID)
+                    .first(AIChatConstants.FIELD_ID).as("messageId")
+                    .first("content").as("content")  // ChatMessage 实体中的 content 字段
+                    .first(AIChatConstants.FIELD_CREATE_TIME).as("createTime");
+            Aggregation lastMessageAggregation = Aggregation.newAggregation(
+                    matchLastMessage, sortByCreateTime, groupBySession);
+
+            AggregationResults<Map> lastMessageResults = mongoTemplate.aggregate(
+                    lastMessageAggregation, AIChatConstants.COLLECTION_CHAT_MESSAGE, Map.class);
+
+            // 从聚合结果中提取消息ID，然后批量查询完整消息对象
+            List<UUID> lastMessageIds = new ArrayList<>();
+            Map<UUID, UUID> sessionIdToMessageIdMap = new HashMap<>();
+            for (Map result : lastMessageResults.getMappedResults()) {
+                Object sessionIdObj = result.get(AIChatConstants.FIELD_ID);
+                Object messageIdObj = result.get("messageId");
+                if (sessionIdObj != null && messageIdObj != null) {
+                    UUID sessionId = sessionIdObj instanceof UUID ? (UUID) sessionIdObj :
+                            UUID.fromString(sessionIdObj.toString());
+                    UUID messageId = messageIdObj instanceof UUID ? (UUID) messageIdObj :
+                            UUID.fromString(messageIdObj.toString());
+                    sessionIdToMessageIdMap.put(sessionId, messageId);
+                    lastMessageIds.add(messageId);
+                }
+            }
+
+            // 批量查询消息对象
+            if (!lastMessageIds.isEmpty()) {
+                Query messageQuery = new Query();
+                messageQuery.addCriteria(Criteria.where(AIChatConstants.FIELD_ID).in(lastMessageIds));
+                List<ChatMessage> lastMessages = mongoTemplate.find(messageQuery, ChatMessage.class);
+                Map<UUID, ChatMessage> messageMap = lastMessages.stream()
+                        .collect(Collectors.toMap(ChatMessage::getId, msg -> msg));
+                for (Map.Entry<UUID, UUID> entry : sessionIdToMessageIdMap.entrySet()) {
+                    ChatMessage msg = messageMap.get(entry.getValue());
+                    if (msg != null) {
+                        lastMessageMap.put(entry.getKey(), msg);
+                    }
+                }
+            }
         }
 
-        MatchOperation matchOperation = Aggregation.match(Criteria.where(AIChatConstants.FIELD_SESSION_ID).in(sessionIds));
-        GroupOperation groupOperation = Aggregation.group(AIChatConstants.FIELD_SESSION_ID).count().as(AIChatConstants.FIELD_COUNT);
-        Aggregation aggregation = Aggregation.newAggregation(matchOperation, groupOperation);
+        // 使用聚合查询统计每个会话的消息数量
+        MatchOperation matchCount = Aggregation.match(
+                Criteria.where(AIChatConstants.FIELD_SESSION_ID).in(sessionIds));
+        GroupOperation groupCount = Aggregation.group(AIChatConstants.FIELD_SESSION_ID)
+                .count().as(AIChatConstants.FIELD_COUNT);
+        Aggregation countAggregation = Aggregation.newAggregation(matchCount, groupCount);
 
-        AggregationResults<Map> results =
-                mongoTemplate.aggregate(aggregation, AIChatConstants.COLLECTION_CHAT_MESSAGE, Map.class);
+        AggregationResults<Map> countResults = mongoTemplate.aggregate(
+                countAggregation, AIChatConstants.COLLECTION_CHAT_MESSAGE, Map.class);
 
         Map<UUID, Long> messageCountMap = new HashMap<>();
-        for (Map result : results.getMappedResults()) {
+        for (Map result : countResults.getMappedResults()) {
             Object sessionIdObj = result.get(AIChatConstants.FIELD_ID);
             Object countObj = result.get(AIChatConstants.FIELD_COUNT);
             if (sessionIdObj != null && countObj != null) {
@@ -340,34 +391,25 @@ public class ChatSessionServiceImpl implements IChatSessionService {
         }
 
         return sessions.stream()
-                .map(session -> {
-                    ChatSessionVO vo = new ChatSessionVO();
-                    BeanUtils.copyProperties(session, vo);
-
-                    ChatMessage lastMessage = lastMessageMap.get(session.getId());
-                    if (lastMessage != null) {
-                        String preview = lastMessage.getContent();
-                        vo.setLastMessagePreview(preview != null &&
-                                preview.length() > AIChatConstants.DEFAULT_PREVIEW_MAX_LENGTH ?
-                                preview.substring(AIChatConstants.DEFAULT_MESSAGE_COUNT,
-                                        AIChatConstants.DEFAULT_PREVIEW_MAX_LENGTH) + AIChatConstants.ELLIPSIS
-                                : preview);
-                    }
-
-                    Long messageCount = messageCountMap.get(session.getId());
-                    vo.setMessageCount(messageCount != null ? messageCount.intValue() : AIChatConstants.DEFAULT_MESSAGE_COUNT);
-
-                    return vo;
-                })
+                .map(session -> convertToVO(session, lastMessageMap.get(session.getId()),
+                        messageCountMap.get(session.getId())))
                 .collect(Collectors.toList());
     }
 
     private ChatSessionVO convertToVO(ChatSession session) {
+        ChatMessage lastMessage = chatMessageRepository
+                .findFirstBySessionIdOrderByCreateTimeDesc(session.getId());
+        long messageCount = chatMessageRepository.countBySessionId(session.getId());
+        return convertToVO(session, lastMessage, messageCount);
+    }
+
+    /**
+     * 将 ChatSession 转换为 ChatSessionVO（提取公共逻辑）
+     */
+    private ChatSessionVO convertToVO(ChatSession session, ChatMessage lastMessage, Long messageCount) {
         ChatSessionVO vo = new ChatSessionVO();
         BeanUtils.copyProperties(session, vo);
 
-        ChatMessage lastMessage = chatMessageRepository
-                .findFirstBySessionIdOrderByCreateTimeDesc(session.getId());
         if (lastMessage != null) {
             String preview = lastMessage.getContent();
             vo.setLastMessagePreview(preview != null &&
@@ -377,8 +419,7 @@ public class ChatSessionServiceImpl implements IChatSessionService {
                     : preview);
         }
 
-        long messageCount = chatMessageRepository.countBySessionId(session.getId());
-        vo.setMessageCount((int) messageCount);
+        vo.setMessageCount(messageCount != null ? messageCount.intValue() : AIChatConstants.DEFAULT_MESSAGE_COUNT);
 
         return vo;
     }

@@ -53,7 +53,6 @@
         <result column="location" property="location"/>
         <result column="teacher_name" property="teacherName"/>
         <result column="teacher_avatar" property="teacherAvatar"/>
-        <result column="is_public" property="isPublic"/>
     </resultMap>
 
     <select id="listCourse" resultMap="CourseVOMap"

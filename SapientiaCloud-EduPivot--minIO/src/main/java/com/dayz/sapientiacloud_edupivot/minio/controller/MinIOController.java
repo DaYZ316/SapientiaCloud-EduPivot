@@ -161,6 +161,29 @@ public class MinIOController {
     }
 
     /**
+     * 下载文件（返回字节数组，用于Feign调用）
+     *
+     * @param objectName 对象名称
+     * @param bucketCode 业务桶编码
+     * @return 文件字节数组
+     */
+    @Operation(summary = "downloadFileBytes", description = "下载文件接口（返回字节数组）")
+    @GetMapping("/download/bytes")
+    public Result<byte[]> downloadFileBytes(
+            @Parameter(description = "文件对象名称", required = true) @RequestParam("objectName") String objectName,
+            @Parameter(description = "业务桶编码", required = false) @RequestParam(value = "bucketCode", required = false) BusinessBucketEnum bucketCode
+    ) {
+        try {
+            try (InputStream inputStream = minIOUtil.downloadFile(objectName, resolveBucketCode(bucketCode))) {
+                byte[] bytes = IOUtils.toByteArray(inputStream);
+                return Result.success(bytes);
+            }
+        } catch (Exception e) {
+            throw new BusinessException(MinIOConstants.FILE_DOWNLOAD_FAILED_MESSAGE + ": " + e.getMessage());
+        }
+    }
+
+    /**
      * 删除文件
      *
      * @param objectName 对象名称
