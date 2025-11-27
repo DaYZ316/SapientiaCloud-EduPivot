@@ -28,6 +28,7 @@ import reactor.core.Exceptions;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -344,8 +345,7 @@ public class KafkaChatConsumer {
         if (Exceptions.isCancel(error) || error instanceof java.util.concurrent.CancellationException) {
             return true;
         }
-        if (error instanceof java.io.IOException || error instanceof java.net.SocketException
-                || error instanceof java.nio.channels.ClosedChannelException) {
+        if (error instanceof IOException) {
             return true;
         }
         String message = error.getMessage();

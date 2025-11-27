@@ -51,3 +51,19 @@ MONGODB_DATABASE: sapientiacloud_edupivot
 MONGODB_USERNAME: root
 MONGODB_PASSWORD: zhaosheng123
 MONGODB_AUTH_DATABASE: admin
+
+livekit:
+  host: ${LIVEKIT_HOST}
+  api-key: ${LIVEKIT_API_KEY}
+  api-secret: ${LIVEKIT_API_SECRET}
+  token-ttl-seconds: 7200
+  room:
+    empty-timeout-seconds: 300
+    departure-timeout-seconds: 20
+    max-participants: 500
+  egress:
+    enable: false
+
+LIVEKIT_HOST: http://localhost:7880
+LIVEKIT_API_KEY: "x9!r3@k7#b2% f5^j8&m1*t4 (y6) g9q3z2w5v7s1d4h6n8"
+LIVEKIT_API_SECRET: "7p@2w!5d#8g%3j^6l&9n*1r (y4) t7z3x5c8v2b4f6k1m9"

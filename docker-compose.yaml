@@ -88,6 +88,33 @@ services:
     volumes:
       - kafka_data:/var/lib/kafka/data
 
+  livekit:
+    image: livekit/livekit-server:latest
+    container_name: livekit
+    environment:
+      LIVEKIT_API_KEY: "x9!r3@k7#b2% f5^j8&m1*t4 (y6) g9q3z2w5v7s1d4h6n8"
+      LIVEKIT_API_SECRET: "7p@2w!5d#8g%3j^6l&9n*1r (y4) t7z3x5c8v2b4f6k1m9"
+      LIVEKIT_STUN_SERVERS: "stun:stun.cloudflare.com:3478"
+      LIVEKIT_CONFIG: |
+        port: 7880
+        log_level: info
+        bind_addresses: ["0.0.0.0"]
+        rtc:
+          tcp_port: 7881
+          port_range_start: 50000
+          port_range_end: 50010
+          use_external_ip: true
+          # 你也可以在这里添加 stun_servers，效果是一样的
+          # stun_servers:
+          #   - url: stun:stun.cloudflare.com:3478
+        keys:
+          "x9!r3@k7#b2% f5^j8&m1*t4 (y6) g9q3z2w5v7s1d4h6n8": "7p@2w!5d#8g%3j^6l&9n*1r (y4) t7z3x5c8v2b4f6k1m9"
+    ports:
+      - "7880:7880/tcp"       # HTTP API 和 WebSocket 信令
+      - "7881:7881/tcp"       # TCP 回退（用于防火墙严格的环境）
+      - "50000-50010:50000-50010/udp" # UDP 媒体流端口
+    restart: unless-stopped
+
 volumes:
   mysql_data:
   redis_data:
