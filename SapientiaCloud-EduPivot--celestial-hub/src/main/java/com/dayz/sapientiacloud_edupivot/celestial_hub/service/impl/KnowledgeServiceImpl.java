@@ -5,7 +5,6 @@ import com.dayz.sapientiacloud_edupivot.celestial_hub.common.entity.vo.*;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.common.enums.StatusEnum;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.common.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.common.result.Result;
-import com.dayz.sapientiacloud_edupivot.celestial_hub.common.security.utils.UserContextUtil;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.constant.FileParserConstants;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.constant.KnowledgeConstants;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.KnowledgeSearchRequestDTO;
@@ -16,6 +15,7 @@ import com.dayz.sapientiacloud_edupivot.celestial_hub.enums.ContentTypeEnum;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.enums.KnowledgeEnum;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.repository.KnowledgeVectorRepository;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.KnowledgeService;
+import com.dayz.sapientiacloud_edupivot.celestial_hub.common.security.utils.UserContextUtil;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.utils.HtmlTextUtil;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.utils.VectorIdUtil;
 import com.github.f4b6a3.uuid.UuidCreator;
@@ -224,24 +224,6 @@ public class KnowledgeServiceImpl implements KnowledgeService {
             log.warn("Failed to parse Double from value: {}", str);
             return null;
         }
-    }
-
-    private static Double firstNonNullDouble(Object... values) {
-        if (values == null) {
-            return null;
-        }
-        for (Object value : values) {
-            Double parsed = safeParseDouble(value);
-            if (parsed != null) {
-                return parsed;
-            }
-        }
-        return null;
-    }
-
-    private static boolean hasMetadataFilter() {
-        // 无论是否传入 sessionId，都会对文件向量进行额外处理，因此始终视为存在过滤逻辑
-        return true;
     }
 
     @Override
@@ -1015,6 +997,19 @@ public class KnowledgeServiceImpl implements KnowledgeService {
         return StringUtils.hasText(candidate) ? candidate : null;
     }
 
+    private static Double firstNonNullDouble(Object... values) {
+        if (values == null) {
+            return null;
+        }
+        for (Object value : values) {
+            Double parsed = safeParseDouble(value);
+            if (parsed != null) {
+                return parsed;
+            }
+        }
+        return null;
+    }
+
     private boolean shouldIncludeVector(KnowledgeVector vector, KnowledgeSearchRequestDTO request, UUID currentUserId) {
         if (vector == null) {
             return false;
@@ -1060,6 +1055,11 @@ public class KnowledgeServiceImpl implements KnowledgeService {
                 return false;
             }
         }
+        return true;
+    }
+
+    private static boolean hasMetadataFilter() {
+        // 无论是否传入 sessionId，都会对文件向量进行额外处理，因此始终视为存在过滤逻辑
         return true;
     }
 

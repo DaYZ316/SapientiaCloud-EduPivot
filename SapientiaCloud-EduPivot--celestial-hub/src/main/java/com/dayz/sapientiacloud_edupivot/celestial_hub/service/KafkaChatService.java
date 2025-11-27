@@ -246,14 +246,6 @@ public class KafkaChatService {
         }
     }
 
-    public enum ChatResponseType {
-        CHUNK, COMPLETE, ERROR
-    }
-
-    public enum ChatControlType {
-        CANCEL
-    }
-
     /**
      * Kafka请求消息
      */
@@ -276,6 +268,10 @@ public class KafkaChatService {
         private String error;
     }
 
+    public enum ChatResponseType {
+        CHUNK, COMPLETE, ERROR
+    }
+
     /**
      * Kafka控制消息
      */
@@ -285,5 +281,9 @@ public class KafkaChatService {
         private String requestId;
         private ChatControlType type;
         private String reason;
+    }
+
+    public enum ChatControlType {
+        CANCEL
     }
 }
