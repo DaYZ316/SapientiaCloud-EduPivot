@@ -18,6 +18,7 @@ public enum AIChatEnum implements BaseEnum {
     MESSAGE_ID_REQUIRED(50012, "消息ID不能为空"),
     MESSAGE_CONTENT_REQUIRED(50013, "消息内容不能为空"),
     MESSAGE_ROLE_INVALID(50014, "消息角色无效"),
+    REQUEST_ID_REQUIRED(50015, "请求ID不能为空"),
 
     // AI服务相关错误
     AI_SERVICE_ERROR(50021, "AI服务异常，请稍后重试"),

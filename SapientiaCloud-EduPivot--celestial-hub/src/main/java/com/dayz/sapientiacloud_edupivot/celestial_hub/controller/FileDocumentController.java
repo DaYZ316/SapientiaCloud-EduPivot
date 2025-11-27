@@ -4,6 +4,7 @@ import com.dayz.sapientiacloud_edupivot.celestial_hub.common.controller.BaseCont
 import com.dayz.sapientiacloud_edupivot.celestial_hub.common.result.Result;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.FileQueryDTO;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.FileUploadDTO;
+import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.po.FileInfo;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.vo.FileDocumentVO;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.IFileDocumentService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -27,7 +28,7 @@ public class FileDocumentController extends BaseController {
 
     private final IFileDocumentService fileDocumentService;
 
-    @Operation(summary = "上传文件", description = "上传单个文件")
+    @Operation(summary = "uploadFile", description = "上传单个文件")
     @PostMapping("/upload")
     public Result<FileDocumentVO> uploadFile(
             @Parameter(description = "上传的文件", required = true) @RequestParam("file") MultipartFile file,
@@ -43,7 +44,7 @@ public class FileDocumentController extends BaseController {
         return Result.success(vo);
     }
 
-    @Operation(summary = "批量上传文件", description = "批量上传多个文件")
+    @Operation(summary = "uploadFiles", description = "批量上传多个文件")
     @PostMapping("/upload/batch")
     public Result<List<FileDocumentVO>> uploadFiles(
             @Parameter(description = "上传的文件列表", required = true) @RequestParam("files") List<MultipartFile> files,
@@ -59,7 +60,7 @@ public class FileDocumentController extends BaseController {
         return Result.success(vos);
     }
 
-    @Operation(summary = "获取文件信息", description = "根据文件ID获取文件信息")
+    @Operation(summary = "getFileById", description = "根据文件ID获取文件信息")
     @GetMapping("/{id}")
     public Result<FileDocumentVO> getFileById(
             @Parameter(description = "文件ID", required = true) @PathVariable("id") UUID id
@@ -68,7 +69,7 @@ public class FileDocumentController extends BaseController {
         return Result.success(vo);
     }
 
-    @Operation(summary = "删除文件", description = "根据文件ID删除文件")
+    @Operation(summary = "deleteFile", description = "根据文件ID删除文件")
     @DeleteMapping("/{id}")
     public Result<Boolean> deleteFile(
             @Parameter(description = "文件ID", required = true) @PathVariable("id") UUID id
@@ -77,7 +78,7 @@ public class FileDocumentController extends BaseController {
         return Result.success(result);
     }
 
-    @Operation(summary = "查询文件列表", description = "分页查询文件列表")
+    @Operation(summary = "listFiles", description = "分页查询文件列表")
     @GetMapping("/list")
     public Result<Page<FileDocumentVO>> listFiles(
             @Parameter(description = "会话ID") @RequestParam(value = "sessionId", required = false) UUID sessionId,
@@ -100,13 +101,22 @@ public class FileDocumentController extends BaseController {
         return Result.success(page);
     }
 
-    @Operation(summary = "向量化文件", description = "手动触发文件向量化")
+    @Operation(summary = "vectorizeFile", description = "手动触发文件向量化")
     @PostMapping("/{id}/vectorize")
     public Result<Boolean> vectorizeFile(
             @Parameter(description = "文件ID", required = true) @PathVariable("id") UUID id
     ) {
         Boolean result = fileDocumentService.vectorizeFile(id);
         return Result.success(result);
+    }
+
+    @Operation(summary = "getFilesBySessionId", description = "根据会话ID获取文件信息列表")
+    @GetMapping("/session/{sessionId}/files")
+    public Result<List<FileInfo>> getFilesBySessionId(
+            @Parameter(description = "会话ID", required = true) @PathVariable("sessionId") UUID sessionId
+    ) {
+        List<FileInfo> files = fileDocumentService.getFileInfosBySessionId(sessionId);
+        return Result.success(files);
     }
 }
 

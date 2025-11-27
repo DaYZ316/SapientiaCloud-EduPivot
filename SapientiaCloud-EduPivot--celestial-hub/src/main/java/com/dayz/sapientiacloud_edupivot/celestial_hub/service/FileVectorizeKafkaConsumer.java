@@ -2,13 +2,18 @@ package com.dayz.sapientiacloud_edupivot.celestial_hub.service;
 
 import com.alibaba.fastjson2.JSON;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.clients.MinIOClient;
+import com.dayz.sapientiacloud_edupivot.celestial_hub.common.enums.StatusEnum;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.common.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.common.result.Result;
+import com.dayz.sapientiacloud_edupivot.celestial_hub.constant.KnowledgeConstants;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.FileVectorizeRequestDTO;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.po.FileDocument;
+import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.po.KnowledgeVector;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.enums.FileDocumentEnum;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.enums.FileStatusEnum;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.repository.FileDocumentRepository;
+import com.dayz.sapientiacloud_edupivot.celestial_hub.repository.KnowledgeVectorRepository;
+import com.dayz.sapientiacloud_edupivot.celestial_hub.utils.VectorIdUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
@@ -41,8 +46,13 @@ public class FileVectorizeKafkaConsumer {
     private final IFileParserService fileParserService;
     private final VectorStore vectorStore;
 
+    private final KnowledgeVectorRepository knowledgeVectorRepository;
+
     @Value("${spring.kafka.topic.file-vectorize:file-vectorize-topic}")
     private String fileVectorizeTopic;
+
+    @Value("${spring.ai.vectorstore.redis.prefix:vector}")
+    private String redisVectorKeyPrefix;
 
     /**
      * 消费文件向量化任务
@@ -64,7 +74,7 @@ public class FileVectorizeKafkaConsumer {
             FileVectorizeRequestDTO request = JSON.parseObject(message, FileVectorizeRequestDTO.class);
             fileId = request.getFileId();
 
-            log.info("开始处理文件向量化任务, fileId: {}, partition: {}, offset: {}", fileId, partition, offset);
+            log.debug("开始处理文件向量化任务, fileId: {}, partition: {}, offset: {}", fileId, partition, offset);
 
             // 获取文件文档
             FileDocument fileDocument = fileDocumentRepository.findById(fileId)
@@ -117,7 +127,7 @@ public class FileVectorizeKafkaConsumer {
             fileDocument.setUpdateTime(LocalDateTime.now());
             fileDocumentRepository.save(fileDocument);
 
-            log.info("文件向量化任务完成, fileId: {}", fileId);
+            log.debug("文件向量化任务完成, fileId: {}", fileId);
             acknowledgment.acknowledge();
 
         } catch (BusinessException e) {
@@ -147,20 +157,38 @@ public class FileVectorizeKafkaConsumer {
                 continue;
             }
 
-            // 构建文档元数据
+            // 构建文档元数据（禁止 null 值），与课程/聊天向量保持统一结构
             Map<String, Object> metadata = new HashMap<>();
-            metadata.put("file_id", fileDocument.getId().toString());
-            metadata.put("file_name", fileDocument.getFileName());
-            metadata.put("file_type", fileDocument.getFileType());
-            metadata.put("course_id", fileDocument.getCourseId() != null ? fileDocument.getCourseId().toString() : null);
-            metadata.put("session_id", fileDocument.getSessionId() != null ? fileDocument.getSessionId().toString() : null);
-            metadata.put("user_id", fileDocument.getSysUserId() != null ? fileDocument.getSysUserId().toString() : null);
-            metadata.put("chunk_index", i);
-            metadata.put("chunk_total", chunks.size());
-            metadata.put("content_type", "file_document");
 
-            // 创建文档
-            Document document = new Document(chunk, metadata);
+            // ===== 统一后的主结构（camelCase，与课程相关内容向量一致） =====
+            // 内容类型：文件
+            metadata.put(KnowledgeConstants.METADATA_CONTENT_TYPE, KnowledgeConstants.CONTENT_TYPE_FILE);
+            // 以文件ID作为内容ID（contentId）
+            metadata.put(KnowledgeConstants.METADATA_CONTENT_ID, fileDocument.getId().toString());
+            // 课程ID
+            putIfNotNull(metadata, KnowledgeConstants.METADATA_COURSE_ID, fileDocument.getCourseId());
+            // 章节信息对文件向量暂不使用，保持为空字符串
+            metadata.put(KnowledgeConstants.METADATA_CHAPTER_ID, KnowledgeConstants.DEFAULT_EMPTY_STRING);
+            // 文件ID（fileId）
+            metadata.put(KnowledgeConstants.METADATA_FILE_ID, fileDocument.getId().toString());
+            // 会话ID => chatSessionId
+            putIfNotNull(metadata, KnowledgeConstants.METADATA_SESSION_ID, fileDocument.getSessionId());
+            // 用户ID
+            putIfNotNull(metadata, KnowledgeConstants.METADATA_USER_ID, fileDocument.getSysUserId());
+            // 标题统一用 title，取文件名
+            putIfNotNull(metadata, KnowledgeConstants.METADATA_TITLE, fileDocument.getFileName());
+            // 创建时间
+            metadata.put(KnowledgeConstants.METADATA_CREATE_TIME,
+                    fileDocument.getCreateTime() != null ? fileDocument.getCreateTime().toString() : LocalDateTime.now().toString());
+            // tags 与 embeddingModel
+            metadata.put(KnowledgeConstants.METADATA_TAGS, new ArrayList<String>());
+            metadata.put(KnowledgeConstants.METADATA_EMBEDDING_MODEL, KnowledgeConstants.EMBEDDING_MODEL_TEXT_V1);
+            // Chunk 索引
+            metadata.put(KnowledgeConstants.METADATA_CHUNK_INDEX, i);
+            String vectorId = VectorIdUtil.ensureVectorId(metadata, redisVectorKeyPrefix);
+
+            // 创建文档（向量库内部可能会生成自己的ID，但我们自己维护的 vectorId 保存在 metadata 中）
+            Document document = new Document(vectorId, chunk, metadata);
             documents.add(document);
         }
 
@@ -168,6 +196,18 @@ public class FileVectorizeKafkaConsumer {
             // 批量向量化并保存
             vectorStore.add(documents);
             log.debug("文件向量化完成, fileId: {}, chunks: {}", fileDocument.getId(), documents.size());
+
+            // 将文件向量元数据写入知识向量表，便于检索时补全信息
+            List<KnowledgeVector> vectors = new ArrayList<>();
+            for (org.springframework.ai.document.Document doc : documents) {
+                KnowledgeVector vector = buildFileKnowledgeVector(doc, fileDocument);
+                if (vector != null) {
+                    vectors.add(vector);
+                }
+            }
+            if (!vectors.isEmpty()) {
+                knowledgeVectorRepository.saveAll(vectors);
+            }
 
             // 更新向量数量
             fileDocument.setVectorCount(documents.size());
@@ -207,6 +247,57 @@ public class FileVectorizeKafkaConsumer {
         } catch (Exception e) {
             log.error("更新文件状态失败, fileId: {}, error: {}", fileId, e.getMessage(), e);
         }
+    }
+
+    /**
+     * 构建文件向量的 KnowledgeVector 记录
+     */
+    private KnowledgeVector buildFileKnowledgeVector(org.springframework.ai.document.Document doc, FileDocument fileDocument) {
+        if (doc == null) {
+            return null;
+        } else {
+            doc.getId();
+        }
+
+        Map<String, Object> metadata = doc.getMetadata();
+
+        KnowledgeVector vector = new KnowledgeVector();
+        vector.setId(com.github.f4b6a3.uuid.UuidCreator.getTimeOrderedEpoch());
+        vector.setVectorId(doc.getId());
+        // 对于文件向量，courseId / userId / sessionId 等可以从 FileDocument 回填，避免 metadata 丢失时字段为空
+        vector.setCourseId(fileDocument.getCourseId());
+        vector.setChapterId(null);
+        vector.setContentType(KnowledgeConstants.CONTENT_TYPE_FILE);
+        // 使用文件ID作为内容ID
+        vector.setContentId(fileDocument.getId());
+        vector.setQuestionBankId(null);
+        vector.setQuestionId(null);
+        vector.setTaskId(null);
+        vector.setForumId(null);
+        vector.setPostId(null);
+        vector.setUserId(fileDocument.getSysUserId());
+        vector.setSessionId(fileDocument.getSessionId());
+        vector.setTitle(fileDocument.getFileName());
+        vector.setContent(doc.getFormattedContent());
+        vector.setEmbeddingModel(KnowledgeConstants.EMBEDDING_MODEL_TEXT_V1);
+        vector.setMetadata(metadata);
+        // 文件标签暂不传递，保持为空列表
+        vector.setTags(Collections.emptyList());
+        vector.setStatus(StatusEnum.NORMAL.getCode());
+        vector.setCreateTime(LocalDateTime.now());
+        vector.setUpdateTime(LocalDateTime.now());
+
+        return vector;
+    }
+
+    /**
+     * 只在值非空时放入 metadata，避免 Spring AI 抛出空值异常
+     */
+    private void putIfNotNull(Map<String, Object> metadata, String key, Object value) {
+        if (value == null) {
+            return;
+        }
+        metadata.put(key, value instanceof UUID ? value.toString() : value);
     }
 }
 

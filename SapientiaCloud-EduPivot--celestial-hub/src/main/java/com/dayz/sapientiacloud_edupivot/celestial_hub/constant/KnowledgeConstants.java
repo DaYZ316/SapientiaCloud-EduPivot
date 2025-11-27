@@ -43,12 +43,17 @@ public class KnowledgeConstants {
     public static final String METADATA_TASK_ID = "taskId";
     public static final String METADATA_FORUM_ID = "forumId";
     public static final String METADATA_POST_ID = "postId";
-    public static final String METADATA_CHAT_SESSION_ID = "chatSessionId";
-    public static final String METADATA_CHAT_MESSAGE_ID = "chatMessageId";
+    public static final String METADATA_SESSION_ID = "sessionId";
+    public static final String METADATA_MESSAGE_ID = "chatMessageId";
     public static final String METADATA_USER_ID = "userId";
+    public static final String METADATA_CREATE_TIME = "createTime";
     public static final String METADATA_FILE_ID = "fileId";
     public static final String METADATA_TITLE = "title";
     public static final String METADATA_SCORE = "score";
+    /**
+     * 向量唯一标识（用于关联向量库与知识向量表）
+     */
+    public static final String METADATA_VECTOR_ID = "vectorId";
 
     // ==================== 默认值 ====================
 
@@ -86,11 +91,12 @@ public class KnowledgeConstants {
      * 标签元数据键
      */
     public static final String METADATA_TAGS = "tags";
+    public static final String METADATA_EMBEDDING_MODEL = "embeddingModel";
 
     /**
      * Chunk索引字段
      */
-    public static final String METADATA_CHUNK_INDEX = "chunk_index";
+    public static final String METADATA_CHUNK_INDEX = "chunkIndex";
 
     // ==================== 聊天内容格式 ====================
 

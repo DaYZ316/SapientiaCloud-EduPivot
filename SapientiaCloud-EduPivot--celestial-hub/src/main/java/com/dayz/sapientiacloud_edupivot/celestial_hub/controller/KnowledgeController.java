@@ -4,9 +4,9 @@ import com.dayz.sapientiacloud_edupivot.celestial_hub.common.controller.BaseCont
 import com.dayz.sapientiacloud_edupivot.celestial_hub.common.result.Result;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.common.security.annotation.HasPermission;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.constant.PermissionConstants;
-import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.KnowledgeRequestDTO;
+import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.KnowledgeSearchRequestDTO;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.VectorizeRequestDTO;
-import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.vo.KnowledgeSearchVO;
+import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.vo.KnowledgeSearchResultVO;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.KnowledgeService;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -14,6 +14,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @Tag(name = "知识管理", description = "知识向量化和检索相关接口")
@@ -23,17 +24,6 @@ import java.util.UUID;
 public class KnowledgeController extends BaseController {
 
     private final KnowledgeService knowledgeService;
-
-    @HasPermission(
-            summary = "searchKnowledge",
-            description = "基于向量相似度检索知识内容",
-            permission = PermissionConstants.CELESTIAL_QUERY
-    )
-    @PostMapping("/search")
-    public Result<KnowledgeSearchVO> searchKnowledge(@Valid @RequestBody KnowledgeRequestDTO query) {
-        KnowledgeSearchVO result = knowledgeService.searchKnowledge(query);
-        return Result.success(result);
-    }
 
     @HasPermission(
             summary = "vectorizeContent",
@@ -80,6 +70,17 @@ public class KnowledgeController extends BaseController {
             @Parameter(name = "courseId", description = "课程ID", required = true) @PathVariable UUID courseId) {
         Long count = knowledgeService.getCourseVectorCount(courseId);
         return Result.success(count);
+    }
+
+    @HasPermission(
+            summary = "searchKnowledge",
+            description = "检索知识向量内容",
+            permission = PermissionConstants.CELESTIAL_QUERY
+    )
+    @PostMapping("/knowledge/search")
+    public Result<List<KnowledgeSearchResultVO>> searchKnowledge(@Valid @RequestBody KnowledgeSearchRequestDTO request) {
+        List<KnowledgeSearchResultVO> results = knowledgeService.searchKnowledge(request);
+        return Result.success(results);
     }
 }
 

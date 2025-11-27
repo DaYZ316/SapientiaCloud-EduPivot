@@ -21,7 +21,10 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.aggregation.*;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.GroupOperation;
+import org.springframework.data.mongodb.core.aggregation.MatchOperation;
+import org.springframework.data.mongodb.core.aggregation.SortOperation;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
@@ -215,7 +218,7 @@ public class ChatSessionServiceImpl implements IChatSessionService {
 
         List<UUID> sessionIds = sessions.stream()
                 .map(ChatSession::getId)
-                .collect(Collectors.toList());
+                .toList();
 
         Query deleteMessageQuery = new Query();
         deleteMessageQuery.addCriteria(Criteria.where(AIChatConstants.FIELD_SESSION_ID).in(sessionIds));
@@ -306,7 +309,7 @@ public class ChatSessionServiceImpl implements IChatSessionService {
 
         List<UUID> sessionIds = sessions.stream()
                 .map(ChatSession::getId)
-                .collect(Collectors.toList());
+                .toList();
 
         // 使用聚合查询获取每个会话的最后一条消息（优化：只返回每个会话的最新消息）
         // 如果 sessionIds 数量较少，可以为每个单独查询；否则使用聚合查询
@@ -327,18 +330,18 @@ public class ChatSessionServiceImpl implements IChatSessionService {
             SortOperation sortByCreateTime = Aggregation.sort(Sort.Direction.DESC, AIChatConstants.FIELD_CREATE_TIME);
             GroupOperation groupBySession = Aggregation.group(AIChatConstants.FIELD_SESSION_ID)
                     .first(AIChatConstants.FIELD_ID).as("messageId")
-                    .first("content").as("content")  // ChatMessage 实体中的 content 字段
+                    .first("content").as("content")
                     .first(AIChatConstants.FIELD_CREATE_TIME).as("createTime");
             Aggregation lastMessageAggregation = Aggregation.newAggregation(
                     matchLastMessage, sortByCreateTime, groupBySession);
 
-            AggregationResults<Map> lastMessageResults = mongoTemplate.aggregate(
+            var lastMessageResults = mongoTemplate.aggregate(
                     lastMessageAggregation, AIChatConstants.COLLECTION_CHAT_MESSAGE, Map.class);
 
             // 从聚合结果中提取消息ID，然后批量查询完整消息对象
             List<UUID> lastMessageIds = new ArrayList<>();
-            Map<UUID, UUID> sessionIdToMessageIdMap = new HashMap<>();
-            for (Map result : lastMessageResults.getMappedResults()) {
+            HashMap<UUID, UUID> sessionIdToMessageIdMap = new HashMap<>();
+            lastMessageResults.getMappedResults().forEach(result -> {
                 Object sessionIdObj = result.get(AIChatConstants.FIELD_ID);
                 Object messageIdObj = result.get("messageId");
                 if (sessionIdObj != null && messageIdObj != null) {
@@ -349,7 +352,7 @@ public class ChatSessionServiceImpl implements IChatSessionService {
                     sessionIdToMessageIdMap.put(sessionId, messageId);
                     lastMessageIds.add(messageId);
                 }
-            }
+            });
 
             // 批量查询消息对象
             if (!lastMessageIds.isEmpty()) {
@@ -374,11 +377,11 @@ public class ChatSessionServiceImpl implements IChatSessionService {
                 .count().as(AIChatConstants.FIELD_COUNT);
         Aggregation countAggregation = Aggregation.newAggregation(matchCount, groupCount);
 
-        AggregationResults<Map> countResults = mongoTemplate.aggregate(
+        var countResults = mongoTemplate.aggregate(
                 countAggregation, AIChatConstants.COLLECTION_CHAT_MESSAGE, Map.class);
 
-        Map<UUID, Long> messageCountMap = new HashMap<>();
-        for (Map result : countResults.getMappedResults()) {
+        HashMap<UUID, Long> messageCountMap = new HashMap<>();
+        countResults.getMappedResults().forEach(result -> {
             Object sessionIdObj = result.get(AIChatConstants.FIELD_ID);
             Object countObj = result.get(AIChatConstants.FIELD_COUNT);
             if (sessionIdObj != null && countObj != null) {
@@ -388,12 +391,12 @@ public class ChatSessionServiceImpl implements IChatSessionService {
                         Long.parseLong(countObj.toString());
                 messageCountMap.put(sessionId, count);
             }
-        }
+        });
 
         return sessions.stream()
                 .map(session -> convertToVO(session, lastMessageMap.get(session.getId()),
                         messageCountMap.get(session.getId())))
-                .collect(Collectors.toList());
+                .toList();
     }
 
     private ChatSessionVO convertToVO(ChatSession session) {

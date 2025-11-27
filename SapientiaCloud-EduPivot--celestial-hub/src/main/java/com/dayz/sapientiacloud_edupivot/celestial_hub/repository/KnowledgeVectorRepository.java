@@ -4,7 +4,9 @@ import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.po.KnowledgeVector;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -34,13 +36,14 @@ public interface KnowledgeVectorRepository extends MongoRepository<KnowledgeVect
     long countByCourseId(UUID courseId);
 
     /**
-     * 根据向量ID查询向量
+     * 根据向量ID查询记录（用于补充Redis缺失的元数据）
      */
-    KnowledgeVector findByVectorId(String vectorId);
+    Optional<KnowledgeVector> findFirstByVectorId(String vectorId);
 
     /**
-     * 根据向量ID列表批量查询向量
+     * 批量根据向量ID查询记录（用于RAG检索结果）
      */
-    List<KnowledgeVector> findByVectorIdIn(List<String> vectorIds);
+    List<KnowledgeVector> findByVectorIdIn(Collection<String> vectorIds);
+
 }
 

@@ -63,6 +63,14 @@ public class KnowledgeVector extends BaseEntity {
     @Schema(description = "帖子ID（论坛类型时使用）")
     private UUID postId;
 
+    @Field("user_id")
+    @Schema(description = "用户ID")
+    private UUID userId;
+
+    @Field("session_id")
+    @Schema(description = "会话ID，仅 AI 对话文件上传使用")
+    private UUID sessionId;
+
     @Field("content_type")
     @Schema(description = "内容类型: 0-章节, 1-问题, 2-任务, 3-论坛")
     private Integer contentType;

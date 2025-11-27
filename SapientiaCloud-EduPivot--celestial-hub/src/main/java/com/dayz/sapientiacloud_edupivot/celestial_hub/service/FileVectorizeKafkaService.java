@@ -42,7 +42,7 @@ public class FileVectorizeKafkaService {
                     log.error("发送文件向量化任务到Kafka失败, fileId: {}, error: {}",
                             request.getFileId(), ex.getMessage(), ex);
                 } else {
-                    log.info("文件向量化任务已发送到Kafka, fileId: {}, topic: {}, partition: {}, offset: {}",
+                    log.debug("文件向量化任务已发送到Kafka, fileId: {}, topic: {}, partition: {}, offset: {}",
                             request.getFileId(),
                             result.getRecordMetadata().topic(),
                             result.getRecordMetadata().partition(),

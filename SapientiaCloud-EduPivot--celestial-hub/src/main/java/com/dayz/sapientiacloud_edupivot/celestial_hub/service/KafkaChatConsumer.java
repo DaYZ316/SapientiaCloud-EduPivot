@@ -19,12 +19,17 @@ import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import reactor.core.Exceptions;
+import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Kafka聊天消息消费者
@@ -35,175 +40,266 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class KafkaChatConsumer {
 
+    /**
+     * 请求记录保留时间（毫秒）
+     */
+    private static final long REQUEST_RETAIN_MS = 10 * 60 * 1000;
     private final ChatClient chatClient;
     private final ChatMessageRepository chatMessageRepository;
     private final IChatSessionService chatSessionService;
     private final KnowledgeService knowledgeService;
     private final KafkaChatService kafkaChatService;
-
     /**
-     * 监听聊天请求主题
+     * 已处理/正在处理的请求ID集合，防止Kafka重连时重复处理
      */
+    private final ConcurrentHashMap<String, RequestRecord> processedRequests = new ConcurrentHashMap<>();
+    /**
+     * 客户端取消的请求集合
+     */
+    private final ConcurrentHashMap<String, Boolean> cancelledRequests = new ConcurrentHashMap<>();
+
     @KafkaListener(topics = "${spring.kafka.topic.chat-request:chat-request-topic}",
             groupId = "${spring.kafka.consumer.group-id:chat-group}")
     public void consumeChatRequest(@Payload String message,
                                    @Header(KafkaHeaders.RECEIVED_KEY) String requestId,
                                    Acknowledgment acknowledgment) {
         long startTime = System.currentTimeMillis();
+        KafkaChatService.ChatRequestMessage requestMessage =
+                JSON.parseObject(message, KafkaChatService.ChatRequestMessage.class);
+
+        // 优先使用消息体中的requestId
+        String finalRequestId = StringUtils.hasText(requestMessage.getRequestId())
+                ? requestMessage.getRequestId() : requestId;
+
         try {
-            log.debug("收到Kafka聊天请求, requestId: {}", requestId);
+            log.debug("收到Kafka聊天请求, requestId: {}", finalRequestId);
 
-            // 解析请求消息
-            KafkaChatService.ChatRequestMessage requestMessage =
-                    JSON.parseObject(message, KafkaChatService.ChatRequestMessage.class);
-
-            // 如果消息中没有requestId，使用header中的requestId
-            if (requestMessage.getRequestId() == null || requestMessage.getRequestId().isEmpty()) {
-                requestMessage.setRequestId(requestId);
-            } else {
-                // 使用消息中的requestId
-                requestId = requestMessage.getRequestId();
+            // 幂等性检查
+            if (!tryAcquireProcessingLock(finalRequestId)) {
+                log.warn("请求正在处理中，跳过重复消费, requestId: {}", finalRequestId);
+                acknowledge(acknowledgment);
+                return;
             }
 
             KafkaChatRequestDTO request = requestMessage.getRequest();
             if (request == null) {
+                releaseProcessingLock(finalRequestId);
                 throw new IllegalArgumentException("请求消息不能为空");
             }
 
-            // 处理聊天请求
-            processChatRequest(requestId, request);
-
-            // 手动提交偏移量（处理成功后才提交）
-            if (acknowledgment != null) {
-                acknowledgment.acknowledge();
-            }
-
-            log.debug("Kafka聊天请求处理成功, requestId: {}, 耗时: {}ms", requestId,
-                    System.currentTimeMillis() - startTime);
+            processChatRequest(finalRequestId, request, acknowledgment);
+            log.debug("Kafka聊天请求已提交处理, requestId: {}, 耗时: {}ms",
+                    finalRequestId, System.currentTimeMillis() - startTime);
 
         } catch (Exception e) {
-            log.error("处理Kafka聊天请求失败, requestId: {}, 耗时: {}ms", requestId,
-                    System.currentTimeMillis() - startTime, e);
+            log.error("处理Kafka聊天请求失败, requestId: {}, 耗时: {}ms",
+                    finalRequestId, System.currentTimeMillis() - startTime, e);
+            releaseProcessingLock(finalRequestId);
+            clearCancellationFlag(finalRequestId);
+            kafkaChatService.handleError(finalRequestId, e);
 
-            // 通知客户端错误
-            if (requestId != null) {
-                kafkaChatService.handleError(requestId, e);
-            }
-
-            // 根据错误类型决定是否确认消息
-            // 可重试的错误不确认，让Kafka重试；不可重试的错误确认，避免无限重试
-            if (acknowledgment != null) {
-                if (ChatMessageUtil.isRetryableError(e)) {
-                    log.warn("错误可重试，不确认消息，等待重试, requestId: {}", requestId);
-                    // 不确认，等待重试
-                } else {
-                    log.warn("错误不可重试，确认消息, requestId: {}", requestId);
-                    acknowledgment.acknowledge();
-                }
+            // 可重试错误不确认，等待重试
+            if (acknowledgment != null && !ChatMessageUtil.isRetryableError(e)) {
+                acknowledgment.acknowledge();
             }
         }
     }
 
     /**
-     * 处理聊天请求
+     * 监听控制主题，处理取消指令
      */
-    private void processChatRequest(String requestId, KafkaChatRequestDTO request) {
-        final long startTime = System.currentTimeMillis();
-        final String finalRequestId = requestId;
+    @KafkaListener(topics = "${spring.kafka.topic.chat-control:chat-control-topic}",
+            groupId = "${spring.kafka.consumer.group-id:chat-group}-control")
+    public void consumeChatControl(@Payload String message,
+                                   @Header(KafkaHeaders.RECEIVED_KEY) String requestId) {
+        KafkaChatService.ChatControlMessage controlMessage =
+                JSON.parseObject(message, KafkaChatService.ChatControlMessage.class);
+        String finalRequestId = StringUtils.hasText(controlMessage.getRequestId())
+                ? controlMessage.getRequestId() : requestId;
+        if (controlMessage.getType() == KafkaChatService.ChatControlType.CANCEL) {
+            boolean knownRequest = processedRequests.containsKey(finalRequestId);
+            cancelledRequests.put(finalRequestId, true);
+            if (knownRequest) {
+                log.debug("收到取消指令, requestId: {}, reason: {}", finalRequestId, controlMessage.getReason());
+            }
+        }
+    }
 
-        try {
-            // 获取或创建会话
-            ChatSessionVO sessionVO = getOrCreateSession(request);
-            final UUID sessionId = sessionVO.getId();
-            final UUID userId = sessionVO.getSysUserId();
+    private void acknowledge(Acknowledgment acknowledgment) {
+        if (acknowledgment != null) {
+            acknowledgment.acknowledge();
+        }
+    }
 
-            // 构建消息上下文（使用工具类）
-            ChatMessageUtil.ChatContext chatContext = ChatMessageUtil.buildContext(sessionId, request, chatMessageRepository);
-            List<Message> messages = chatContext.messages();
+    /**
+     * 尝试获取请求处理锁
+     *
+     * @return true 新请求可处理，false 正在处理或已完成应跳过
+     */
+    private boolean tryAcquireProcessingLock(String requestId) {
+        if (requestId == null) {
+            return true;
+        }
 
-            // 如果使用RAG，添加知识检索结果（使用工具类）
-            if (Boolean.TRUE.equals(request.getUseRag())) {
+        long now = System.currentTimeMillis();
+        // 清理过期记录
+        processedRequests.entrySet().removeIf(e -> now - e.getValue().timestamp() > REQUEST_RETAIN_MS);
+
+        RequestRecord existing = processedRequests.putIfAbsent(requestId, new RequestRecord(RequestState.PROCESSING, now));
+        if (existing == null) {
+            return true;
+        }
+        // 已存在：无论 PROCESSING 还是 COMPLETED 都拒绝
+        log.debug("请求已存在, requestId: {}, state: {}", requestId, existing.state());
+        return false;
+    }
+
+    /**
+     * 标记完成，保留记录防止重复
+     */
+    private void markProcessingComplete(String requestId) {
+        if (requestId != null) {
+            processedRequests.put(requestId, new RequestRecord(RequestState.COMPLETED, System.currentTimeMillis()));
+        }
+    }
+
+    /**
+     * 仅在失败需重试时调用
+     */
+    private void releaseProcessingLock(String requestId) {
+        if (requestId != null) {
+            processedRequests.remove(requestId);
+        }
+    }
+
+    private boolean isCancelled(String requestId) {
+        return requestId != null && Boolean.TRUE.equals(cancelledRequests.get(requestId));
+    }
+
+    private void clearCancellationFlag(String requestId) {
+        if (requestId != null) {
+            cancelledRequests.remove(requestId);
+        }
+    }
+
+    private void processChatRequest(String requestId, KafkaChatRequestDTO request, Acknowledgment acknowledgment) {
+        long startTime = System.currentTimeMillis();
+
+        // 获取或创建会话
+        ChatSessionVO sessionVO = getOrCreateSession(request);
+        UUID sessionId = sessionVO.getId();
+        UUID userId = sessionVO.getSysUserId();
+        request.setSessionId(sessionId);
+        if (request.getUserId() == null) {
+            request.setUserId(userId);
+        }
+
+        if (isCancelled(requestId)) {
+            log.debug("请求在处理前已被标记为取消, requestId: {}", requestId);
+            markProcessingComplete(requestId);
+            acknowledge(acknowledgment);
+            clearCancellationFlag(requestId);
+            return;
+        }
+
+        // 构建消息上下文
+        ChatMessageUtil.ChatContext chatContext = ChatMessageUtil.buildContext(sessionId, request, chatMessageRepository);
+        List<Message> messages = chatContext.messages();
+
+        // RAG知识检索
+        if (Boolean.TRUE.equals(request.getUseRag())) {
+            Authentication previousAuth = setTemporaryAuthentication(userId);
+            try {
                 String ragContext = ChatMessageUtil.retrieveKnowledge(request, knowledgeService);
                 if (StringUtils.hasText(ragContext)) {
                     messages.add(new SystemMessage(AIChatConstants.RAG_PREFIX + ragContext));
                 }
+            } finally {
+                restoreAuthentication(previousAuth);
             }
+        }
 
-            // 先保存用户消息（在AI调用前保存），带去重/幂等以避免重试重复
-            ChatMessage userMessage = ChatMessageUtil.addUserMessageIfNotDuplicate(sessionId, request.getMessage(),
-                    request.getAttachments(), chatContext.lastMessage(), finalRequestId, chatMessageRepository);
+        // 保存用户消息（幂等）
+        ChatMessageUtil.addUserMessageIfNotDuplicate(sessionId, request.getMessage(),
+                request.getAttachments(), chatContext.lastMessage(), requestId, chatMessageRepository);
 
-            // 使用流式处理，将结果发送到Kafka响应主题
-            final StringBuilder fullResponse = new StringBuilder();
-            final String userQuery = request.getMessage();
+        // 流式处理
+        StringBuilder fullResponse = new StringBuilder();
+        String userQuery = request.getMessage();
+        UUID courseId = request.getCourseId();
 
-            chatClient
-                    .prompt()
-                    .messages(messages)
-                    .stream()
-                    .content()
-                    .subscribeOn(Schedulers.boundedElastic())
-                    .doOnNext(chunk -> {
-                        // 将每个chunk发送到响应主题
-                        fullResponse.append(chunk);
-                        kafkaChatService.handleResponse(finalRequestId, chunk);
-                    })
-                    .doOnComplete(() -> {
-                        // AI调用成功后才保存助手消息
-                        String completeResponse = fullResponse.toString();
-                        ChatMessage assistantMessage = null;
-                        if (!completeResponse.isEmpty()) {
-                            assistantMessage = ChatMessageUtil.saveAssistantMessage(sessionId, completeResponse, chatMessageRepository);
-                            chatSessionService.updateSessionLastMessage(sessionId, completeResponse);
-                        }
+        chatClient.prompt()
+                .messages(messages)
+                .stream()
+                .content()
+                .subscribeOn(Schedulers.boundedElastic())
+                .doOnNext(chunk -> handleChunk(requestId, chunk, fullResponse))
+                .doOnComplete(() -> onChatComplete(requestId, sessionId, userId, userQuery, courseId,
+                        fullResponse.toString(), startTime, acknowledgment))
+                .doOnError(error -> onChatError(requestId, sessionId, error,
+                        fullResponse.toString(), userId, userQuery, courseId, startTime, acknowledgment))
+                .onErrorResume(Exceptions::isCancel, e -> Mono.empty())
+                .subscribe();
+    }
 
-                        // 向量化对话内容（Q&A对格式）
-                        if (userQuery != null && !userQuery.trim().isEmpty()
-                                && completeResponse != null && !completeResponse.trim().isEmpty()) {
-                            UUID messageId = assistantMessage != null ? assistantMessage.getId() : null;
-                            UUID courseId = request.getCourseId();
-                            try {
-                                knowledgeService.vectorizeChatContent(userQuery, completeResponse, sessionId, messageId, courseId, userId);
-                            } catch (Exception e) {
-                                log.warn("向量化对话内容失败，但不影响聊天流程: sessionId={}, messageId={}, userId={}, error={}",
-                                        sessionId, messageId, userId, e.getMessage());
-                            }
-                        }
+    private void onChatComplete(String requestId, UUID sessionId, UUID userId, String userQuery,
+                                UUID courseId, String response, long startTime, Acknowledgment acknowledgment) {
+        ChatMessage assistantMessage = null;
+        if (!response.isEmpty()) {
+            assistantMessage = ChatMessageUtil.saveAssistantMessage(sessionId, response, chatMessageRepository);
+            chatSessionService.updateSessionLastMessage(sessionId, response);
+        }
 
-                        // 完成响应流
-                        kafkaChatService.completeResponse(finalRequestId);
-                        log.debug("聊天请求处理完成, requestId: {}, sessionId: {}, 耗时: {}ms",
-                                finalRequestId, sessionId, System.currentTimeMillis() - startTime);
-                    })
-                    .doOnError(error -> {
-                        log.error("处理聊天请求时发生错误, requestId: {}, sessionId: {}, 耗时: {}ms",
-                                finalRequestId, sessionId, System.currentTimeMillis() - startTime, error);
-                        kafkaChatService.handleError(finalRequestId, error);
-                    })
-                    .subscribe();
+        // 向量化对话
+        if (StringUtils.hasText(userQuery) && StringUtils.hasText(response)) {
+            UUID messageId = assistantMessage != null ? assistantMessage.getId() : null;
+            try {
+                knowledgeService.vectorizeChatContent(userQuery, response, sessionId, messageId, courseId, userId);
+            } catch (Exception e) {
+                log.warn("向量化对话内容失败: sessionId={}, error={}", sessionId, e.getMessage());
+            }
+        }
 
-        } catch (Exception e) {
-            log.error("处理聊天请求失败, requestId: {}, 耗时: {}ms",
-                    finalRequestId, System.currentTimeMillis() - startTime, e);
-            kafkaChatService.handleError(finalRequestId, e);
-            // 如果处理失败，可以考虑标记用户消息为"待处理"状态或删除已保存的用户消息
-            // 但为了数据完整性，这里保留用户消息，以便后续可以重试或人工处理
-            // 如果需要实现事务回滚，可以考虑：
-            // 1. 使用 Spring 事务管理，但需要注意 Kafka 消息确认的时机
-            // 2. 实现补偿机制，在失败时删除已保存的用户消息
-            // 3. 添加消息状态字段，标记为"待处理"，由后台任务重试
-            throw e;
+        kafkaChatService.completeResponse(requestId);
+        markProcessingComplete(requestId);
+        acknowledge(acknowledgment);
+        clearCancellationFlag(requestId);
+        log.debug("聊天请求处理完成, requestId: {}, sessionId: {}, 耗时: {}ms",
+                requestId, sessionId, System.currentTimeMillis() - startTime);
+    }
+
+    private void onChatError(String requestId, UUID sessionId, Throwable error, String response,
+                             UUID userId, String userQuery, UUID courseId, long startTime,
+                             Acknowledgment acknowledgment) {
+        boolean interrupted = isConnectionInterrupted(error);
+        if (interrupted) {
+            log.debug("请求处理中被取消或连接中断, requestId: {}, reason: {}", requestId,
+                    error != null ? error.getMessage() : "unknown");
+            // 中断场景不保存未完成回复，也不向量化
+            kafkaChatService.completeResponse(requestId);
+            markProcessingComplete(requestId);
+            acknowledge(acknowledgment);
+            clearCancellationFlag(requestId);
+            return;
+        }
+        log.error("处理聊天请求时发生错误, requestId: {}, sessionId: {}, 耗时: {}ms",
+                requestId, sessionId, System.currentTimeMillis() - startTime, error);
+        kafkaChatService.handleError(requestId, error);
+        boolean retryable = ChatMessageUtil.isRetryableError(error);
+        if (retryable) {
+            releaseProcessingLock(requestId);
+            clearCancellationFlag(requestId);
+        } else {
+            markProcessingComplete(requestId);
+            acknowledge(acknowledgment);
+            clearCancellationFlag(requestId);
         }
     }
 
-    /**
-     * 获取或创建会话
-     */
     private ChatSessionVO getOrCreateSession(KafkaChatRequestDTO request) {
         if (request.getSessionId() != null) {
             return chatSessionService.getChatSessionById(request.getSessionId());
         }
-        // 从请求中获取userId，如果没有则抛出异常
         UUID userId = request.getUserId();
         if (userId == null) {
             throw new BusinessException(AIChatEnum.SESSION_USER_ID_REQUIRED);
@@ -211,5 +307,66 @@ public class KafkaChatConsumer {
         return chatSessionService.addChatSession(userId, request.getCourseId(), request.getSessionType(), null);
     }
 
+    private void handleChunk(String requestId, String chunk, StringBuilder accumulator) {
+        if (chunk == null) {
+            return;
+        }
+        if (isCancelled(requestId)) {
+            log.debug("请求已被取消, requestId: {}, 忽略chunk输出", requestId);
+            return;
+        }
+        accumulator.append(chunk);
+        kafkaChatService.handleResponse(requestId, chunk);
+    }
 
+    private Authentication setTemporaryAuthentication(UUID userId) {
+        Authentication previous = SecurityContextHolder.getContext().getAuthentication();
+        if (userId == null) {
+            return previous;
+        }
+        Map<String, Object> principal = new HashMap<>();
+        principal.put("userId", userId.toString());
+        principal.put("username", "kafka-chat-worker");
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(principal, null, Collections.emptyList());
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        return previous;
+    }
+
+    private void restoreAuthentication(Authentication previous) {
+        SecurityContextHolder.getContext().setAuthentication(previous);
+    }
+
+    private boolean isConnectionInterrupted(Throwable error) {
+        if (error == null) {
+            return true;
+        }
+        if (Exceptions.isCancel(error) || error instanceof java.util.concurrent.CancellationException) {
+            return true;
+        }
+        if (error instanceof java.io.IOException || error instanceof java.net.SocketException
+                || error instanceof java.nio.channels.ClosedChannelException) {
+            return true;
+        }
+        String message = error.getMessage();
+        if (message != null) {
+            String lower = message.toLowerCase();
+            if (lower.contains("broken pipe") || lower.contains("connection reset")
+                    || lower.contains("connection closed") || lower.contains("channel closed")
+                    || lower.contains("connection refused") || lower.contains("client cancelled")) {
+                return true;
+            }
+        }
+        Throwable cause = error.getCause();
+        if (cause != null && cause != error) {
+            return isConnectionInterrupted(cause);
+        }
+        return false;
+    }
+
+    private enum RequestState {PROCESSING, COMPLETED}
+
+    private record RequestRecord(RequestState state, long timestamp) {
+    }
 }
+

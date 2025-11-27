@@ -3,9 +3,9 @@ package com.dayz.sapientiacloud_edupivot.celestial_hub.utils;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.constant.AIChatConstants;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.ChatRequestDTO;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.KafkaChatRequestDTO;
-import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.KnowledgeRequestDTO;
+import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.KnowledgeSearchRequestDTO;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.po.ChatMessage;
-import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.vo.KnowledgeSearchVO;
+import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.vo.KnowledgeSearchResultVO;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.repository.ChatMessageRepository;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.KnowledgeService;
 import com.github.f4b6a3.uuid.UuidCreator;
@@ -14,14 +14,13 @@ import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
-import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 /**
  * 聊天消息处理工具类
@@ -85,95 +84,70 @@ public class ChatMessageUtil {
     }
 
     /**
-     * 检索知识（ChatRequestDTO版本）
+     * 检索知识（ChatRequestDTO版本：知识库 + 文件内容）
      */
     public static String retrieveKnowledge(ChatRequestDTO request, KnowledgeService knowledgeService) {
         StringBuilder context = new StringBuilder();
-
-        try {
-            // 1. 检索知识库内容
-            KnowledgeRequestDTO query = new KnowledgeRequestDTO();
-            query.setQuery(request.getMessage());
-            query.setCourseId(request.getCourseId());
-            query.setChapterId(request.getChapterId());
-            query.setTopK(AIChatConstants.DEFAULT_RAG_TOP_K);
-            query.setSimilarityThreshold(AIChatConstants.DEFAULT_RAG_SIMILARITY_THRESHOLD);
-
-            KnowledgeSearchVO result = knowledgeService.searchKnowledge(query);
-            if (result != null && !CollectionUtils.isEmpty(result.getItems())) {
-                String knowledgeContext = result.getItems().stream()
-                        .map(item -> String.format(AIChatConstants.RAG_ITEM_FORMAT,
-                                item.getTitle(),
-                                item.getContentType(),
-                                item.getContent()))
-                        .collect(Collectors.joining(AIChatConstants.RAG_SEPARATOR));
-                if (knowledgeContext != null && !knowledgeContext.isEmpty()) {
-                    context.append(knowledgeContext);
-                }
-            }
-        } catch (Exception e) {
-            log.error("检索知识失败", e);
-        }
-
-        // 2. 检索文件内容（如果提供了文件ID列表）
-        try {
-            if (request.getFileIds() != null && !request.getFileIds().isEmpty()) {
-                String fileContext = knowledgeService.retrieveFileContext(
-                        request.getFileIds(),
-                        request.getMessage(),
-                        AIChatConstants.DEFAULT_RAG_TOP_K
-                );
-                if (fileContext != null && !fileContext.isEmpty()) {
-                    if (context.length() > 0) {
-                        context.append(AIChatConstants.RAG_SEPARATOR);
-                    }
-                    context.append("【文件内容】\n").append(fileContext);
-                }
-            }
-        } catch (Exception e) {
-            log.error("检索文件内容失败", e);
-        }
-
+        appendKnowledgeSearchContext(context, request.getSessionId(), request.getMessage(), knowledgeService);
+        appendFileContext(context, request.getFileIds(), request.getMessage(), knowledgeService);
         return context.length() > 0 ? context.toString() : null;
     }
 
     /**
-     * 检索知识（KafkaChatRequestDTO版本）
+     * 检索知识（KafkaChatRequestDTO版本：知识库 + 文件内容）
      */
     public static String retrieveKnowledge(KafkaChatRequestDTO request, KnowledgeService knowledgeService) {
         StringBuilder context = new StringBuilder();
+        appendKnowledgeSearchContext(context, request.getSessionId(), request.getMessage(), knowledgeService);
+        appendFileContext(context, request.getFileIds(), request.getMessage(), knowledgeService);
+        return context.length() > 0 ? context.toString() : null;
+    }
 
+    private static void appendKnowledgeSearchContext(StringBuilder context, UUID sessionId, String message,
+                                                     KnowledgeService knowledgeService) {
+        if (!StringUtils.hasText(message)) {
+            return;
+        }
         try {
-            // 1. 检索知识库内容
-            KnowledgeRequestDTO query = new KnowledgeRequestDTO();
-            query.setQuery(request.getMessage());
-            query.setCourseId(request.getCourseId());
-            query.setChapterId(request.getChapterId());
-            query.setTopK(AIChatConstants.DEFAULT_RAG_TOP_K);
-            query.setSimilarityThreshold(AIChatConstants.DEFAULT_RAG_SIMILARITY_THRESHOLD);
+            KnowledgeSearchRequestDTO searchRequest = new KnowledgeSearchRequestDTO();
+            searchRequest.setQuery(message);
+            searchRequest.setTopK(AIChatConstants.DEFAULT_RAG_TOP_K);
+            searchRequest.setSimilarityThreshold(AIChatConstants.DEFAULT_RAG_SIMILARITY_THRESHOLD);
+            searchRequest.setSessionId(sessionId);
 
-            KnowledgeSearchVO result = knowledgeService.searchKnowledge(query);
-            if (result != null && result.getItems() != null && !result.getItems().isEmpty()) {
-                String knowledgeContext = result.getItems().stream()
-                        .map(item -> String.format(AIChatConstants.RAG_ITEM_FORMAT,
-                                item.getTitle(),
-                                item.getContentType(),
-                                item.getContent()))
-                        .collect(Collectors.joining(AIChatConstants.RAG_SEPARATOR));
-                if (knowledgeContext != null && !knowledgeContext.isEmpty()) {
-                    context.append(knowledgeContext);
+            List<KnowledgeSearchResultVO> results = knowledgeService.searchKnowledge(searchRequest);
+            if (results == null || results.isEmpty()) {
+                return;
+            }
+
+            if (context.length() > 0) {
+                context.append(AIChatConstants.RAG_SEPARATOR);
+            }
+            context.append("【知识库】\n");
+
+            int index = 1;
+            for (KnowledgeSearchResultVO result : results) {
+                if (index > 1) {
+                    context.append('\n');
                 }
+                String label = "片段" + index;
+                String title = StringUtils.hasText(result.getTitle()) ? result.getTitle() : label;
+                String content = result.getContent() != null ? result.getContent() : "";
+                context.append(String.format(AIChatConstants.RAG_ITEM_FORMAT, label, title, content));
+                index++;
             }
         } catch (Exception e) {
-            log.error("检索知识失败", e);
+            log.error("检索知识库内容失败", e);
         }
+    }
 
-        // 2. 检索文件内容（如果提供了文件ID列表）
+    private static void appendFileContext(StringBuilder context, List<UUID> fileIds, String message,
+                                          KnowledgeService knowledgeService) {
         try {
-            if (request.getFileIds() != null && !request.getFileIds().isEmpty()) {
+            if (fileIds != null && !fileIds.isEmpty()) {
                 String fileContext = knowledgeService.retrieveFileContext(
-                        request.getFileIds(),
-                        request.getMessage(),
+                        fileIds,
+                        message,
                         AIChatConstants.DEFAULT_RAG_TOP_K
                 );
                 if (fileContext != null && !fileContext.isEmpty()) {
@@ -186,8 +160,6 @@ public class ChatMessageUtil {
         } catch (Exception e) {
             log.error("检索文件内容失败", e);
         }
-
-        return context.length() > 0 ? context.toString() : null;
     }
 
     /**

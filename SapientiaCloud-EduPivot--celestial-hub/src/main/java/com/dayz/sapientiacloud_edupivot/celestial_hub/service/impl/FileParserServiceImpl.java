@@ -93,8 +93,6 @@ public class FileParserServiceImpl implements IFileParserService {
             }
 
             return text.toString().trim();
-        } catch (BusinessException e) {
-            throw e;
         } catch (IOException e) {
             log.error("Failed to parse Word document: {}", e.getMessage(), e);
             throw new BusinessException(FileDocumentEnum.FILE_PARSE_FAILED);
@@ -132,7 +130,7 @@ public class FileParserServiceImpl implements IFileParserService {
                                     rowText.append(cellValue).append(FileParserConstants.EXCEL_CELL_SEPARATOR);
                                 }
                             }
-                            if (rowText.length() > 0) {
+                            if (!rowText.isEmpty()) {
                                 text.append(rowText.toString().trim()).append(FileParserConstants.LINE_SEPARATOR);
                             }
                         }
@@ -144,8 +142,6 @@ public class FileParserServiceImpl implements IFileParserService {
             }
 
             return text.toString().trim();
-        } catch (BusinessException e) {
-            throw e;
         } catch (IOException e) {
             log.error("Failed to parse Excel file: {}", e.getMessage(), e);
             throw new BusinessException(FileDocumentEnum.FILE_PARSE_FAILED);

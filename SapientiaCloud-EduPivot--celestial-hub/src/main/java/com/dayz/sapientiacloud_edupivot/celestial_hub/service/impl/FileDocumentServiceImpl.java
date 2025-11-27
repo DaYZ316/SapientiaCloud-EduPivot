@@ -9,6 +9,7 @@ import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.FileQueryDTO;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.FileUploadDTO;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.FileVectorizeRequestDTO;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.po.FileDocument;
+import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.po.FileInfo;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.vo.FileDocumentVO;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.enums.BusinessBucketEnum;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.enums.FileDocumentEnum;
@@ -17,7 +18,6 @@ import com.dayz.sapientiacloud_edupivot.celestial_hub.enums.FileTypeEnum;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.repository.FileDocumentRepository;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.FileVectorizeKafkaService;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.IFileDocumentService;
-import com.dayz.sapientiacloud_edupivot.celestial_hub.service.IFileParserService;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.KnowledgeService;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.utils.FileUtil;
 import com.github.f4b6a3.uuid.UuidCreator;
@@ -38,15 +38,11 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.InputStream;
 import java.text.DecimalFormat;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -55,11 +51,10 @@ public class FileDocumentServiceImpl implements IFileDocumentService {
 
     private static final long MAX_FILE_SIZE = 50 * 1024 * 1024;
     private static final DecimalFormat SIZE_FORMAT = new DecimalFormat("#.##");
-    private static final int MAX_CONCURRENT_UPLOADS = 5; // 最大并发上传数
+    private static final int MAX_CONCURRENT_UPLOADS = 5;
 
     private final FileDocumentRepository fileDocumentRepository;
     private final MinIOClient minIOClient;
-    private final IFileParserService fileParserService;
     @Lazy  // 使用 @Lazy 解决循环依赖问题
     private final KnowledgeService knowledgeService;
     private final MongoTemplate mongoTemplate;
@@ -71,11 +66,13 @@ public class FileDocumentServiceImpl implements IFileDocumentService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public FileDocumentVO uploadFile(MultipartFile file, FileUploadDTO request) {
+        UUID userId = UserContextUtil.getCurrentUserId();
+        return uploadFileInternal(file, request, userId);
+    }
+
+    private FileDocumentVO uploadFileInternal(MultipartFile file, FileUploadDTO request, UUID userId) {
         // 验证文件
         validateFile(file);
-
-        // 获取当前用户
-        UUID userId = UserContextUtil.getCurrentUserId();
 
         // 上传到MinIO
         String bucketCode = BusinessBucketEnum.AI_QA_ASSET.getBucketCode();
@@ -97,7 +94,7 @@ public class FileDocumentServiceImpl implements IFileDocumentService {
         if (fileType == null) {
             fileType = FileTypeEnum.fromExtension(FileUtil.getFileExtension(fileName));
         }
-        if (fileType == null) {
+        if (fileType == null || !fileType.isParseSupported()) {
             throw new BusinessException(FileDocumentEnum.FILE_TYPE_NOT_SUPPORTED);
         }
 
@@ -137,23 +134,25 @@ public class FileDocumentServiceImpl implements IFileDocumentService {
             return new ArrayList<>();
         }
 
+        UUID userId = UserContextUtil.getCurrentUserId();
+
         // 使用 CompletableFuture 实现并发上传，提高性能
         List<CompletableFuture<FileDocumentVO>> futures = files.stream()
                 .map(file -> CompletableFuture.supplyAsync(() -> {
                     try {
-                        return uploadFile(file, request);
+                        return uploadFileInternal(file, request, userId);
                     } catch (Exception e) {
                         log.error("Failed to upload file: {}", file.getOriginalFilename(), e);
                         return null; // 返回null表示上传失败
                     }
                 }, uploadExecutor))
-                .collect(Collectors.toList());
+                .toList();
 
         // 等待所有上传任务完成
         List<FileDocumentVO> results = new ArrayList<>();
         for (CompletableFuture<FileDocumentVO> future : futures) {
             try {
-                FileDocumentVO vo = future.get(30, TimeUnit.SECONDS); // 设置超时时间
+                FileDocumentVO vo = future.get(30, TimeUnit.SECONDS);
                 if (vo != null) {
                     results.add(vo);
                 }
@@ -253,6 +252,22 @@ public class FileDocumentServiceImpl implements IFileDocumentService {
         return fileDocumentRepository.findActiveByIds(ids);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<FileInfo> getFileInfosBySessionId(UUID sessionId) {
+        if (sessionId == null) {
+            return new ArrayList<>();
+        }
+        List<FileDocument> documents = fileDocumentRepository.findActiveBySessionId(sessionId);
+        if (documents == null || documents.isEmpty()) {
+            return new ArrayList<>();
+        }
+        return documents.stream()
+                .map(this::convertToFileInfo)
+                .filter(Objects::nonNull)
+                .toList();
+    }
+
     /**
      * 发送文件向量化任务到Kafka
      */
@@ -270,7 +285,7 @@ public class FileDocumentServiceImpl implements IFileDocumentService {
             request.setUserId(fileDocument.getSysUserId());
 
             fileVectorizeKafkaService.sendVectorizeTask(request);
-            log.info("文件向量化任务已发送到Kafka, fileId: {}", fileDocument.getId());
+            log.debug("文件向量化任务已发送到Kafka, fileId: {}", fileDocument.getId());
         } catch (Exception e) {
             log.error("发送文件向量化任务到Kafka失败, fileId: {}, error: {}",
                     fileDocument.getId(), e.getMessage(), e);
@@ -345,7 +360,7 @@ public class FileDocumentServiceImpl implements IFileDocumentService {
         }
         return fileDocuments.stream()
                 .map(this::convertToVO)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     /**
@@ -391,6 +406,62 @@ public class FileDocumentServiceImpl implements IFileDocumentService {
         } else {
             return SIZE_FORMAT.format(size / (1024.0 * 1024.0 * 1024.0)) + FileDocumentConstants.SIZE_UNIT_GB;
         }
+    }
+
+    private FileInfo convertToFileInfo(FileDocument fileDocument) {
+        if (fileDocument == null) {
+            return null;
+        }
+        String storagePath = fileDocument.getStoragePath();
+        FileInfo.FileInfoBuilder builder = FileInfo.builder()
+                .objectName(storagePath)
+                .fileName(fileDocument.getFileName())
+                .size(fileDocument.getFileSize())
+                .contentType(fileDocument.getMimeType())
+                .lastModified(fileDocument.getUpdateTime() != null ? fileDocument.getUpdateTime() : fileDocument.getCreateTime())
+                .isDir(Boolean.FALSE)
+                .extension(FileUtil.getFileExtension(fileDocument.getFileName()))
+                .path(extractPath(storagePath))
+                .bucketCode(fileDocument.getBucketCode())
+                .error(Boolean.FALSE);
+
+        BusinessBucketEnum bucketEnum = BusinessBucketEnum.fromBucketCode(fileDocument.getBucketCode());
+        if (bucketEnum != null) {
+            builder.bucketName(bucketEnum.getDefaultBucketName());
+        }
+
+        builder.url(resolveFileUrl(fileDocument));
+        return builder.build();
+    }
+
+    private String resolveFileUrl(FileDocument fileDocument) {
+        if (fileDocument == null) {
+            return null;
+        }
+        try {
+            Result<String> urlResult = minIOClient.getFileUrl(
+                    fileDocument.getStoragePath(),
+                    null,
+                    fileDocument.getBucketCode()
+            );
+            if (urlResult != null && urlResult.isSuccess()) {
+                return urlResult.getData();
+            }
+        } catch (Exception e) {
+            log.warn("Failed to fetch file url from MinIO, fileId: {}, error: {}", fileDocument.getId(), e.getMessage());
+        }
+        return null;
+    }
+
+    private String extractPath(String storagePath) {
+        if (!StringUtils.hasText(storagePath)) {
+            return "";
+        }
+        int lastSeparator = storagePath.lastIndexOf(FileDocumentConstants.PATH_SEPARATOR);
+        if (lastSeparator < 0) {
+            return "";
+        }
+        return storagePath.substring(0, lastSeparator + 1);
     }
 }
 

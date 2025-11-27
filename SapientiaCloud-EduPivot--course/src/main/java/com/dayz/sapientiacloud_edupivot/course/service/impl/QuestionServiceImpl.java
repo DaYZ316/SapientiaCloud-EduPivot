@@ -446,7 +446,7 @@ public class QuestionServiceImpl implements IQuestionService {
                     }
                     return dto;
                 })
-                .collect(Collectors.toList());
+                .toList();
     }
 
     private Map<UUID, SysUserVO> getUserMap() {

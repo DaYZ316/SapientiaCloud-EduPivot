@@ -27,7 +27,7 @@ public class VectorizeRequestDTO implements Serializable {
     private UUID courseId;
 
     @NotNull(message = "内容类型不能为空")
-    @Schema(description = "内容类型: 0-章节, 1-问题, 2-答案, 3-论坛", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "内容类型: 0-章节, 1-问题, 2-任务, 3-论坛", requiredMode = Schema.RequiredMode.REQUIRED)
     private Integer contentType;
 
     @Schema(description = "是否强制重新向量化")

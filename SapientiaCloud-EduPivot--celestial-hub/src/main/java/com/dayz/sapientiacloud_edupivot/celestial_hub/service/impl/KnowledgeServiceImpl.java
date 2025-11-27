@@ -8,22 +8,23 @@ import com.dayz.sapientiacloud_edupivot.celestial_hub.common.result.Result;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.common.security.utils.UserContextUtil;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.constant.FileParserConstants;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.constant.KnowledgeConstants;
-import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.KnowledgeRequestDTO;
+import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.KnowledgeSearchRequestDTO;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.VectorizeRequestDTO;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.po.KnowledgeVector;
-import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.vo.KnowledgeItemVO;
-import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.vo.KnowledgeSearchVO;
+import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.vo.KnowledgeSearchResultVO;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.enums.ContentTypeEnum;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.enums.KnowledgeEnum;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.repository.KnowledgeVectorRepository;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.KnowledgeService;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.utils.HtmlTextUtil;
+import com.dayz.sapientiacloud_edupivot.celestial_hub.utils.VectorIdUtil;
 import com.github.f4b6a3.uuid.UuidCreator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -39,6 +40,9 @@ public class KnowledgeServiceImpl implements KnowledgeService {
     private final KnowledgeVectorRepository knowledgeVectorRepository;
     private final CourseClient courseClient;
     private final VectorStore vectorStore;
+
+    @Value("${spring.ai.vectorstore.redis.prefix:vector}")
+    private String redisVectorKeyPrefix;
 
     /**
      * 构建基础metadata
@@ -85,96 +89,11 @@ public class KnowledgeServiceImpl implements KnowledgeService {
         return false;
     }
 
-    private static boolean isBlank(String value) {
-        return value == null || value.trim().isEmpty();
-    }
-
     private static int normalizeTopK(Integer topK) {
         if (topK == null || topK <= 0) {
             return KnowledgeConstants.DEFAULT_TOP_K;
         }
         return topK;
-    }
-
-    private static double normalizeThreshold(Double threshold) {
-        if (threshold == null) {
-            return KnowledgeConstants.DEFAULT_SIMILARITY_THRESHOLD;
-        }
-        if (threshold < 0.0) {
-            return 0.0;
-        }
-        if (threshold > 1.0) {
-            return 1.0;
-        }
-        return threshold;
-    }
-
-    private static KnowledgeSearchVO buildEmptySearchResult(String queryText, long startTimeMs) {
-        KnowledgeSearchVO empty = new KnowledgeSearchVO();
-        empty.setQuery(queryText);
-        empty.setItems(new ArrayList<>());
-        empty.setTotal(0);
-        empty.setQueryTime(System.currentTimeMillis() - startTimeMs);
-        return empty;
-    }
-
-    private static String resolveTitle(Document doc) {
-        if (doc == null) {
-            return KnowledgeConstants.DEFAULT_EMPTY_STRING;
-        }
-        Map<String, Object> metadata = doc.getMetadata();
-        if (metadata != null) {
-            Object titleObj = metadata.get(KnowledgeConstants.METADATA_TITLE);
-            if (titleObj != null) {
-                String t = String.valueOf(titleObj).trim();
-                if (!t.isEmpty()) {
-                    return t;
-                }
-            }
-        }
-        String content = sanitizeContent(doc.getFormattedContent());
-        if (content == null || content.isEmpty()) {
-            return KnowledgeConstants.DEFAULT_EMPTY_STRING;
-        }
-        // 取首个非空行作为标题
-        String[] lines = content.split("\\R");
-        String firstLine = KnowledgeConstants.DEFAULT_EMPTY_STRING;
-        for (String line : lines) {
-            if (line != null) {
-                String trimmed = line.trim();
-                if (!trimmed.isEmpty()) {
-                    firstLine = trimmed;
-                    break;
-                }
-            }
-        }
-        if (firstLine.isEmpty()) {
-            return KnowledgeConstants.DEFAULT_EMPTY_STRING;
-        }
-        return firstLine.length() > KnowledgeConstants.MAX_TITLE_LENGTH ?
-                firstLine.substring(0, KnowledgeConstants.MAX_TITLE_LENGTH) : firstLine;
-    }
-
-    private static String sanitizeContent(String content) {
-        if (content == null || content.isEmpty()) {
-            return content;
-        }
-        String[] lines = content.split("\\R");
-        StringBuilder sb = new StringBuilder();
-        for (String line : lines) {
-            if (line == null) {
-                continue;
-            }
-            String trimmed = line.trim();
-            // 过滤向量检索附带的调试分数行
-            String lower = trimmed.toLowerCase();
-            if (lower.startsWith(KnowledgeConstants.DEBUG_DISTANCE_PREFIX) ||
-                    lower.startsWith(KnowledgeConstants.DEBUG_VECTOR_SCORE_PREFIX)) {
-                continue;
-            }
-            sb.append(line).append("\n");
-        }
-        return sb.toString().trim();
     }
 
     private static String buildQuestionText(QuestionVO q) {
@@ -256,7 +175,7 @@ public class KnowledgeServiceImpl implements KnowledgeService {
             return null;
         }
         String str = value.toString().trim();
-        if (str.isEmpty() || KnowledgeConstants.DEFAULT_EMPTY_STRING.equals(str)) {
+        if (str.isEmpty()) {
             return null;
         }
         return str;
@@ -294,22 +213,7 @@ public class KnowledgeServiceImpl implements KnowledgeService {
         }
     }
 
-    /**
-     * 安全解析Double，处理null、空字符串和异常情况
-     */
     private static Double safeParseDouble(Object value) {
-        if (value == null) {
-            return null;
-        }
-        // 直接是Double类型，直接返回
-        if (value instanceof Double) {
-            return (Double) value;
-        }
-        // 是其他Number类型，直接转换
-        if (value instanceof Number) {
-            return ((Number) value).doubleValue();
-        }
-        // 字符串类型，需要解析
         String str = safeToString(value);
         if (str == null) {
             return null;
@@ -320,6 +224,24 @@ public class KnowledgeServiceImpl implements KnowledgeService {
             log.warn("Failed to parse Double from value: {}", str);
             return null;
         }
+    }
+
+    private static Double firstNonNullDouble(Object... values) {
+        if (values == null) {
+            return null;
+        }
+        for (Object value : values) {
+            Double parsed = safeParseDouble(value);
+            if (parsed != null) {
+                return parsed;
+            }
+        }
+        return null;
+    }
+
+    private static boolean hasMetadataFilter() {
+        // 无论是否传入 sessionId，都会对文件向量进行额外处理，因此始终视为存在过滤逻辑
+        return true;
     }
 
     @Override
@@ -338,7 +260,7 @@ public class KnowledgeServiceImpl implements KnowledgeService {
                 return;
             }
 
-            log.info("Vectorizing documents: count={}, contentType='{}', courseId={}",
+            log.debug("Vectorizing documents: count={}, contentType='{}', courseId={}",
                     documents.size(), request.getContentType(), request.getCourseId());
 
             // 分批处理文档，避免超过 DashScope API 的批次限制（25个）
@@ -409,27 +331,39 @@ public class KnowledgeServiceImpl implements KnowledgeService {
             // 按照 Q&A 对格式构建内容
             String content = KnowledgeConstants.CHAT_USER_PREFIX + userQuery + KnowledgeConstants.CHAT_AI_PREFIX + aiResponse;
 
-            // 构建元数据
+            // 构建元数据，将用户消息作为title记录
             Map<String, Object> metadata = buildBaseMetadata(
                     ContentTypeEnum.CHAT.getCode(),
                     messageId != null ? messageId.toString() : null,
                     courseId != null ? courseId.toString() : null,
                     null,
-                    null
+                    userQuery
             );
 
             // 添加会话ID和消息ID到元数据
             if (sessionId != null) {
-                metadata.put(KnowledgeConstants.METADATA_CHAT_SESSION_ID, sessionId.toString());
+                metadata.put(KnowledgeConstants.METADATA_SESSION_ID, sessionId.toString());
             }
             if (messageId != null) {
-                metadata.put(KnowledgeConstants.METADATA_CHAT_MESSAGE_ID, messageId.toString());
+                metadata.put(KnowledgeConstants.METADATA_MESSAGE_ID, messageId.toString());
             }
             // 添加用户ID到元数据，用于用户隔离
             metadata.put(KnowledgeConstants.METADATA_USER_ID, userId.toString());
+            // 添加创建时间到元数据
+            metadata.put(KnowledgeConstants.METADATA_CREATE_TIME, LocalDateTime.now().toString());
+            // 补充其他类型特有的字段（CHAT类型不使用，但保持结构完整）
+            metadata.put(KnowledgeConstants.METADATA_QUESTION_BANK_ID, KnowledgeConstants.DEFAULT_EMPTY_STRING);
+            metadata.put(KnowledgeConstants.METADATA_QUESTION_ID, KnowledgeConstants.DEFAULT_EMPTY_STRING);
+            metadata.put(KnowledgeConstants.METADATA_TASK_ID, KnowledgeConstants.DEFAULT_EMPTY_STRING);
+            metadata.put(KnowledgeConstants.METADATA_FORUM_ID, KnowledgeConstants.DEFAULT_EMPTY_STRING);
+            metadata.put(KnowledgeConstants.METADATA_POST_ID, KnowledgeConstants.DEFAULT_EMPTY_STRING);
+            // 补充tags和embeddingModel
+            metadata.put(KnowledgeConstants.METADATA_TAGS, new ArrayList<String>());
+            metadata.put(KnowledgeConstants.METADATA_EMBEDDING_MODEL, KnowledgeConstants.EMBEDDING_MODEL_TEXT_V1);
 
             // 创建 Document
-            Document document = new Document(content, metadata);
+            String vectorId = VectorIdUtil.ensureVectorId(metadata, redisVectorKeyPrefix);
+            Document document = new Document(vectorId, content, metadata);
 
             // 向量化并保存
             vectorStore.add(List.of(document));
@@ -446,114 +380,6 @@ public class KnowledgeServiceImpl implements KnowledgeService {
                     sessionId, messageId, e.getMessage(), e);
             // 不抛出异常，避免影响聊天流程
         }
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public KnowledgeSearchVO searchKnowledge(KnowledgeRequestDTO query) {
-        long startTime = System.currentTimeMillis();
-
-        // 参数矫正：query 文本、topK 与阈值
-        String queryText = query.getQuery();
-        if (isBlank(queryText)) {
-            return buildEmptySearchResult(queryText, startTime);
-        }
-        int topK = normalizeTopK(query.getTopK());
-        double threshold = normalizeThreshold(query.getSimilarityThreshold());
-
-        SearchRequest searchRequest = SearchRequest.builder()
-                .query(queryText)
-                .topK(topK)
-                .similarityThreshold(threshold)
-                .build();
-
-        List<Document> results = vectorStore.similaritySearch(searchRequest);
-
-        List<KnowledgeItemVO> items = new ArrayList<>();
-        if (results != null && !results.isEmpty()) {
-            // 批量查询数据库，避免N+1问题
-            List<String> vectorIds = results.stream()
-                    .map(Document::getId)
-                    .filter(id -> id != null && !id.isEmpty())
-                    .toList();
-            Map<String, KnowledgeVector> vectorMap = new HashMap<>();
-            if (!vectorIds.isEmpty()) {
-                try {
-                    List<KnowledgeVector> vectors = knowledgeVectorRepository.findByVectorIdIn(vectorIds);
-                    for (KnowledgeVector vector : vectors) {
-                        if (vector != null && vector.getVectorId() != null) {
-                            vectorMap.put(vector.getVectorId(), vector);
-                        }
-                    }
-                } catch (Exception e) {
-                    log.warn("Failed to batch query KnowledgeVector by vectorIds, error={}", e.getMessage());
-                }
-            }
-
-            // 获取当前用户ID，用于过滤CHAT类型内容
-            UUID currentUserId = null;
-            try {
-                currentUserId = UserContextUtil.getCurrentUserId();
-            } catch (Exception e) {
-                log.debug("无法获取当前用户ID，将不过滤CHAT类型内容: {}", e.getMessage());
-            }
-
-            // 构建结果列表，并对CHAT类型内容进行用户隔离
-            for (Document doc : results) {
-                // 如果是CHAT类型内容，需要检查用户ID是否匹配
-                Map<String, Object> metadata = doc.getMetadata();
-                if (metadata != null) {
-                    Object contentTypeObj = metadata.get(KnowledgeConstants.METADATA_CONTENT_TYPE);
-                    if (Objects.equals(ContentTypeEnum.CHAT.getCode(), safeParseInteger(contentTypeObj))) {
-                        // CHAT类型内容必须进行用户隔离
-                        if (currentUserId == null) {
-                            // 无法获取用户ID，跳过CHAT类型内容
-                            log.debug("跳过CHAT类型内容：无法获取当前用户ID");
-                            continue;
-                        }
-                        Object userIdObj = metadata.get(KnowledgeConstants.METADATA_USER_ID);
-                        UUID docUserId = safeParseUUID(userIdObj);
-                        if (docUserId == null || !docUserId.equals(currentUserId)) {
-                            // 用户ID不匹配，跳过该结果
-                            log.debug("跳过CHAT类型内容：用户ID不匹配，docUserId={}, currentUserId={}", docUserId, currentUserId);
-                            continue;
-                        }
-                    }
-                }
-
-                KnowledgeItemVO item = buildKnowledgeItem(doc, vectorMap);
-                items.add(item);
-            }
-        }
-
-        long queryTime = System.currentTimeMillis() - startTime;
-
-        // RAG 命中/未命中日志
-        int hitCount = items.size();
-        if (hitCount > 0) {
-            // 汇总前3个分数用于观察
-            StringBuilder topScores = new StringBuilder();
-            int limit = Math.min(3, hitCount);
-            for (int i = 0; i < limit; i++) {
-                Double score = items.get(i).getScore();
-                if (i > 0) {
-                    topScores.append(", ");
-                }
-                topScores.append(score == null ? "null" : String.format("%.4f", score));
-            }
-            log.info("RAG HIT: query='{}', topK={}, threshold={}, hits={}, timeMs={}, topScores=[{}]",
-                    queryText, topK, threshold, hitCount, queryTime, topScores);
-        } else {
-            log.info("RAG MISS: query='{}', topK={}, threshold={}, hits=0, timeMs={}",
-                    queryText, topK, threshold, queryTime);
-        }
-
-        KnowledgeSearchVO searchVO = new KnowledgeSearchVO();
-        searchVO.setQuery(queryText);
-        searchVO.setItems(items);
-        searchVO.setTotal(items.size());
-        searchVO.setQueryTime(queryTime);
-        return searchVO;
     }
 
     @Override
@@ -635,7 +461,8 @@ public class KnowledgeServiceImpl implements KnowledgeService {
                 Map<String, Object> metadata = buildBaseMetadata(
                         ContentTypeEnum.CHAPTER.getCode(), id, courseId, id, title);
                 metadata.put(KnowledgeConstants.METADATA_CHUNK_INDEX, chunkIndex++);
-                documents.add(new Document(chunk, metadata));
+                String vectorId = VectorIdUtil.ensureVectorId(metadata, redisVectorKeyPrefix);
+                documents.add(new Document(vectorId, chunk, metadata));
             }
         }
         log.debug("Prepared chapter documents: count={}, courseId={}",
@@ -735,8 +562,8 @@ public class KnowledgeServiceImpl implements KnowledgeService {
             return null;
         }
         String content = buildQuestionText(q);
-        if (content == null || content.trim().isEmpty()) {
-            return null; // 跳过空内容
+        if (content.trim().isEmpty()) {
+            return null;
         }
 
         Map<String, Object> metadata = buildBaseMetadata(
@@ -760,7 +587,8 @@ public class KnowledgeServiceImpl implements KnowledgeService {
             }
         }
 
-        return new Document(content, metadata);
+        String vectorId = VectorIdUtil.ensureVectorId(metadata, redisVectorKeyPrefix);
+        return new Document(vectorId, content, metadata);
     }
 
     private List<Document> fetchTaskContent(VectorizeRequestDTO request) {
@@ -784,7 +612,7 @@ public class KnowledgeServiceImpl implements KnowledgeService {
                 continue;
             }
             String content = buildTaskText(task);
-            if (content == null || content.trim().isEmpty()) {
+            if (content.trim().isEmpty()) {
                 continue; // 跳过空内容
             }
 
@@ -797,7 +625,8 @@ public class KnowledgeServiceImpl implements KnowledgeService {
             // 添加任务ID到metadata
             metadata.put(KnowledgeConstants.METADATA_TASK_ID, task.getId().toString());
 
-            documents.add(new Document(content, metadata));
+            String vectorId = VectorIdUtil.ensureVectorId(metadata, redisVectorKeyPrefix);
+            documents.add(new Document(vectorId, content, metadata));
         }
         log.debug("Prepared task documents: count={}, courseId={}", documents.size(), request.getCourseId());
         return documents;
@@ -833,7 +662,7 @@ public class KnowledgeServiceImpl implements KnowledgeService {
             String title = post.getTitle() != null ? post.getTitle() : KnowledgeConstants.DEFAULT_EMPTY_STRING;
             String content = post.getContent() != null ? post.getContent() : KnowledgeConstants.DEFAULT_EMPTY_STRING;
 
-            if (content == null || content.trim().isEmpty()) {
+            if (content.trim().isEmpty()) {
                 continue; // 跳过空内容
             }
 
@@ -854,7 +683,8 @@ public class KnowledgeServiceImpl implements KnowledgeService {
                 }
             }
 
-            documents.add(new Document(content, metadata));
+            String vectorId = VectorIdUtil.ensureVectorId(metadata, redisVectorKeyPrefix);
+            documents.add(new Document(vectorId, content, metadata));
         }
         log.debug("Prepared forum documents: count={}, courseId={}", documents.size(), request.getCourseId());
         return documents;
@@ -864,8 +694,10 @@ public class KnowledgeServiceImpl implements KnowledgeService {
      * 构建KnowledgeVector对象（用于批量保存）
      */
     private KnowledgeVector buildKnowledgeVector(Document doc) {
-        if (doc == null || doc.getId() == null) {
+        if (doc == null) {
             return null;
+        } else {
+            doc.getId();
         }
 
         Map<String, Object> metadata = doc.getMetadata();
@@ -878,10 +710,15 @@ public class KnowledgeServiceImpl implements KnowledgeService {
         Object taskIdObj = metadata.get(KnowledgeConstants.METADATA_TASK_ID);
         Object forumIdObj = metadata.get(KnowledgeConstants.METADATA_FORUM_ID);
         Object postIdObj = metadata.get(KnowledgeConstants.METADATA_POST_ID);
+        Object userIdObj = metadata.get(KnowledgeConstants.METADATA_USER_ID);
+        Object sessionIdObj = metadata.get(KnowledgeConstants.METADATA_SESSION_ID);
 
         KnowledgeVector vector = new KnowledgeVector();
         vector.setId(UuidCreator.getTimeOrderedEpoch());
-        vector.setVectorId(doc.getId());
+        // 优先使用我们在 metadata 中写入的自定义 vectorId，旧数据则回退为 Document.getId()
+        Object customVectorId = metadata.get(KnowledgeConstants.METADATA_VECTOR_ID);
+        String vectorId = customVectorId != null ? customVectorId.toString() : doc.getId();
+        vector.setVectorId(vectorId);
         vector.setCourseId(safeParseUUID(courseIdObj));
         vector.setChapterId(safeParseUUID(chapterIdObj));
         vector.setContentType(safeParseInteger(contentTypeObj));
@@ -891,6 +728,8 @@ public class KnowledgeServiceImpl implements KnowledgeService {
         vector.setTaskId(safeParseUUID(taskIdObj));
         vector.setForumId(safeParseUUID(forumIdObj));
         vector.setPostId(safeParseUUID(postIdObj));
+        vector.setUserId(safeParseUUID(userIdObj));
+        vector.setSessionId(safeParseUUID(sessionIdObj));
         Object titleObj = metadata.get(KnowledgeConstants.METADATA_TITLE);
         vector.setTitle(titleObj == null ? KnowledgeConstants.DEFAULT_EMPTY_STRING : String.valueOf(titleObj));
         vector.setContent(doc.getFormattedContent());
@@ -910,145 +749,6 @@ public class KnowledgeServiceImpl implements KnowledgeService {
         return vector;
     }
 
-    /**
-     * 构建知识项VO，从metadata和数据库补充完整信息
-     *
-     * @param doc       文档
-     * @param vectorMap 向量数据映射（vectorId -> KnowledgeVector），用于批量查询优化
-     */
-    private KnowledgeItemVO buildKnowledgeItem(Document doc, Map<String, KnowledgeVector> vectorMap) {
-        KnowledgeItemVO item = new KnowledgeItemVO();
-        String vectorId = doc.getId();
-
-        // 从metadata中提取信息
-        Map<String, Object> metadata = doc.getMetadata();
-        Object courseIdObj = metadata.get(KnowledgeConstants.METADATA_COURSE_ID);
-        Object chapterIdObj = metadata.get(KnowledgeConstants.METADATA_CHAPTER_ID);
-        Object contentTypeObj = metadata.get(KnowledgeConstants.METADATA_CONTENT_TYPE);
-        Object contentIdObj = metadata.get(KnowledgeConstants.METADATA_CONTENT_ID);
-        Object questionBankIdObj = metadata.get(KnowledgeConstants.METADATA_QUESTION_BANK_ID);
-        Object questionIdObj = metadata.get(KnowledgeConstants.METADATA_QUESTION_ID);
-        Object taskIdObj = metadata.get(KnowledgeConstants.METADATA_TASK_ID);
-        Object forumIdObj = metadata.get(KnowledgeConstants.METADATA_FORUM_ID);
-        Object postIdObj = metadata.get(KnowledgeConstants.METADATA_POST_ID);
-
-        // 从批量查询的映射中获取向量数据
-        KnowledgeVector vector = vectorMap != null ? vectorMap.get(vectorId) : null;
-
-        // 设置ID（优先从metadata的contentId，其次从数据库，最后尝试vectorId）
-        UUID contentId = safeParseUUID(contentIdObj);
-        if (contentId == null && vector != null && vector.getContentId() != null) {
-            contentId = vector.getContentId();
-        }
-        if (contentId == null) {
-            try {
-                contentId = UUID.fromString(vectorId);
-            } catch (Exception e) {
-                log.warn("Failed to parse vectorId as UUID: {}", vectorId);
-            }
-        }
-        item.setId(contentId);
-
-        // 设置contentType（优先从metadata，其次从数据库）
-        Integer contentType = safeParseInteger(contentTypeObj);
-        if (contentType == null && vector != null) {
-            contentType = vector.getContentType();
-        }
-        item.setContentType(contentType);
-
-        // 设置title（优先从metadata，其次从数据库）
-        String title = resolveTitle(doc);
-        if ((title == null || title.isEmpty()) && vector != null && vector.getTitle() != null) {
-            title = vector.getTitle();
-        }
-        item.setTitle(title);
-
-        // 设置content
-        item.setContent(sanitizeContent(doc.getFormattedContent()));
-
-        // 设置score
-        Object scoreObj = metadata.get(KnowledgeConstants.METADATA_SCORE);
-        Double score = safeParseDouble(scoreObj);
-        if (score == null) {
-            // 尝试从metadata中的distance或vector_score获取
-            Object distanceObj = metadata.get(KnowledgeConstants.METADATA_DISTANCE);
-            Object vectorScoreObj = metadata.get(KnowledgeConstants.METADATA_VECTOR_SCORE);
-            if (distanceObj != null) {
-                score = safeParseDouble(distanceObj);
-            } else if (vectorScoreObj != null) {
-                score = safeParseDouble(vectorScoreObj);
-            }
-        }
-        item.setScore(score != null ? score : KnowledgeConstants.DEFAULT_SCORE);
-
-        // 设置courseId（优先从metadata，其次从数据库）
-        UUID courseId = safeParseUUID(courseIdObj);
-        if (courseId == null && vector != null) {
-            courseId = vector.getCourseId();
-        }
-        item.setCourseId(courseId);
-
-        // 设置chapterId（优先从metadata，其次从数据库）
-        UUID chapterId = safeParseUUID(chapterIdObj);
-        if (chapterId == null && vector != null) {
-            chapterId = vector.getChapterId();
-        }
-        item.setChapterId(chapterId);
-
-        // 设置questionBankId（优先从metadata，其次从数据库）
-        UUID questionBankId = safeParseUUID(questionBankIdObj);
-        if (questionBankId == null && vector != null) {
-            questionBankId = vector.getQuestionBankId();
-        }
-        item.setQuestionBankId(questionBankId);
-
-        // 设置questionId（优先从metadata，其次从数据库）
-        UUID questionId = safeParseUUID(questionIdObj);
-        if (questionId == null && vector != null) {
-            questionId = vector.getQuestionId();
-        }
-        item.setQuestionId(questionId);
-
-        // 设置taskId（优先从metadata，其次从数据库）
-        UUID taskId = safeParseUUID(taskIdObj);
-        if (taskId == null && vector != null) {
-            taskId = vector.getTaskId();
-        }
-        item.setTaskId(taskId);
-
-        // 设置forumId（优先从metadata，其次从数据库）
-        UUID forumId = safeParseUUID(forumIdObj);
-        if (forumId == null && vector != null) {
-            forumId = vector.getForumId();
-        }
-        item.setForumId(forumId);
-
-        // 设置postId（优先从metadata，其次从数据库）
-        UUID postId = safeParseUUID(postIdObj);
-        if (postId == null && vector != null) {
-            postId = vector.getPostId();
-        }
-        item.setPostId(postId);
-
-        // 设置tags（优先从metadata，其次从数据库）
-        Object tagsObj = metadata.get(KnowledgeConstants.METADATA_TAGS);
-        if (tagsObj instanceof List) {
-            @SuppressWarnings("unchecked")
-            List<String> tags = (List<String>) tagsObj;
-            if (tags != null && !tags.isEmpty()) {
-                item.setTags(tags);
-            }
-        }
-        if (item.getTags() == null && vector != null && vector.getTags() != null && !vector.getTags().isEmpty()) {
-            item.setTags(vector.getTags());
-        }
-
-        // 设置metadata
-        item.setMetadata(metadata);
-
-        return item;
-    }
-
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void vectorizeFileDocument(UUID fileId) {
@@ -1057,6 +757,86 @@ public class KnowledgeServiceImpl implements KnowledgeService {
         // 实际的文件向量化逻辑在 FileDocumentServiceImpl 中通过 Kafka 异步处理
         // 如果需要直接调用，应该通过事件机制（Spring Events）或独立的服务类来解耦
         log.warn("vectorizeFileDocument called but should be implemented via Kafka or event mechanism to avoid circular dependency. fileId: {}", fileId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<KnowledgeSearchResultVO> searchKnowledge(KnowledgeSearchRequestDTO request) {
+        if (request == null || !StringUtils.hasText(request.getQuery())) {
+            throw new BusinessException(KnowledgeEnum.SEARCH_QUERY_REQUIRED);
+        }
+
+        try {
+            UUID currentUserId = UserContextUtil.getCurrentUserId();
+            int topK = normalizeTopK(request.getTopK());
+            double threshold = request.getSimilarityThreshold() != null
+                    ? request.getSimilarityThreshold()
+                    : KnowledgeConstants.DEFAULT_SIMILARITY_THRESHOLD;
+
+            int fetchTopK = topK;
+            boolean hasFilter = hasMetadataFilter();
+            if (hasFilter) {
+                fetchTopK = Math.min(topK * 3, 500);
+                fetchTopK = Math.max(fetchTopK, topK);
+            }
+
+            SearchRequest searchRequest = SearchRequest.builder()
+                    .query(request.getQuery())
+                    .topK(fetchTopK)
+                    .similarityThreshold(threshold)
+                    .build();
+
+            List<Document> documents = vectorStore.similaritySearch(searchRequest);
+            if (documents == null || documents.isEmpty()) {
+                log.warn("searchKnowledge finished: no documents returned, query='{}', fetchTopK={}, threshold={}",
+                        request.getQuery(), fetchTopK, threshold);
+                return Collections.emptyList();
+            }
+
+            List<Document> candidateDocuments = new ArrayList<>();
+            List<String> candidateVectorIds = new ArrayList<>();
+            for (Document document : documents) {
+                String vectorId = resolveVectorId(document);
+                if (!StringUtils.hasText(vectorId)) {
+                    log.warn("searchKnowledge skip docId={} due to missing vectorId", document.getId());
+                    continue;
+                }
+                candidateDocuments.add(document);
+                candidateVectorIds.add(vectorId);
+                if (candidateDocuments.size() >= topK) {
+                    break;
+                }
+            }
+
+            if (candidateDocuments.isEmpty()) {
+                log.warn("searchKnowledge finished: no documents matched metadata filters, query='{}'", request.getQuery());
+                return Collections.emptyList();
+            }
+
+            Map<String, KnowledgeVector> vectorMap = buildVectorMap(candidateVectorIds);
+            List<KnowledgeSearchResultVO> results = new ArrayList<>();
+            for (int i = 0; i < candidateDocuments.size(); i++) {
+                Document document = candidateDocuments.get(i);
+                String vectorId = candidateVectorIds.get(i);
+                KnowledgeVector vector = vectorMap.get(vectorId);
+                if (vector == null) {
+                    log.warn("searchKnowledge skip docId={} due to missing KnowledgeVector, vectorId={}",
+                            document.getId(), vectorId);
+                    continue;
+                }
+                if (!shouldIncludeVector(vector, request, currentUserId)) {
+                    continue;
+                }
+                KnowledgeSearchResultVO vo = buildSearchResult(document, vector);
+                if (vo != null) {
+                    results.add(vo);
+                }
+            }
+            return results;
+        } catch (Exception e) {
+            log.error("Knowledge search failed, query='{}'", request.getQuery(), e);
+            throw new BusinessException(KnowledgeEnum.SEARCH_FAILED);
+        }
     }
 
     @Override
@@ -1086,33 +866,203 @@ public class KnowledgeServiceImpl implements KnowledgeService {
         int count = 0;
         for (Document doc : results) {
             Map<String, Object> metadata = doc.getMetadata();
-            if (metadata != null) {
-                Object fileIdObj = metadata.get(KnowledgeConstants.METADATA_FILE_ID);
-                if (fileIdObj != null) {
-                    try {
-                        UUID docFileId = UUID.fromString(fileIdObj.toString());
-                        if (fileIds.contains(docFileId) && count < searchTopK) {
-                            String content = doc.getFormattedContent();
-                            if (StringUtils.hasText(content)) {
-                                if (count > 0) {
-                                    context.append(FileParserConstants.LINE_SEPARATOR)
-                                            .append(FileParserConstants.LINE_SEPARATOR);
-                                }
-                                context.append(KnowledgeConstants.FILE_CHUNK_PREFIX)
-                                        .append(count + 1)
-                                        .append(KnowledgeConstants.FILE_CHUNK_SUFFIX);
-                                context.append(content);
-                                count++;
+            Object fileIdObj = metadata.get(KnowledgeConstants.METADATA_FILE_ID);
+            if (fileIdObj != null) {
+                try {
+                    UUID docFileId = UUID.fromString(fileIdObj.toString());
+                    if (fileIds.contains(docFileId) && count < searchTopK) {
+                        String content = doc.getFormattedContent();
+                        if (StringUtils.hasText(content)) {
+                            if (count > 0) {
+                                context.append(FileParserConstants.LINE_SEPARATOR)
+                                        .append(FileParserConstants.LINE_SEPARATOR);
                             }
+                            context.append(KnowledgeConstants.FILE_CHUNK_PREFIX)
+                                    .append(count + 1)
+                                    .append(KnowledgeConstants.FILE_CHUNK_SUFFIX);
+                            context.append(content);
+                            count++;
                         }
-                    } catch (Exception e) {
-                        log.warn("Failed to parse fileId from metadata: {}", fileIdObj, e);
                     }
+                } catch (Exception e) {
+                    log.warn("Failed to parse fileId from metadata: {}", fileIdObj, e);
                 }
             }
         }
 
         return count > 0 ? context.toString() : null;
     }
+
+    private KnowledgeSearchResultVO buildSearchResult(Document document, KnowledgeVector vector) {
+        if (document == null || vector == null) {
+            return null;
+        }
+        String vectorId = StringUtils.hasText(vector.getVectorId()) ? vector.getVectorId() : resolveVectorId(document);
+        if (!StringUtils.hasText(vectorId)) {
+            log.warn("searchKnowledge skip docId={} due to missing vectorId", document.getId());
+            return null;
+        }
+
+        KnowledgeSearchResultVO vo = new KnowledgeSearchResultVO();
+        vo.setDocumentId(document.getId());
+        vo.setContent(sanitizeContent(document.getFormattedContent()));
+        vo.setVectorId(vectorId);
+
+        vo.setContentType(vector.getContentType());
+        vo.setTitle(vector.getTitle());
+        vo.setCourseId(vector.getCourseId());
+        vo.setChapterId(vector.getChapterId());
+        vo.setContentId(vector.getContentId());
+        vo.setQuestionBankId(vector.getQuestionBankId());
+        vo.setQuestionId(vector.getQuestionId());
+        vo.setTaskId(vector.getTaskId());
+        vo.setForumId(vector.getForumId());
+        vo.setPostId(vector.getPostId());
+        vo.setSessionId(vector.getSessionId());
+        vo.setMessageId(safeParseUUID(vector.getMetadata() != null
+                ? vector.getMetadata().get(KnowledgeConstants.METADATA_MESSAGE_ID)
+                : null));
+        vo.setUserId(vector.getUserId());
+        vo.setFileId(vector.getMetadata() != null
+                ? safeParseUUID(vector.getMetadata().get(KnowledgeConstants.METADATA_FILE_ID))
+                : null);
+        vo.setChunkIndex(vector.getMetadata() != null
+                ? safeParseInteger(vector.getMetadata().get(KnowledgeConstants.METADATA_CHUNK_INDEX))
+                : null);
+        vo.setCreateTime(vector.getCreateTime());
+        vo.setEmbeddingModel(vector.getEmbeddingModel());
+        vo.setTags(vector.getTags());
+
+        Map<String, Object> docMetadata = document.getMetadata();
+        vo.setScore(firstNonNullDouble(docMetadata.get(KnowledgeConstants.METADATA_VECTOR_SCORE),
+                docMetadata.get(KnowledgeConstants.METADATA_SCORE)));
+        vo.setDistance(firstNonNullDouble(docMetadata.get(KnowledgeConstants.METADATA_DISTANCE), null));
+
+        return vo;
+    }
+
+    private Map<String, KnowledgeVector> buildVectorMap(List<String> vectorIds) {
+        if (vectorIds == null || vectorIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+        List<KnowledgeVector> vectors = knowledgeVectorRepository.findByVectorIdIn(new HashSet<>(vectorIds));
+        Map<String, KnowledgeVector> vectorMap = new HashMap<>(vectors.size());
+        for (KnowledgeVector vector : vectors) {
+            if (vector == null || !StringUtils.hasText(vector.getVectorId())) {
+                continue;
+            }
+            vectorMap.putIfAbsent(vector.getVectorId(), vector);
+        }
+        return vectorMap;
+    }
+
+    private String sanitizeContent(String content) {
+        if (content == null) {
+            return null;
+        }
+        String[] lines = content.split("\\r?\\n", -1);
+        StringBuilder sb = new StringBuilder();
+        boolean trimmingHead = true;
+        for (String line : lines) {
+            String trimmed = line.trim();
+            if (trimmingHead) {
+                boolean isDebugLine = trimmed.startsWith(KnowledgeConstants.DEBUG_DISTANCE_PREFIX)
+                        || trimmed.startsWith(KnowledgeConstants.DEBUG_VECTOR_SCORE_PREFIX);
+                if (isDebugLine || trimmed.isEmpty()) {
+                    continue;
+                }
+                trimmingHead = false;
+            }
+            if (!sb.isEmpty()) {
+                sb.append(System.lineSeparator());
+            }
+            sb.append(line);
+        }
+        return sb.toString();
+    }
+
+    private String resolveVectorId(Document document) {
+        if (document == null) {
+            return null;
+        }
+        Map<String, Object> metadata = document.getMetadata();
+        String vectorId = safeString(metadata.get(KnowledgeConstants.METADATA_VECTOR_ID));
+        if (StringUtils.hasText(vectorId)) {
+            return vectorId;
+        }
+        if (!StringUtils.hasText(document.getId())) {
+            return null;
+        }
+        String docId = document.getId();
+        String prefix = StringUtils.hasText(redisVectorKeyPrefix) ? redisVectorKeyPrefix : "vector";
+        String prefixWithColon = prefix + ":";
+        String candidate = null;
+        if (StringUtils.hasText(prefix)) {
+            if (docId.startsWith(prefixWithColon)) {
+                candidate = docId.substring(prefixWithColon.length());
+            } else if (docId.startsWith(prefix)) {
+                candidate = docId.substring(prefix.length());
+            }
+        }
+        if (!StringUtils.hasText(candidate)) {
+            int colonIndex = docId.indexOf(':');
+            if (colonIndex >= 0 && colonIndex < docId.length() - 1) {
+                candidate = docId.substring(colonIndex + 1);
+            } else {
+                candidate = docId;
+            }
+        }
+        return StringUtils.hasText(candidate) ? candidate : null;
+    }
+
+    private boolean shouldIncludeVector(KnowledgeVector vector, KnowledgeSearchRequestDTO request, UUID currentUserId) {
+        if (vector == null) {
+            return false;
+        }
+        Integer contentType = vector.getContentType();
+        boolean isFileVector = Objects.equals(contentType, KnowledgeConstants.CONTENT_TYPE_FILE);
+        boolean isChatVector = Objects.equals(contentType, KnowledgeConstants.CONTENT_TYPE_CHAT);
+        UUID requestSessionId = request != null ? request.getSessionId() : null;
+        if (isFileVector) {
+            if (requestSessionId == null) {
+                log.debug("searchKnowledge skip file vector due to missing sessionId, vectorId={}", vector.getVectorId());
+                return false;
+            }
+            UUID vectorSessionId = vector.getSessionId();
+            boolean matched = requestSessionId.equals(vectorSessionId);
+            if (!matched) {
+                log.debug("searchKnowledge skip file vector due to session mismatch, vectorId={}, requestSessionId={}, vectorSessionId={}",
+                        vector.getVectorId(), requestSessionId, vectorSessionId);
+                return false;
+            }
+            if (currentUserId == null) {
+                log.debug("searchKnowledge skip file vector due to missing current userId, vectorId={}", vector.getVectorId());
+                return false;
+            }
+            UUID vectorUserId = vector.getUserId();
+            boolean userMatched = currentUserId.equals(vectorUserId);
+            if (!userMatched) {
+                log.debug("searchKnowledge skip file vector due to user mismatch, vectorId={}, currentUserId={}, vectorUserId={}",
+                        vector.getVectorId(), currentUserId, vectorUserId);
+                return false;
+            }
+        }
+        if (isChatVector) {
+            if (currentUserId == null) {
+                log.debug("searchKnowledge skip chat vector due to missing current userId, vectorId={}", vector.getVectorId());
+                return false;
+            }
+            UUID vectorUserId = vector.getUserId();
+            boolean matchedUser = currentUserId.equals(vectorUserId);
+            if (!matchedUser) {
+                log.debug("searchKnowledge skip chat vector due to user mismatch, vectorId={}, currentUserId={}, vectorUserId={}",
+                        vector.getVectorId(), currentUserId, vectorUserId);
+                return false;
+            }
+        }
+        return true;
+    }
+
 }
+
 

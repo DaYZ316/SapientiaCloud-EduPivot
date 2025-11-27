@@ -48,7 +48,7 @@
         <pdfbox.version>3.0.0</pdfbox.version>
         <poi.version>5.4.0</poi.version>
         <commons.compress.version>1.26.0</commons.compress.version>
-        <commons.io.version>2.15.1</commons.io.version>
+        <commons.io.version>2.18.0</commons.io.version>
         
         <!-- Logging Versions (for future use) -->
         <logstash.logback.version>7.4</logstash.logback.version>

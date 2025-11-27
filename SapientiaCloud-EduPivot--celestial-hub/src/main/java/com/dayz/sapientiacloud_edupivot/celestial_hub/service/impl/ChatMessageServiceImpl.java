@@ -1,7 +1,6 @@
 package com.dayz.sapientiacloud_edupivot.celestial_hub.service.impl;
 
 import com.dayz.sapientiacloud_edupivot.celestial_hub.common.exception.BusinessException;
-import com.dayz.sapientiacloud_edupivot.celestial_hub.common.security.utils.UserContextUtil;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.constant.AIChatConstants;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.ChatRequestDTO;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.KafkaChatRequestDTO;
@@ -16,6 +15,7 @@ import com.dayz.sapientiacloud_edupivot.celestial_hub.service.KafkaChatService;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.KnowledgeService;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.utils.ChatMessageUtil;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.SystemMessage;
@@ -29,7 +29,9 @@ import reactor.core.publisher.Flux;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ChatMessageServiceImpl implements IChatMessageService {
@@ -45,6 +47,7 @@ public class ChatMessageServiceImpl implements IChatMessageService {
     public ChatResponseVO chat(ChatRequestDTO request) {
         ChatSessionVO sessionVO = getOrCreateSession(request);
         UUID sessionId = sessionVO.getId();
+        request.setSessionId(sessionId);
 
         ChatMessageUtil.ChatContext chatContext = buildContext(sessionId, request);
         List<Message> messages = chatContext.messages();
@@ -65,6 +68,25 @@ public class ChatMessageServiceImpl implements IChatMessageService {
 
         chatSessionService.updateSessionLastMessage(sessionId, aiResponse);
 
+        // 向量化对话内容（Q&A对格式）
+        UUID userId = sessionVO.getSysUserId();
+        if (userId != null && request.getMessage() != null && !request.getMessage().trim().isEmpty()
+                && aiResponse != null && !aiResponse.trim().isEmpty()) {
+            try {
+                knowledgeService.vectorizeChatContent(
+                        request.getMessage(),
+                        aiResponse,
+                        sessionId,
+                        assistantMessage.getId(),
+                        request.getCourseId(),
+                        userId
+                );
+            } catch (Exception e) {
+                log.warn("向量化对话内容失败，但不影响聊天流程: sessionId={}, messageId={}, userId={}, error={}",
+                        sessionId, assistantMessage.getId(), userId, e.getMessage());
+            }
+        }
+
         ChatResponseVO responseVO = new ChatResponseVO();
         responseVO.setSessionId(sessionId);
         responseVO.setMessageId(assistantMessage.getId());
@@ -81,6 +103,7 @@ public class ChatMessageServiceImpl implements IChatMessageService {
     public Flux<String> chatStream(ChatRequestDTO request) {
         ChatSessionVO sessionVO = getOrCreateSession(request);
         UUID sessionId = sessionVO.getId();
+        request.setSessionId(sessionId);
 
         ChatMessageUtil.ChatContext chatContext = buildContext(sessionId, request);
         List<Message> messages = chatContext.messages();
@@ -96,6 +119,10 @@ public class ChatMessageServiceImpl implements IChatMessageService {
                 chatContext.lastMessage(), null, chatMessageRepository);
 
         StringBuilder fullResponse = new StringBuilder();
+        final UUID userId = sessionVO.getSysUserId();
+        final String userQuery = request.getMessage();
+        final UUID courseId = request.getCourseId();
+        AtomicBoolean responsePersisted = new AtomicBoolean(false);
 
         return chatClient
                 .prompt()
@@ -103,15 +130,22 @@ public class ChatMessageServiceImpl implements IChatMessageService {
                 .stream()
                 .content()
                 .doOnNext(fullResponse::append)
-                .doOnComplete(() -> {
-                    ChatMessageUtil.saveAssistantMessage(sessionId, fullResponse.toString(), chatMessageRepository);
-                    chatSessionService.updateSessionLastMessage(sessionId, fullResponse.toString());
-                });
+                .doOnCancel(() -> persistStreamResponse(sessionId, fullResponse.toString(), userId, userQuery, courseId, false, responsePersisted))
+                .doOnError(error -> persistStreamResponse(sessionId, fullResponse.toString(), userId, userQuery, courseId, false, responsePersisted))
+                .doOnComplete(() -> persistStreamResponse(sessionId, fullResponse.toString(), userId, userQuery, courseId, true, responsePersisted));
     }
 
     @Override
     public Flux<String> chatStreamKafka(KafkaChatRequestDTO request) {
         return kafkaChatService.chatStreamKafka(request);
+    }
+
+    @Override
+    public void cancelKafkaChat(String requestId, String reason) {
+        if (!StringUtils.hasText(requestId)) {
+            throw new BusinessException(AIChatEnum.REQUEST_ID_REQUIRED);
+        }
+        kafkaChatService.notifyCancellation(requestId, StringUtils.hasText(reason) ? reason : "manual_cancel");
     }
 
     @Override
@@ -166,7 +200,6 @@ public class ChatMessageServiceImpl implements IChatMessageService {
             return chatSessionService.getChatSessionById(request.getSessionId());
         }
 
-        UUID userId = UserContextUtil.getCurrentUserId();
         return chatSessionService.addChatSession(request.getCourseId(), request.getSessionType(), null);
     }
 
@@ -188,6 +221,37 @@ public class ChatMessageServiceImpl implements IChatMessageService {
                     .content();
         } catch (Exception e) {
             throw new BusinessException(AIChatEnum.AI_SERVICE_ERROR);
+        }
+    }
+
+    private void persistStreamResponse(UUID sessionId, String response, UUID userId, String userQuery,
+                                       UUID courseId, boolean vectorize, AtomicBoolean persistedFlag) {
+        if (!StringUtils.hasText(response)) {
+            return;
+        }
+        if (!persistedFlag.compareAndSet(false, true)) {
+            return;
+        }
+        if (!vectorize) {
+            return;
+        }
+        ChatMessage assistantMessage = ChatMessageUtil.saveAssistantMessage(sessionId, response, chatMessageRepository);
+        chatSessionService.updateSessionLastMessage(sessionId, response);
+        if (userId == null || !StringUtils.hasText(userQuery)) {
+            return;
+        }
+        try {
+            knowledgeService.vectorizeChatContent(
+                    userQuery,
+                    response,
+                    sessionId,
+                    assistantMessage.getId(),
+                    courseId,
+                    userId
+            );
+        } catch (Exception e) {
+            log.warn("向量化对话内容失败，但不影响聊天流程: sessionId={}, messageId={}, userId={}, error={}",
+                    sessionId, assistantMessage.getId(), userId, e.getMessage());
         }
     }
 

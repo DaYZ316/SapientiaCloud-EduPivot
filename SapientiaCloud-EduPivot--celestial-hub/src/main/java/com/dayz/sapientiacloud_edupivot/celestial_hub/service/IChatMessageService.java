@@ -17,6 +17,8 @@ public interface IChatMessageService {
 
     Flux<String> chatStreamKafka(KafkaChatRequestDTO request);
 
+    void cancelKafkaChat(String requestId, String reason);
+
     List<ChatMessage> listMessagesBySessionId(UUID sessionId, Integer limit);
 
     ChatMessage getChatMessageById(UUID id);

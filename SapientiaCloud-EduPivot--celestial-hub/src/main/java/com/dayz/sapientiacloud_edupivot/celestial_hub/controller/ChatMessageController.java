@@ -59,6 +59,22 @@ public class ChatMessageController extends BaseController {
         return chatMessageService.chatStreamKafka(request);
     }
 
+    // TODO 逻辑优化
+    @HasPermission(
+            summary = "cancelChatStreamKafka",
+            description = "取消Kafka流式聊天请求",
+            permission = PermissionConstants.CELESTIAL_EDIT
+    )
+    @PostMapping("/stream/kafka/{requestId}/cancel")
+    public Result<Boolean> cancelChatStreamKafka(
+            @Parameter(name = "requestId", description = "请求ID", required = true)
+            @PathVariable("requestId") String requestId,
+            @Parameter(name = "reason", description = "取消原因")
+            @RequestParam(value = "reason", required = false) String reason) {
+        chatMessageService.cancelKafkaChat(requestId, reason);
+        return Result.success(Boolean.TRUE);
+    }
+
     @HasPermission(
             summary = "listMessagesBySessionId",
             description = "获取指定会话的消息列表",

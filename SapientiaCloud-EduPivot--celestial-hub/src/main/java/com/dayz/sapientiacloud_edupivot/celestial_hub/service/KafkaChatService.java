@@ -9,9 +9,14 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.kafka.support.SendResult;
+import org.springframework.messaging.handler.annotation.Header;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
 
@@ -35,6 +40,8 @@ public class KafkaChatService {
     private String chatRequestTopic;
     @Value("${spring.kafka.topic.chat-response:chat-response-topic}")
     private String chatResponseTopic;
+    @Value("${spring.kafka.topic.chat-control:chat-control-topic}")
+    private String chatControlTopic;
     @Value("${kafka.chat.timeout-seconds:300}")
     private long chatTimeoutSeconds;
 
@@ -47,7 +54,7 @@ public class KafkaChatService {
                 .removalListener((key, value, cause) -> {
                     @SuppressWarnings("unchecked")
                     Sinks.Many<String> sink = (Sinks.Many<String>) value;
-                    if (sink.currentSubscriberCount() != 0) {
+                    if (sink != null && sink.currentSubscriberCount() != 0) {
                         log.debug("响应Sink被移除但仍有订阅者, requestId: {}, cause: {}", key, cause);
                     }
                     log.debug("响应Sink被移除, requestId: {}, cause: {}", key, cause);
@@ -93,12 +100,6 @@ public class KafkaChatService {
                             System.currentTimeMillis() - startTime, ex);
                     responseSink.tryEmitError(ex);
                     responseSinks.invalidate(requestId);
-                } else {
-                    log.debug("Kafka消息发送成功, requestId: {}, topic: {}, partition: {}, offset: {}, 耗时: {}ms",
-                            requestId, result.getRecordMetadata().topic(),
-                            result.getRecordMetadata().partition(),
-                            result.getRecordMetadata().offset(),
-                            System.currentTimeMillis() - startTime);
                 }
             });
 
@@ -106,30 +107,19 @@ public class KafkaChatService {
             return responseSink.asFlux()
                     .timeout(Duration.ofSeconds(chatTimeoutSeconds))
                     .doOnCancel(() -> {
-                        log.debug("客户端取消请求, requestId: {}, 耗时: {}ms", requestId,
-                                System.currentTimeMillis() - startTime);
+                        notifyCancellation(requestId, "client_cancelled");
                         responseSinks.invalidate(requestId);
                     })
-                    .doOnComplete(() -> {
-                        log.debug("响应流完成, requestId: {}, 耗时: {}ms", requestId,
-                                System.currentTimeMillis() - startTime);
-                        responseSinks.invalidate(requestId);
-                    })
+                    .doOnComplete(() -> responseSinks.invalidate(requestId))
                     .doOnError(error -> {
                         log.error("响应流错误, requestId: {}, 耗时: {}ms", requestId,
                                 System.currentTimeMillis() - startTime, error);
+                        if (error instanceof java.util.concurrent.TimeoutException) {
+                            notifyCancellation(requestId, "stream_timeout");
+                        }
                         responseSinks.invalidate(requestId);
                     })
-                    .doOnTerminate(() -> {
-                        // 确保资源被清理
-                        responseSinks.invalidate(requestId);
-                        // 记录缓存统计信息
-                        var stats = responseSinks.stats();
-                        log.debug("缓存统计 - 大小: {}, 命中率: {}%, 移除数: {}",
-                                responseSinks.estimatedSize(),
-                                String.format("%.2f", stats.hitRate() * 100),
-                                stats.evictionCount());
-                    });
+                    .doOnTerminate(() -> responseSinks.invalidate(requestId));
 
         } catch (Exception e) {
             log.error("处理Kafka聊天请求失败, requestId: {}, 耗时: {}ms", requestId,
@@ -141,56 +131,127 @@ public class KafkaChatService {
     }
 
     /**
-     * 处理来自Kafka的响应消息
+     * 处理来自Kafka的响应消息（网关侧消费响应，并写入Sink）
+     */
+    @KafkaListener(topics = "${spring.kafka.topic.chat-response:chat-response-topic}",
+            groupId = "${spring.kafka.consumer.group-id:chat-group}-response")
+    public void consumeChatResponse(@Payload String message,
+                                    @Header(KafkaHeaders.RECEIVED_KEY) String requestId) {
+        ChatResponseMessage responseMessage = JSON.parseObject(message, ChatResponseMessage.class);
+        String finalRequestId = StringUtils.hasText(responseMessage.getRequestId())
+                ? responseMessage.getRequestId() : requestId;
+
+        Sinks.Many<String> responseSink = responseSinks.getIfPresent(finalRequestId);
+        if (responseSink == null) {
+            return;
+        }
+
+        ChatResponseType type = responseMessage.getType();
+        switch (type) {
+            case CHUNK -> emitChunk(finalRequestId, responseSink, responseMessage.getContent());
+            case COMPLETE -> emitComplete(finalRequestId, responseSink);
+            case ERROR -> emitError(finalRequestId, responseSink, responseMessage.getError());
+            default -> log.warn("未知的响应类型: {}, requestId: {}", type, finalRequestId);
+        }
+    }
+
+    private void emitChunk(String requestId, Sinks.Many<String> responseSink, String chunk) {
+        Sinks.EmitResult result = responseSink.tryEmitNext(chunk);
+        if (result.isFailure()) {
+            log.warn("发送响应chunk失败, requestId: {}, result: {}", requestId, result);
+            if (result == Sinks.EmitResult.FAIL_TERMINATED || result == Sinks.EmitResult.FAIL_OVERFLOW) {
+                responseSinks.invalidate(requestId);
+            }
+        }
+    }
+
+    private void emitComplete(String requestId, Sinks.Many<String> responseSink) {
+        responseSink.tryEmitComplete();
+        responseSinks.invalidate(requestId);
+    }
+
+    private void emitError(String requestId, Sinks.Many<String> responseSink, String errorMessage) {
+        responseSink.tryEmitError(new RuntimeException(errorMessage));
+        responseSinks.invalidate(requestId);
+    }
+
+    /**
+     * Worker侧调用：发送响应chunk
      */
     public void handleResponse(String requestId, String response) {
-        Sinks.Many<String> responseSink = responseSinks.getIfPresent(requestId);
-        if (responseSink != null) {
-            Sinks.EmitResult result = responseSink.tryEmitNext(response);
-            if (result.isFailure()) {
-                log.warn("发送响应chunk失败, requestId: {}, result: {}", requestId, result);
-                if (result == Sinks.EmitResult.FAIL_TERMINATED || result == Sinks.EmitResult.FAIL_OVERFLOW) {
-                    responseSinks.invalidate(requestId);
-                }
-            }
-        } else {
-            log.debug("未找到对应的请求ID: {}", requestId);
-        }
+        ChatResponseMessage message = new ChatResponseMessage();
+        message.setRequestId(requestId);
+        message.setType(ChatResponseType.CHUNK);
+        message.setContent(response);
+        sendResponseMessage(message);
     }
 
     /**
-     * 完成响应流
+     * Worker侧调用：完成响应流
      */
     public void completeResponse(String requestId) {
-        Sinks.Many<String> responseSink = responseSinks.getIfPresent(requestId);
-        if (responseSink != null) {
-            responseSink.tryEmitComplete();
-            responseSinks.invalidate(requestId);
-        }
+        ChatResponseMessage message = new ChatResponseMessage();
+        message.setRequestId(requestId);
+        message.setType(ChatResponseType.COMPLETE);
+        sendResponseMessage(message);
     }
 
     /**
-     * 处理响应错误
+     * Worker侧调用：响应错误
      */
     public void handleError(String requestId, Throwable error) {
-        Sinks.Many<String> responseSink = responseSinks.getIfPresent(requestId);
-        if (responseSink != null) {
-            responseSink.tryEmitError(error);
-            responseSinks.invalidate(requestId);
+        ChatResponseMessage message = new ChatResponseMessage();
+        message.setRequestId(requestId);
+        message.setType(ChatResponseType.ERROR);
+        message.setError(error != null ? error.getMessage() : "unknown error");
+        sendResponseMessage(message);
+    }
+
+    private void sendResponseMessage(ChatResponseMessage message) {
+        try {
+            String payload = JSON.toJSONString(message);
+            kafkaTemplate.send(chatResponseTopic, message.getRequestId(), payload)
+                    .whenComplete((result, ex) -> {
+                        if (ex != null) {
+                            log.error("发送响应Kafka消息失败, requestId: {}", message.getRequestId(), ex);
+                        }
+                    });
+        } catch (Exception ex) {
+            log.error("序列化响应Kafka消息失败, requestId: {}", message.getRequestId(), ex);
         }
     }
 
     /**
-     * 获取缓存统计信息
+     * 客户端取消/超时，通知Worker终止处理
      */
-    public String getCacheStats() {
-        var stats = responseSinks.stats();
-        return String.format("缓存统计 - 大小: %d, 命中数: %d, 未命中数: %d, 命中率: %.2f%%, 移除数: %d",
-                responseSinks.estimatedSize(),
-                stats.hitCount(),
-                stats.missCount(),
-                stats.hitRate() * 100,
-                stats.evictionCount());
+    public void notifyCancellation(String requestId, String reason) {
+        ChatControlMessage message = new ChatControlMessage();
+        message.setRequestId(requestId);
+        message.setType(ChatControlType.CANCEL);
+        message.setReason(reason);
+        sendControlMessage(message);
+    }
+
+    private void sendControlMessage(ChatControlMessage message) {
+        try {
+            String payload = JSON.toJSONString(message);
+            kafkaTemplate.send(chatControlTopic, message.getRequestId(), payload)
+                    .whenComplete((result, ex) -> {
+                        if (ex != null) {
+                            log.error("发送控制Kafka消息失败, requestId: {}", message.getRequestId(), ex);
+                        }
+                    });
+        } catch (Exception ex) {
+            log.error("序列化控制Kafka消息失败, requestId: {}", message.getRequestId(), ex);
+        }
+    }
+
+    public enum ChatResponseType {
+        CHUNK, COMPLETE, ERROR
+    }
+
+    public enum ChatControlType {
+        CANCEL
     }
 
     /**
@@ -201,5 +262,28 @@ public class KafkaChatService {
     public static class ChatRequestMessage {
         private String requestId;
         private KafkaChatRequestDTO request;
+    }
+
+    /**
+     * Kafka响应消息
+     */
+    @Setter
+    @Getter
+    public static class ChatResponseMessage {
+        private String requestId;
+        private ChatResponseType type;
+        private String content;
+        private String error;
+    }
+
+    /**
+     * Kafka控制消息
+     */
+    @Setter
+    @Getter
+    public static class ChatControlMessage {
+        private String requestId;
+        private ChatControlType type;
+        private String reason;
     }
 }
