@@ -11,15 +11,15 @@ import java.util.UUID;
 
 public interface ICourseRecordService {
 
-    PageInfo<CourseRecordVO> listCourseRecordPage(CourseRecordQueryDTO dto);
+    PageInfo<CourseRecordVO> listCourseRecordPage(CourseRecordQueryDTO courseRecordQueryDTO);
 
     List<CourseRecordVO> listAllCourseRecord();
 
     CourseRecordVO getCourseRecordById(UUID id);
 
-    CourseRecordVO addCourseRecord(CourseRecordDTO dto);
+    CourseRecordVO addCourseRecord(CourseRecordDTO courseRecordDTO);
 
-    Boolean updateCourseRecord(CourseRecordDTO dto);
+    Boolean updateCourseRecord(CourseRecordDTO courseRecordDTO);
 
     Boolean removeCourseRecordById(UUID id);
 

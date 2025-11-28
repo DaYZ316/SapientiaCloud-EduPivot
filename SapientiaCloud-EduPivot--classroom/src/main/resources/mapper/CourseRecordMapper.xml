@@ -7,47 +7,32 @@
         <id column="id" property="id"/>
         <result column="course_id" property="courseId"/>
         <result column="course_name" property="courseName"/>
+        <result column="course_description" property="courseDescription"/>
         <result column="teacher_id" property="teacherId"/>
         <result column="teacher_name" property="teacherName"/>
         <result column="teacher_avatar" property="teacherAvatar"/>
-        <result column="student_ids" property="studentIds" typeHandler="com.dayz.sapientiacloud_edupivot.classroom.common.config.UuidListTypeHandler"/>
-        <result column="question_ids" property="questionIds" typeHandler="com.dayz.sapientiacloud_edupivot.classroom.common.config.UuidListTypeHandler"/>
-        <result column="model_type" property="modelType"/>
-        <result column="total_desks" property="totalDesks"/>
+        <result column="classroom_type" property="classroomType"/>
         <result column="layout_rows" property="layoutRows"/>
         <result column="layout_columns" property="layoutColumns"/>
-        <result column="spacing" property="spacing"/>
-        <result column="layout_config" property="layoutConfig" typeHandler="com.dayz.sapientiacloud_edupivot.classroom.common.config.JsonTypeHandler"/>
-        <result column="classroom_layout" property="classroomLayout" typeHandler="com.dayz.sapientiacloud_edupivot.classroom.common.config.JsonTypeHandler"/>
         <result column="start_time" property="startTime"/>
         <result column="over_time" property="overTime"/>
         <result column="status" property="status"/>
-        <result column="expected_students" property="expectedStudents"/>
-        <result column="actual_students" property="actualStudents"/>
-        <result column="attendance_rate" property="attendanceRate"/>
-        <result column="duration_minutes" property="durationMinutes"/>
         <result column="create_time" property="createTime"/>
         <result column="update_time" property="updateTime"/>
     </resultMap>
 
     <!-- 基础查询字段 -->
     <sql id="Base_Column_List">
-        cr.id, cr.course_id, cr.teacher_id, cr.student_ids, cr.question_ids,
-        cr.model_type, cr.total_desks, cr.layout_rows, cr.layout_columns, cr.spacing,
-        cr.layout_config, cr.classroom_layout, cr.start_time, cr.over_time,
+        cr.id, cr.course_id, cr.teacher_id, cr.course_name, cr.course_description,
+        cr.classroom_type, cr.layout_rows, cr.layout_columns, cr.start_time, cr.over_time,
         cr.status, cr.create_time, cr.update_time
     </sql>
 
-    <!-- 扩展查询字段（包含关联信息和统计信息） -->
+    <!-- 扩展查询字段（包含关联信息） -->
     <sql id="Extended_Column_List">
         <include refid="Base_Column_List"/>,
-        c.course_name,
         t.real_name AS teacher_name,
-        u.avatar AS teacher_avatar,
-        JSON_LENGTH(cr.student_ids) AS expected_students,
-        (SELECT COUNT(DISTINCT student_id) FROM mg_course_record_student WHERE record_id = cr.id) AS actual_students,
-        ROUND((SELECT COUNT(DISTINCT student_id) FROM mg_course_record_student WHERE record_id = cr.id) * 100.0 / NULLIF(JSON_LENGTH(cr.student_ids), 0), 2) AS attendance_rate,
-        TIMESTAMPDIFF(MINUTE, cr.start_time, cr.over_time) AS duration_minutes
+        u.avatar AS teacher_avatar
     </sql>
 
     <!-- 分页查询课程记录列表 -->
@@ -65,8 +50,8 @@
         <if test="teacherId != null">
             AND cr.teacher_id = #{teacherId}
         </if>
-        <if test="modelType != null and modelType != ''">
-            AND cr.model_type = #{modelType}
+        <if test="classroomType != null">
+            AND cr.classroom_type = #{classroomType}
         </if>
         <if test="status != null">
             AND cr.status = #{status}
@@ -76,6 +61,9 @@
         </if>
         <if test="startTimeEnd != null">
             AND cr.start_time &lt;= #{startTimeEnd}
+        </if>
+        <if test="courseName != null and courseName != ''">
+            AND cr.course_name LIKE CONCAT('%', #{courseName}, '%')
         </if>
         ORDER BY cr.create_time DESC
     </select>

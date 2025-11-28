@@ -10,13 +10,13 @@ import java.util.UUID;
 
 public interface IClassroomQuestionService {
 
-    PageInfo<ClassroomQuestionVO> listPage(ClassroomQuestionQueryDTO dto);
+    PageInfo<ClassroomQuestionVO> listPage(ClassroomQuestionQueryDTO classroomQuestionQueryDTO);
 
     List<ClassroomQuestionVO> listByClassroomId(UUID classroomId);
 
-    ClassroomQuestionVO add(ClassroomQuestionDTO dto);
+    ClassroomQuestionVO add(ClassroomQuestionDTO classroomQuestionDTO);
 
-    Boolean update(ClassroomQuestionDTO dto);
+    Boolean update(ClassroomQuestionDTO classroomQuestionDTO);
 
     Boolean removeById(UUID id);
 }

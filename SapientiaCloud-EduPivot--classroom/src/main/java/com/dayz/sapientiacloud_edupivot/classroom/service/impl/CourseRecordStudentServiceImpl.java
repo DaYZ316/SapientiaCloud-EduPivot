@@ -37,13 +37,13 @@ public class CourseRecordStudentServiceImpl extends ServiceImpl<CourseRecordStud
     private final ICourseRecordService courseRecordService;
 
     @Override
-    public PageInfo<CourseRecordStudentVO> listCourseRecordStudentPage(CourseRecordStudentQueryDTO dto) {
-        if (dto == null) {
+    public PageInfo<CourseRecordStudentVO> listCourseRecordStudentPage(CourseRecordStudentQueryDTO courseRecordStudentQueryDTO) {
+        if (courseRecordStudentQueryDTO == null) {
             throw new BusinessException(CourseRecordStudentEnum.COURSE_RECORD_STUDENT_REQUIRED);
         }
 
-        return PageHelper.startPage(dto.getPageNum(), dto.getPageSize())
-                .doSelectPageInfo(() -> courseRecordStudentMapper.listCourseRecordStudent(dto));
+        return PageHelper.startPage(courseRecordStudentQueryDTO.getPageNum(), courseRecordStudentQueryDTO.getPageSize())
+                .doSelectPageInfo(() -> courseRecordStudentMapper.listCourseRecordStudent(courseRecordStudentQueryDTO));
     }
 
     @Override
@@ -82,30 +82,30 @@ public class CourseRecordStudentServiceImpl extends ServiceImpl<CourseRecordStud
     @Override
     @Transactional(rollbackFor = Exception.class)
     @CacheEvict(value = "CourseRecordStudent", allEntries = true)
-    public CourseRecordStudentVO addStudentSeat(CourseRecordStudentDTO dto) {
-        if (dto == null) {
+    public CourseRecordStudentVO addStudentSeat(CourseRecordStudentDTO courseRecordStudentDTO) {
+        if (courseRecordStudentDTO == null) {
             throw new BusinessException(CourseRecordStudentEnum.COURSE_RECORD_STUDENT_INFO_REQUIRED);
         }
 
         // 验证必填字段
-        if (dto.getRecordId() == null) {
+        if (courseRecordStudentDTO.getRecordId() == null) {
             throw new BusinessException(CourseRecordStudentEnum.RECORD_ID_REQUIRED);
         }
-        if (dto.getStudentId() == null) {
+        if (courseRecordStudentDTO.getStudentId() == null) {
             throw new BusinessException(CourseRecordStudentEnum.STUDENT_ID_REQUIRED);
         }
-        if (dto.getCourseId() == null) {
+        if (courseRecordStudentDTO.getCourseId() == null) {
             throw new BusinessException(CourseRecordStudentEnum.COURSE_ID_REQUIRED);
         }
-        if (dto.getSeatIndex() == null) {
+        if (courseRecordStudentDTO.getSeatIndex() == null) {
             throw new BusinessException(CourseRecordStudentEnum.SEAT_INDEX_REQUIRED);
         }
-        if (dto.getLocationX() == null || dto.getLocationY() == null || dto.getLocationZ() == null) {
+        if (courseRecordStudentDTO.getLocationX() == null || courseRecordStudentDTO.getLocationY() == null || courseRecordStudentDTO.getLocationZ() == null) {
             throw new BusinessException(CourseRecordStudentEnum.LOCATION_REQUIRED);
         }
 
         // 检查课程记录是否存在
-        CourseRecordVO courseRecordVO = courseRecordService.getCourseRecordById(dto.getRecordId());
+        CourseRecordVO courseRecordVO = courseRecordService.getCourseRecordById(courseRecordStudentDTO.getRecordId());
         if (courseRecordVO == null) {
             throw new BusinessException(CourseRecordStudentEnum.COURSE_RECORD_NOT_EXISTS);
         }
@@ -123,21 +123,21 @@ public class CourseRecordStudentServiceImpl extends ServiceImpl<CourseRecordStud
 
         // 检查学生是否已经选座
         LambdaQueryWrapper<CourseRecordStudent> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(CourseRecordStudent::getRecordId, dto.getRecordId())
-                .eq(CourseRecordStudent::getStudentId, dto.getStudentId());
+        queryWrapper.eq(CourseRecordStudent::getRecordId, courseRecordStudentDTO.getRecordId())
+                .eq(CourseRecordStudent::getStudentId, courseRecordStudentDTO.getStudentId());
         if (this.count(queryWrapper) > 0) {
             throw new BusinessException(CourseRecordStudentEnum.STUDENT_ALREADY_SEATED);
         }
 
         // 检查座位是否被占用
-        Integer occupiedCount = courseRecordStudentMapper.checkSeatOccupied(dto.getRecordId(), dto.getSeatIndex());
+        Integer occupiedCount = courseRecordStudentMapper.checkSeatOccupied(courseRecordStudentDTO.getRecordId(), courseRecordStudentDTO.getSeatIndex());
         if (occupiedCount != null && occupiedCount > 0) {
             throw new BusinessException(CourseRecordStudentEnum.SEAT_ALREADY_OCCUPIED);
         }
 
         // 创建座位记录
         CourseRecordStudent student = new CourseRecordStudent();
-        BeanUtils.copyProperties(dto, student);
+        BeanUtils.copyProperties(courseRecordStudentDTO, student);
         student.setCreateTime(LocalDateTime.now());
         student.setUpdateTime(LocalDateTime.now());
 
@@ -163,23 +163,23 @@ public class CourseRecordStudentServiceImpl extends ServiceImpl<CourseRecordStud
             @CacheEvict(value = "CourseRecordStudent", key = "#p0.recordId + ':' + #p0.studentId", condition = "#p0.recordId != null and #p0.studentId != null"),
             @CacheEvict(value = "CourseRecordStudent", key = "'all'", condition = "true")
     })
-    public Boolean updateStudentSeat(CourseRecordStudentDTO dto) {
-        if (dto == null || dto.getRecordId() == null || dto.getStudentId() == null) {
+    public Boolean updateStudentSeat(CourseRecordStudentDTO courseRecordStudentDTO) {
+        if (courseRecordStudentDTO == null || courseRecordStudentDTO.getRecordId() == null || courseRecordStudentDTO.getStudentId() == null) {
             throw new BusinessException(CourseRecordStudentEnum.RECORD_ID_AND_STUDENT_ID_REQUIRED);
         }
 
         // 检查记录是否存在
         LambdaQueryWrapper<CourseRecordStudent> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(CourseRecordStudent::getRecordId, dto.getRecordId())
-                .eq(CourseRecordStudent::getStudentId, dto.getStudentId());
+        queryWrapper.eq(CourseRecordStudent::getRecordId, courseRecordStudentDTO.getRecordId())
+                .eq(CourseRecordStudent::getStudentId, courseRecordStudentDTO.getStudentId());
         CourseRecordStudent existingStudent = this.getOne(queryWrapper);
         if (existingStudent == null) {
             throw new BusinessException(CourseRecordStudentEnum.COURSE_RECORD_STUDENT_NOT_EXISTS);
         }
 
         // 如果更换座位，检查新座位是否被占用
-        if (dto.getSeatIndex() != null && !dto.getSeatIndex().equals(existingStudent.getSeatIndex())) {
-            Integer occupiedCount = courseRecordStudentMapper.checkSeatOccupied(dto.getRecordId(), dto.getSeatIndex());
+        if (courseRecordStudentDTO.getSeatIndex() != null && !courseRecordStudentDTO.getSeatIndex().equals(existingStudent.getSeatIndex())) {
+            Integer occupiedCount = courseRecordStudentMapper.checkSeatOccupied(courseRecordStudentDTO.getRecordId(), courseRecordStudentDTO.getSeatIndex());
             if (occupiedCount != null && occupiedCount > 0) {
                 throw new BusinessException(CourseRecordStudentEnum.SEAT_ALREADY_OCCUPIED);
             }
@@ -187,7 +187,7 @@ public class CourseRecordStudentServiceImpl extends ServiceImpl<CourseRecordStud
 
         // 更新记录
         CourseRecordStudent student = new CourseRecordStudent();
-        BeanUtils.copyProperties(dto, student);
+        BeanUtils.copyProperties(courseRecordStudentDTO, student);
         student.setUpdateTime(LocalDateTime.now());
 
         return this.update(student, queryWrapper);

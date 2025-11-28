@@ -11,7 +11,7 @@ import java.util.UUID;
 
 public interface ICourseRecordStudentService {
 
-    PageInfo<CourseRecordStudentVO> listCourseRecordStudentPage(CourseRecordStudentQueryDTO dto);
+    PageInfo<CourseRecordStudentVO> listCourseRecordStudentPage(CourseRecordStudentQueryDTO courseRecordStudentQueryDTO);
 
     List<CourseRecordStudentVO> listAllCourseRecordStudent();
 
@@ -19,9 +19,9 @@ public interface ICourseRecordStudentService {
 
     CourseRecordStudentVO getStudentSeat(UUID recordId, UUID studentId);
 
-    CourseRecordStudentVO addStudentSeat(CourseRecordStudentDTO dto);
+    CourseRecordStudentVO addStudentSeat(CourseRecordStudentDTO courseRecordStudentDTO);
 
-    Boolean updateStudentSeat(CourseRecordStudentDTO dto);
+    Boolean updateStudentSeat(CourseRecordStudentDTO courseRecordStudentDTO);
 
     Boolean removeStudentSeat(UUID recordId, UUID studentId);
 

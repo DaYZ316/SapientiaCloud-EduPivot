@@ -36,10 +36,10 @@ public class ClassroomQuestionServiceImpl extends ServiceImpl<ClassroomQuestionM
 
     @Override
     @Transactional(readOnly = true)
-    public PageInfo<ClassroomQuestionVO> listPage(ClassroomQuestionQueryDTO dto) {
+    public PageInfo<ClassroomQuestionVO> listPage(ClassroomQuestionQueryDTO classroomQuestionQueryDTO) {
         return PageHelper
-                .startPage(dto == null ? 1 : dto.getPageNum(), dto == null ? 10 : dto.getPageSize())
-                .doSelectPageInfo(() -> classroomQuestionMapper.listClassroomQuestionVO(dto));
+                .startPage(classroomQuestionQueryDTO == null ? 1 : classroomQuestionQueryDTO.getPageNum(), classroomQuestionQueryDTO == null ? 10 : classroomQuestionQueryDTO.getPageSize())
+                .doSelectPageInfo(() -> classroomQuestionMapper.listClassroomQuestionVO(classroomQuestionQueryDTO));
     }
 
     @Override
@@ -55,40 +55,40 @@ public class ClassroomQuestionServiceImpl extends ServiceImpl<ClassroomQuestionM
     @Override
     @Transactional(rollbackFor = Exception.class)
     @CacheEvict(value = "ClassroomQuestion", allEntries = true)
-    public ClassroomQuestionVO add(ClassroomQuestionDTO dto) {
-        if (dto == null) {
+    public ClassroomQuestionVO add(ClassroomQuestionDTO classroomQuestionDTO) {
+        if (classroomQuestionDTO == null) {
             throw new BusinessException(ClassroomQuestionEnum.RECORD_NOT_EXISTS);
         }
-        if (dto.getClassroomId() == null) {
+        if (classroomQuestionDTO.getClassroomId() == null) {
             throw new BusinessException(ClassroomQuestionEnum.CLASSROOM_ID_REQUIRED);
         }
-        if (dto.getQuestionId() == null) {
+        if (classroomQuestionDTO.getQuestionId() == null) {
             throw new BusinessException(ClassroomQuestionEnum.QUESTION_ID_REQUIRED);
         }
-        if (dto.getScore() != null && (dto.getScore() < 0 || dto.getScore() > 100)) {
+        if (classroomQuestionDTO.getScore() != null && (classroomQuestionDTO.getScore() < 0 || classroomQuestionDTO.getScore() > 100)) {
             throw new BusinessException(ClassroomQuestionEnum.SCORE_INVALID);
         }
-        if (dto.getIsRequired() != null && dto.getIsRequired() != 0 && dto.getIsRequired() != 1) {
+        if (classroomQuestionDTO.getIsRequired() != null && classroomQuestionDTO.getIsRequired() != 0 && classroomQuestionDTO.getIsRequired() != 1) {
             throw new BusinessException(ClassroomQuestionEnum.REQUIRED_FLAG_INVALID);
         }
-        if (dto.getStartTime() != null && dto.getEndTime() != null && dto.getEndTime().isBefore(dto.getStartTime())) {
+        if (classroomQuestionDTO.getStartTime() != null && classroomQuestionDTO.getEndTime() != null && classroomQuestionDTO.getEndTime().isBefore(classroomQuestionDTO.getStartTime())) {
             throw new BusinessException(ClassroomQuestionEnum.END_TIME_BEFORE_START);
         }
         LambdaQueryWrapper<ClassroomQuestion> dupWrapper = new LambdaQueryWrapper<>();
-        dupWrapper.eq(ClassroomQuestion::getClassroomId, dto.getClassroomId())
-                .eq(ClassroomQuestion::getQuestionId, dto.getQuestionId())
+        dupWrapper.eq(ClassroomQuestion::getClassroomId, classroomQuestionDTO.getClassroomId())
+                .eq(ClassroomQuestion::getQuestionId, classroomQuestionDTO.getQuestionId())
                 .eq(ClassroomQuestion::getDeleted, DeletedEnum.NOT_DELETED.getCode());
         if (this.count(dupWrapper) > 0) {
             throw new BusinessException(ClassroomQuestionEnum.DUPLICATE_QUESTION_IN_CLASSROOM);
         }
 
         ClassroomQuestion entity = new ClassroomQuestion();
-        BeanUtils.copyProperties(dto, entity);
+        BeanUtils.copyProperties(classroomQuestionDTO, entity);
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime startTime = dto.getStartTime() != null ? dto.getStartTime() : now;
-        LocalDateTime endTime = dto.getEndTime();
+        LocalDateTime startTime = classroomQuestionDTO.getStartTime() != null ? classroomQuestionDTO.getStartTime() : now;
+        LocalDateTime endTime = classroomQuestionDTO.getEndTime();
         if (endTime == null) {
-            endTime = courseRecordService.getCourseEndTimeById(dto.getClassroomId());
+            endTime = courseRecordService.getCourseEndTimeById(classroomQuestionDTO.getClassroomId());
         }
         entity.setStartTime(startTime);
         entity.setEndTime(endTime);
@@ -107,33 +107,33 @@ public class ClassroomQuestionServiceImpl extends ServiceImpl<ClassroomQuestionM
             @CacheEvict(value = "ClassroomQuestion", key = "#p0.classroomId", condition = "#p0 != null"),
             @CacheEvict(value = "ClassroomQuestion", allEntries = true)
     })
-    public Boolean update(ClassroomQuestionDTO dto) {
-        if (dto == null || dto.getId() == null) {
+    public Boolean update(ClassroomQuestionDTO classroomQuestionDTO) {
+        if (classroomQuestionDTO == null || classroomQuestionDTO.getId() == null) {
             throw new BusinessException(ClassroomQuestionEnum.RECORD_NOT_EXISTS);
         }
-        if (dto.getClassroomId() == null) {
+        if (classroomQuestionDTO.getClassroomId() == null) {
             throw new BusinessException(ClassroomQuestionEnum.CLASSROOM_ID_REQUIRED);
         }
-        if (dto.getQuestionId() == null) {
+        if (classroomQuestionDTO.getQuestionId() == null) {
             throw new BusinessException(ClassroomQuestionEnum.QUESTION_ID_REQUIRED);
         }
-        if (dto.getScore() != null && (dto.getScore() < 0 || dto.getScore() > 100)) {
+        if (classroomQuestionDTO.getScore() != null && (classroomQuestionDTO.getScore() < 0 || classroomQuestionDTO.getScore() > 100)) {
             throw new BusinessException(ClassroomQuestionEnum.SCORE_INVALID);
         }
-        if (dto.getIsRequired() != null && dto.getIsRequired() != 0 && dto.getIsRequired() != 1) {
+        if (classroomQuestionDTO.getIsRequired() != null && classroomQuestionDTO.getIsRequired() != 0 && classroomQuestionDTO.getIsRequired() != 1) {
             throw new BusinessException(ClassroomQuestionEnum.REQUIRED_FLAG_INVALID);
         }
-        if (dto.getStartTime() != null && dto.getEndTime() != null && dto.getEndTime().isBefore(dto.getStartTime())) {
+        if (classroomQuestionDTO.getStartTime() != null && classroomQuestionDTO.getEndTime() != null && classroomQuestionDTO.getEndTime().isBefore(classroomQuestionDTO.getStartTime())) {
             throw new BusinessException(ClassroomQuestionEnum.END_TIME_BEFORE_START);
         }
 
-        ClassroomQuestion existing = this.getById(dto.getId());
+        ClassroomQuestion existing = this.getById(classroomQuestionDTO.getId());
         if (existing == null) {
             throw new BusinessException(ClassroomQuestionEnum.RECORD_NOT_EXISTS);
         }
 
         ClassroomQuestion entity = new ClassroomQuestion();
-        BeanUtils.copyProperties(dto, entity);
+        BeanUtils.copyProperties(classroomQuestionDTO, entity);
         entity.setUpdateTime(LocalDateTime.now());
         return this.updateById(entity);
     }
