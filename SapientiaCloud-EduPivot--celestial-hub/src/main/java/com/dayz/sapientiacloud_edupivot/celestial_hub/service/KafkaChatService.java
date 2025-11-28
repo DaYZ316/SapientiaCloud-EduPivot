@@ -68,8 +68,11 @@ public class KafkaChatService {
      */
     public Flux<String> chatStreamKafka(KafkaChatRequestDTO request) {
         long startTime = System.currentTimeMillis();
-        // 生成请求ID
-        String requestId = UUID.randomUUID().toString();
+        // 生成或复用请求ID
+        String requestId = StringUtils.hasText(request.getRequestId())
+                ? request.getRequestId()
+                : UUID.randomUUID().toString();
+        request.setRequestId(requestId);
 
         // 创建响应Sink
         Sinks.Many<String> responseSink = Sinks.many().unicast().onBackpressureBuffer();
@@ -107,7 +110,7 @@ public class KafkaChatService {
             return responseSink.asFlux()
                     .timeout(Duration.ofSeconds(chatTimeoutSeconds))
                     .doOnCancel(() -> {
-                        notifyCancellation(requestId, "client_cancelled");
+                        log.debug("SSE流被取消或断开, requestId: {}, 仅清理本地资源", requestId);
                         responseSinks.invalidate(requestId);
                     })
                     .doOnComplete(() -> responseSinks.invalidate(requestId))

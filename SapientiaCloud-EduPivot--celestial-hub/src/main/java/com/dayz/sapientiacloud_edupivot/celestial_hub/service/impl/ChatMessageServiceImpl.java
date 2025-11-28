@@ -232,11 +232,12 @@ public class ChatMessageServiceImpl implements IChatMessageService {
         if (!persistedFlag.compareAndSet(false, true)) {
             return;
         }
+        ChatMessage assistantMessage = ChatMessageUtil.saveAssistantMessage(sessionId, response, chatMessageRepository);
+        chatSessionService.updateSessionLastMessage(sessionId, response);
+
         if (!vectorize) {
             return;
         }
-        ChatMessage assistantMessage = ChatMessageUtil.saveAssistantMessage(sessionId, response, chatMessageRepository);
-        chatSessionService.updateSessionLastMessage(sessionId, response);
         if (userId == null || !StringUtils.hasText(userQuery)) {
             return;
         }

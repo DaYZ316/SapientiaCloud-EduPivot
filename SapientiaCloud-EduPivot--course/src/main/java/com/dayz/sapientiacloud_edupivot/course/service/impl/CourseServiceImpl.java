@@ -235,6 +235,7 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
         }
 
         // 缓存未命中，从数据库查询
+        PageHelper.clearPage(); // 避免线程复用下遗留分页上下文影响本次固定 LIMIT 查询
         List<PublicCourseVO> result = courseMapper.listPublicCourse(CourseConstants.IS_PUBLIC_MAX);
 
         // 存入缓存，设置24小时过期时间

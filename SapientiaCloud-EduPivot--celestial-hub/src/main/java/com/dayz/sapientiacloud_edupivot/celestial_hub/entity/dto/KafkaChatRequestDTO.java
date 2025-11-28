@@ -20,6 +20,9 @@ public class KafkaChatRequestDTO implements Serializable {
     @Serial
     private static final long serialVersionUID = 2096419073409603074L;
 
+    @Schema(description = "请求ID，前端生成用于取消等场景（可选）")
+    private String requestId;
+
     @Schema(description = "会话ID（新对话时可为空）")
     private UUID sessionId;
 
