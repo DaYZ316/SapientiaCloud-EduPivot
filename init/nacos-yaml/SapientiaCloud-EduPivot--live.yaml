@@ -5,7 +5,8 @@ pagehelper:
   params: count=countSql
 
 mybatis-plus:
-  type-aliases-package: com.dayz.sapientiacloud_edupivot.course.entity
+  type-aliases-package: com.dayz.sapientiacloud_edupivot.live.common.entity
+  type-handlers-package: com.dayz.sapientiacloud_edupivot.live.common.config # register UUID type handlers
   mapper-locations: classpath:mapper/**/*.xml
   configuration:
     cache-enabled: false
@@ -63,7 +64,14 @@ livekit:
     max-participants: 500
   egress:
     enable: false
+  stun-servers:
+    - stun:stun.l.google.com:19302
+    - stun:stun.cloudflare.com:3478
+  turn:
+    urls: turn:127.0.0.1:3478?transport=udp
+    username: livekit
+    password: livekit123
 
-LIVEKIT_HOST: http://localhost:7880
-LIVEKIT_API_KEY: "x9!r3@k7#b2% f5^j8&m1*t4 (y6) g9q3z2w5v7s1d4h6n8"
-LIVEKIT_API_SECRET: "7p@2w!5d#8g%3j^6l&9n*1r (y4) t7z3x5c8v2b4f6k1m9"
+LIVEKIT_HOST: ws://192.168.85.211:7880
+LIVEKIT_API_KEY: "livekitdevkey001"
+LIVEKIT_API_SECRET: "livekitdevsecret001abcdef1234567890abcd"

@@ -76,7 +76,7 @@ public class LiveRoomServiceImpl implements ILiveRoomService {
             room.setStartTime(LocalDateTime.now());
             liveRoomMapper.updateById(room);
         }
-        String identity = userId.toString();
+        String identity = userId + "-" + UUID.randomUUID();
         boolean canPublish = role != null && role == 1;
         String token = buildLiveKitAccessToken(room.getLkRoomName(), identity, username, canPublish);
 
