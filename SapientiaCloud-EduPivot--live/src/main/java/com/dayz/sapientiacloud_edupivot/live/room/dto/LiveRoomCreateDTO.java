@@ -2,6 +2,7 @@ package com.dayz.sapientiacloud_edupivot.live.room.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
@@ -17,7 +18,8 @@ public class LiveRoomCreateDTO {
     @Schema(description = "课程ID")
     private UUID courseId;
 
-    @Schema(description = "课堂记录ID")
+    @Schema(description = "课堂记录ID（mg_course_record.id）")
+    @NotNull
     private UUID classroomId;
 
     @Schema(description = "最大并发人数")

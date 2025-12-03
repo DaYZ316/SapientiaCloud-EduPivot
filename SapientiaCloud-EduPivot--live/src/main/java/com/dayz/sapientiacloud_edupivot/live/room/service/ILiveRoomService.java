@@ -9,4 +9,6 @@ public interface ILiveRoomService {
     String issueToken(UUID roomId, UUID userId, String username, Integer role);
     LiveRoom getById(UUID id);
     java.util.List<LiveRoom> listRooms(Integer status, UUID courseId, UUID classroomId);
+    LiveRoom startRecording(UUID roomId);
+    LiveRoom stopRecording(UUID roomId);
 }

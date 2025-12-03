@@ -3,52 +3,94 @@ package com.dayz.sapientiacloud_edupivot.live.room.service.impl;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.dayz.sapientiacloud_edupivot.live.common.clients.StudentClient;
+import com.dayz.sapientiacloud_edupivot.live.common.clients.TeacherClient;
 import com.dayz.sapientiacloud_edupivot.live.common.config.LiveKitProperties;
 import com.dayz.sapientiacloud_edupivot.live.common.entity.po.LiveRoom;
 import com.dayz.sapientiacloud_edupivot.live.common.entity.po.LiveRoomUser;
+import com.dayz.sapientiacloud_edupivot.live.common.entity.vo.StudentVO;
+import com.dayz.sapientiacloud_edupivot.live.common.entity.vo.TeacherVO;
 import com.dayz.sapientiacloud_edupivot.live.common.exception.BusinessException;
+import com.dayz.sapientiacloud_edupivot.live.common.integration.livekit.LiveKitEgressClient;
+import com.dayz.sapientiacloud_edupivot.live.common.integration.livekit.dto.LiveKitEgressFileOutput;
+import com.dayz.sapientiacloud_edupivot.live.common.integration.livekit.dto.LiveKitEgressStartRequest;
+import com.dayz.sapientiacloud_edupivot.live.common.integration.livekit.dto.LiveKitEgressStartResponse;
+import com.dayz.sapientiacloud_edupivot.live.common.integration.livekit.dto.LiveKitEgressStopRequest;
+import com.dayz.sapientiacloud_edupivot.live.common.result.Result;
+import com.dayz.sapientiacloud_edupivot.live.room.constant.LiveRoomConstants;
+import com.dayz.sapientiacloud_edupivot.live.room.enums.LiveEgressStatusEnum;
+import com.dayz.sapientiacloud_edupivot.live.room.enums.LiveRoomEnum;
 import com.dayz.sapientiacloud_edupivot.live.room.mapper.LiveRoomMapper;
 import com.dayz.sapientiacloud_edupivot.live.room.mapper.LiveRoomUserMapper;
 import com.dayz.sapientiacloud_edupivot.live.room.service.ILiveRoomService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
 public class LiveRoomServiceImpl implements ILiveRoomService {
 
+    private static final DateTimeFormatter FILE_NAME_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+
     private final LiveRoomMapper liveRoomMapper;
     private final LiveRoomUserMapper liveRoomUserMapper;
     private final LiveKitProperties liveKitProperties;
+    private final TeacherClient teacherClient;
+    private final StudentClient studentClient;
+    private final LiveKitEgressClient liveKitEgressClient;
 
-    public LiveRoomServiceImpl(LiveRoomMapper liveRoomMapper, LiveRoomUserMapper liveRoomUserMapper, LiveKitProperties liveKitProperties) {
+    public LiveRoomServiceImpl(
+            LiveRoomMapper liveRoomMapper,
+            LiveRoomUserMapper liveRoomUserMapper,
+            LiveKitProperties liveKitProperties,
+            TeacherClient teacherClient,
+            StudentClient studentClient,
+            LiveKitEgressClient liveKitEgressClient
+    ) {
         this.liveRoomMapper = liveRoomMapper;
         this.liveRoomUserMapper = liveRoomUserMapper;
         this.liveKitProperties = liveKitProperties;
+        this.teacherClient = teacherClient;
+        this.studentClient = studentClient;
+        this.liveKitEgressClient = liveKitEgressClient;
     }
 
     @Override
     @Transactional
     public LiveRoom createRoom(String roomName, UUID creatorId, UUID courseId, UUID classroomId, Integer maxParticipants, Integer recordingEnabled) {
-        LiveRoom room = new LiveRoom();
-        room.setId(UUID.randomUUID());
+        if (classroomId == null) {
+            throw new BusinessException(LiveRoomEnum.CLASSROOM_ID_REQUIRED);
+        }
+        LiveRoom room = liveRoomMapper.selectById(classroomId);
+        if (room == null) {
+            throw new BusinessException(LiveRoomEnum.CLASSROOM_NOT_EXISTS);
+        }
         room.setRoomName(roomName);
-        room.setCreatorId(creatorId);
-        room.setCourseId(courseId);
-        room.setClassroomId(classroomId);
-        room.setStatus(0);
-        String lkRoomName = buildLkRoomName(roomName, classroomId);
+        if (courseId != null) {
+            room.setCourseId(courseId);
+        }
+        if (creatorId != null && room.getTeacherId() == null) {
+            room.setTeacherId(creatorId);
+        }
+        room.setStatus(LiveRoomConstants.STATUS_NOT_STARTED);
+        String lkRoomName = room.getLkRoomName();
+        if (!StringUtils.hasText(lkRoomName)) {
+            lkRoomName = buildLkRoomName(roomName, classroomId);
+        }
         room.setLkRoomName(lkRoomName);
-        room.setMaxParticipants(Objects.requireNonNullElse(maxParticipants, defaultMaxParticipants()));
-        room.setRecordingEnabled(Objects.requireNonNullElse(recordingEnabled, 0));
-        room.setExpectedEndTime(null);
-        liveRoomMapper.insert(room);
+        room.setMaxParticipants(resolveMaxParticipants(maxParticipants, room.getMaxParticipants()));
+        room.setRecordingEnabled(resolveRecordingEnabled(recordingEnabled, room.getRecordingEnabled()));
+        liveRoomMapper.updateById(room);
         return room;
     }
 
@@ -57,9 +99,9 @@ public class LiveRoomServiceImpl implements ILiveRoomService {
     public void closeRoom(UUID roomId) {
         LiveRoom room = liveRoomMapper.selectById(roomId);
         if (room == null) {
-            throw new BusinessException("房间不存在");
+            throw new BusinessException(LiveRoomEnum.ROOM_NOT_EXISTS);
         }
-        room.setStatus(2);
+        room.setStatus(LiveRoomConstants.STATUS_ENDED);
         room.setEndTime(LocalDateTime.now());
         liveRoomMapper.updateById(room);
     }
@@ -69,10 +111,10 @@ public class LiveRoomServiceImpl implements ILiveRoomService {
     public String issueToken(UUID roomId, UUID userId, String username, Integer role) {
         LiveRoom room = liveRoomMapper.selectById(roomId);
         if (room == null) {
-            throw new BusinessException("房间不存在");
+            throw new BusinessException(LiveRoomEnum.ROOM_NOT_EXISTS);
         }
-        if (room.getStatus() == 0) {
-            room.setStatus(1);
+        if (room.getStatus() == LiveRoomConstants.STATUS_NOT_STARTED) {
+            room.setStatus(LiveRoomConstants.STATUS_LIVING);
             room.setStartTime(LocalDateTime.now());
             liveRoomMapper.updateById(room);
         }
@@ -83,15 +125,35 @@ public class LiveRoomServiceImpl implements ILiveRoomService {
         LiveRoomUser liveRoomUser = new LiveRoomUser();
         liveRoomUser.setId(UUID.randomUUID());
         liveRoomUser.setLiveRoomId(roomId);
-        liveRoomUser.setUserId(userId);
+        liveRoomUser.setCourseId(room.getCourseId());
         liveRoomUser.setRole(Objects.requireNonNullElse(role, 0));
         liveRoomUser.setJoinTime(LocalDateTime.now());
         liveRoomUser.setLkIdentity(identity);
         liveRoomUser.setTokenJti(extractJti(token));
 
+        boolean isTeacherRole = role != null && role != 0;
+        UUID teacherId = null;
+        UUID studentId = null;
+        if (isTeacherRole) {
+            TeacherVO teacher = fetchTeacherByUserId(userId);
+            teacherId = teacher.getId();
+        } else {
+            StudentVO student = fetchStudentByUserId(userId);
+            studentId = student.getId();
+        }
+
+        if (isTeacherRole) {
+            liveRoomUser.setTeacherId(teacherId);
+            liveRoomUser.setStudentId(null);
+        } else {
+            liveRoomUser.setStudentId(studentId);
+            liveRoomUser.setTeacherId(null);
+        }
+
         LambdaQueryWrapper<LiveRoomUser> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(LiveRoomUser::getLiveRoomId, roomId)
-                .eq(LiveRoomUser::getUserId, userId)
+                .eq(isTeacherRole, LiveRoomUser::getTeacherId, teacherId)
+                .eq(!isTeacherRole, LiveRoomUser::getStudentId, studentId)
                 .isNull(LiveRoomUser::getLeaveTime)
                 .last("limit 1");
         LiveRoomUser existing = liveRoomUserMapper.selectOne(wrapper);
@@ -116,11 +178,44 @@ public class LiveRoomServiceImpl implements ILiveRoomService {
         if (courseId != null) {
             wrapper.eq(LiveRoom::getCourseId, courseId);
         }
-        if (classroomId != null) {
-            wrapper.eq(LiveRoom::getClassroomId, classroomId);
-        }
+        // 说明：mg_course_record 中目前无 classroomId 字段，这里暂不按 classroomId 过滤
         wrapper.orderByDesc(LiveRoom::getStartTime);
         return liveRoomMapper.selectList(wrapper);
+    }
+
+    @Override
+    @Transactional
+    public LiveRoom startRecording(UUID roomId) {
+        LiveRoom room = requireRoom(roomId);
+        ensureRecordingCapability(room);
+        if (StringUtils.hasText(room.getEgressTaskId())) {
+            throw new BusinessException(LiveRoomEnum.RECORDING_ALREADY_RUNNING);
+        }
+        if (!isEgressEnabled()) {
+            throw new BusinessException(LiveRoomEnum.RECORDING_ENV_DISABLED);
+        }
+        LiveKitEgressStartRequest request = buildEgressStartRequest(room);
+        LiveKitEgressStartResponse response = liveKitEgressClient.startCompositeEgress(request);
+        room.setEgressTaskId(response.getEgressId());
+        room.setEgressStatus(LiveEgressStatusEnum.RUNNING.getCode());
+        liveRoomMapper.updateById(room);
+        return room;
+    }
+
+    @Override
+    @Transactional
+    public LiveRoom stopRecording(UUID roomId) {
+        LiveRoom room = requireRoom(roomId);
+        if (!StringUtils.hasText(room.getEgressTaskId())) {
+            throw new BusinessException(LiveRoomEnum.RECORDING_NOT_RUNNING);
+        }
+        LiveKitEgressStopRequest stopRequest = new LiveKitEgressStopRequest();
+        stopRequest.setEgressId(room.getEgressTaskId());
+        liveKitEgressClient.stopEgress(stopRequest);
+        room.setEgressStatus(LiveEgressStatusEnum.STOPPED.getCode());
+        room.setEgressTaskId(null);
+        liveRoomMapper.updateById(room);
+        return room;
     }
 
     private String buildLkRoomName(String roomName, UUID classroomId) {
@@ -135,7 +230,40 @@ public class LiveRoomServiceImpl implements ILiveRoomService {
         if (roomDefaults != null && roomDefaults.getMaxParticipants() != null) {
             return roomDefaults.getMaxParticipants();
         }
-        return 500;
+        return LiveRoomConstants.DEFAULT_MAX_PARTICIPANTS;
+    }
+
+    private int resolveMaxParticipants(Integer requested, Integer existing) {
+        if (requested != null) {
+            return requested;
+        }
+        if (existing != null) {
+            return existing;
+        }
+        return defaultMaxParticipants();
+    }
+
+    private int resolveRecordingEnabled(Integer requested, Integer existing) {
+        if (requested != null) {
+            return requested;
+        }
+        return Objects.requireNonNullElse(existing, LiveRoomConstants.RECORDING_DISABLED);
+    }
+
+    private TeacherVO fetchTeacherByUserId(UUID userId) {
+        Result<TeacherVO> result = teacherClient.getTeacherByUserId(userId);
+        if (result == null || !result.isSuccess() || result.getData() == null) {
+            throw new BusinessException(LiveRoomEnum.TEACHER_SERVICE_ERROR);
+        }
+        return result.getData();
+    }
+
+    private StudentVO fetchStudentByUserId(UUID userId) {
+        Result<StudentVO> result = studentClient.getStudentByUserId(userId);
+        if (result == null || !result.isSuccess() || result.getData() == null) {
+            throw new BusinessException(LiveRoomEnum.STUDENT_SERVICE_ERROR);
+        }
+        return result.getData();
     }
 
     private String buildLiveKitAccessToken(String roomName, String identity, String displayName, boolean canPublish) {
@@ -172,5 +300,68 @@ public class LiveRoomServiceImpl implements ILiveRoomService {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    private LiveRoom requireRoom(UUID roomId) {
+        LiveRoom room = liveRoomMapper.selectById(roomId);
+        if (room == null) {
+            throw new BusinessException(LiveRoomEnum.ROOM_NOT_EXISTS);
+        }
+        return room;
+    }
+
+    private void ensureRecordingCapability(LiveRoom room) {
+        if (!Objects.equals(room.getRecordingEnabled(), LiveRoomConstants.RECORDING_ENABLED)) {
+            throw new BusinessException(LiveRoomEnum.RECORDING_NOT_ENABLED);
+        }
+        if (!Objects.equals(room.getStatus(), LiveRoomConstants.STATUS_LIVING)) {
+            throw new BusinessException(LiveRoomEnum.ROOM_NOT_LIVE);
+        }
+    }
+
+    private boolean isEgressEnabled() {
+        return Optional.ofNullable(liveKitProperties.getEgress())
+                .map(LiveKitProperties.EgressDefaults::getEnable)
+                .orElse(Boolean.FALSE);
+    }
+
+    private LiveKitEgressStartRequest buildEgressStartRequest(LiveRoom room) {
+        LiveKitProperties.EgressDefaults egress = liveKitProperties.getEgress();
+        String layout = egress != null && StringUtils.hasText(egress.getLayout()) ? egress.getLayout() : "speaker-dark";
+        String fileType = egress != null && StringUtils.hasText(egress.getFileType()) ? egress.getFileType() : "MP4";
+        String filepath = buildOutputFilepath(room);
+        LiveKitEgressFileOutput fileOutput = new LiveKitEgressFileOutput();
+        fileOutput.setFileType(fileType);
+        fileOutput.setFilepath(filepath);
+
+        LiveKitEgressStartRequest request = new LiveKitEgressStartRequest();
+        if (!StringUtils.hasText(room.getLkRoomName())) {
+            room.setLkRoomName(buildLkRoomName(room.getRoomName(), room.getId()));
+        }
+        request.setRoomName(room.getLkRoomName());
+        request.setLayout(layout);
+        request.setFileOutputs(Collections.singletonList(fileOutput));
+
+        room.setRecordingAssetUrl(buildPlaybackUrl(filepath));
+
+        return request;
+    }
+
+    private String buildOutputFilepath(LiveRoom room) {
+        LiveKitProperties.EgressDefaults egress = liveKitProperties.getEgress();
+        String prefix = egress != null && StringUtils.hasText(egress.getOutputPrefix())
+                ? egress.getOutputPrefix()
+                : "live-playback";
+        LocalDateTime now = LocalDateTime.now();
+        String fileName = FILE_NAME_FORMATTER.format(now) + "-" + room.getId() + ".mp4";
+        return prefix + "/" + room.getId() + "/" + fileName;
+    }
+
+    private String buildPlaybackUrl(String relativePath) {
+        LiveKitProperties.EgressDefaults egress = liveKitProperties.getEgress();
+        if (egress != null && StringUtils.hasText(egress.getPlaybackBaseUrl())) {
+            return egress.getPlaybackBaseUrl().replaceAll("/$", "") + "/" + relativePath;
+        }
+        return relativePath;
     }
 }

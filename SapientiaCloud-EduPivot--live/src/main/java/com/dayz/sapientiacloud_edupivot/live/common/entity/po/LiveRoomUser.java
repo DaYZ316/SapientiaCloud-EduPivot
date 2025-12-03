@@ -9,57 +9,62 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.io.Serial;
-import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
-@TableName("mg_live_room_user")
+@TableName("mg_course_record_student")
 @EqualsAndHashCode(callSuper = true)
-@Schema(description = "房间用户关联持久化对象")
-public class LiveRoomUser extends BaseEntity implements Serializable {
+@Schema(description = "房间用户关联持久化对象（映射 mg_course_record_student 表中的直播相关字段）")
+public class LiveRoomUser extends BaseEntity {
     @Serial
     private static final long serialVersionUID = 1L;
 
     @TableId("id")
     private UUID id;
 
-    @TableField("live_room_id")
+    @TableField("record_id")
     private UUID liveRoomId;
 
-    @TableField("user_id")
-    private UUID userId;
+    @TableField("course_id")
+    private UUID courseId;
 
-    @TableField("role")
+    @TableField("student_id")
+    private UUID studentId;
+
+    @TableField("teacher_id")
+    private UUID teacherId;
+
+    @TableField(exist = false)
     private Integer role;
 
-    @TableField("join_time")
+    @TableField("live_join_time")
     private LocalDateTime joinTime;
 
-    @TableField("leave_time")
+    @TableField("live_leave_time")
     private LocalDateTime leaveTime;
 
-    @TableField("lk_identity")
+    @TableField("live_lk_identity")
     private String lkIdentity;
 
-    @TableField("lk_participant_sid")
+    @TableField("live_lk_participant_sid")
     private String lkParticipantSid;
 
-    @TableField("token_jti")
+    @TableField("live_token_jti")
     private String tokenJti;
 
-    @TableField("join_ip")
+    @TableField("live_join_ip")
     private String joinIp;
 
-    @TableField("client_platform")
+    @TableField("live_client_platform")
     private String clientPlatform;
 
-    @TableField("kicked_by")
+    @TableField(exist = false)
     private UUID kickedBy;
 
-    @TableField("kicked_at")
+    @TableField("live_kicked_at")
     private LocalDateTime kickedAt;
 
-    @TableField("remark")
+    @TableField("live_remark")
     private String remark;
 }

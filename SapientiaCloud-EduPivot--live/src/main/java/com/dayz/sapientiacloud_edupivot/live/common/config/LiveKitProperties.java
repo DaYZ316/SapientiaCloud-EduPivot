@@ -25,5 +25,21 @@ public class LiveKitProperties {
     @Data
     public static class EgressDefaults {
         private Boolean enable;
+        /**
+         * LiveKit 录制布局
+         */
+        private String layout = "speaker-dark";
+        /**
+         * 文件输出类型，默认 MP4
+         */
+        private String fileType = "MP4";
+        /**
+         * 输出相对路径前缀
+         */
+        private String outputPrefix = "live-playback";
+        /**
+         * 录制回放访问前缀
+         */
+        private String playbackBaseUrl;
     }
 }

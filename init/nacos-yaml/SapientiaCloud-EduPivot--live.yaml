@@ -68,10 +68,11 @@ livekit:
     - stun:stun.l.google.com:19302
     - stun:stun.cloudflare.com:3478
   turn:
-    urls: turn:127.0.0.1:3478?transport=udp
+    urls: turn:${LIVEKIT_TURN_HOST}:3478?transport=udp
     username: livekit
     password: livekit123
 
-LIVEKIT_HOST: ws://192.168.85.211:7880
+LIVEKIT_HOST: ws://localhost:7880
+LIVEKIT_TURN_HOST: localhost
 LIVEKIT_API_KEY: "livekitdevkey001"
 LIVEKIT_API_SECRET: "livekitdevsecret001abcdef1234567890abcd"
