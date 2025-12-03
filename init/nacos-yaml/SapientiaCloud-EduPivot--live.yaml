@@ -63,7 +63,11 @@ livekit:
     departure-timeout-seconds: 20
     max-participants: 500
   egress:
-    enable: false
+    enable: true
+    layout: speaker-dark
+    file-type: MP4
+    output-prefix: live-playback
+    playback-base-url: http://localhost:9000/sapientiacloud-live-playback
   stun-servers:
     - stun:stun.l.google.com:19302
     - stun:stun.cloudflare.com:3478

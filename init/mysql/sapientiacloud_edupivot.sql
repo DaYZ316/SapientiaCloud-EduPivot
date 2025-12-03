@@ -66,31 +66,68 @@ INSERT INTO `mg_course` VALUES (0xFDE4EEFD75834F8ABD090E2DE4E9194B, '机器学�
 -- ----------------------------
 -- Table structure for mg_course_record
 -- ----------------------------
+/*
+ Navicat Premium Dump SQL
+
+ Source Server         : localhost_3306
+ Source Server Type    : MySQL
+ Source Server Version : 80031 (8.0.31)
+ Source Host           : localhost:3306
+ Source Schema         : sapientiacloud_edupivot
+
+ Target Server Type    : MySQL
+ Target Server Version : 80031 (8.0.31)
+ File Encoding         : 65001
+
+ Date: 04/12/2025 21:13:57
+*/
+
+SET NAMES utf8mb4;
+SET FOREIGN_KEY_CHECKS = 0;
+
+-- ----------------------------
+-- Table structure for mg_course_record
+-- ----------------------------
 DROP TABLE IF EXISTS `mg_course_record`;
 CREATE TABLE `mg_course_record`  (
-  `id` binary(16) NOT NULL COMMENT '课程记录ID',
-  `course_id` binary(16) NOT NULL COMMENT '关联课程ID',
-  `teacher_id` binary(16) NOT NULL COMMENT '授课教师系统用户ID',
-  `student_ids` json NULL COMMENT '参与学生ID列表(JSON数组)',
-  `question_ids` json NULL COMMENT '课堂互动题目ID列表(JSON数组)',
-  `model_type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '教室模型类型(classroomSmall, classroomMiddle, classroomLarge)',
-  `total_desks` int NULL DEFAULT NULL COMMENT '桌椅总数(1-200)',
-  `layout_rows` int NULL DEFAULT NULL COMMENT '行数(仅传统布局或对齐布局使用)',
-  `layout_columns` int NULL DEFAULT NULL COMMENT '列数(仅传统布局或对齐布局使用)',
-  `spacing` float NULL DEFAULT NULL COMMENT '桌椅间距系数(0.7-1.5)',
-  `layout_config` json NULL COMMENT '布局详细参数(JSON: {rows:4, columns:6, ...})',
-  `classroom_layout` json NULL COMMENT '布局字段',
-  `start_time` datetime NULL DEFAULT NULL COMMENT '课程开始时间',
-  `over_time` datetime NULL DEFAULT NULL COMMENT '课程结束时间',
-  `status` tinyint(1) NULL DEFAULT 0 COMMENT '课程状态 (0=未开始,1=进行中,2=已结束,3=取消)',
-  `is_deleted` tinyint(1) NULL DEFAULT 0 COMMENT '逻辑删除标记 (0=未删除,1=已删除)',
-  `create_time` datetime NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `update_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  PRIMARY KEY (`id`) USING BTREE,
-  INDEX `idx_course_id`(`course_id` ASC) USING BTREE,
-  INDEX `idx_teacher_id`(`teacher_id` ASC) USING BTREE,
-  CONSTRAINT `fk_course_record_course` FOREIGN KEY (`course_id`) REFERENCES `mg_course` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+                                     `id` binary(16) NOT NULL COMMENT '课程记录ID',
+                                     `course_id` binary(16) NOT NULL COMMENT '关联课程ID',
+                                     `teacher_id` binary(16) NOT NULL COMMENT '授课教师系统用户ID',
+                                     `course_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '课程名称',
+                                     `course_description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL COMMENT '课程内容简介',
+                                     `classroom_type` int NULL DEFAULT NULL COMMENT '教室类型 (0=小型教室, 1=中型教室, 2=大型教室, 3=超大型教室)',
+                                     `layout_rows` int NULL DEFAULT NULL COMMENT '行数 (仅传统布局或对齐布局使用)',
+                                     `layout_columns` int NULL DEFAULT NULL COMMENT '列数 (仅传统布局或对齐布局使用)',
+                                     `start_time` datetime NULL DEFAULT NULL COMMENT '课程开始时间',
+                                     `over_time` datetime NULL DEFAULT NULL COMMENT '课程结束时间',
+                                     `status` tinyint(1) NULL DEFAULT 0 COMMENT '课程状态 (0=未开始, 1=进行中, 2=已结束, 3=已取消)',
+                                     `is_deleted` tinyint(1) NULL DEFAULT 0 COMMENT '逻辑删除标记 (0=未删除, 1=已删除)',
+                                     `create_time` datetime NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                                     `update_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                                     `live_room_name` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '直播房间名',
+                                     `live_status` tinyint(1) NOT NULL DEFAULT 0 COMMENT '直播状态 (0未开始, 1直播中, 2已结束, 3已暂停)',
+                                     `live_lk_room_name` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'LiveKit 房间名',
+                                     `live_lk_room_sid` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'LiveKit 房间SID',
+                                     `live_lk_node_id` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'LiveKit 节点ID',
+                                     `live_start_time` datetime NULL DEFAULT NULL COMMENT '直播实际开始时间',
+                                     `live_expected_end_time` datetime NULL DEFAULT NULL COMMENT '直播预计结束时间',
+                                     `live_end_time` datetime NULL DEFAULT NULL COMMENT '直播实际结束时间',
+                                     `live_max_participants` int NULL DEFAULT 500 COMMENT '直播最大并发人数',
+                                     `live_recording_enabled` tinyint(1) NULL DEFAULT 0 COMMENT '是否开启录制',
+                                     `live_egress_task_id` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '录制任务ID',
+                                     `live_egress_status` tinyint(1) NULL DEFAULT 0 COMMENT '录制状态(0待启动,1进行中,2完成,3失败)',
+                                     `live_recording_asset_url` varchar(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '录制文件地址',
+                                     `live_stream_output_urls` json NULL COMMENT 'RTMP 推流集合(JSON)',
+                                     `live_metadata` json NULL COMMENT '直播扩展元数据',
+                                     PRIMARY KEY (`id`) USING BTREE,
+                                     UNIQUE INDEX `uk_live_lk_room_name`(`live_lk_room_name` ASC) USING BTREE,
+                                     INDEX `idx_course_id`(`course_id` ASC) USING BTREE,
+                                     INDEX `idx_teacher_id`(`teacher_id` ASC) USING BTREE,
+                                     INDEX `idx_live_status`(`live_status` ASC) USING BTREE,
+                                     CONSTRAINT `fk_course_record_course` FOREIGN KEY (`course_id`) REFERENCES `mg_course` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '课程教学记录表(含3D教室布局参数及行列信息)' ROW_FORMAT = DYNAMIC;
+
+SET FOREIGN_KEY_CHECKS = 1;
 
 -- ----------------------------
 -- Records of mg_course_record
@@ -129,28 +166,69 @@ INSERT INTO `mg_course_record` VALUES (0xDF6536C828A24227A8680780FDC55DB2, 0x3A2
 -- ----------------------------
 -- Table structure for mg_course_record_student
 -- ----------------------------
+/*
+ Navicat Premium Dump SQL
+
+ Source Server         : localhost_3306
+ Source Server Type    : MySQL
+ Source Server Version : 80031 (8.0.31)
+ Source Host           : localhost:3306
+ Source Schema         : sapientiacloud_edupivot
+
+ Target Server Type    : MySQL
+ Target Server Version : 80031 (8.0.31)
+ File Encoding         : 65001
+
+ Date: 04/12/2025 21:14:22
+*/
+
+SET NAMES utf8mb4;
+SET FOREIGN_KEY_CHECKS = 0;
+
+-- ----------------------------
+-- Table structure for mg_course_record_student
+-- ----------------------------
 DROP TABLE IF EXISTS `mg_course_record_student`;
 CREATE TABLE `mg_course_record_student`  (
-  `record_id` binary(16) NOT NULL COMMENT '课程记录ID',
-  `student_id` binary(16) NOT NULL COMMENT '学生ID',
-  `course_id` binary(16) NOT NULL COMMENT '课程ID',
-  `seat_index` int NULL DEFAULT NULL COMMENT '座位编号(从0开始)',
-  `location_x` float NULL DEFAULT NULL COMMENT '3D坐标X(横向)',
-  `location_y` float NULL DEFAULT NULL COMMENT '3D坐标Y(高度)',
-  `location_z` float NULL DEFAULT NULL COMMENT '3D坐标Z(纵深)',
-  `rotation_y` float NULL DEFAULT NULL COMMENT '朝向角度(弧度制)',
-  `seat_status` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT 'normal' COMMENT '座位状态(normal, marked, reserved, occupied)',
-  `attendance_status` tinyint(1) NULL DEFAULT 0 COMMENT '出勤状态(0=未签到,1=已签到,2=缺席)',
-  `participation_score` float NULL DEFAULT NULL COMMENT '课堂互动得分(可选)',
-  `create_time` datetime NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `update_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  PRIMARY KEY (`record_id`, `student_id`) USING BTREE,
-  INDEX `idx_course_id`(`course_id` ASC) USING BTREE,
-  INDEX `idx_student_id`(`student_id` ASC) USING BTREE,
-  CONSTRAINT `fk_record_student_course` FOREIGN KEY (`course_id`) REFERENCES `mg_course` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
-  CONSTRAINT `fk_record_student_record` FOREIGN KEY (`record_id`) REFERENCES `mg_course_record` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
-  CONSTRAINT `fk_record_student_student` FOREIGN KEY (`student_id`) REFERENCES `mg_student` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '课程教学学生参与表(含3D座位坐标与朝向)' ROW_FORMAT = DYNAMIC;
+                                             `id` binary(16) NOT NULL COMMENT '主键ID',
+                                             `record_id` binary(16) NOT NULL COMMENT '课堂记录ID（mg_course_record.id）',
+                                             `course_id` binary(16) NOT NULL COMMENT '课程ID（mg_course.id）',
+                                             `student_id` binary(16) NULL DEFAULT NULL COMMENT '学生ID（mg_student.id）',
+                                             `teacher_id` binary(16) NULL DEFAULT NULL COMMENT '教师ID（mg_teacher.id）',
+                                             `seat_index` int NULL DEFAULT NULL COMMENT '座位编号(从0开始)',
+                                             `location_x` float NULL DEFAULT NULL COMMENT '3D坐标X',
+                                             `location_y` float NULL DEFAULT NULL COMMENT '3D坐标Y',
+                                             `location_z` float NULL DEFAULT NULL COMMENT '3D坐标Z',
+                                             `rotation_y` float NULL DEFAULT NULL COMMENT '朝向角度(弧度制)',
+                                             `seat_status` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT 'normal' COMMENT '座位状态(normal/marked/reserved/occupied)',
+                                             `attendance_status` tinyint(1) NULL DEFAULT 0 COMMENT '出勤状态(0未签到,1已签到,2缺席)',
+                                             `participation_score` float NULL DEFAULT NULL COMMENT '课堂互动得分',
+                                             `live_join_time` datetime NULL DEFAULT NULL COMMENT '最近一次进入直播时间',
+                                             `live_leave_time` datetime NULL DEFAULT NULL COMMENT '最近一次离开直播时间',
+                                             `live_join_count` int NULL DEFAULT 0 COMMENT '进入直播次数',
+                                             `live_lk_identity` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '最近一次进入的 LiveKit identity',
+                                             `live_lk_participant_sid` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '最近一次 LiveKit participant SID',
+                                             `live_token_jti` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '最近一次 token JTI',
+                                             `live_join_ip` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '最近一次加入IP',
+                                             `live_client_platform` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '最近一次客户端平台',
+                                             `live_kicked_at` datetime NULL DEFAULT NULL COMMENT '最近一次被移除时间',
+                                             `live_remark` varchar(256) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '最近一次备注',
+                                             `create_time` datetime NULL DEFAULT CURRENT_TIMESTAMP,
+                                             `update_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                                             `is_deleted` tinyint(1) NULL DEFAULT NULL COMMENT '逻辑删除标记 (0=未删除, 1=已删除)',
+                                             PRIMARY KEY (`id`) USING BTREE,
+                                             INDEX `idx_course_id`(`course_id` ASC) USING BTREE,
+                                             INDEX `idx_student_id`(`student_id` ASC) USING BTREE,
+                                             INDEX `idx_teacher_id`(`teacher_id` ASC) USING BTREE,
+                                             INDEX `idx_record_id`(`record_id` ASC) USING BTREE,
+                                             CONSTRAINT `fk_record_student_course` FOREIGN KEY (`course_id`) REFERENCES `mg_course` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+                                             CONSTRAINT `fk_record_student_record` FOREIGN KEY (`record_id`) REFERENCES `mg_course_record` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+                                             CONSTRAINT `fk_record_student_student` FOREIGN KEY (`student_id`) REFERENCES `mg_student` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+                                             CONSTRAINT `fk_record_student_teacher` FOREIGN KEY (`teacher_id`) REFERENCES `mg_teacher` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+                                             CONSTRAINT `chk_teacher_student_exclusive` CHECK (((`student_id` is not null) and (`teacher_id` is null)) or ((`teacher_id` is not null) and (`student_id` is null)))
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '课堂学生参与表（含座位、出勤、直播参与信息）' ROW_FORMAT = DYNAMIC;
+
+SET FOREIGN_KEY_CHECKS = 1;
 
 -- ----------------------------
 -- Records of mg_course_record_student
