@@ -6,7 +6,7 @@ import com.dayz.sapientiacloud_edupivot.live.common.enums.SysRoleEnum;
 import com.dayz.sapientiacloud_edupivot.live.common.enums.SysUserEnum;
 import com.dayz.sapientiacloud_edupivot.live.common.result.Result;
 import com.dayz.sapientiacloud_edupivot.live.common.utils.EnumUtil;
-import com.dayz.sapientiacloud_edupivot.live.room.enums.LiveRoomEnum;
+import com.dayz.sapientiacloud_edupivot.live.enums.LiveRoomEnum;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.BindException;

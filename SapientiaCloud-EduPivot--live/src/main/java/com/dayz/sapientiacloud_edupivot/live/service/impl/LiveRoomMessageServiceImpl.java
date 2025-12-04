@@ -1,10 +1,10 @@
-package com.dayz.sapientiacloud_edupivot.live.room.service.impl;
+package com.dayz.sapientiacloud_edupivot.live.service.impl;
 
 import com.dayz.sapientiacloud_edupivot.live.common.enums.ResultEnum;
 import com.dayz.sapientiacloud_edupivot.live.common.exception.BusinessException;
-import com.dayz.sapientiacloud_edupivot.live.room.entity.po.LiveRoomMessage;
-import com.dayz.sapientiacloud_edupivot.live.room.repository.LiveRoomMessageRepository;
-import com.dayz.sapientiacloud_edupivot.live.room.service.ILiveRoomMessageService;
+import com.dayz.sapientiacloud_edupivot.live.entity.po.LiveRoomMessage;
+import com.dayz.sapientiacloud_edupivot.live.repository.LiveRoomMessageRepository;
+import com.dayz.sapientiacloud_edupivot.live.service.ILiveRoomMessageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;

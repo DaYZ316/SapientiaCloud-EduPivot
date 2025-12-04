@@ -1,4 +1,4 @@
-package com.dayz.sapientiacloud_edupivot.live.room.entity.po;
+package com.dayz.sapientiacloud_edupivot.live.entity.po;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;

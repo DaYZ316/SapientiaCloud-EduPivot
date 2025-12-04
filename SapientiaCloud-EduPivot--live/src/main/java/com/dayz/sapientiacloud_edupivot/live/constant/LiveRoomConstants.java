@@ -1,4 +1,4 @@
-package com.dayz.sapientiacloud_edupivot.live.room.constant;
+package com.dayz.sapientiacloud_edupivot.live.constant;
 
 /**
  * 直播房间相关常量

@@ -1,4 +1,4 @@
-package com.dayz.sapientiacloud_edupivot.live.room.service.impl;
+package com.dayz.sapientiacloud_edupivot.live.service.impl;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
@@ -17,12 +17,12 @@ import com.dayz.sapientiacloud_edupivot.live.common.integration.livekit.dto.Live
 import com.dayz.sapientiacloud_edupivot.live.common.integration.livekit.dto.LiveKitEgressStartResponse;
 import com.dayz.sapientiacloud_edupivot.live.common.integration.livekit.dto.LiveKitEgressStopRequest;
 import com.dayz.sapientiacloud_edupivot.live.common.result.Result;
-import com.dayz.sapientiacloud_edupivot.live.room.constant.LiveRoomConstants;
-import com.dayz.sapientiacloud_edupivot.live.room.enums.LiveEgressStatusEnum;
-import com.dayz.sapientiacloud_edupivot.live.room.enums.LiveRoomEnum;
-import com.dayz.sapientiacloud_edupivot.live.room.mapper.LiveRoomMapper;
-import com.dayz.sapientiacloud_edupivot.live.room.mapper.LiveRoomUserMapper;
-import com.dayz.sapientiacloud_edupivot.live.room.service.ILiveRoomService;
+import com.dayz.sapientiacloud_edupivot.live.constant.LiveRoomConstants;
+import com.dayz.sapientiacloud_edupivot.live.enums.LiveEgressStatusEnum;
+import com.dayz.sapientiacloud_edupivot.live.enums.LiveRoomEnum;
+import com.dayz.sapientiacloud_edupivot.live.mapper.LiveRoomMapper;
+import com.dayz.sapientiacloud_edupivot.live.mapper.LiveRoomUserMapper;
+import com.dayz.sapientiacloud_edupivot.live.service.ILiveRoomService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;

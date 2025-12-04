@@ -256,7 +256,7 @@ public class KafkaChatConsumer {
         clearActiveRequest(requestId);
         ChatMessage assistantMessage = null;
         if (!response.isEmpty()) {
-            assistantMessage = ChatMessageUtil.saveAssistantMessage(sessionId, response, chatMessageRepository);
+            assistantMessage = ChatMessageUtil.saveAssistantMessage(sessionId, response, requestId, chatMessageRepository);
             chatSessionService.updateSessionLastMessage(sessionId, response);
         }
 
@@ -293,7 +293,7 @@ public class KafkaChatConsumer {
                     error != null ? error.getMessage() : "unknown");
             // 保存已生成但未完成的回复，仍更新会话，便于追踪
             if (StringUtils.hasText(response)) {
-                ChatMessageUtil.saveAssistantMessage(sessionId, response, chatMessageRepository);
+                ChatMessageUtil.saveAssistantMessage(sessionId, response, requestId, chatMessageRepository);
                 chatSessionService.updateSessionLastMessage(sessionId, response);
                 // 取消场景下不进行向量化
             }
@@ -334,7 +334,7 @@ public class KafkaChatConsumer {
         log.debug("请求已由客户端取消, requestId: {}", requestId);
         clearActiveRequest(requestId);
         if (StringUtils.hasText(response)) {
-            ChatMessageUtil.saveAssistantMessage(sessionId, response, chatMessageRepository);
+            ChatMessageUtil.saveAssistantMessage(sessionId, response, requestId, chatMessageRepository);
             chatSessionService.updateSessionLastMessage(sessionId, response);
         }
         kafkaChatService.completeResponse(requestId);

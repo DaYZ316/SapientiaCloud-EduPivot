@@ -1,6 +1,6 @@
-package com.dayz.sapientiacloud_edupivot.live.room.repository;
+package com.dayz.sapientiacloud_edupivot.live.repository;
 
-import com.dayz.sapientiacloud_edupivot.live.room.entity.po.LiveRoomMessage;
+import com.dayz.sapientiacloud_edupivot.live.entity.po.LiveRoomMessage;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;

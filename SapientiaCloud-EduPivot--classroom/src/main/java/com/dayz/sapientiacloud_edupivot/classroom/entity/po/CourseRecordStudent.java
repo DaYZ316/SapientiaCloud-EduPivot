@@ -39,33 +39,17 @@ public class CourseRecordStudent extends BaseEntity {
     @TableField("seat_index")
     private Integer seatIndex;
 
-    @Schema(description = "3D坐标X (横向)")
+    @Schema(description = "学生座位的x坐标")
     @TableField("location_x")
-    private Float locationX;
+    private Integer locationX;
 
-    @Schema(description = "3D坐标Y (高度)")
+    @Schema(description = "学生座位的y坐标")
     @TableField("location_y")
-    private Float locationY;
+    private Integer locationY;
 
-    @Schema(description = "3D坐标Z (纵深)")
-    @TableField("location_z")
-    private Float locationZ;
-
-    @Schema(description = "朝向角度 (弧度制)")
-    @TableField("rotation_y")
-    private Float rotationY;
-
-    @Schema(description = "座位状态 (normal, marked, reserved, occupied)")
+    @Schema(description = "座位状态 (0=正常, 2=已预留, 3=已占用)")
     @TableField("seat_status")
-    private String seatStatus;
-
-    @Schema(description = "出勤状态 (0=未签到, 1=已签到, 2=缺席)")
-    @TableField("attendance_status")
-    private Integer attendanceStatus;
-
-    @Schema(description = "课堂互动得分 (可选)")
-    @TableField("participation_score")
-    private Float participationScore;
+    private Integer seatStatus;
 
     @TableField(exist = false)
     private Integer deleted;

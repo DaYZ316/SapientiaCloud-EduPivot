@@ -10,6 +10,9 @@ import com.dayz.sapientiacloud_edupivot.classroom.entity.po.CourseRecordStudent;
 import com.dayz.sapientiacloud_edupivot.classroom.entity.vo.CourseRecordStudentVO;
 import com.dayz.sapientiacloud_edupivot.classroom.entity.vo.CourseRecordVO;
 import com.dayz.sapientiacloud_edupivot.classroom.enums.CourseRecordStudentEnum;
+import com.dayz.sapientiacloud_edupivot.classroom.common.clients.StudentClient;
+import com.dayz.sapientiacloud_edupivot.classroom.common.result.Result;
+import com.dayz.sapientiacloud_edupivot.classroom.common.entity.vo.StudentVO;
 import com.dayz.sapientiacloud_edupivot.classroom.mapper.CourseRecordStudentMapper;
 import com.dayz.sapientiacloud_edupivot.classroom.service.ICourseRecordService;
 import com.dayz.sapientiacloud_edupivot.classroom.service.ICourseRecordStudentService;
@@ -35,6 +38,7 @@ public class CourseRecordStudentServiceImpl extends ServiceImpl<CourseRecordStud
 
     private final CourseRecordStudentMapper courseRecordStudentMapper;
     private final ICourseRecordService courseRecordService;
+    private final StudentClient studentClient;
 
     @Override
     public PageInfo<CourseRecordStudentVO> listCourseRecordStudentPage(CourseRecordStudentQueryDTO courseRecordStudentQueryDTO) {
@@ -100,8 +104,14 @@ public class CourseRecordStudentServiceImpl extends ServiceImpl<CourseRecordStud
         if (courseRecordStudentDTO.getSeatIndex() == null) {
             throw new BusinessException(CourseRecordStudentEnum.SEAT_INDEX_REQUIRED);
         }
-        if (courseRecordStudentDTO.getLocationX() == null || courseRecordStudentDTO.getLocationY() == null || courseRecordStudentDTO.getLocationZ() == null) {
+        if (courseRecordStudentDTO.getLocationX() == null || courseRecordStudentDTO.getLocationY() == null) {
             throw new BusinessException(CourseRecordStudentEnum.LOCATION_REQUIRED);
+        }
+
+        // 检查学生是否存在
+        Result<StudentVO> studentResult = studentClient.getStudentById(courseRecordStudentDTO.getStudentId());
+        if (studentResult == null || !studentResult.isSuccess() || studentResult.getData() == null) {
+            throw new BusinessException(CourseRecordStudentEnum.STUDENT_NOT_EXISTS);
         }
 
         // 检查课程记录是否存在
@@ -142,11 +152,8 @@ public class CourseRecordStudentServiceImpl extends ServiceImpl<CourseRecordStud
         student.setUpdateTime(LocalDateTime.now());
 
         // 默认值
-        if (student.getSeatStatus() == null || student.getSeatStatus().isBlank()) {
-            student.setSeatStatus("occupied");
-        }
-        if (student.getAttendanceStatus() == null) {
-            student.setAttendanceStatus(1);
+        if (student.getSeatStatus() == null) {
+            student.setSeatStatus(3); // 默认已占用
         }
 
         this.save(student);

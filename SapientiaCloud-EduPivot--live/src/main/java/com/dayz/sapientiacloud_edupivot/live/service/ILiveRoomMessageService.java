@@ -1,6 +1,6 @@
-package com.dayz.sapientiacloud_edupivot.live.room.service;
+package com.dayz.sapientiacloud_edupivot.live.service;
 
-import com.dayz.sapientiacloud_edupivot.live.room.entity.po.LiveRoomMessage;
+import com.dayz.sapientiacloud_edupivot.live.entity.po.LiveRoomMessage;
 
 import java.util.List;
 import java.util.UUID;

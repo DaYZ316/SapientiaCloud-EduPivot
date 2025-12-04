@@ -6,7 +6,6 @@ pagehelper:
 
 mybatis-plus:
   type-aliases-package: com.dayz.sapientiacloud_edupivot.live.common.entity
-  type-handlers-package: com.dayz.sapientiacloud_edupivot.live.common.config # register UUID type handlers
   mapper-locations: classpath:mapper/**/*.xml
   configuration:
     cache-enabled: false

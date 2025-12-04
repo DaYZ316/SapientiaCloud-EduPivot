@@ -65,6 +65,8 @@ spring:
       chat-request: chat-request-topic
       chat-response: chat-response-topic
       file-vectorize: file-vectorize-topic
+      question-request: question-request-topic
+      question-response: question-response-topic
 kafka:
   chat:
     timeout-seconds: 300

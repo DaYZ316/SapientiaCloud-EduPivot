@@ -144,6 +144,14 @@ public class KnowledgeConstants {
      */
     public static final int DEFAULT_CHUNK_OVERLAP = 150;
 
+    // ==================== 聊天向量化参数 ====================
+    /**
+     * 聊天内容用于向量化时的最大长度限制（字符数）。
+     * DashScope 向量模型要求单条输入长度在 [1, 2048] 范围内（按 token 计），
+     * 这里采用字符长度进行近似控制，预留一定余量以避免触发上游长度校验错误。
+     */
+    public static final int CHAT_EMBEDDING_MAX_LENGTH = 2000;
+
     // ==================== 标题处理 ====================
 
     /**

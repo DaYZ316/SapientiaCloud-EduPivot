@@ -286,6 +286,21 @@ public class ChatMessageUtil {
      */
     public static ChatMessage saveAssistantMessage(UUID sessionId, String content,
                                                    ChatMessageRepository chatMessageRepository) {
+        return saveAssistantMessage(sessionId, content, null, chatMessageRepository);
+    }
+
+    /**
+     * 保存助手消息（可带 requestId，用于幂等）
+     *
+     * @param sessionId             会话ID
+     * @param content               消息内容
+     * @param requestId             请求ID（用于幂等）
+     * @param chatMessageRepository 消息仓库
+     * @return 保存的助手消息
+     */
+    public static ChatMessage saveAssistantMessage(UUID sessionId, String content,
+                                                   String requestId,
+                                                   ChatMessageRepository chatMessageRepository) {
         ChatMessage message = new ChatMessage();
         message.setId(UuidCreator.getTimeOrderedEpoch());
         message.setSessionId(sessionId);
@@ -294,11 +309,20 @@ public class ChatMessageUtil {
         message.setMessageType(AIChatConstants.MESSAGE_TYPE_TEXT);
         message.setModelName(AIChatConstants.MODEL_QWEN3_MAX);
         message.setTokenCount(estimateTokens(content));
+        message.setRequestId(requestId);
         message.setIsFeedback(AIChatConstants.FEEDBACK_NONE);
         message.setCreateTime(LocalDateTime.now());
         message.setUpdateTime(LocalDateTime.now());
 
-        return chatMessageRepository.save(message);
+        try {
+            return chatMessageRepository.save(message);
+        } catch (org.springframework.dao.DuplicateKeyException dup) {
+            if (requestId != null) {
+                return chatMessageRepository.findFirstBySessionIdAndRoleAndRequestId(
+                        sessionId, AIChatConstants.ROLE_ASSISTANT, requestId);
+            }
+            throw dup;
+        }
     }
 
     /**
@@ -318,7 +342,13 @@ public class ChatMessageUtil {
                                                            String requestId,
                                                            ChatMessageRepository chatMessageRepository) {
         if (requestId != null) {
-            // 幂等插入，数据库层唯一索引保障
+            // 先根据 requestId 查询是否已经存在对应的用户消息，存在则直接返回，避免重复写入
+            ChatMessage existing = chatMessageRepository.findFirstBySessionIdAndRoleAndRequestId(
+                    sessionId, AIChatConstants.ROLE_USER, requestId);
+            if (existing != null) {
+                return existing;
+            }
+            // 不存在再尝试插入，数据库唯一索引作为第二道幂等防线
             return addUserMessage(sessionId, content, attachments, requestId, chatMessageRepository);
         }
         ChatMessage last = lastMessageFromContext;

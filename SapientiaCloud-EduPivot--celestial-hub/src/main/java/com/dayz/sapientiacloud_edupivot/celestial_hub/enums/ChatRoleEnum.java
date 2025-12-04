@@ -15,7 +15,15 @@ public enum ChatRoleEnum implements BaseEnum {
 
     USER(0, "用户"),
     ASSISTANT(1, "AI助手"),
-    SYSTEM(2, "系统");
+    SYSTEM(2, "系统"),
+    /**
+     * 出题请求者（用户）
+     */
+    QUESTION_REQUESTER(3, "出题请求者"),
+    /**
+     * 出题者（AI）
+     */
+    QUESTION_GENERATOR(4, "出题者");
 
     @EnumValue
     private final int code;

@@ -1,4 +1,4 @@
-package com.dayz.sapientiacloud_edupivot.live.room.enums;
+package com.dayz.sapientiacloud_edupivot.live.enums;
 
 import com.dayz.sapientiacloud_edupivot.live.common.enums.BaseEnum;
 import lombok.AllArgsConstructor;

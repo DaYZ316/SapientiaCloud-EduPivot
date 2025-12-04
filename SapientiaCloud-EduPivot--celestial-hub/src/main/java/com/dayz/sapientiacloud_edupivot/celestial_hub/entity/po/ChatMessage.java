@@ -81,6 +81,14 @@ public class ChatMessage extends BaseEntity {
     @Schema(description = "元数据")
     private Map<String, Object> metadata;
 
+    @Field("question_request")
+    @Schema(description = "出题请求参数（JSON），当角色为出题请求者时使用")
+    private String questionRequest;
+
+    @Field("question_response")
+    @Schema(description = "AI出题生成结果（JSON），当角色为出题者时使用")
+    private String questionResponse;
+
     @BsonIgnore
     @TableField(exist = false)
     private Integer deleted;

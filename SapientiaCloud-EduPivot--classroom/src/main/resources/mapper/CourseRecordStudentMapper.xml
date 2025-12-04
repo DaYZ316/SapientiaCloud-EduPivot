@@ -13,11 +13,7 @@
         <result column="seat_index" property="seatIndex"/>
         <result column="location_x" property="locationX"/>
         <result column="location_y" property="locationY"/>
-        <result column="location_z" property="locationZ"/>
-        <result column="rotation_y" property="rotationY"/>
         <result column="seat_status" property="seatStatus"/>
-        <result column="attendance_status" property="attendanceStatus"/>
-        <result column="participation_score" property="participationScore"/>
         <result column="create_time" property="createTime"/>
         <result column="update_time" property="updateTime"/>
     </resultMap>
@@ -25,8 +21,8 @@
     <!-- 基础查询字段 -->
     <sql id="Base_Column_List">
         crs.record_id, crs.student_id, crs.course_id, crs.seat_index,
-        crs.location_x, crs.location_y, crs.location_z, crs.rotation_y,
-        crs.seat_status, crs.attendance_status, crs.participation_score,
+        crs.location_x, crs.location_y,
+        crs.seat_status,
         crs.create_time, crs.update_time
     </sql>
 
@@ -57,9 +53,6 @@
         </if>
         <if test="seatStatus != null and seatStatus != ''">
             AND crs.seat_status = #{seatStatus}
-        </if>
-        <if test="attendanceStatus != null">
-            AND crs.attendance_status = #{attendanceStatus}
         </if>
         ORDER BY crs.seat_index ASC
     </select>

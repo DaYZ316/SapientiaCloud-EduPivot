@@ -313,6 +313,18 @@ public class KnowledgeServiceImpl implements KnowledgeService {
             // 按照 Q&A 对格式构建内容
             String content = KnowledgeConstants.CHAT_USER_PREFIX + userQuery + KnowledgeConstants.CHAT_AI_PREFIX + aiResponse;
 
+            // 控制向量化文本长度，避免触发 DashScope 的长度限制错误
+            if (content.length() > KnowledgeConstants.CHAT_EMBEDDING_MAX_LENGTH) {
+                log.warn("Vectorize chat content: content too long, will be truncated. sessionId={}, messageId={}, originalLength={}, maxLength={}",
+                        sessionId, messageId, content.length(), KnowledgeConstants.CHAT_EMBEDDING_MAX_LENGTH);
+                content = content.substring(0, KnowledgeConstants.CHAT_EMBEDDING_MAX_LENGTH);
+            }
+            // 额外兜底：若裁剪后内容为空，则直接跳过
+            if (content.isEmpty()) {
+                log.warn("Vectorize chat content skipped after trimming: empty content, sessionId={}, messageId={}", sessionId, messageId);
+                return;
+            }
+
             // 构建元数据，将用户消息作为title记录
             Map<String, Object> metadata = buildBaseMetadata(
                     ContentTypeEnum.CHAT.getCode(),
