@@ -2,6 +2,7 @@ package com.dayz.sapientiacloud_edupivot.celestial_hub.entity.po;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.common.entity.base.BaseEntity;
+import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.FileReference;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -68,6 +69,10 @@ public class ChatMessage extends BaseEntity {
     @Field("attachments")
     @Schema(description = "附件URL列表")
     private List<String> attachments;
+
+    @Field("file_references")
+    @Schema(description = "引用文件数组（用于索引文件向量数据）")
+    private List<FileReference> fileReferences;
 
     @Field("request_id")
     @Schema(description = "请求ID（用于幂等），Kafka传入或HTTP生成")

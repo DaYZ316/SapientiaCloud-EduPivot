@@ -5,6 +5,7 @@ import com.dayz.sapientiacloud_edupivot.celestial_hub.common.entity.vo.*;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.common.enums.StatusEnum;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.common.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.common.result.Result;
+import com.dayz.sapientiacloud_edupivot.celestial_hub.common.security.utils.UserContextUtil;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.constant.FileParserConstants;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.constant.KnowledgeConstants;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.KnowledgeSearchRequestDTO;
@@ -15,7 +16,6 @@ import com.dayz.sapientiacloud_edupivot.celestial_hub.enums.ContentTypeEnum;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.enums.KnowledgeEnum;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.repository.KnowledgeVectorRepository;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.KnowledgeService;
-import com.dayz.sapientiacloud_edupivot.celestial_hub.common.security.utils.UserContextUtil;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.utils.HtmlTextUtil;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.utils.VectorIdUtil;
 import com.github.f4b6a3.uuid.UuidCreator;
@@ -224,6 +224,24 @@ public class KnowledgeServiceImpl implements KnowledgeService {
             log.warn("Failed to parse Double from value: {}", str);
             return null;
         }
+    }
+
+    private static Double firstNonNullDouble(Object... values) {
+        if (values == null) {
+            return null;
+        }
+        for (Object value : values) {
+            Double parsed = safeParseDouble(value);
+            if (parsed != null) {
+                return parsed;
+            }
+        }
+        return null;
+    }
+
+    private static boolean hasMetadataFilter() {
+        // 无论是否传入 sessionId，都会对文件向量进行额外处理，因此始终视为存在过滤逻辑
+        return true;
     }
 
     @Override
@@ -756,22 +774,45 @@ public class KnowledgeServiceImpl implements KnowledgeService {
     @Override
     @Transactional(readOnly = true)
     public List<KnowledgeSearchResultVO> searchKnowledge(KnowledgeSearchRequestDTO request) {
+        log.debug("开始知识检索，查询内容: '{}', topK: {}, 相似度阈值: {}, 会话ID: {}, 文件引用数量: {}",
+                request != null ? request.getQuery() : null,
+                request != null ? request.getTopK() : null,
+                request != null ? request.getSimilarityThreshold() : null,
+                request != null ? request.getSessionId() : null,
+                request != null && request.getFileReferences() != null ? request.getFileReferences().size() : 0);
+
         if (request == null || !StringUtils.hasText(request.getQuery())) {
+            log.warn("知识检索失败：请求参数为空或查询内容为空");
             throw new BusinessException(KnowledgeEnum.SEARCH_QUERY_REQUIRED);
         }
 
         try {
             UUID currentUserId = UserContextUtil.getCurrentUserId();
+            log.debug("知识检索：当前用户ID: {}", currentUserId);
+
             int topK = normalizeTopK(request.getTopK());
             double threshold = request.getSimilarityThreshold() != null
                     ? request.getSimilarityThreshold()
                     : KnowledgeConstants.DEFAULT_SIMILARITY_THRESHOLD;
+
+            log.debug("知识检索：规范化后的参数 - topK: {}, 相似度阈值: {}", topK, threshold);
 
             int fetchTopK = topK;
             boolean hasFilter = hasMetadataFilter();
             if (hasFilter) {
                 fetchTopK = Math.min(topK * 3, 500);
                 fetchTopK = Math.max(fetchTopK, topK);
+                log.debug("知识检索：存在元数据过滤，调整 fetchTopK 从 {} 到 {}", topK, fetchTopK);
+            }
+
+            // 处理文件引用：如果有fileReferences，先查询对应的向量数据（带验证）
+            List<KnowledgeVector> fileVectors = null;
+            if (request.getFileReferences() != null && !request.getFileReferences().isEmpty()) {
+                log.debug("知识检索：检测到文件引用，开始查询文件向量数据（带验证），文件引用数量: {}",
+                        request.getFileReferences().size());
+                fileVectors = findVectorsByFileReferences(request.getFileReferences(), currentUserId, request.getSessionId());
+                log.debug("知识检索：文件向量数据查询完成，找到 {} 条向量记录",
+                        fileVectors != null ? fileVectors.size() : 0);
             }
 
             SearchRequest searchRequest = SearchRequest.builder()
@@ -780,55 +821,124 @@ public class KnowledgeServiceImpl implements KnowledgeService {
                     .similarityThreshold(threshold)
                     .build();
 
+            log.debug("知识检索：开始向量相似度搜索，查询内容: '{}', fetchTopK: {}, threshold: {}",
+                    request.getQuery(), fetchTopK, threshold);
+
             List<Document> documents = vectorStore.similaritySearch(searchRequest);
-            if (documents == null || documents.isEmpty()) {
-                log.warn("searchKnowledge finished: no documents returned, query='{}', fetchTopK={}, threshold={}",
-                        request.getQuery(), fetchTopK, threshold);
-                return Collections.emptyList();
-            }
 
-            List<Document> candidateDocuments = new ArrayList<>();
-            List<String> candidateVectorIds = new ArrayList<>();
-            for (Document document : documents) {
-                String vectorId = resolveVectorId(document);
-                if (!StringUtils.hasText(vectorId)) {
-                    log.warn("searchKnowledge skip docId={} due to missing vectorId", document.getId());
-                    continue;
-                }
-                candidateDocuments.add(document);
-                candidateVectorIds.add(vectorId);
-                if (candidateDocuments.size() >= topK) {
-                    break;
-                }
-            }
+            log.debug("知识检索：向量相似度搜索完成，返回文档数量: {}",
+                    documents != null ? documents.size() : 0);
 
-            if (candidateDocuments.isEmpty()) {
-                log.warn("searchKnowledge finished: no documents matched metadata filters, query='{}'", request.getQuery());
-                return Collections.emptyList();
-            }
-
-            Map<String, KnowledgeVector> vectorMap = buildVectorMap(candidateVectorIds);
             List<KnowledgeSearchResultVO> results = new ArrayList<>();
-            for (int i = 0; i < candidateDocuments.size(); i++) {
-                Document document = candidateDocuments.get(i);
-                String vectorId = candidateVectorIds.get(i);
-                KnowledgeVector vector = vectorMap.get(vectorId);
-                if (vector == null) {
-                    log.warn("searchKnowledge skip docId={} due to missing KnowledgeVector, vectorId={}",
-                            document.getId(), vectorId);
-                    continue;
+            int filteredCount = 0;
+
+            // 处理向量相似度搜索结果
+            if (documents != null && !documents.isEmpty()) {
+                List<Document> candidateDocuments = new ArrayList<>();
+                List<String> candidateVectorIds = new ArrayList<>();
+                int skippedCount = 0;
+                for (Document document : documents) {
+                    String vectorId = resolveVectorId(document);
+                    if (!StringUtils.hasText(vectorId)) {
+                        log.debug("知识检索：跳过文档，原因：缺少vectorId，文档ID: {}", document.getId());
+                        skippedCount++;
+                        continue;
+                    }
+                    candidateDocuments.add(document);
+                    candidateVectorIds.add(vectorId);
+                    if (candidateDocuments.size() >= topK) {
+                        log.debug("知识检索：已达到目标数量 {}，停止处理剩余文档", topK);
+                        break;
+                    }
                 }
-                if (!shouldIncludeVector(vector, request, currentUserId)) {
-                    continue;
+
+                log.debug("知识检索：文档处理完成，候选文档数量: {}, 跳过数量: {}, 目标数量: {}",
+                        candidateDocuments.size(), skippedCount, topK);
+
+                if (!candidateDocuments.isEmpty()) {
+                    log.debug("知识检索：开始构建向量映射，候选向量ID数量: {}", candidateVectorIds.size());
+                    Map<String, KnowledgeVector> vectorMap = buildVectorMap(candidateVectorIds);
+                    log.debug("知识检索：向量映射构建完成，映射数量: {}", vectorMap.size());
+
+                    for (int i = 0; i < candidateDocuments.size(); i++) {
+                        Document document = candidateDocuments.get(i);
+                        String vectorId = candidateVectorIds.get(i);
+                        KnowledgeVector vector = vectorMap.get(vectorId);
+                        if (vector == null) {
+                            log.debug("知识检索：跳过文档，原因：缺少KnowledgeVector，文档ID: {}, 向量ID: {}",
+                                    document.getId(), vectorId);
+                            filteredCount++;
+                            continue;
+                        }
+                        if (!shouldIncludeVector(vector, request, currentUserId)) {
+                            log.debug("知识检索：跳过向量，原因：不满足包含条件，向量ID: {}, 内容类型: {}, 会话ID: {}",
+                                    vectorId, vector.getContentType(), vector.getSessionId());
+                            filteredCount++;
+                            continue;
+                        }
+                        KnowledgeSearchResultVO vo = buildSearchResult(document, vector);
+                        if (vo != null) {
+                            results.add(vo);
+                            log.debug("知识检索：添加搜索结果，向量ID: {}, 标题: '{}', 内容长度: {}",
+                                    vectorId, vo.getTitle(), vo.getContent() != null ? vo.getContent().length() : 0);
+                        } else {
+                            log.debug("知识检索：跳过文档，原因：构建搜索结果失败，向量ID: {}", vectorId);
+                            filteredCount++;
+                        }
+                    }
+                } else {
+                    log.debug("知识检索：没有文档匹配元数据过滤条件，查询内容: '{}'", request.getQuery());
                 }
-                KnowledgeSearchResultVO vo = buildSearchResult(document, vector);
-                if (vo != null) {
-                    results.add(vo);
-                }
+            } else {
+                log.warn("知识检索：向量相似度搜索未返回任何文档，查询内容: '{}', fetchTopK: {}, 阈值: {}",
+                        request.getQuery(), fetchTopK, threshold);
             }
+
+            // 如果有文件引用，将文件向量数据转换为搜索结果并添加到结果中
+            // 即使相似度搜索没有结果，也应该返回文件向量数据
+            if (fileVectors != null && !fileVectors.isEmpty()) {
+                log.debug("知识检索：开始处理文件向量数据，文件向量数量: {}", fileVectors.size());
+                int fileVectorAddedCount = 0;
+                for (KnowledgeVector fileVector : fileVectors) {
+                    if (fileVector == null) {
+                        continue;
+                    }
+                    // 检查是否已经存在于结果中（避免重复）
+                    boolean alreadyExists = results.stream()
+                            .anyMatch(vo -> vo.getVectorId() != null && vo.getVectorId().equals(fileVector.getVectorId()));
+                    if (alreadyExists) {
+                        log.debug("知识检索：跳过文件向量，原因：已存在于搜索结果中，向量ID: {}", fileVector.getVectorId());
+                        continue;
+                    }
+
+                    // 检查文件向量是否满足包含条件（会话ID、用户ID等）
+                    if (!shouldIncludeVector(fileVector, request, currentUserId)) {
+                        log.debug("知识检索：跳过文件向量，原因：不满足包含条件，向量ID: {}, 内容类型: {}, 会话ID: {}",
+                                fileVector.getVectorId(), fileVector.getContentType(), fileVector.getSessionId());
+                        filteredCount++;
+                        continue;
+                    }
+
+                    // 将文件向量转换为搜索结果
+                    KnowledgeSearchResultVO fileVo = convertVectorToSearchResult(fileVector);
+                    if (fileVo != null) {
+                        results.add(fileVo);
+                        fileVectorAddedCount++;
+                        log.debug("知识检索：添加文件向量搜索结果，向量ID: {}, 标题: '{}', 内容长度: {}",
+                                fileVector.getVectorId(), fileVo.getTitle(),
+                                fileVo.getContent() != null ? fileVo.getContent().length() : 0);
+                    } else {
+                        log.debug("知识检索：跳过文件向量，原因：转换搜索结果失败，向量ID: {}", fileVector.getVectorId());
+                        filteredCount++;
+                    }
+                }
+                log.debug("知识检索：文件向量处理完成，添加数量: {}", fileVectorAddedCount);
+            }
+
+            log.debug("知识检索：结果构建完成，最终结果数量: {}, 过滤数量: {}", results.size(), filteredCount);
             return results;
         } catch (Exception e) {
-            log.error("Knowledge search failed, query='{}'", request.getQuery(), e);
+            log.error("知识检索失败，查询内容: '{}', 错误信息: {}", request.getQuery(), e.getMessage(), e);
             throw new BusinessException(KnowledgeEnum.SEARCH_FAILED);
         }
     }
@@ -935,6 +1045,57 @@ public class KnowledgeServiceImpl implements KnowledgeService {
         return vo;
     }
 
+    /**
+     * 将KnowledgeVector转换为KnowledgeSearchResultVO（用于文件向量直接索引）
+     */
+    private KnowledgeSearchResultVO convertVectorToSearchResult(KnowledgeVector vector) {
+        if (vector == null) {
+            return null;
+        }
+
+        String vectorId = vector.getVectorId();
+        if (!StringUtils.hasText(vectorId)) {
+            log.debug("知识检索：跳过向量转换，原因：缺少vectorId，向量ID: {}", vector.getId());
+            return null;
+        }
+
+        KnowledgeSearchResultVO vo = new KnowledgeSearchResultVO();
+        vo.setDocumentId(vectorId);
+        vo.setContent(sanitizeContent(vector.getContent()));
+        vo.setVectorId(vectorId);
+
+        vo.setContentType(vector.getContentType());
+        vo.setTitle(vector.getTitle());
+        vo.setCourseId(vector.getCourseId());
+        vo.setChapterId(vector.getChapterId());
+        vo.setContentId(vector.getContentId());
+        vo.setQuestionBankId(vector.getQuestionBankId());
+        vo.setQuestionId(vector.getQuestionId());
+        vo.setTaskId(vector.getTaskId());
+        vo.setForumId(vector.getForumId());
+        vo.setPostId(vector.getPostId());
+        vo.setSessionId(vector.getSessionId());
+        vo.setMessageId(vector.getMetadata() != null
+                ? safeParseUUID(vector.getMetadata().get(KnowledgeConstants.METADATA_MESSAGE_ID))
+                : null);
+        vo.setUserId(vector.getUserId());
+        vo.setFileId(vector.getMetadata() != null
+                ? safeParseUUID(vector.getMetadata().get(KnowledgeConstants.METADATA_FILE_ID))
+                : null);
+        vo.setChunkIndex(vector.getMetadata() != null
+                ? safeParseInteger(vector.getMetadata().get(KnowledgeConstants.METADATA_CHUNK_INDEX))
+                : null);
+        vo.setCreateTime(vector.getCreateTime());
+        vo.setEmbeddingModel(vector.getEmbeddingModel());
+        vo.setTags(vector.getTags());
+
+        // 文件向量直接索引没有相似度分数和距离，设置为null
+        vo.setScore(null);
+        vo.setDistance(null);
+
+        return vo;
+    }
+
     private Map<String, KnowledgeVector> buildVectorMap(List<String> vectorIds) {
         if (vectorIds == null || vectorIds.isEmpty()) {
             return Collections.emptyMap();
@@ -1009,70 +1170,167 @@ public class KnowledgeServiceImpl implements KnowledgeService {
         return StringUtils.hasText(candidate) ? candidate : null;
     }
 
-    private static Double firstNonNullDouble(Object... values) {
-        if (values == null) {
-            return null;
-        }
-        for (Object value : values) {
-            Double parsed = safeParseDouble(value);
-            if (parsed != null) {
-                return parsed;
-            }
-        }
-        return null;
-    }
-
     private boolean shouldIncludeVector(KnowledgeVector vector, KnowledgeSearchRequestDTO request, UUID currentUserId) {
         if (vector == null) {
+            log.debug("知识检索：向量包含检查失败，原因：向量为空");
             return false;
         }
         Integer contentType = vector.getContentType();
         boolean isFileVector = Objects.equals(contentType, KnowledgeConstants.CONTENT_TYPE_FILE);
         boolean isChatVector = Objects.equals(contentType, KnowledgeConstants.CONTENT_TYPE_CHAT);
         UUID requestSessionId = request != null ? request.getSessionId() : null;
+
+        log.debug("知识检索：向量包含检查，向量ID: {}, 内容类型: {}, 是否为文件向量: {}, 是否为聊天向量: {}, 请求会话ID: {}, 当前用户ID: {}",
+                vector.getVectorId(), contentType, isFileVector, isChatVector, requestSessionId, currentUserId);
+
         if (isFileVector) {
             if (requestSessionId == null) {
-                log.debug("searchKnowledge skip file vector due to missing sessionId, vectorId={}", vector.getVectorId());
+                log.debug("知识检索：跳过文件向量，原因：请求中缺少会话ID，向量ID: {}", vector.getVectorId());
                 return false;
             }
             UUID vectorSessionId = vector.getSessionId();
             boolean matched = requestSessionId.equals(vectorSessionId);
             if (!matched) {
-                log.debug("searchKnowledge skip file vector due to session mismatch, vectorId={}, requestSessionId={}, vectorSessionId={}",
+                log.debug("知识检索：跳过文件向量，原因：会话ID不匹配，向量ID: {}, 请求会话ID: {}, 向量会话ID: {}",
                         vector.getVectorId(), requestSessionId, vectorSessionId);
                 return false;
             }
             if (currentUserId == null) {
-                log.debug("searchKnowledge skip file vector due to missing current userId, vectorId={}", vector.getVectorId());
+                log.debug("知识检索：跳过文件向量，原因：当前用户ID为空，向量ID: {}", vector.getVectorId());
                 return false;
             }
             UUID vectorUserId = vector.getUserId();
             boolean userMatched = currentUserId.equals(vectorUserId);
             if (!userMatched) {
-                log.debug("searchKnowledge skip file vector due to user mismatch, vectorId={}, currentUserId={}, vectorUserId={}",
+                log.debug("知识检索：跳过文件向量，原因：用户ID不匹配，向量ID: {}, 当前用户ID: {}, 向量用户ID: {}",
                         vector.getVectorId(), currentUserId, vectorUserId);
                 return false;
             }
+            log.debug("知识检索：文件向量通过包含检查，向量ID: {}", vector.getVectorId());
+            return true;
         }
         if (isChatVector) {
             if (currentUserId == null) {
-                log.debug("searchKnowledge skip chat vector due to missing current userId, vectorId={}", vector.getVectorId());
+                log.debug("知识检索：跳过聊天向量，原因：当前用户ID为空，向量ID: {}", vector.getVectorId());
                 return false;
             }
             UUID vectorUserId = vector.getUserId();
             boolean matchedUser = currentUserId.equals(vectorUserId);
             if (!matchedUser) {
-                log.debug("searchKnowledge skip chat vector due to user mismatch, vectorId={}, currentUserId={}, vectorUserId={}",
+                log.debug("知识检索：跳过聊天向量，原因：用户ID不匹配，向量ID: {}, 当前用户ID: {}, 向量用户ID: {}",
                         vector.getVectorId(), currentUserId, vectorUserId);
                 return false;
             }
+            log.debug("知识检索：聊天向量通过包含检查，向量ID: {}", vector.getVectorId());
+            return true;
         }
+        // 其他类型（章节、问题、任务、论坛）直接通过
+        log.debug("知识检索：非文件/聊天向量通过包含检查，向量ID: {}, 内容类型: {}", vector.getVectorId(), contentType);
         return true;
     }
 
-    private static boolean hasMetadataFilter() {
-        // 无论是否传入 sessionId，都会对文件向量进行额外处理，因此始终视为存在过滤逻辑
-        return true;
+    @Override
+    @Transactional(readOnly = true)
+    public List<KnowledgeVector> findVectorsByFileIds(List<UUID> fileIds) {
+        if (fileIds == null || fileIds.isEmpty()) {
+            log.debug("查询文件向量数据：文件ID列表为空，返回空列表");
+            return Collections.emptyList();
+        }
+        try {
+            log.debug("开始查询文件向量数据，文件ID数量: {}, fileIds={}", fileIds.size(), fileIds);
+
+            // 根据contentId查询向量数据（fileId作为contentId存储在KnowledgeVector中）
+            List<KnowledgeVector> vectors = knowledgeVectorRepository.findByContentIdIn(fileIds);
+            if (vectors == null) {
+                log.debug("查询文件向量数据：未找到任何向量数据，fileIds={}", fileIds);
+                return Collections.emptyList();
+            }
+
+            log.debug("查询文件向量数据：找到 {} 条向量记录，开始过滤无效状态", vectors.size());
+
+            // 过滤掉状态为已失效的向量
+            List<KnowledgeVector> validVectors = vectors.stream()
+                    .filter(vector -> vector != null &&
+                            (vector.getStatus() == null || vector.getStatus() == 0))
+                    .toList();
+
+            log.debug("查询文件向量数据：过滤后有效向量数量: {}, 原始数量: {}", validVectors.size(), vectors.size());
+            return validVectors;
+        } catch (Exception e) {
+            log.error("查询文件向量数据失败, fileIds={}, 错误信息: {}", fileIds, e.getMessage(), e);
+            return Collections.emptyList();
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<KnowledgeVector> findVectorsByFileReferences(List<com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.FileReference> fileReferences, UUID currentUserId, UUID currentSessionId) {
+        if (fileReferences == null || fileReferences.isEmpty()) {
+            log.debug("查询文件向量数据：文件引用列表为空，返回空列表");
+            return Collections.emptyList();
+        }
+
+        if (currentUserId == null) {
+            log.warn("查询文件向量数据：当前用户ID为空，无法验证文件权限，返回空列表");
+            return Collections.emptyList();
+        }
+
+        if (currentSessionId == null) {
+            log.warn("查询文件向量数据：当前会话ID为空，无法验证文件权限，返回空列表");
+            return Collections.emptyList();
+        }
+
+        try {
+            log.debug("开始查询文件向量数据（带验证），文件引用数量: {}, 当前用户ID: {}, 当前会话ID: {}",
+                    fileReferences.size(), currentUserId, currentSessionId);
+
+            // 验证文件引用：检查sysUserId和sessionId是否匹配
+            List<UUID> validFileIds = new ArrayList<>();
+            int skippedCount = 0;
+            for (com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.FileReference ref : fileReferences) {
+                if (ref == null || ref.getId() == null) {
+                    log.debug("查询文件向量数据：跳过空文件引用");
+                    skippedCount++;
+                    continue;
+                }
+
+                // 验证用户ID
+                UUID refSysUserId = ref.getSysUserId();
+                if (refSysUserId == null || !refSysUserId.equals(currentUserId)) {
+                    log.debug("查询文件向量数据：跳过文件，原因：用户ID不匹配，文件ID: {}, 文件用户ID: {}, 当前用户ID: {}",
+                            ref.getId(), refSysUserId, currentUserId);
+                    skippedCount++;
+                    continue;
+                }
+
+                // 验证会话ID
+                UUID refSessionId = ref.getSessionId();
+                if (refSessionId == null || !refSessionId.equals(currentSessionId)) {
+                    log.debug("查询文件向量数据：跳过文件，原因：会话ID不匹配，文件ID: {}, 文件会话ID: {}, 当前会话ID: {}",
+                            ref.getId(), refSessionId, currentSessionId);
+                    skippedCount++;
+                    continue;
+                }
+
+                // 通过验证，添加到有效文件ID列表
+                validFileIds.add(ref.getId());
+                log.debug("查询文件向量数据：文件通过验证，文件ID: {}, 文件名: {}", ref.getId(), ref.getFileName());
+            }
+
+            log.debug("查询文件向量数据：验证完成，有效文件数量: {}, 跳过数量: {}", validFileIds.size(), skippedCount);
+
+            if (validFileIds.isEmpty()) {
+                log.debug("查询文件向量数据：没有通过验证的文件，返回空列表");
+                return Collections.emptyList();
+            }
+
+            // 查询通过验证的文件对应的向量数据
+            return findVectorsByFileIds(validFileIds);
+        } catch (Exception e) {
+            log.error("查询文件向量数据失败（带验证）, fileReferences数量: {}, 当前用户ID: {}, 当前会话ID: {}, 错误信息: {}",
+                    fileReferences.size(), currentUserId, currentSessionId, e.getMessage(), e);
+            return Collections.emptyList();
+        }
     }
 
 }

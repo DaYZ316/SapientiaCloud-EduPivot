@@ -16,6 +16,8 @@ import com.dayz.sapientiacloud_edupivot.celestial_hub.service.IChatSessionServic
 import com.github.f4b6a3.uuid.UuidCreator;
 import com.github.pagehelper.PageInfo;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -27,6 +29,7 @@ import org.springframework.data.mongodb.core.aggregation.MatchOperation;
 import org.springframework.data.mongodb.core.aggregation.SortOperation;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -35,6 +38,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ChatSessionServiceImpl implements IChatSessionService {
@@ -42,6 +46,7 @@ public class ChatSessionServiceImpl implements IChatSessionService {
     private final ChatSessionRepository chatSessionRepository;
     private final ChatMessageRepository chatMessageRepository;
     private final MongoTemplate mongoTemplate;
+    private final ChatClient chatClient;
 
     @Override
     @Transactional(readOnly = true)
@@ -425,6 +430,98 @@ public class ChatSessionServiceImpl implements IChatSessionService {
         vo.setMessageCount(messageCount != null ? messageCount.intValue() : AIChatConstants.DEFAULT_MESSAGE_COUNT);
 
         return vo;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public String generateSessionTitle(UUID id) {
+        if (id == null) {
+            throw new BusinessException(AIChatEnum.SESSION_ID_REQUIRED);
+        }
+
+        ChatSession session = chatSessionRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(AIChatEnum.SESSION_NOT_EXISTS));
+
+        // 获取会话的前几条消息用于生成标题
+        List<ChatMessage> messages = chatMessageRepository.findBySessionIdOrderByCreateTimeAsc(id);
+        if (messages == null || messages.isEmpty()) {
+            throw new BusinessException(AIChatEnum.SESSION_NO_MESSAGES);
+        }
+
+        // 只取前5条消息用于生成标题
+        int messageLimit = Math.min(5, messages.size());
+        List<ChatMessage> recentMessages = messages.subList(0, messageLimit);
+
+        // 构建对话内容文本
+        StringBuilder conversationText = new StringBuilder();
+        for (ChatMessage message : recentMessages) {
+            String role = Objects.equals(message.getRole(), AIChatConstants.ROLE_USER) ? "用户" : "助手";
+            String content = message.getContent();
+            if (StringUtils.hasText(content)) {
+                conversationText.append(role).append(": ").append(content).append("\n");
+            }
+        }
+
+        if (!StringUtils.hasText(conversationText.toString())) {
+            throw new BusinessException(AIChatEnum.SESSION_NO_MESSAGES);
+        }
+
+        // 构建AI提示词
+        String prompt = String.format(
+                "请根据以下对话内容，生成一个简洁的标题（10-20字，不要包含引号、冒号等标点符号）：\n\n%s\n\n请只返回标题，不要包含其他内容。",
+                conversationText.toString()
+        );
+
+        try {
+            // 调用AI生成标题
+            String generatedTitle = chatClient
+                    .prompt()
+                    .user(prompt)
+                    .call()
+                    .content();
+
+            // 清理生成的标题（移除可能的引号、换行等）
+            if (StringUtils.hasText(generatedTitle)) {
+                generatedTitle = generatedTitle.trim()
+                        .replace("\"", "")
+                        .replace("'", "")
+                        .replace("\n", "")
+                        .replace("\r", "");
+
+                // 限制标题长度
+                if (generatedTitle.length() > AIChatConstants.DEFAULT_TITLE_MAX_LENGTH) {
+                    generatedTitle = generatedTitle.substring(0, AIChatConstants.DEFAULT_TITLE_MAX_LENGTH);
+                }
+
+                // 更新会话标题
+                session.setSessionTitle(generatedTitle);
+                session.setUpdateTime(LocalDateTime.now());
+                chatSessionRepository.save(session);
+
+                return generatedTitle;
+            } else {
+                log.error("AI生成标题返回空内容: sessionId={}", id);
+                throw new BusinessException(AIChatEnum.AI_SERVICE_ERROR);
+            }
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("AI生成标题失败: sessionId={}, error={}", id, e.getMessage(), e);
+            throw new BusinessException(AIChatEnum.AI_SERVICE_ERROR);
+        }
+    }
+
+    @Override
+    @Async
+    @Transactional(rollbackFor = Exception.class)
+    public void generateSessionTitleAsync(UUID id) {
+        try {
+            generateSessionTitle(id);
+            log.info("异步生成会话标题成功: sessionId={}", id);
+        } catch (Exception e) {
+            log.error("异步生成会话标题失败: sessionId={}, error={}", id, e.getMessage(), e);
+            // 异步方法中不抛出异常，只记录日志
+        }
     }
 }
 

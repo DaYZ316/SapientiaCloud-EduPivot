@@ -45,5 +45,15 @@ public interface KnowledgeVectorRepository extends MongoRepository<KnowledgeVect
      */
     List<KnowledgeVector> findByVectorIdIn(Collection<String> vectorIds);
 
+    /**
+     * 根据内容ID查询向量（用于文件向量索引）
+     */
+    List<KnowledgeVector> findByContentId(UUID contentId);
+
+    /**
+     * 批量根据内容ID查询向量（用于文件向量索引）
+     */
+    List<KnowledgeVector> findByContentIdIn(Collection<UUID> contentIds);
+
 }
 

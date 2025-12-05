@@ -57,7 +57,7 @@ public class ChatRequestDTO implements Serializable {
     @Schema(description = "附件URL列表")
     private List<String> attachments;
 
-    @Schema(description = "文件ID列表（用于RAG检索文件内容）")
-    private List<UUID> fileIds;
+    @Schema(description = "引用文件数组（用于索引文件向量数据）")
+    private List<FileReference> fileReferences;
 }
 

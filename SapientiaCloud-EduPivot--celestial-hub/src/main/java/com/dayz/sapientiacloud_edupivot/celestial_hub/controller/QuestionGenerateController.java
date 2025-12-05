@@ -11,12 +11,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -61,7 +56,7 @@ public class QuestionGenerateController extends BaseController {
     /**
      * TODO 此接口有问题，待修复
      * 检查 Kafka 请求状态
-     * 
+     *
      * @param requestId 请求ID
      * @return true：已完成（或未找到），false：进行中
      */

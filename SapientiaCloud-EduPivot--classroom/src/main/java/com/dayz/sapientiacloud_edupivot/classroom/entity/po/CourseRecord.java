@@ -36,7 +36,7 @@ public class CourseRecord extends BaseEntity {
     @Schema(description = "授课教师ID")
     @TableField("teacher_id")
     private UUID teacherId;
-    
+
     @Schema(description = "课程名称")
     @TableField("course_name")
     private String courseName;

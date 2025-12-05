@@ -1,5 +1,6 @@
 package com.dayz.sapientiacloud_edupivot.celestial_hub.entity.vo;
 
+import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.FileReference;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -34,6 +35,9 @@ public class ChatResponseVO implements Serializable {
 
     @Schema(description = "引用的参考内容")
     private List<ReferenceVO> references;
+
+    @Schema(description = "引用文件数组（用于索引文件向量数据）")
+    private List<FileReference> fileReferences;
 
     @Schema(description = "响应时间")
     private LocalDateTime responseTime;

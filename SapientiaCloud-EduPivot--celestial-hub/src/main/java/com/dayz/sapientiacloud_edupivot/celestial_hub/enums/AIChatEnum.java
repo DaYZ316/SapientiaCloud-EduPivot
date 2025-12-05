@@ -12,6 +12,7 @@ public enum AIChatEnum implements BaseEnum {
     SESSION_NOT_EXISTS(50001, "会话不存在"),
     SESSION_ID_REQUIRED(50002, "会话ID不能为空"),
     SESSION_USER_ID_REQUIRED(50003, "会话用户ID不能为空"),
+    SESSION_NO_MESSAGES(50004, "会话中没有消息，无法生成标题"),
 
     // 消息相关错误
     MESSAGE_NOT_EXISTS(50011, "消息不存在"),

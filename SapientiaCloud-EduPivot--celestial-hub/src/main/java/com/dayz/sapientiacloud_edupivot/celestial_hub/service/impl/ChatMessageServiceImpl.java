@@ -62,7 +62,7 @@ public class ChatMessageServiceImpl implements IChatMessageService {
         String aiResponse = callModel(messages);
 
         ChatMessageUtil.addUserMessageIfNotDuplicate(sessionId, request.getMessage(), request.getAttachments(),
-                chatContext.lastMessage(), null, chatMessageRepository);
+                request.getFileReferences(), chatContext.lastMessage(), null, chatMessageRepository);
 
         ChatMessage assistantMessage = ChatMessageUtil.saveAssistantMessage(sessionId, aiResponse, chatMessageRepository);
 
@@ -93,6 +93,7 @@ public class ChatMessageServiceImpl implements IChatMessageService {
         responseVO.setContent(aiResponse);
         responseVO.setModel(AIChatConstants.MODEL_QWEN3_MAX);
         responseVO.setTokenCount(assistantMessage.getTokenCount());
+        responseVO.setFileReferences(request.getFileReferences());
         responseVO.setResponseTime(LocalDateTime.now());
         responseVO.setFinished(true);
 
@@ -116,7 +117,7 @@ public class ChatMessageServiceImpl implements IChatMessageService {
         }
 
         ChatMessageUtil.addUserMessageIfNotDuplicate(sessionId, request.getMessage(), request.getAttachments(),
-                chatContext.lastMessage(), null, chatMessageRepository);
+                request.getFileReferences(), chatContext.lastMessage(), null, chatMessageRepository);
 
         StringBuilder fullResponse = new StringBuilder();
         final UUID userId = sessionVO.getSysUserId();
@@ -145,7 +146,8 @@ public class ChatMessageServiceImpl implements IChatMessageService {
         if (!StringUtils.hasText(requestId)) {
             throw new BusinessException(AIChatEnum.REQUEST_ID_REQUIRED);
         }
-        kafkaChatService.notifyCancellation(requestId, StringUtils.hasText(reason) ? reason : "manual_cancel");
+        // 通过接口调用时，立即中断Kafka任务并清理资源
+        kafkaChatService.cancelAndCleanup(requestId, StringUtils.hasText(reason) ? reason : "manual_cancel");
     }
 
     @Override
