@@ -57,7 +57,7 @@ public class KafkaQuestionService {
 
     /**
      * 发送出题请求，并同步等待完整结果（内部使用 Reactor 实现超时控制）
-     * 
+     *
      * @param request   出题请求
      * @param requestId 请求ID；允许外部传入以便多次重试时复用同一个 requestId，若为 null 则自动生成
      */
@@ -84,7 +84,7 @@ public class KafkaQuestionService {
 
             future.whenComplete((result, ex) -> {
                 if (ex != null) {
-                    log.error("发送出题Kafka消息失败, requestId={}", finalRequestId, ex);
+                    log.debug("发送出题Kafka消息失败, requestId={}", finalRequestId, ex);
                     sink.tryEmitError(ex);
                     responseSinks.invalidate(finalRequestId);
                 }
@@ -100,7 +100,7 @@ public class KafkaQuestionService {
             }
             return JSON.parseArray(json, QuestionResponseDTO.class);
         } catch (Exception e) {
-            log.error("处理出题Kafka请求失败, requestId={}", finalRequestId, e);
+            log.debug("处理出题Kafka请求失败, requestId={}", finalRequestId, e);
             throw new RuntimeException("AI出题请求失败", e);
         } finally {
             responseSinks.invalidate(finalRequestId);
@@ -145,17 +145,17 @@ public class KafkaQuestionService {
             kafkaTemplate.send(questionResponseTopic, requestId, payload)
                     .whenComplete((result, ex) -> {
                         if (ex != null) {
-                            log.error("发送出题响应Kafka消息失败, requestId={}", requestId, ex);
+                            log.debug("发送出题响应Kafka消息失败, requestId={}", requestId, ex);
                         }
                     });
         } catch (Exception ex) {
-            log.error("序列化出题响应Kafka消息失败, requestId={}", requestId, ex);
+            log.debug("序列化出题响应Kafka消息失败, requestId={}", requestId, ex);
         }
     }
 
     /**
      * 检查 Kafka 请求状态
-     * 
+     *
      * @param requestId 请求ID
      * @return true：已完成（或未找到），false：进行中
      */

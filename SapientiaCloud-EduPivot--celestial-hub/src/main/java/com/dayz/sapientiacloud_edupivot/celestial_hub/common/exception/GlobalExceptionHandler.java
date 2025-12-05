@@ -31,7 +31,6 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(BusinessException.class)
     public Result<Void> handleBusinessException(BusinessException e) {
-        log.error("业务异常: {}", e.getMessage());
         SysUserEnum sysUserEnum = EnumUtil.getByAttribute(SysUserEnum.class, e.getMessage(), SysUserEnum::getMessage);
         if (sysUserEnum != null) {
             return Result.fail(sysUserEnum.getMessage());

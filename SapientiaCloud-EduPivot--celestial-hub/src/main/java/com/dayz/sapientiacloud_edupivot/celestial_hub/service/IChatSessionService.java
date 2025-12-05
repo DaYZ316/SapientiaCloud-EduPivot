@@ -32,5 +32,9 @@ public interface IChatSessionService {
     Boolean archiveSession(UUID id);
 
     Boolean updateSessionLastMessage(UUID sessionId, String lastMessage);
+
+    String generateSessionTitle(UUID id);
+
+    void generateSessionTitleAsync(UUID id);
 }
 

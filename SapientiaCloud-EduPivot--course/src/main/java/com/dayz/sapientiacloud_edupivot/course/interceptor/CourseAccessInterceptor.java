@@ -42,6 +42,7 @@ public class CourseAccessInterceptor implements HandlerInterceptor {
     private final CourseMapper courseMapper;
     private final CourseStudentMapper courseStudentMapper;
     private final StudentClient studentClient;
+
     public CourseAccessInterceptor(
             CourseMapper courseMapper,
             CourseStudentMapper courseStudentMapper,

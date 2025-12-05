@@ -92,7 +92,7 @@ public class JwtUtil {
 
             String blacklistKey = TOKEN_BLACKLIST_PREFIX + actualToken;
             redisTemplate.opsForValue().set(blacklistKey, "invalidated", ttl, TimeUnit.MILLISECONDS);
-                log.debug("令牌已添加到Redis黑名单, 剩余有效期: {}ms", ttl);
+            log.debug("令牌已添加到Redis黑名单, 剩余有效期: {}ms", ttl);
 
             return true;
         } catch (Exception e) {

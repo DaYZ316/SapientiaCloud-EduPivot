@@ -2,7 +2,10 @@ package com.dayz.sapientiacloud_edupivot.classroom.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.dayz.sapientiacloud_edupivot.classroom.common.clients.StudentClient;
+import com.dayz.sapientiacloud_edupivot.classroom.common.entity.vo.StudentVO;
 import com.dayz.sapientiacloud_edupivot.classroom.common.exception.BusinessException;
+import com.dayz.sapientiacloud_edupivot.classroom.common.result.Result;
 import com.dayz.sapientiacloud_edupivot.classroom.entity.dto.CourseRecordStudentDTO;
 import com.dayz.sapientiacloud_edupivot.classroom.entity.dto.CourseRecordStudentQueryDTO;
 import com.dayz.sapientiacloud_edupivot.classroom.entity.dto.StudentSeatDeleteDTO;
@@ -10,9 +13,6 @@ import com.dayz.sapientiacloud_edupivot.classroom.entity.po.CourseRecordStudent;
 import com.dayz.sapientiacloud_edupivot.classroom.entity.vo.CourseRecordStudentVO;
 import com.dayz.sapientiacloud_edupivot.classroom.entity.vo.CourseRecordVO;
 import com.dayz.sapientiacloud_edupivot.classroom.enums.CourseRecordStudentEnum;
-import com.dayz.sapientiacloud_edupivot.classroom.common.clients.StudentClient;
-import com.dayz.sapientiacloud_edupivot.classroom.common.result.Result;
-import com.dayz.sapientiacloud_edupivot.classroom.common.entity.vo.StudentVO;
 import com.dayz.sapientiacloud_edupivot.classroom.mapper.CourseRecordStudentMapper;
 import com.dayz.sapientiacloud_edupivot.classroom.service.ICourseRecordService;
 import com.dayz.sapientiacloud_edupivot.classroom.service.ICourseRecordStudentService;
@@ -153,7 +153,7 @@ public class CourseRecordStudentServiceImpl extends ServiceImpl<CourseRecordStud
 
         // 默认值
         if (student.getSeatStatus() == null) {
-            student.setSeatStatus(3); // 默认已占用
+            student.setSeatStatus(3);
         }
 
         this.save(student);

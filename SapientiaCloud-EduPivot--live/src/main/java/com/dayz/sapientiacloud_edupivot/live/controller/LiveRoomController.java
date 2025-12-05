@@ -1,7 +1,10 @@
 package com.dayz.sapientiacloud_edupivot.live.controller;
 
 import com.dayz.sapientiacloud_edupivot.live.common.controller.BaseController;
+import com.dayz.sapientiacloud_edupivot.live.common.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.live.common.result.Result;
+import com.dayz.sapientiacloud_edupivot.live.common.result.TableDataResult;
+import com.dayz.sapientiacloud_edupivot.live.common.security.annotation.HasPermission;
 import com.dayz.sapientiacloud_edupivot.live.common.security.utils.UserContextUtil;
 import com.dayz.sapientiacloud_edupivot.live.entity.dto.LiveRoomCreateDTO;
 import com.dayz.sapientiacloud_edupivot.live.entity.dto.LiveRoomMessageDTO;
@@ -9,16 +12,13 @@ import com.dayz.sapientiacloud_edupivot.live.entity.dto.LiveRoomTokenRequestDTO;
 import com.dayz.sapientiacloud_edupivot.live.entity.po.LiveRoomMessage;
 import com.dayz.sapientiacloud_edupivot.live.service.ILiveRoomMessageService;
 import com.dayz.sapientiacloud_edupivot.live.service.ILiveRoomService;
-import lombok.RequiredArgsConstructor;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
-import com.dayz.sapientiacloud_edupivot.live.common.security.annotation.HasPermission;
-import com.dayz.sapientiacloud_edupivot.live.common.exception.BusinessException;
-import com.dayz.sapientiacloud_edupivot.live.common.result.TableDataResult;
 
 @Tag(name = "直播房间管理", description = "直播房间与令牌相关API")
 @RestController
