@@ -1,5 +1,7 @@
 package com.dayz.sapientiacloud_edupivot.student.service;
 
+import com.dayz.sapientiacloud_edupivot.student.entity.dto.QuestionStudentAddDTO;
+import com.dayz.sapientiacloud_edupivot.student.entity.dto.QuestionStudentDTO;
 import com.dayz.sapientiacloud_edupivot.student.entity.dto.QuestionStudentSubmitDTO;
 import com.dayz.sapientiacloud_edupivot.student.entity.po.QuestionStudent;
 
@@ -15,4 +17,18 @@ public interface IQuestionStudentService {
     List<QuestionStudent> summaryMy();
 
     List<QuestionStudent> listByClassroom(UUID classroomId);
+
+    List<QuestionStudent> list(UUID classroomId, UUID studentId);
+
+    List<QuestionStudent> listAll();
+
+    QuestionStudent getById(UUID id);
+
+    Boolean add(QuestionStudentAddDTO dto);
+
+    Boolean update(QuestionStudentDTO dto);
+
+    Boolean removeById(UUID id);
+
+    Integer removeByIds(List<UUID> ids);
 }

@@ -17,4 +17,6 @@ public interface QuestionStudentRepository extends MongoRepository<QuestionStude
     List<QuestionStudent> findByStudentIdAndIsDeleted(UUID studentId, Integer isDeleted);
 
     List<QuestionStudent> findByClassroomIdAndIsDeleted(UUID classroomId, Integer isDeleted);
+
+    List<QuestionStudent> findByIsDeleted(Integer isDeleted);
 }
