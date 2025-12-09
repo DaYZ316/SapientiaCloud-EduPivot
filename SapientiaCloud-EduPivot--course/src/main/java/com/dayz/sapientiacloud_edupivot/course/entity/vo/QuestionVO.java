@@ -86,4 +86,7 @@ public class QuestionVO implements Serializable {
     @Schema(name = "updateTime", description = "更新时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updateTime;
+
+    @Schema(name = "celestialQuestionId", description = "AI生成题目的ID（可选）")
+    private UUID celestialQuestionId;
 }

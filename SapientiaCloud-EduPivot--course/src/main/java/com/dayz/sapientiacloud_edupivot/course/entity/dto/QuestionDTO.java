@@ -90,4 +90,7 @@ public class QuestionDTO implements Serializable {
 
     @Schema(name = "answers", description = "答案列表（填空题, 简答题使用）")
     private List<QuestionAnswerDTO> answers;
+
+    @Schema(name = "celestialQuestionId", description = "AI生成题目的ID（可选）")
+    private UUID celestialQuestionId;
 }

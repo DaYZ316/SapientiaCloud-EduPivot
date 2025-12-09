@@ -822,7 +822,8 @@ public class KnowledgeServiceImpl implements KnowledgeService {
             }
 
             // 如果有文件引用，将文件向量数据转换为搜索结果并添加到结果中
-            // 即使相似度搜索没有结果，也应该返回文件向量数据
+            // 从 fileReferences 获取的向量已经在 findVectorsByFileReferences 中做了用户/会话校验，
+            // 因此这里不再进行相似度相关判断，直接返回对应的向量片段
             if (fileVectors != null && !fileVectors.isEmpty()) {
                 for (KnowledgeVector fileVector : fileVectors) {
                     if (fileVector == null) {
@@ -832,11 +833,6 @@ public class KnowledgeServiceImpl implements KnowledgeService {
                     boolean alreadyExists = results.stream()
                             .anyMatch(vo -> vo.getVectorId() != null && vo.getVectorId().equals(fileVector.getVectorId()));
                     if (alreadyExists) {
-                        continue;
-                    }
-
-                    // 检查文件向量是否满足包含条件（会话ID、用户ID等）
-                    if (shouldIncludeVector(fileVector, request, currentUserId)) {
                         continue;
                     }
 

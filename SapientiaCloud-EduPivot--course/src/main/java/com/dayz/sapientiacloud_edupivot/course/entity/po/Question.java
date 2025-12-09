@@ -87,4 +87,8 @@ public class Question extends BaseEntity implements Serializable {
     @Field("status")
     private Integer status;
 
+    @Schema(name = "celestialQuestionId", description = "AI生成题目的ID（可选）")
+    @Field("celestial_question_id")
+    private UUID celestialQuestionId;
+
 }

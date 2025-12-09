@@ -31,7 +31,8 @@ public enum QuestionEnum implements BaseEnum {
     QUESTION_ID_SHOULD_BE_NULL_ON_ADD(80021, "新增题目时ID必须为空"),
     QUESTION_SYS_USER_ID_REQUIRED(80022, "创建用户ID不能为空"),
     QUESTION_OPTION_REQUIRED(80023, "题目选项不能为空"),
-    QUESTION_OPTION_REQUIRED_CORRECT(80024, "题目选项不能为空，请填写正确的选项");
+    QUESTION_OPTION_REQUIRED_CORRECT(80024, "题目选项不能为空，请填写正确的选项"),
+    QUESTION_CELESTIAL_QUESTION_ID_EXISTS(80025, "该AI生成题目ID已存在");
 
     private final int code;
     private final String message;

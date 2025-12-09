@@ -21,6 +21,7 @@ public class QuestionConstants {
     public static final String FIELD_REFERENCE_ANSWER = "reference_answer";
     public static final String FIELD_IS_RANDOM = "is_random";
     public static final String FIELD_VIEW_COUNT = "view_count";
+    public static final String FIELD_CELESTIAL_QUESTION_ID = "celestial_question_id";
     public static final String FIELD_IS_DELETED = "is_deleted";
     public static final String FIELD_CREATE_TIME = "create_time";
     public static final String FIELD_UPDATE_TIME = "update_time";

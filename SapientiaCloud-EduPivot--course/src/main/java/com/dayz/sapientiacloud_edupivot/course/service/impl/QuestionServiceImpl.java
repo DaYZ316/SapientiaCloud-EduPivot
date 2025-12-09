@@ -20,6 +20,7 @@ import com.dayz.sapientiacloud_edupivot.course.service.IQuestionAnswerService;
 import com.dayz.sapientiacloud_edupivot.course.service.IQuestionOptionService;
 import com.dayz.sapientiacloud_edupivot.course.service.IQuestionService;
 import com.github.f4b6a3.uuid.UuidCreator;
+import com.github.pagehelper.Page;
 import com.github.pagehelper.PageInfo;
 import com.mongodb.client.result.UpdateResult;
 import lombok.RequiredArgsConstructor;
@@ -75,13 +76,13 @@ public class QuestionServiceImpl implements IQuestionService {
 
         List<QuestionVO> questionVOList = convertToVOList(questions);
 
-        PageInfo<QuestionVO> pageInfo = new PageInfo<>(questionVOList);
-        pageInfo.setTotal(total);
-        pageInfo.setPageNum(questionQueryDTO.getPageNum());
-        pageInfo.setPageSize(questionQueryDTO.getPageSize());
-        pageInfo.setPages((int) Math.ceil((double) total / questionQueryDTO.getPageSize()));
+        // 使用 Page 封装分页元数据，保持与 PageHelper 处理方式一致，便于 TableDataResult 正确获取 total
+        Page<QuestionVO> page = new Page<>(questionQueryDTO.getPageNum(), questionQueryDTO.getPageSize());
+        page.setTotal(total);
+        page.setPages((int) Math.ceil((double) total / questionQueryDTO.getPageSize()));
+        page.addAll(questionVOList);
 
-        return pageInfo;
+        return new PageInfo<>(page);
     }
 
     @Override
@@ -159,6 +160,20 @@ public class QuestionServiceImpl implements IQuestionService {
 
         // 验证选项和答案的业务逻辑
         validateQuestionOptionsAndAnswer(questionDTO);
+
+        // 如果传入了celestialQuestionId，检查同一题库中是否已存在相同ID的题目
+        if (questionDTO.getCelestialQuestionId() != null) {
+            Query checkQuery = new Query();
+            Criteria checkCriteria = new Criteria();
+            checkCriteria.and(QuestionConstants.FIELD_CELESTIAL_QUESTION_ID).is(questionDTO.getCelestialQuestionId());
+            checkCriteria.and(QuestionConstants.FIELD_QUESTION_BANK_ID).is(questionDTO.getQuestionBankId());
+            checkCriteria.and(QuestionConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode());
+            checkQuery.addCriteria(checkCriteria);
+
+            if (mongoTemplate.exists(checkQuery, Question.class)) {
+                throw new BusinessException(QuestionEnum.QUESTION_CELESTIAL_QUESTION_ID_EXISTS);
+            }
+        }
 
         // 创建Question实体
         Question question = new Question();
@@ -579,6 +594,9 @@ public class QuestionServiceImpl implements IQuestionService {
         }
         if (questionDTO.getStatus() != null) {
             question.setStatus(questionDTO.getStatus());
+        }
+        if (questionDTO.getCelestialQuestionId() != null) {
+            question.setCelestialQuestionId(questionDTO.getCelestialQuestionId());
         }
     }
 
