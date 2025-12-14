@@ -87,6 +87,7 @@ services:
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
     volumes:
       - kafka_data:/var/lib/kafka/data
+
   coturn:
     image: coturn/coturn:latest
     container_name: coturn
@@ -124,6 +125,10 @@ services:
               protocol: udp
               username: livekit
               credential: livekit123
+        redis:
+          address: "redis:6379"
+          password: "zhaosheng123"
+          db: 0
         keys:
           "livekitdevkey001": "livekitdevsecret001abcdef1234567890abcd"
     ports:
@@ -132,9 +137,40 @@ services:
       - "60000-60050:60000-60050/udp"
     depends_on:
       - coturn
+      - redis
     restart: unless-stopped
 
-
+  egress:
+    image: livekit/egress:latest
+    container_name: livekit-egress
+    restart: unless-stopped
+    depends_on:
+      - livekit
+      - redis
+      - minio
+    ports:
+      - "8080:8080"
+    environment:
+      LIVEKIT_WS_URL: ws://livekit:7880
+      LIVEKIT_API_KEY: livekitdevkey001
+      LIVEKIT_API_SECRET: livekitdevsecret001abcdef1234567890abcd
+      EGRESS_CONFIG_BODY: |
+        log_level: debug
+        api_key: "livekitdevkey001"
+        api_secret: "livekitdevsecret001abcdef1234567890abcd"
+        ws_url: "ws://livekit:7880"
+        redis:
+          address: "redis:6379"
+          password: "zhaosheng123"
+          db: 0
+        s3:
+          access_key: "root"
+          secret: "zhaosheng123"
+          region: "us-east-1"
+          endpoint: "http://minio:31589"
+          bucket: "sapientiacloud-live-playback"
+          force_path_style: true
+        health_port: 8081
 
 volumes:
   mysql_data:

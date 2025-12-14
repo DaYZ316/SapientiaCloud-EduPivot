@@ -23,6 +23,7 @@ import com.dayz.sapientiacloud_edupivot.live.enums.LiveRoomEnum;
 import com.dayz.sapientiacloud_edupivot.live.mapper.LiveRoomMapper;
 import com.dayz.sapientiacloud_edupivot.live.mapper.LiveRoomUserMapper;
 import com.dayz.sapientiacloud_edupivot.live.service.ILiveRoomService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -33,6 +34,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Service
+@RequiredArgsConstructor
 public class LiveRoomServiceImpl implements ILiveRoomService {
 
     private static final DateTimeFormatter FILE_NAME_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
@@ -44,24 +46,8 @@ public class LiveRoomServiceImpl implements ILiveRoomService {
     private final StudentClient studentClient;
     private final LiveKitEgressClient liveKitEgressClient;
 
-    public LiveRoomServiceImpl(
-            LiveRoomMapper liveRoomMapper,
-            LiveRoomUserMapper liveRoomUserMapper,
-            LiveKitProperties liveKitProperties,
-            TeacherClient teacherClient,
-            StudentClient studentClient,
-            LiveKitEgressClient liveKitEgressClient
-    ) {
-        this.liveRoomMapper = liveRoomMapper;
-        this.liveRoomUserMapper = liveRoomUserMapper;
-        this.liveKitProperties = liveKitProperties;
-        this.teacherClient = teacherClient;
-        this.studentClient = studentClient;
-        this.liveKitEgressClient = liveKitEgressClient;
-    }
-
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public LiveRoom createRoom(String roomName, UUID creatorId, UUID courseId, UUID classroomId, Integer maxParticipants, Integer recordingEnabled) {
         if (classroomId == null) {
             throw new BusinessException(LiveRoomEnum.CLASSROOM_ID_REQUIRED);
@@ -90,7 +76,7 @@ public class LiveRoomServiceImpl implements ILiveRoomService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void closeRoom(UUID roomId) {
         LiveRoom room = liveRoomMapper.selectById(roomId);
         if (room == null) {
@@ -102,19 +88,26 @@ public class LiveRoomServiceImpl implements ILiveRoomService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public String issueToken(UUID roomId, UUID userId, String username, Integer role) {
         LiveRoom room = liveRoomMapper.selectById(roomId);
         if (room == null) {
             throw new BusinessException(LiveRoomEnum.ROOM_NOT_EXISTS);
         }
+        
+        boolean isStudent = role == null || role == 0;
+        if (isStudent && room.getStatus() != LiveRoomConstants.STATUS_LIVING) {
+            throw new BusinessException(LiveRoomEnum.ROOM_NOT_LIVE_FOR_STUDENT);
+        }
+        
         if (room.getStatus() == LiveRoomConstants.STATUS_NOT_STARTED) {
             room.setStatus(LiveRoomConstants.STATUS_LIVING);
             room.setStartTime(LocalDateTime.now());
             liveRoomMapper.updateById(room);
         }
         String identity = userId + "-" + UUID.randomUUID();
-        boolean canPublish = role != null && role == 1;
+        // 允许学生(0)、老师(1)、助教(2)发布音视频
+        boolean canPublish = role != null && (role == 0 || role == 1 || role == 2);
         String token = buildLiveKitAccessToken(room.getLkRoomName(), identity, username, canPublish);
 
         LiveRoomUser liveRoomUser = new LiveRoomUser();
@@ -160,8 +153,15 @@ public class LiveRoomServiceImpl implements ILiveRoomService {
     }
 
     @Override
-    public LiveRoom getById(UUID id) {
-        return liveRoomMapper.selectById(id);
+    public LiveRoom getLiveRoomById(UUID id) {
+        if (id == null) {
+            throw new BusinessException(LiveRoomEnum.ROOM_NOT_EXISTS);
+        }
+        LiveRoom room = liveRoomMapper.selectById(id);
+        if (room == null) {
+            throw new BusinessException(LiveRoomEnum.ROOM_NOT_EXISTS);
+        }
+        return room;
     }
 
     @Override
@@ -179,7 +179,7 @@ public class LiveRoomServiceImpl implements ILiveRoomService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public LiveRoom startRecording(UUID roomId) {
         LiveRoom room = requireRoom(roomId);
         ensureRecordingCapability(room);
@@ -198,7 +198,7 @@ public class LiveRoomServiceImpl implements ILiveRoomService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public LiveRoom stopRecording(UUID roomId) {
         LiveRoom room = requireRoom(roomId);
         if (!StringUtils.hasText(room.getEgressTaskId())) {
@@ -335,6 +335,11 @@ public class LiveRoomServiceImpl implements ILiveRoomService {
         }
         request.setRoomName(room.getLkRoomName());
         request.setLayout(layout);
+        // 不等待 start_signal，也不等待轨道
+        request.setAwaitStartSignal(false);
+        request.setWaitForTrack(false);
+        // 录制端访问房间的 token（只订阅 + roomRecord）
+        request.setToken(buildEgressAccessToken(room.getLkRoomName()));
         request.setFileOutputs(Collections.singletonList(fileOutput));
 
         room.setRecordingAssetUrl(buildPlaybackUrl(filepath));
@@ -358,5 +363,31 @@ public class LiveRoomServiceImpl implements ILiveRoomService {
             return egress.getPlaybackBaseUrl().replaceAll("/$", "") + "/" + relativePath;
         }
         return relativePath;
+    }
+
+
+    private String buildEgressAccessToken(String roomName) {
+        Algorithm algorithm = Algorithm.HMAC256(liveKitProperties.getApiSecret());
+        Map<String, Object> videoGrant = new HashMap<>();
+        videoGrant.put("roomJoin", true);
+        videoGrant.put("room", roomName);
+        videoGrant.put("canSubscribe", true);
+        videoGrant.put("canPublish", false);
+        videoGrant.put("canPublishData", true);
+        videoGrant.put("roomRecord", true);
+
+        Instant now = Instant.now();
+        int ttl = Objects.requireNonNullElse(liveKitProperties.getTokenTtlSeconds(), 7200);
+        Instant exp = now.plusSeconds(ttl);
+
+        return JWT.create()
+                .withIssuer(liveKitProperties.getApiKey())
+                .withSubject("egress-recorder")
+                .withClaim("name", "egress-recorder")
+                .withClaim("video", videoGrant)
+                .withJWTId(UUID.randomUUID().toString())
+                .withIssuedAt(java.util.Date.from(now))
+                .withExpiresAt(java.util.Date.from(exp))
+                .sign(algorithm);
     }
 }

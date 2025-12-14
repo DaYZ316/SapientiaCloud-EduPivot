@@ -22,7 +22,13 @@ public enum LiveRoomEnum implements BaseEnum {
     RECORDING_ENV_DISABLED(41008, "当前环境未开启录制功能"),
 
     TEACHER_SERVICE_ERROR(41009, "教师信息不存在或教师服务异常"),
-    STUDENT_SERVICE_ERROR(41010, "学生信息不存在或学生服务异常");
+    STUDENT_SERVICE_ERROR(41010, "学生信息不存在或学生服务异常"),
+    ROOM_NOT_LIVE_FOR_STUDENT(41011, "当前未开播，无法加入直播"),
+
+    // 消息相关错误
+    LIVE_ROOM_ID_REQUIRED(41012, "直播房间ID不能为空"),
+    SENDER_ID_REQUIRED(41013, "发送者ID不能为空"),
+    MESSAGE_CONTENT_REQUIRED(41014, "消息内容不能为空");
 
     private final int code;
 

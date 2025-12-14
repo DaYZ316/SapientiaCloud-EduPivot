@@ -14,6 +14,18 @@ public class LiveKitEgressStartRequest {
     @JsonProperty("layout")
     private String layout;
 
+
+    @JsonProperty("await_start_signal")
+    private Boolean awaitStartSignal;
+
+
+    @JsonProperty("wait_for_track")
+    private Boolean waitForTrack;
+
+
+    @JsonProperty("token")
+    private String token;
+
     @JsonProperty("file_outputs")
     private List<LiveKitEgressFileOutput> fileOutputs;
 }

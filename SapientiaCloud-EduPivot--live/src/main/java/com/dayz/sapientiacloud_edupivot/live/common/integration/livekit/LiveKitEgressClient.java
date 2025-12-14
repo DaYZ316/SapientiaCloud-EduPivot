@@ -1,5 +1,7 @@
 package com.dayz.sapientiacloud_edupivot.live.common.integration.livekit;
 
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
 import com.dayz.sapientiacloud_edupivot.live.common.config.LiveKitProperties;
 import com.dayz.sapientiacloud_edupivot.live.common.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.live.common.integration.livekit.dto.LiveKitEgressStartRequest;
@@ -16,13 +18,17 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.time.Duration;
+import java.time.Instant;
+import java.util.Map;
+import java.util.UUID;
 
 @Slf4j
 @Component
 public class LiveKitEgressClient {
 
-    private static final String START_PATH = "/egress/start-room-composite";
-    private static final String STOP_PATH = "/egress/stop";
+    // LiveKit Egress HTTP/Twirp endpoints
+    private static final String START_PATH = "/twirp/livekit.Egress/StartRoomCompositeEgress";
+    private static final String STOP_PATH = "/twirp/livekit.Egress/StopEgress";
 
     private final RestTemplate restTemplate;
     private final LiveKitProperties liveKitProperties;
@@ -32,7 +38,6 @@ public class LiveKitEgressClient {
         this.restTemplate = restTemplateBuilder
                 .setConnectTimeout(Duration.ofSeconds(5))
                 .setReadTimeout(Duration.ofSeconds(30))
-                .basicAuthentication(liveKitProperties.getApiKey(), liveKitProperties.getApiSecret())
                 .build();
     }
 
@@ -51,7 +56,19 @@ public class LiveKitEgressClient {
     }
 
     private String buildEndpoint(String path) {
-        return UriComponentsBuilder.fromHttpUrl(liveKitProperties.getHost())
+        String host = liveKitProperties.getHost();
+        if (!StringUtils.hasText(host)) {
+            throw new BusinessException("LiveKit host 未配置");
+        }
+
+        // Egress API 使用 HTTP(S)，若配置为 ws/wss，需转换
+        if (host.startsWith("ws://")) {
+            host = host.replaceFirst("ws://", "http://");
+        } else if (host.startsWith("wss://")) {
+            host = host.replaceFirst("wss://", "https://");
+        }
+
+        return UriComponentsBuilder.fromHttpUrl(host)
                 .path(path)
                 .toUriString();
     }
@@ -59,7 +76,30 @@ public class LiveKitEgressClient {
     private <T> HttpEntity<T> buildEntity(T body) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(buildEgressJwt());
         return new HttpEntity<>(body, headers);
+    }
+
+    /**
+     * 构造 Egress API 所需的 JWT（包含 roomRecord 权限）
+     */
+    private String buildEgressJwt() {
+        String apiKey = liveKitProperties.getApiKey();
+        String apiSecret = liveKitProperties.getApiSecret();
+        if (!StringUtils.hasText(apiKey) || !StringUtils.hasText(apiSecret)) {
+            throw new BusinessException("LiveKit API Key/Secret 未配置");
+        }
+
+        Instant now = Instant.now();
+        Instant exp = now.plusSeconds(3600); // 1h
+
+        return JWT.create()
+                .withIssuer(apiKey)
+                .withJWTId(UUID.randomUUID().toString())
+                .withIssuedAt(java.util.Date.from(now))
+                .withExpiresAt(java.util.Date.from(exp))
+                .withClaim("video", Map.of("roomRecord", true))
+                .sign(Algorithm.HMAC256(apiSecret));
     }
 }
 

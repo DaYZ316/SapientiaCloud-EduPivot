@@ -1,7 +1,7 @@
 package com.dayz.sapientiacloud_edupivot.live.controller;
 
 import com.dayz.sapientiacloud_edupivot.live.common.controller.BaseController;
-import com.dayz.sapientiacloud_edupivot.live.common.exception.BusinessException;
+import com.dayz.sapientiacloud_edupivot.live.common.entity.po.LiveRoom;
 import com.dayz.sapientiacloud_edupivot.live.common.result.Result;
 import com.dayz.sapientiacloud_edupivot.live.common.result.TableDataResult;
 import com.dayz.sapientiacloud_edupivot.live.common.security.annotation.HasPermission;
@@ -18,6 +18,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @Tag(name = "直播房间管理", description = "直播房间与令牌相关API")
@@ -31,22 +32,22 @@ public class LiveRoomController extends BaseController {
 
     @HasPermission(summary = "addLiveRoom", description = "创建直播房间并返回房间信息", permission = "LIVE_ROOM_CREATE")
     @PostMapping("/add")
-    public Result<?> createRoom(@Valid @RequestBody LiveRoomCreateDTO dto) {
+    public Result<LiveRoom> createRoom(@Valid @RequestBody LiveRoomCreateDTO dto) {
         UUID creatorId = UserContextUtil.getCurrentUserId();
-        var room = liveRoomService.createRoom(dto.getRoomName(), creatorId, dto.getCourseId(), dto.getClassroomId(), dto.getMaxParticipants(), dto.getRecordingEnabled());
+        LiveRoom room = liveRoomService.createRoom(dto.getRoomName(), creatorId, dto.getCourseId(), dto.getClassroomId(), dto.getMaxParticipants(), dto.getRecordingEnabled());
         return Result.success(room);
     }
 
     @HasPermission(summary = "closeLiveRoom", description = "根据房间ID关闭直播房间", permission = "LIVE_ROOM_CLOSE")
     @PostMapping("/close/{id}")
-    public Result<?> closeRoom(@PathVariable("id") UUID id) {
+    public Result<Boolean> closeRoom(@PathVariable("id") UUID id) {
         liveRoomService.closeRoom(id);
-        return Result.success();
+        return Result.success(true);
     }
 
     @Operation(summary = "issueRoomToken", description = "根据房间ID与用户角色签发访问令牌")
     @PostMapping("/token/{id}")
-    public Result<?> issueToken(@PathVariable("id") UUID id, @Valid @RequestBody LiveRoomTokenRequestDTO dto) {
+    public Result<String> issueToken(@PathVariable("id") UUID id, @Valid @RequestBody LiveRoomTokenRequestDTO dto) {
         UUID userId = UserContextUtil.getCurrentUserId();
         String username = UserContextUtil.getCurrentUsername();
         String token = liveRoomService.issueToken(id, userId, username, dto.getRole());
@@ -65,26 +66,23 @@ public class LiveRoomController extends BaseController {
 
     @Operation(summary = "getLiveRoomDetail", description = "获取直播房间详情")
     @GetMapping("/{id}")
-    public Result<?> detail(@PathVariable("id") UUID id) {
-        var room = liveRoomService.getById(id);
-        if (room == null) {
-            throw new BusinessException("房间不存在");
-        }
+    public Result<LiveRoom> detail(@PathVariable("id") UUID id) {
+        LiveRoom room = liveRoomService.getLiveRoomById(id);
         return Result.success(room);
     }
 
     @Operation(summary = "listLiveRoomMessages", description = "获取直播房间最近的聊天消息")
     @GetMapping("/{id}/messages")
-    public Result<?> listMessages(@PathVariable("id") UUID id,
-                                  @RequestParam(value = "limit", required = false, defaultValue = "50") Integer limit) {
-        var messages = liveRoomMessageService.listLatestMessages(id, limit != null ? limit : 50);
+    public Result<List<LiveRoomMessage>> listMessages(@PathVariable("id") UUID id,
+                                                      @RequestParam(value = "limit", required = false, defaultValue = "50") Integer limit) {
+        List<LiveRoomMessage> messages = liveRoomMessageService.listLatestMessages(id, limit != null ? limit : 50);
         return Result.success(messages);
     }
 
     @Operation(summary = "appendLiveRoomMessage", description = "追加一条直播房间聊天消息")
     @PostMapping("/{id}/message")
-    public Result<?> appendMessage(@PathVariable("id") UUID id,
-                                   @Valid @RequestBody LiveRoomMessageDTO dto) {
+    public Result<LiveRoomMessage> appendMessage(@PathVariable("id") UUID id,
+                                                 @Valid @RequestBody LiveRoomMessageDTO dto) {
         UUID userId = UserContextUtil.getCurrentUserId();
         String username = UserContextUtil.getCurrentUsername();
         LiveRoomMessage message = liveRoomMessageService.appendMessage(
@@ -100,15 +98,15 @@ public class LiveRoomController extends BaseController {
 
     @HasPermission(summary = "startRecording", description = "手动开启直播录制", permission = "LIVE_ROOM_RECORD")
     @PostMapping("/{id}/record/start")
-    public Result<?> startRecording(@PathVariable("id") UUID id) {
-        var room = liveRoomService.startRecording(id);
+    public Result<LiveRoom> startRecording(@PathVariable("id") UUID id) {
+        LiveRoom room = liveRoomService.startRecording(id);
         return Result.success(room);
     }
 
     @HasPermission(summary = "stopRecording", description = "手动停止直播录制", permission = "LIVE_ROOM_RECORD")
     @PostMapping("/{id}/record/stop")
-    public Result<?> stopRecording(@PathVariable("id") UUID id) {
-        var room = liveRoomService.stopRecording(id);
+    public Result<LiveRoom> stopRecording(@PathVariable("id") UUID id) {
+        LiveRoom room = liveRoomService.stopRecording(id);
         return Result.success(room);
     }
 }

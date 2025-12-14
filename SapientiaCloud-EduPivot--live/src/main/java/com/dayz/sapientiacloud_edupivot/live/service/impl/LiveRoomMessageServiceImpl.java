@@ -1,8 +1,8 @@
 package com.dayz.sapientiacloud_edupivot.live.service.impl;
 
-import com.dayz.sapientiacloud_edupivot.live.common.enums.ResultEnum;
 import com.dayz.sapientiacloud_edupivot.live.common.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.live.entity.po.LiveRoomMessage;
+import com.dayz.sapientiacloud_edupivot.live.enums.LiveRoomEnum;
 import com.dayz.sapientiacloud_edupivot.live.repository.LiveRoomMessageRepository;
 import com.dayz.sapientiacloud_edupivot.live.service.ILiveRoomMessageService;
 import lombok.RequiredArgsConstructor;
@@ -32,11 +32,14 @@ public class LiveRoomMessageServiceImpl implements ILiveRoomMessageService {
                                          Integer senderRole,
                                          String content,
                                          String messageType) {
-        if (liveRoomId == null || senderId == null) {
-            throw new BusinessException(ResultEnum.PARAM_ERROR);
+        if (liveRoomId == null) {
+            throw new BusinessException(LiveRoomEnum.LIVE_ROOM_ID_REQUIRED);
+        }
+        if (senderId == null) {
+            throw new BusinessException(LiveRoomEnum.SENDER_ID_REQUIRED);
         }
         if (!StringUtils.hasText(content)) {
-            throw new BusinessException(ResultEnum.PARAM_ERROR);
+            throw new BusinessException(LiveRoomEnum.MESSAGE_CONTENT_REQUIRED);
         }
         LiveRoomMessage message = new LiveRoomMessage();
         message.setId(UUID.randomUUID());
@@ -54,7 +57,7 @@ public class LiveRoomMessageServiceImpl implements ILiveRoomMessageService {
     @Transactional(readOnly = true)
     public List<LiveRoomMessage> listLatestMessages(UUID liveRoomId, int limit) {
         if (liveRoomId == null) {
-            throw new BusinessException(ResultEnum.PARAM_ERROR);
+            throw new BusinessException(LiveRoomEnum.LIVE_ROOM_ID_REQUIRED);
         }
         int pageSize = limit > 0 ? limit : DEFAULT_LIMIT;
         Pageable pageable = PageRequest.of(0, pageSize);

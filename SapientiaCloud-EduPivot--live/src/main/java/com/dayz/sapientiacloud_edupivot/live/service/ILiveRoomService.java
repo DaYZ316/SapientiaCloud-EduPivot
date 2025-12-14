@@ -11,7 +11,7 @@ public interface ILiveRoomService {
 
     String issueToken(UUID roomId, UUID userId, String username, Integer role);
 
-    LiveRoom getById(UUID id);
+    LiveRoom getLiveRoomById(UUID id);
 
     java.util.List<LiveRoom> listRooms(Integer status, UUID courseId, UUID classroomId);
 
