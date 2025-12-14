@@ -103,7 +103,7 @@ CREATE TABLE `mg_course_record_student`  (
                                              `location_y` float NULL DEFAULT NULL COMMENT '3D坐标Y',
                                              `location_z` float NULL DEFAULT NULL COMMENT '3D坐标Z',
                                              `rotation_y` float NULL DEFAULT NULL COMMENT '朝向角度(弧度制)',
-                                             `seat_status` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT 'normal' COMMENT '座位状态(normal/marked/reserved/occupied)',
+                                             `seat_status` tinyint(1) NULL COMMENT '座位状态(normal/marked/reserved/occupied)',
 
                                              `attendance_status` tinyint(1) NULL DEFAULT 0 COMMENT '出勤状态(0未签到,1已签到,2缺席)',
                                              `participation_score` float NULL DEFAULT NULL COMMENT '课堂互动得分',
@@ -138,5 +138,50 @@ CREATE TABLE `mg_course_record_student`  (
                                                  ((`teacher_id` IS NOT NULL) AND (`student_id` IS NULL))
                                                  )
 ) ENGINE=InnoDB CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='课堂学生参与表（含座位、出勤与直播参与信息）' ROW_FORMAT=DYNAMIC;
+
+SET FOREIGN_KEY_CHECKS = 1;
+
+/*
+ Navicat Premium Dump SQL
+
+ Source Server         : localhost_3306
+ Source Server Type    : MySQL
+ Source Server Version : 80031 (8.0.31)
+ Source Host           : localhost:3306
+ Source Schema         : sapientiacloud_edupivot
+
+ Target Server Type    : MySQL
+ Target Server Version : 80031 (8.0.31)
+ File Encoding         : 65001
+
+ Date: 10/12/2025 17:56:35
+*/
+
+SET NAMES utf8mb4;
+SET FOREIGN_KEY_CHECKS = 0;
+
+-- ----------------------------
+-- Table structure for mg_classroom_question
+-- ----------------------------
+DROP TABLE IF EXISTS `mg_classroom_question`;
+CREATE TABLE `mg_classroom_question`  (
+                                          `id` binary(16) NOT NULL COMMENT '主键ID（唯一标识一条课堂-题目关联记录）',
+                                          `classroom_id` binary(16) NOT NULL COMMENT '关联课堂ID（对应mg_course_record.id）',
+                                          `question_id` binary(16) NOT NULL COMMENT '关联题目ID（关联题库中题目的的唯一标识）',
+                                          `question_title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '题目标题',
+                                          `publish_order` int NULL DEFAULT 0 COMMENT '题目发布顺序（控制课堂内题目展示的先后顺序）',
+                                          `score` float NULL DEFAULT 0 COMMENT '题目分值值（支持小数）',
+                                          `is_required` tinyint(1) NULL DEFAULT 0 COMMENT '是否必答 (0=选答, 1=必答)',
+                                          `start_time` datetime NULL DEFAULT NULL COMMENT '题目可作答开始时间（为空则默认随课堂开始）',
+                                          `end_time` datetime NULL DEFAULT NULL COMMENT '题目作答截止时间（为空则默认随课堂结束）',
+                                          `status` tinyint(1) NULL DEFAULT 0 COMMENT '状态 (0=待作答, 1=待批阅, 2=已批阅)',
+                                          `create_time` datetime NULL DEFAULT CURRENT_TIMESTAMP COMMENT '记录创建时间',
+                                          `update_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '记录更新时间',
+                                          `is_deleted` tinyint(1) NULL DEFAULT 0 COMMENT '逻辑删除标记 (0=未删除, 1=已删除)',
+                                          PRIMARY KEY (`id`) USING BTREE,
+                                          UNIQUE INDEX `idx_classroom_question`(`classroom_id` ASC, `question_id` ASC, `is_deleted` ASC) USING BTREE COMMENT '确保同一课堂内题目不重复',
+                                          INDEX `idx_classroom_id`(`classroom_id` ASC) USING BTREE COMMENT '快速查询某课堂的所有题目',
+                                          INDEX `idx_question_id`(`question_id` ASC) USING BTREE COMMENT '查询题目关联的课堂'
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '课堂-题目关联表（记录课堂发布的题目及配置信息）' ROW_FORMAT = DYNAMIC;
 
 SET FOREIGN_KEY_CHECKS = 1;

@@ -36,9 +36,6 @@ public class QuestionStudentDTO implements Serializable {
     @Schema(description = "作答内容")
     private AnswerPayload answer;
 
-    @Schema(description = "作答状态")
-    private Integer status;
-
     @Schema(description = "是否正确")
     private Boolean isCorrect;
 

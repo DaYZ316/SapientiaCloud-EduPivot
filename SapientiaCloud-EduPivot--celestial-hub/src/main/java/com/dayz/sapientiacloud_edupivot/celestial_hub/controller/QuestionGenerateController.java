@@ -3,8 +3,8 @@ package com.dayz.sapientiacloud_edupivot.celestial_hub.controller;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.common.controller.BaseController;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.common.result.Result;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.common.security.annotation.HasPermission;
-import com.dayz.sapientiacloud_edupivot.celestial_hub.constant.PermissionConstants;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.common.security.utils.UserContextUtil;
+import com.dayz.sapientiacloud_edupivot.celestial_hub.constant.PermissionConstants;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.constant.QuestionConstants;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.QuestionGenerateRequestDTO;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.QuestionResponseDTO;
@@ -52,7 +52,7 @@ public class QuestionGenerateController extends BaseController {
             @Valid @RequestBody QuestionGenerateRequestDTO request) {
         // 生成一次 requestId，并在重试过程中始终复用，方便端到端链路追踪与幂等处理
         String requestId = UUID.randomUUID().toString();
-        
+
         // 在发出题目请求之前，检查会话消息数量（参考 kafkaChatStream 的逻辑）
         boolean needGenerateTitle = false;
         UUID sessionId = request.getSessionId();
@@ -67,7 +67,7 @@ public class QuestionGenerateController extends BaseController {
                 log.debug("检查会话消息数量失败: sessionId={}, error={}", sessionId, e.getMessage());
             }
         }
-        
+
         // 最多尝试 3 次（含第一次），一旦生成了非空结果就立即返回
         List<QuestionResponseDTO> questions = null;
         int maxRetry = 3;
@@ -77,7 +77,7 @@ public class QuestionGenerateController extends BaseController {
                 break;
             }
         }
-        
+
         // 如果3次重试后仍然失败，存入系统角色的消息（类似对话超时）
         if (questions == null || questions.isEmpty()) {
             try {
@@ -88,7 +88,7 @@ public class QuestionGenerateController extends BaseController {
                 log.debug("保存题目生成失败的系统消息时出错, requestId: {}", requestId, e);
             }
         }
-        
+
         // 发出题目请求后，如果标记了需要生成标题，那么异步请求对话标题生成功能
         // 参考 kafkaChatStream 的逻辑：在请求发送前检查消息数量为0，在响应完成后生成标题
         UUID finalSessionId = request.getSessionId();
@@ -104,7 +104,7 @@ public class QuestionGenerateController extends BaseController {
                 log.debug("检查会话消息数量或生成标题失败: sessionId={}, error={}", finalSessionId, e.getMessage());
             }
         }
-        
+
         return Result.success(questions == null ? List.of() : questions);
     }
 

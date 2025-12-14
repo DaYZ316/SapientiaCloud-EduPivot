@@ -1,5 +1,6 @@
 package com.dayz.sapientiacloud_edupivot.classroom.entity.dto;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.dayz.sapientiacloud_edupivot.classroom.common.entity.base.PageEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -7,6 +8,7 @@ import lombok.EqualsAndHashCode;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
@@ -19,4 +21,10 @@ public class ClassroomQuestionQueryDTO extends PageEntity implements Serializabl
 
     @Schema(description = "课堂记录ID")
     private UUID classroomId;
+
+    @TableField(exist = false)
+    private LocalDateTime createTime;
+
+    @TableField(exist = false)
+    private LocalDateTime updateTime;
 }

@@ -94,12 +94,12 @@ public class LiveRoomServiceImpl implements ILiveRoomService {
         if (room == null) {
             throw new BusinessException(LiveRoomEnum.ROOM_NOT_EXISTS);
         }
-        
+
         boolean isStudent = role == null || role == 0;
         if (isStudent && room.getStatus() != LiveRoomConstants.STATUS_LIVING) {
             throw new BusinessException(LiveRoomEnum.ROOM_NOT_LIVE_FOR_STUDENT);
         }
-        
+
         if (room.getStatus() == LiveRoomConstants.STATUS_NOT_STARTED) {
             room.setStatus(LiveRoomConstants.STATUS_LIVING);
             room.setStartTime(LocalDateTime.now());
