@@ -2,27 +2,23 @@ package com.dayz.sapientiacloud_edupivot.student.service;
 
 import com.dayz.sapientiacloud_edupivot.student.entity.dto.QuestionStudentAddDTO;
 import com.dayz.sapientiacloud_edupivot.student.entity.dto.QuestionStudentDTO;
-import com.dayz.sapientiacloud_edupivot.student.entity.dto.QuestionStudentSubmitDTO;
-import com.dayz.sapientiacloud_edupivot.student.entity.po.QuestionStudent;
+import com.dayz.sapientiacloud_edupivot.student.entity.dto.QuestionStudentQueryDTO;
+import com.dayz.sapientiacloud_edupivot.student.entity.vo.QuestionStudentVO;
 
 import java.util.List;
 import java.util.UUID;
 
 public interface IQuestionStudentService {
 
-    QuestionStudent submit(UUID classroomId, QuestionStudentSubmitDTO dto);
+    List<QuestionStudentVO> summaryMy();
 
-    List<QuestionStudent> listMyByClassroom(UUID classroomId);
+    List<QuestionStudentVO> listByClassroom(UUID classroomId);
 
-    List<QuestionStudent> summaryMy();
+    List<QuestionStudentVO> list(QuestionStudentQueryDTO queryDTO);
 
-    List<QuestionStudent> listByClassroom(UUID classroomId);
+    List<QuestionStudentVO> listAll();
 
-    List<QuestionStudent> list(UUID classroomId, UUID studentId);
-
-    List<QuestionStudent> listAll();
-
-    QuestionStudent getById(UUID id);
+    QuestionStudentVO getById(UUID id);
 
     Boolean add(QuestionStudentAddDTO dto);
 
@@ -31,4 +27,6 @@ public interface IQuestionStudentService {
     Boolean removeById(UUID id);
 
     Integer removeByIds(List<UUID> ids);
+
+    Boolean existsByQuestionIdAndStudentId(UUID questionId, UUID studentId);
 }

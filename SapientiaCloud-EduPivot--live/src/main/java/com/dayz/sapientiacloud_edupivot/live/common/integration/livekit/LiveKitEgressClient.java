@@ -91,7 +91,7 @@ public class LiveKitEgressClient {
         }
 
         Instant now = Instant.now();
-        Instant exp = now.plusSeconds(3600); // 1h
+        Instant exp = now.plusSeconds(3600);
 
         return JWT.create()
                 .withIssuer(apiKey)

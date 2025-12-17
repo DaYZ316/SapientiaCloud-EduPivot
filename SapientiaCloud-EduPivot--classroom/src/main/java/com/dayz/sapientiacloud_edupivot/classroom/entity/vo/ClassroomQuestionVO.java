@@ -24,11 +24,11 @@ public class ClassroomQuestionVO implements Serializable {
     @Schema(description = "题目ID")
     private UUID questionId;
 
+    @Schema(description = "题目标题")
+    private String questionTitle;
+
     @Schema(description = "发布顺序")
     private Integer publishOrder;
-
-    @Schema(description = "题目分值")
-    private Float score;
 
     @Schema(description = "是否必答 (0=选答,1=必答)")
     private Integer isRequired;
@@ -38,10 +38,4 @@ public class ClassroomQuestionVO implements Serializable {
 
     @Schema(description = "题目作答截止时间")
     private LocalDateTime endTime;
-
-    @Schema(description = "创建时间")
-    private LocalDateTime createTime;
-
-    @Schema(description = "更新时间")
-    private LocalDateTime updateTime;
 }

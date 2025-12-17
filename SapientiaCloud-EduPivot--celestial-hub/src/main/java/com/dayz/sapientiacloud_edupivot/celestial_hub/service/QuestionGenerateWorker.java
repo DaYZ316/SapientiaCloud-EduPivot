@@ -98,7 +98,7 @@ public class QuestionGenerateWorker {
             responseMessageEntity.setId(UUID.randomUUID());
             responseMessageEntity.setSessionId(sessionId);
             responseMessageEntity.setRole(ChatRoleEnum.QUESTION_GENERATOR.getCode());
-            responseMessageEntity.setContent(String.format(QuestionConstants.QUESTION_COMPLETE_TEMPLATE, 
+            responseMessageEntity.setContent(String.format(QuestionConstants.QUESTION_COMPLETE_TEMPLATE,
                     questions != null ? questions.size() : 0));
             responseMessageEntity.setMessageType(AIChatConstants.MESSAGE_TYPE_TEXT);
             responseMessageEntity.setQuestionResponse(JSON.toJSONString(questions));

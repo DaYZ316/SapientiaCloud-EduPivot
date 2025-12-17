@@ -44,6 +44,7 @@ spring:
       authentication-database: ${MONGODB_AUTH_DATABASE}
       type-mapper: none
 
+
 MONGODB_HOST: localhost
 MONGODB_PORT: 27017
 MONGODB_DATABASE: sapientiacloud_edupivot

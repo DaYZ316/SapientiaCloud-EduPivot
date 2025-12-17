@@ -6,8 +6,8 @@
         <id column="id" property="id"/>
         <result column="classroom_id" property="classroomId"/>
         <result column="question_id" property="questionId"/>
+        <result column="question_title" property="questionTitle"/>
         <result column="publish_order" property="publishOrder"/>
-        <result column="score" property="score"/>
         <result column="is_required" property="isRequired"/>
         <result column="start_time" property="startTime"/>
         <result column="end_time" property="endTime"/>
@@ -20,13 +20,11 @@
         <id column="id" property="id"/>
         <result column="classroom_id" property="classroomId"/>
         <result column="question_id" property="questionId"/>
+        <result column="question_title" property="questionTitle"/>
         <result column="publish_order" property="publishOrder"/>
-        <result column="score" property="score"/>
         <result column="is_required" property="isRequired"/>
         <result column="start_time" property="startTime"/>
         <result column="end_time" property="endTime"/>
-        <result column="create_time" property="createTime"/>
-        <result column="update_time" property="updateTime"/>
     </resultMap>
 
     <select id="listByClassroomId" parameterType="java.util.UUID" resultMap="ClassroomQuestionMap">
@@ -34,8 +32,8 @@
             id,
             classroom_id,
             question_id,
+            question_title,
             publish_order,
-            score,
             is_required,
             start_time,
             end_time,
@@ -54,8 +52,8 @@
             id,
             classroom_id,
             question_id,
+            question_title,
             publish_order,
-            score,
             is_required,
             start_time,
             end_time,
@@ -75,13 +73,11 @@
             id,
             classroom_id,
             question_id,
+            question_title,
             publish_order,
-            score,
             is_required,
             start_time,
-            end_time,
-            create_time,
-            update_time
+            end_time
         FROM mg_classroom_question
         WHERE is_deleted = 0
         <if test="classroomId != null">
@@ -102,13 +98,12 @@
             id,
             classroom_id,
             question_id,
+            question_title,
             publish_order,
             score,
             is_required,
             start_time,
-            end_time,
-            create_time,
-            update_time
+            end_time
         FROM mg_classroom_question
         WHERE classroom_id = #{classroomId}
           AND is_deleted = 0

@@ -33,9 +33,9 @@ public class QuestionConstants {
      */
     public static final String QUESTION_SYSTEM_PROMPT = """
             你是一名专业的出题老师，请根据用户提供的知识点、难度和数量要求，生成一组结构化的题目数据。
-                            
+                        
             请严格按照下列规则生成题目对象（QuestionGenerateRecord），特别注意 options 与 answers 的使用方式：
-                            
+                        
             1. 通用字段：
                - questionTitle: 题目标题
                - questionContent: 题目内容（可包含公式）
@@ -48,17 +48,17 @@ public class QuestionConstants {
                - score: 分值
                - estimatedTime: 预计作答时间（分钟）
                - tags: 标签数组
-                            
+                        
             2. 当 questionType 为 0 单选、1 多选、2 判断 时：
                - 只使用 options 字段，生成若干选项对象；
                - 每个选项包含：optionContent, optionLabel, isCorrect, score, imageUrls, explanation；
                - answers 字段在这种题型下【不要使用】，置为空数组或省略。
-                            
+                        
             3. 当 questionType 为 3 填空、4 简答 时：
                - 只使用 answers 字段，生成若干答案对象；
                - 每个答案包含：answerContent, explanation, score, sortOrder；
                - options 字段在这种题型下【不要使用】，置为空数组或省略。
-                            
+                        
             4. 请不要混用：
                - 选择题、判断题时不要生成 answers；
                - 填空题、简答题时不要生成 options。
