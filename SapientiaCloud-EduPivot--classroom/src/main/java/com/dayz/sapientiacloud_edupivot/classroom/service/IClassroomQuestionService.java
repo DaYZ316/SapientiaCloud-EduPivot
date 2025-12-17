@@ -16,6 +16,8 @@ public interface IClassroomQuestionService {
 
     ClassroomQuestionVO add(ClassroomQuestionDTO classroomQuestionDTO);
 
+    List<ClassroomQuestionVO> addBatch(List<ClassroomQuestionDTO> classroomQuestionDTOList);
+
     Boolean update(ClassroomQuestionDTO classroomQuestionDTO);
 
     Boolean removeById(UUID id);

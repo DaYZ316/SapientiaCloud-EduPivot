@@ -36,13 +36,13 @@ public class ClassroomQuestion extends BaseEntity {
     @TableField("question_id")
     private UUID questionId;
 
+    @Schema(description = "题目标题")
+    @TableField("question_title")
+    private String questionTitle;
+
     @Schema(description = "发布顺序")
     @TableField("publish_order")
     private Integer publishOrder;
-
-    @Schema(description = "题目分值")
-    @TableField("score")
-    private Float score;
 
     @Schema(description = "是否必答 (0=选答,1=必答)")
     @TableField("is_required")
@@ -56,4 +56,12 @@ public class ClassroomQuestion extends BaseEntity {
     @TableField("end_time")
     private LocalDateTime endTime;
 
+    @TableField(exist = false)
+    private LocalDateTime createTime;
+
+    @TableField(exist = false)
+    private LocalDateTime updateTime;
+
+    @TableField(exist = false)
+    private Integer deleted;
 }

@@ -68,6 +68,16 @@ minio:
         audit:
           objectTagging: true
           notifyOnWrite: true
+      - code: SYSTEM_NOTIFICATION
+        bucketName: ${MINIO_BUCKET_SYSTEM_NOTIFICATION:sapientiacloud-system-notification}
+        description: 系统通知中的图片、视频、附件资源
+        access: TOKEN_ONLY
+        versioning:
+          enabled: true
+        lifecycle:
+          expireAfterDays: 365
+        audit:
+          objectTagging: true
 
 spring:
   servlet:
@@ -87,6 +97,7 @@ MINIO_BUCKET_COURSE_PUBLIC: sapientiacloud-course-public
 MINIO_BUCKET_COURSE_PRIVATE: sapientiacloud-course-private
 MINIO_BUCKET_LIVE_PLAYBACK: sapientiacloud-live-playback
 MINIO_BUCKET_AI_QA: sapientiacloud-ai-qa
+MINIO_BUCKET_SYSTEM_NOTIFICATION: sapientiacloud-system-notification
 
 # 服务器
 #MINIO_IP: 117.72.***.***(服务器地址)

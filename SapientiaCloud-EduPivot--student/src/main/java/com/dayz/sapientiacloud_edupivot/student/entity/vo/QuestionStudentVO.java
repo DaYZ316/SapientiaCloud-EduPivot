@@ -1,8 +1,7 @@
-package com.dayz.sapientiacloud_edupivot.student.entity.dto;
+package com.dayz.sapientiacloud_edupivot.student.entity.vo;
 
 import com.dayz.sapientiacloud_edupivot.student.entity.po.QuestionStudent.AnswerPayload;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.io.Serial;
@@ -11,22 +10,22 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
-@Schema(description = "课堂练习作答新增DTO")
-public class QuestionStudentAddDTO implements Serializable {
+@Schema(description = "课堂练习作答VO")
+public class QuestionStudentVO implements Serializable {
 
     @Serial
-    private static final long serialVersionUID = 120112345987612341L;
+    private static final long serialVersionUID = -450112345987612341L;
+
+    @Schema(description = "作答记录ID")
+    private UUID id;
 
     @Schema(description = "课堂记录ID")
-    @NotNull(message = "课堂记录ID不能为空")
     private UUID classroomId;
 
     @Schema(description = "学生ID")
-    @NotNull(message = "学生ID不能为空")
     private UUID studentId;
 
     @Schema(description = "题目ID")
-    @NotNull(message = "题目ID不能为空")
     private UUID questionId;
 
     @Schema(description = "作答内容")
@@ -40,5 +39,11 @@ public class QuestionStudentAddDTO implements Serializable {
 
     @Schema(description = "提交时间")
     private LocalDateTime submitTime;
+
+    @Schema(description = "创建时间")
+    private LocalDateTime createTime;
+
+    @Schema(description = "更新时间")
+    private LocalDateTime updateTime;
 }
 

@@ -2,7 +2,7 @@ package com.dayz.sapientiacloud_edupivot.student.feigns;
 
 import com.dayz.sapientiacloud_edupivot.student.common.result.Result;
 import com.dayz.sapientiacloud_edupivot.student.common.security.annotation.HasPermission;
-import com.dayz.sapientiacloud_edupivot.student.entity.po.QuestionStudent;
+import com.dayz.sapientiacloud_edupivot.student.entity.vo.QuestionStudentVO;
 import com.dayz.sapientiacloud_edupivot.student.service.IQuestionStudentService;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -25,10 +25,10 @@ public class PracticeFeign {
 
     @HasPermission(summary = "listByClassroomInternal", description = "根据课堂ID查询所有学生作答记录（内部接口）")
     @GetMapping("/internal/classroom/{classroomId}")
-    public Result<List<QuestionStudent>> listByClassroomInternal(
+    public Result<List<QuestionStudentVO>> listByClassroomInternal(
             @Parameter(name = "classroomId", description = "课堂记录ID", required = true) @PathVariable("classroomId") UUID classroomId
     ) {
-        List<QuestionStudent> list = questionStudentService.listByClassroom(classroomId);
+        List<QuestionStudentVO> list = questionStudentService.listByClassroom(classroomId);
         return Result.success(list);
     }
 }

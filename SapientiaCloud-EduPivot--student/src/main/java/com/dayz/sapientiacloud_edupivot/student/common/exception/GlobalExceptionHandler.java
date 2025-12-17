@@ -7,6 +7,7 @@ import com.dayz.sapientiacloud_edupivot.student.common.enums.SysUserEnum;
 import com.dayz.sapientiacloud_edupivot.student.common.result.Result;
 import com.dayz.sapientiacloud_edupivot.student.common.utils.EnumUtil;
 import com.dayz.sapientiacloud_edupivot.student.enums.StudentEnum;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.BindException;
@@ -22,6 +23,7 @@ import java.util.Objects;
  * 全局异常处理器
  */
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(BusinessException.class)
@@ -47,7 +49,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    public Result<Void> handleException() {
+    public Result<Void> handleException(Exception e) {
+        log.error("系统异常: ", e);
         return Result.fail(ResultEnum.SYSTEM_ERROR);
     }
 
