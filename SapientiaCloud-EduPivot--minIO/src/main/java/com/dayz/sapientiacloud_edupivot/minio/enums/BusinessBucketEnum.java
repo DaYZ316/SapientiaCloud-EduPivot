@@ -20,7 +20,8 @@ public enum BusinessBucketEnum implements BaseEnum {
     COURSE_PUBLIC(1, "课程公开课件/论坛封面", "COURSE_PUBLIC", "sapientiacloud-course-public"),
     COURSE_PRIVATE(2, "课程私有资料/作业", "COURSE_PRIVATE", "sapientiacloud-course-private"),
     LIVE_PLAYBACK(3, "直播录制回放", "LIVE_PLAYBACK", "sapientiacloud-live-playback"),
-    AI_QA_ASSET(4, "AI 问答临时资产", "AI_QA_ASSET", "sapientiacloud-ai-qa");
+    AI_QA_ASSET(4, "AI 问答临时资产", "AI_QA_ASSET", "sapientiacloud-ai-qa"),
+    SYSTEM_NOTIFICATION(5, "系统通知附件", "SYSTEM_NOTIFICATION", "sapientiacloud-system-notification");
 
     /**
      * 数值编码

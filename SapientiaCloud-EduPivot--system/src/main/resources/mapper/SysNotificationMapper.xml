@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dayz.sapientiacloud_edupivot.system.mapper.SysNotificationMapper">
+
+    <resultMap id="SysNotification" type="com.dayz.sapientiacloud_edupivot.system.entity.po.SysNotification">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="title" property="title"/>
+        <result column="content" property="content"/>
+        <result column="type" property="type"/>
+        <result column="status" property="status"/>
+        <result column="read_time" property="readTime"/>
+        <result column="sender_id" property="senderId"/>
+        <result column="sender_name" property="senderName"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="is_deleted" property="deleted"/>
+    </resultMap>
+
+    <select id="listNotification" resultType="com.dayz.sapientiacloud_edupivot.system.entity.vo.NotificationVO">
+        SELECT
+        id,
+        user_id,
+        title,
+        content,
+        attachment_urls AS attachmentUrls,
+        type,
+        status,
+        read_time,
+        sender_id,
+        sender_name,
+        create_time,
+        update_time
+        FROM sys_notification
+        <where>
+            <if test="userId != null">
+                AND user_id = #{userId}
+            </if>
+            <if test="type != null">
+                AND type = #{type}
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+            <if test="title != null and title != ''">
+                AND title LIKE CONCAT('%', #{title}, '%')
+            </if>
+            <if test="startTime != null or endTime != null">
+                <choose>
+                    <when test="startTime != null and endTime == null">
+                        AND create_time &gt;= #{startTime}
+                    </when>
+                    <when test="startTime == null and endTime != null">
+                        AND create_time &lt;= #{endTime}
+                    </when>
+                    <otherwise>
+                        AND create_time BETWEEN #{startTime} AND #{endTime}
+                    </otherwise>
+                </choose>
+            </if>
+            AND is_deleted = 0
+        </where>
+        <if test="orderByColumn != null and orderByColumn != ''">
+            ORDER BY ${orderByColumn} ${isAsc == 'asc' ? 'ASC' : 'DESC'}
+        </if>
+        <if test="orderByColumn == null or orderByColumn == ''">
+            ORDER BY create_time DESC
+        </if>
+    </select>
+
+</mapper>
+
