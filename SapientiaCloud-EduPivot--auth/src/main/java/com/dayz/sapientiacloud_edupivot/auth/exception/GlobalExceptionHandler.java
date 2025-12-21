@@ -37,7 +37,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    public Result<Void> handleException() {
+    public Result<Void> handleException(Exception e) {
         return Result.fail(ResultEnum.SYSTEM_ERROR);
     }
 

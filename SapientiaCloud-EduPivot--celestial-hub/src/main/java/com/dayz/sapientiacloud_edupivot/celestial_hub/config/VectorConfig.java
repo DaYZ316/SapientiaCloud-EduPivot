@@ -40,6 +40,9 @@ public class VectorConfig {
     @Value("${spring.data.redis.password:zhaosheng123}")
     private String redisPassword;
 
+    @Value("${spring.data.redis.database:0}")
+    private int redisDatabase;
+
     @Bean
     public EmbeddingModel embeddingModel() {
         DashScopeApi dashScopeApi = DashScopeApi.builder()
@@ -59,7 +62,8 @@ public class VectorConfig {
         if (redisPassword != null && !redisPassword.isEmpty()) {
             configBuilder.password(redisPassword);
         }
-        configBuilder.database(1);
+        // RediSearch only allows secondary indexes on database 0; make it configurable
+        configBuilder.database(redisDatabase);
         return new JedisPooled(new HostAndPort(redisHost, redisPort), configBuilder.build());
     }
 

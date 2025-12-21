@@ -282,7 +282,7 @@ public class QuestionStudentServiceImpl implements IQuestionStudentService {
         List<Map<String, Object>> options = getOptionsFromQuestion(questionData);
         String correctOptionLabel = options.stream()
                 .filter(opt -> opt.get("isCorrect") != null &&
-                        Integer.valueOf(opt.get("isCorrect").toString()) == 1)
+                        Integer.parseInt(opt.get("isCorrect").toString()) == 1)
                 .map(opt -> opt.get("optionLabel") != null ? opt.get("optionLabel").toString().trim() : null)
                 .filter(Objects::nonNull)
                 .findFirst()
@@ -314,7 +314,7 @@ public class QuestionStudentServiceImpl implements IQuestionStudentService {
         List<Map<String, Object>> options = getOptionsFromQuestion(questionData);
         Set<String> correctOptionLabels = options.stream()
                 .filter(opt -> opt.get("isCorrect") != null &&
-                        Integer.valueOf(opt.get("isCorrect").toString()) == 1)
+                        Integer.parseInt(opt.get("isCorrect").toString()) == 1)
                 .map(opt -> opt.get("optionLabel") != null ? opt.get("optionLabel").toString().trim() : null)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
@@ -351,7 +351,7 @@ public class QuestionStudentServiceImpl implements IQuestionStudentService {
         List<Map<String, Object>> options = getOptionsFromQuestion(questionData);
         String correctOptionLabel = options.stream()
                 .filter(opt -> opt.get("isCorrect") != null &&
-                        Integer.valueOf(opt.get("isCorrect").toString()) == 1)
+                        Integer.parseInt(opt.get("isCorrect").toString()) == 1)
                 .map(opt -> opt.get("optionLabel") != null ? opt.get("optionLabel").toString().trim() : null)
                 .filter(Objects::nonNull)
                 .findFirst()
@@ -386,7 +386,7 @@ public class QuestionStudentServiceImpl implements IQuestionStudentService {
                                              BigDecimal questionScore) {
         // 获取标准答案列表
         List<Map<String, Object>> answers = getAnswersFromQuestion(questionData);
-        if (answers == null || answers.isEmpty()) {
+        if (answers.isEmpty()) {
             return null;
         }
 

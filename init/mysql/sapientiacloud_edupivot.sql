@@ -11,11 +11,43 @@
  Target Server Version : 80031 (8.0.31)
  File Encoding         : 65001
 
- Date: 09/11/2025 20:04:45
+ Date: 16/12/2025 00:31:59
 */
 
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
+
+-- ----------------------------
+-- Table structure for mg_classroom_question
+-- ----------------------------
+DROP TABLE IF EXISTS `mg_classroom_question`;
+CREATE TABLE `mg_classroom_question`  (
+  `id` binary(16) NOT NULL COMMENT '主键ID（唯一标识一条课堂-题目关联记录）',
+  `classroom_id` binary(16) NOT NULL COMMENT '关联课堂ID（对应mg_course_record.id）',
+  `question_id` binary(16) NOT NULL COMMENT '关联题目ID（关联题库中题目的的唯一标识）',
+  `question_title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '题目标题',
+  `publish_order` int NULL DEFAULT 0 COMMENT '题目发布顺序（控制课堂内题目展示的先后顺序）',
+  `score` float NULL DEFAULT 0 COMMENT '题目分值值（支持小数）',
+  `is_required` tinyint(1) NULL DEFAULT 0 COMMENT '是否必答 (0=选答, 1=必答)',
+  `start_time` datetime NULL DEFAULT NULL COMMENT '题目可作答开始时间（为空则默认随课堂开始）',
+  `end_time` datetime NULL DEFAULT NULL COMMENT '题目作答截止时间（为空则默认随课堂结束）',
+  `create_time` datetime NULL DEFAULT CURRENT_TIMESTAMP COMMENT '记录创建时间',
+  `update_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '记录更新时间',
+  `is_deleted` tinyint(1) NULL DEFAULT 0 COMMENT '逻辑删除标记 (0=未删除, 1=已删除)',
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `idx_classroom_question`(`classroom_id` ASC, `question_id` ASC, `is_deleted` ASC) USING BTREE COMMENT '确保同一课堂内题目不重复',
+  INDEX `idx_classroom_id`(`classroom_id` ASC) USING BTREE COMMENT '快速查询某课堂的所有题目',
+  INDEX `idx_question_id`(`question_id` ASC) USING BTREE COMMENT '查询题目关联的课堂'
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '课堂-题目关联表（记录课堂发布的题目及配置信息）' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of mg_classroom_question
+-- ----------------------------
+INSERT INTO `mg_classroom_question` VALUES (0x019B187496867A4BA0C31285429CF294, 0x019AE9D1F48D74E59D0B71D6333EB6A1, 0x019AF455887872DFBC00FD59B0E4611E, '在PostgreSQL中，用于生成唯一标识符的数据类型是______。', 1, 0, 1, '2025-12-14 00:04:13', '2025-12-31 06:43:55', '2025-12-13 16:04:12', '2025-12-13 16:04:12', 0);
+INSERT INTO `mg_classroom_question` VALUES (0x019B18749688728EB29F85975F74783F, 0x019AE9D1F48D74E59D0B71D6333EB6A1, 0x019AF4559A78724584889822AE5FEA83, '解释数据库范式（Normalization）的目的，并说明第三范式（3NF）的要求。', 2, 0, 1, '2025-12-14 00:04:13', '2025-12-31 06:43:55', '2025-12-13 16:04:12', '2025-12-13 16:04:12', 0);
+INSERT INTO `mg_classroom_question` VALUES (0x019B1874968B7D4DBCEA0332246E3975, 0x019AE9D1F48D74E59D0B71D6333EB6A1, 0x019B025AE22B760FBFB841E5D38CE070, '简述数据库连接池的工作原理及其优势', 3, 0, 1, '2025-12-14 00:04:13', '2025-12-31 06:43:55', '2025-12-13 16:04:12', '2025-12-13 16:04:12', 0);
+INSERT INTO `mg_classroom_question` VALUES (0x019B1874968E79319B44ACA0B8F684FB, 0x019AE9D1F48D74E59D0B71D6333EB6A1, 0x019B025ABF4473A38ADFA8D213AE69CD, '数据库死锁判断', 4, 0, 1, '2025-12-14 00:04:13', '2025-12-31 06:43:55', '2025-12-13 16:04:12', '2025-12-13 16:04:12', 0);
+INSERT INTO `mg_classroom_question` VALUES (0x019B1874969275F3AD827B03277C3A30, 0x019AE9D1F48D74E59D0B71D6333EB6A1, 0x019B025AD01F7C2A9642DF639B3AB56A, 'SQL注入防护措施填空', 5, 0, 1, '2025-12-14 00:04:13', '2025-12-31 06:43:55', '2025-12-13 16:04:12', '2025-12-13 16:04:12', 0);
 
 -- ----------------------------
 -- Table structure for mg_course
@@ -34,6 +66,7 @@ CREATE TABLE `mg_course`  (
   `status` tinyint(1) NULL DEFAULT 0 COMMENT '课程状态 (0=正常, 1=停课)',
   `create_time` datetime NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `update_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `is_public` tinyint(1) NOT NULL DEFAULT 0 COMMENT '是否公开 (0=仅课程成员, 1=公开)',
   `is_deleted` tinyint(1) NULL DEFAULT NULL COMMENT '逻辑删除标记 (0=未删除, 1=已删除)',
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_teacher_id`(`teacher_id` ASC) USING BTREE
@@ -42,193 +75,117 @@ CREATE TABLE `mg_course`  (
 -- ----------------------------
 -- Records of mg_course
 -- ----------------------------
-INSERT INTO `mg_course` VALUES (0x0CF2DBE8C12D4BE7B914545EDCF0FAD8, '高等数学', 0x29408F577593489686090EFFDE16EE6B, '[]', '高等数学：包含微积分、多元函数与常微分方程。Foundation course in calculus and analysis.', 'https://img.alicdn.com/bao/uploaded/O1CN01iXkaLw1OMyuDYzrZp_!!6000000001692-0-yinhe.jpg', '2024春季学期', '教学楼1100', 0, 0, '2024-10-05 17:00:00', '2025-11-09 10:58:44', 0);
-INSERT INTO `mg_course` VALUES (0x0F2231B3D31049C9913E1AD5E8F46E47, '网络安全基础', 0x24C7DF031DD34B698686725EC68FD095, '[]', '网络安全基础：加密、认证与常见攻击防御。Intro to cybersecurity practices.', 'https://mediabluk.cnr.cn/img/cnr/CNRCDP/2022/0912/4b2bd797b5f22166297469175113881210.jpg?auth=1b99dadfe7d4b4c1055b79725e1ce472', '2024春季学期', '教学楼6107', 0, 0, '2024-10-05 17:00:00', '2025-11-09 11:20:25', 0);
-INSERT INTO `mg_course` VALUES (0x173432DCEB2D4A33A6598B5EF9F15900, '操作系统', 0xB57F2213A13446248AC87EDC4E592F6D, '[]', '操作系统：进程、线程、内存管理与文件系统。OS principles and resource management.', 'https://m.media-amazon.com/images/I/61E7CgaHSRL._SL1124_.jpg', '2024春季学期', '教学楼1106', 0, 0, '2024-10-05 17:00:00', '2025-11-09 11:21:45', 0);
-INSERT INTO `mg_course` VALUES (0x28E0BA838B52448CA932B83B536440C8, '数据库应用开发', 0xB6BBCC62C65B44D385CBB8CA05A17993, '[]', '数据库应用开发：ORM与后台数据接口设计。Practical DB-driven application development.', 'https://pic4.zhimg.com/v2-1082f42849e1873f2cf330f70b13a9ab_r.jpg', '2024春季学期', '教学楼1108', 0, 0, '2024-10-05 17:00:00', '2025-11-09 10:59:34', 0);
-INSERT INTO `mg_course` VALUES (0x2D9D9B8D250E455495CD1539735775F7, '编译原理', 0xB57F2213A13446248AC87EDC4E592F6D, '[]', '编译原理：词法分析、语法分析与代码生成。Compiler design concepts.', 'https://th.bing.com/th/id/R.f25542021bb405a92b60093244cd15f7?rik=W8scCndpbj5uRg&riu=http%3a%2f%2fwww.wdp.com.cn%2fhtml%2fupload%2fadmin%2fimage%2f2020%2f12%2f21%2f1608539726152.jpg&ehk=LR%2fvhuLQnJ46jAIy8FzRCNwZttrtA2SqsdQKMznOcgE%3d&risl=&pid=ImgRaw&r=0', '2024春季学期', '教学楼5106', 0, 0, '2024-10-05 17:00:00', '2025-11-09 11:22:07', 0);
-INSERT INTO `mg_course` VALUES (0x31E03FBE949648A39B3690EED2D8FB50, '职业发展与就业指导', 0xCF76A275F0F4492EBD1371E6EC75DE8A, '[]', '职业发展：求职技能、简历与面试准备。Career development and job seeking skills.', 'https://th.bing.com/th/id/R.bb310ec431d1df26d635f59c2424b01e?rik=vl3btwe5MaNqEA&riu=http%3a%2f%2fwww.tup.tsinghua.edu.cn%2fupload%2fbigbookimg%2f088213-01.jpg&ehk=bZ%2bDxpvhrxvB4FYt%2bMfWEDmE0G35wgqUCrvxlSw1yrI%3d&risl=&pid=ImgRaw&r=0', '2024春季学期', '教学楼2109', 0, 0, '2024-10-05 17:00:00', '2025-11-09 11:05:45', 0);
-INSERT INTO `mg_course` VALUES (0x32E6B5E717924630B4339BA0739B003B, '计算机网络', 0xB6BBCC62C65B44D385CBB8CA05A17993, '[]', '计算机网络：网络协议与网络编程。Network protocols and practical networking.', 'https://th.bing.com/th/id/R.bb8eba3d890942a786da2c2df6a4b09f?rik=g5LbHDA1Yog2eA&riu=http%3a%2f%2fp1.qhimg.com%2ft01c96f54d760555d4d.png&ehk=8eHTkA7lH27UeIrxntG0toTwJvF8WEDRpZRvAzyEYzo%3d&risl=&pid=ImgRaw&r=0', '2024春季学期', '教学楼3108', 0, 0, '2024-10-05 17:00:00', '2025-11-09 11:06:55', 0);
-INSERT INTO `mg_course` VALUES (0x3A2A344431A346F683227D99A25A1796, '云计算基础', 0xDA4F9AD2736C4C0B8235D565EDDE803E, '[]', '云计算基础：虚拟化、容器与分布式部署。Cloud and container orchestration basics.', 'https://picx.zhimg.com/v2-36cf9a899d81859fd6cf0064b4b08a8e_720w.jpg?source=172ae18b', '2024春季学期', '教学楼3104', 0, 0, '2024-10-05 17:00:00', '2025-11-09 11:02:04', 0);
-INSERT INTO `mg_course` VALUES (0x7D69B274DEB84B9A8E69CA93F10DD115, 'Web前端开发', 0xFC65A56531A54EA283C1448426A01155, '[]', 'Web前端开发：HTML/CSS/JavaScript与现代框架。Front-end development essentials.', 'https://pic1.zhimg.com/80/v2-263756900270894b6976020114b58674_hd.png', '2024春季学期', '教学楼1102', 0, 0, '2024-10-05 17:00:00', '2025-11-09 11:00:51', 0);
-INSERT INTO `mg_course` VALUES (0x8CAF6FCF501B427BB31D697C4B53DFBB, '大数据分析', 0x4A7BAE3828D24B49A985D1AA2F3D072E, '[]', '大数据分析：Spark、Hadoop 与数据处理管道。Big data processing and analytics.', 'https://imgconvert.csdnimg.cn/aHR0cDovL2Jsb2cuaXRwdWIubmV0L3VlZGl0b3IvcGhwL3VwbG9hZC9pbWFnZS8yMDIwMDgxMC8xNTk3MDM3ODQ0MjEzMjI5LmpwZw?x-oss-process=image/format,png', '2024春季学期', '教学楼4105', 0, 0, '2024-10-05 17:00:00', '2025-11-09 11:23:27', 0);
-INSERT INTO `mg_course` VALUES (0xA772626C10844B548D67086694BD39C0, '移动应用开发', 0x0DB2D44697AC45F697FEE2AB9FBB33A7, '[]', '移动应用开发：Android与iOS开发实践。Mobile app development fundamentals.', 'https://m.media-amazon.com/images/I/717mgSNq8UL._SL1500_.jpg', '2024春季学期', '教学楼2103', 0, 0, '2024-10-05 17:00:00', '2025-11-09 11:24:03', 0);
-INSERT INTO `mg_course` VALUES (0xB36F76A637264B9AB3CCAD6EF589920C, '线性代数', 0xD31BC6B36BB04E07BF279C4D4A94237B, '[]', '线性代数：矩阵、向量空间与特征值问题。Matrix theory and linear systems.', 'https://pic1.zhimg.com/50/v2-60fca67e83e5c03fed4fc45fac9b820e_720w.jpg?source=1940ef5c', '2024春季学期', '教学楼2101', 0, 0, '2024-10-05 17:00:00', '2025-11-09 11:04:01', 0);
-INSERT INTO `mg_course` VALUES (0xBB4824F32F97401E9A1AC92558CFC221, '数据结构', 0xDA4F9AD2736C4C0B8235D565EDDE803E, '[]', '数据结构：数组、链表、树与图的实现与应用。Core data structures and algorithmic usage.', 'https://pic2.zhimg.com/v2-e062a22854f59e55a2dc9fd5186f208d_1440w.jpg?source=172ae18b', '2024春季学期', '教学楼5104', 0, 0, '2024-10-05 17:00:00', '2025-11-09 11:01:31', 0);
-INSERT INTO `mg_course` VALUES (0xC4DA4D8CE5BB4833B3C84896CD585DC2, '软件工程', 0xCF76A275F0F4492EBD1371E6EC75DE8A, '[]', '软件工程：需求、设计、测试与项目管理。Software development lifecycle and practices.', 'https://cdn.study.geekai.co/wp-content/uploads/2024/02/how-to-become-a-software-engineer.png', '2024春季学期', '教学楼4109', 0, 0, '2024-10-05 17:00:00', '2025-11-09 11:05:17', 0);
-INSERT INTO `mg_course` VALUES (0xCD382D762B6F4239A309B2D739D14BFC, '大学物理', 0x0DB2D44697AC45F697FEE2AB9FBB33A7, '[]', '大学物理：力学、电学与光学基础。Fundamentals of mechanics and electromagnetism.', 'https://abook.hep.com.cn/ICourseFiles/MaterialsLibCovers/28a2e4c469504145a8d9df7dd6a6955d.e76db7623a59470fb24786d071ddfe54.cms/ee880a8f8f1f4720bf8ac5b84969e49b.jpg', '2024春季学期', '教学楼4103', 0, 0, '2024-10-05 17:00:00', '2025-11-09 11:24:22', 0);
-INSERT INTO `mg_course` VALUES (0xCF9EF1C9BEEB4D4F8172E4190F3441A8, '数据库系统原理', 0x24C7DF031DD34B698686725EC68FD095, '[]', '数据库系统原理：关系模型与SQL优化。Relational DB design and SQL tuning.', 'https://picx.zhimg.com/v2-f3ccc9ef0e25c5118fb4affec34705aa_720w.jpg?source=172ae18b', '2024春季学期', '教学楼2107', 0, 0, '2024-10-05 17:00:00', '2025-11-09 11:35:50', 0);
-INSERT INTO `mg_course` VALUES (0xD74B3092D98A4BD893FCD2A6226994AA, '大学英语', 0xFC65A56531A54EA283C1448426A01155, '[]', '大学英语：提高学术英语阅读与写作能力。Academic English skills.', 'https://www.flebm.com/images/kind/image/20211228/20211228103141_90597.jpg', '2024春季学期', '教学楼3102', 0, 0, '2024-10-05 17:00:00', '2025-11-09 10:47:13', 0);
-INSERT INTO `mg_course` VALUES (0xDF1C0ED1CE5C425EB0FCEAEE54AD7192, '人工智能导论', 0x29408F577593489686090EFFDE16EE6B, '[]', '人工智能导论：机器学习、深度学习与NLP概览。Introduction to AI techniques.', 'https://th.bing.com/th/id/R.0013faba36152096f30f8e1256b49cee?rik=ZAmsOZ2%2b1kB3jA&riu=http%3a%2f%2fwww.tup.com.cn%2fupload%2fbigbookimg%2f084749-01.jpg&ehk=l%2f34KTYvoFglGABVqU%2fwumVTTlgi1aLqpMjBGmBHr14%3d&risl=&pid=ImgRaw&r=0', '2024春季学期', '教学楼5100', 0, 0, '2024-10-05 17:00:00', '2025-11-09 11:35:23', 0);
-INSERT INTO `mg_course` VALUES (0xE0C9C5AC6E79421BB11007CB1059DC3D, '计算机组成原理', 0x4A7BAE3828D24B49A985D1AA2F3D072E, '[]', '计算机组成原理：CPU、存储与指令系统。Computer architecture basics.', 'https://img14.360buyimg.com/n0/jfs/t1/205620/16/26515/30722/631cb7f0E5c16c492/c5ec5f181cc183bc.png', '2024春季学期', '教学楼6105', 0, 0, '2024-10-05 17:00:00', '2025-11-09 11:24:45', 0);
-INSERT INTO `mg_course` VALUES (0xFDE4EEFD75834F8ABD090E2DE4E9194B, '机器学习', 0xD31BC6B36BB04E07BF279C4D4A94237B, '[]', '机器学习：监督、无监督学习与模型评估。Machine learning algorithms and evaluation.', 'https://tse3.mm.bing.net/th/id/OIP.qNhdbvdo0uoBvuBGGMLKjAHaE2?cb=ucfimgc2&rs=1&pid=ImgDetMain&o=7&rm=3', '2024春季学期', '教学楼6101', 0, 0, '2024-10-05 17:00:00', '2025-11-09 11:03:32', 0);
-
--- ----------------------------
--- Table structure for mg_course_record
--- ----------------------------
-/*
- Navicat Premium Dump SQL
-
- Source Server         : localhost_3306
- Source Server Type    : MySQL
- Source Server Version : 80031 (8.0.31)
- Source Host           : localhost:3306
- Source Schema         : sapientiacloud_edupivot
-
- Target Server Type    : MySQL
- Target Server Version : 80031 (8.0.31)
- File Encoding         : 65001
-
- Date: 04/12/2025 21:13:57
-*/
-
-SET NAMES utf8mb4;
-SET FOREIGN_KEY_CHECKS = 0;
+INSERT INTO `mg_course` VALUES (0x0CF2DBE8C12D4BE7B914545EDCF0FAD8, '高等数学', 0x29408F577593489686090EFFDE16EE6B, '[]', '高等数学：包含微积分、多元函数与常微分方程。Foundation course in calculus and analysis.', 'https://img.alicdn.com/bao/uploaded/O1CN01iXkaLw1OMyuDYzrZp_!!6000000001692-0-yinhe.jpg', '2024春季学期', '教学楼1100', 0, 0, '2024-10-05 17:00:00', '2025-11-22 03:20:19', 1, 0);
+INSERT INTO `mg_course` VALUES (0x0F2231B3D31049C9913E1AD5E8F46E47, '网络安全基础', 0x24C7DF031DD34B698686725EC68FD095, '[]', '网络安全基础：加密、认证与常见攻击防御。Intro to cybersecurity practices.', 'https://mediabluk.cnr.cn/img/cnr/CNRCDP/2022/0912/4b2bd797b5f22166297469175113881210.jpg?auth=1b99dadfe7d4b4c1055b79725e1ce472', '2024春季学期', '教学楼6107', 0, 0, '2024-10-05 17:00:00', '2025-11-22 03:20:19', 1, 0);
+INSERT INTO `mg_course` VALUES (0x173432DCEB2D4A33A6598B5EF9F15900, '操作系统', 0xB57F2213A13446248AC87EDC4E592F6D, '[]', '操作系统：进程、线程、内存管理与文件系统。OS principles and resource management.', 'https://m.media-amazon.com/images/I/61E7CgaHSRL._SL1124_.jpg', '2024春季学期', '教学楼1106', 0, 0, '2024-10-05 17:00:00', '2025-11-22 03:20:19', 1, 0);
+INSERT INTO `mg_course` VALUES (0x28E0BA838B52448CA932B83B536440C8, '数据库应用开发', 0xB6BBCC62C65B44D385CBB8CA05A17993, '[\"019a6822-3e61-76c2-88a7-d42b775797a6\", \"0db2d446-97ac-45f6-97fe-e2ab9fbb33a7\", \"24c7df03-1dd3-4b69-8686-725ec68fd095\", \"29408f57-7593-4896-8609-0effde16ee6b\", \"4a7bae38-28d2-4b49-a985-d1aa2f3d072e\", \"b57f2213-a134-4624-8ac8-7edc4e592f6d\", \"d31bc6b3-6bb0-4e07-bf27-9c4d4a94237b\", \"b6bbcc62-c65b-44d3-85cb-b8ca05a17993\", \"cf76a275-f0f4-492e-bd13-71e6ec75de8a\", \"fc65a565-31a5-4ea2-83c1-448426a01155\", \"da4f9ad2-736c-4c0b-8235-d565edde803e\"]', '数据库应用开发：ORM与后台数据接口设计。Practical DB-driven application development.', 'https://pic4.zhimg.com/v2-1082f42849e1873f2cf330f70b13a9ab_r.jpg', '2024春季学期', '教学楼1108', 1, 0, '2024-10-05 17:00:00', '2025-12-08 13:07:45', 0, 0);
+INSERT INTO `mg_course` VALUES (0x2D9D9B8D250E455495CD1539735775F7, '编译原理', 0xB57F2213A13446248AC87EDC4E592F6D, '[]', '编译原理：词法分析、语法分析与代码生成。Compiler design concepts.', 'https://th.bing.com/th/id/R.f25542021bb405a92b60093244cd15f7?rik=W8scCndpbj5uRg&riu=http%3a%2f%2fwww.wdp.com.cn%2fhtml%2fupload%2fadmin%2fimage%2f2020%2f12%2f21%2f1608539726152.jpg&ehk=LR%2fvhuLQnJ46jAIy8FzRCNwZttrtA2SqsdQKMznOcgE%3d&risl=&pid=ImgRaw&r=0', '2024春季学期', '教学楼5106', 0, 0, '2024-10-05 17:00:00', '2025-11-22 03:20:19', 1, 0);
+INSERT INTO `mg_course` VALUES (0x31E03FBE949648A39B3690EED2D8FB50, '职业发展与就业指导', 0xCF76A275F0F4492EBD1371E6EC75DE8A, '[]', '职业发展：求职技能、简历与面试准备。Career development and job seeking skills.', 'https://th.bing.com/th/id/R.bb310ec431d1df26d635f59c2424b01e?rik=vl3btwe5MaNqEA&riu=http%3a%2f%2fwww.tup.tsinghua.edu.cn%2fupload%2fbigbookimg%2f088213-01.jpg&ehk=bZ%2bDxpvhrxvB4FYt%2bMfWEDmE0G35wgqUCrvxlSw1yrI%3d&risl=&pid=ImgRaw&r=0', '2024春季学期', '教学楼2109', 0, 0, '2024-10-05 17:00:00', '2025-11-22 03:20:19', 1, 0);
+INSERT INTO `mg_course` VALUES (0x32E6B5E717924630B4339BA0739B003B, '计算机网络', 0xB6BBCC62C65B44D385CBB8CA05A17993, '[]', '计算机网络：网络协议与网络编程。Network protocols and practical networking.', 'https://th.bing.com/th/id/R.bb8eba3d890942a786da2c2df6a4b09f?rik=g5LbHDA1Yog2eA&riu=http%3a%2f%2fp1.qhimg.com%2ft01c96f54d760555d4d.png&ehk=8eHTkA7lH27UeIrxntG0toTwJvF8WEDRpZRvAzyEYzo%3d&risl=&pid=ImgRaw&r=0', '2024春季学期', '教学楼3108', 0, 0, '2024-10-05 17:00:00', '2025-11-22 03:20:19', 1, 0);
+INSERT INTO `mg_course` VALUES (0x3A2A344431A346F683227D99A25A1796, '云计算基础', 0xDA4F9AD2736C4C0B8235D565EDDE803E, '[]', '云计算基础：虚拟化、容器与分布式部署。Cloud and container orchestration basics.', 'https://picx.zhimg.com/v2-36cf9a899d81859fd6cf0064b4b08a8e_720w.jpg?source=172ae18b', '2024春季学期', '教学楼3104', 0, 0, '2024-10-05 17:00:00', '2025-11-22 03:20:19', 1, 0);
+INSERT INTO `mg_course` VALUES (0x7D69B274DEB84B9A8E69CA93F10DD115, 'Web前端开发', 0xFC65A56531A54EA283C1448426A01155, '[]', 'Web前端开发：HTML/CSS/JavaScript与现代框架。Front-end development essentials.', 'https://pic1.zhimg.com/80/v2-263756900270894b6976020114b58674_hd.png', '2024春季学期', '教学楼1102', 0, 0, '2024-10-05 17:00:00', '2025-11-22 03:20:19', 1, 0);
+INSERT INTO `mg_course` VALUES (0x8CAF6FCF501B427BB31D697C4B53DFBB, '大数据分析', 0x4A7BAE3828D24B49A985D1AA2F3D072E, '[]', '大数据分析：Spark、Hadoop 与数据处理管道。Big data processing and analytics.', 'https://imgconvert.csdnimg.cn/aHR0cDovL2Jsb2cuaXRwdWIubmV0L3VlZGl0b3IvcGhwL3VwbG9hZC9pbWFnZS8yMDIwMDgxMC8xNTk3MDM3ODQ0MjEzMjI5LmpwZw?x-oss-process=image/format,png', '2024春季学期', '教学楼4105', 0, 0, '2024-10-05 17:00:00', '2025-11-22 03:20:19', 1, 0);
+INSERT INTO `mg_course` VALUES (0xA772626C10844B548D67086694BD39C0, '移动应用开发', 0x0DB2D44697AC45F697FEE2AB9FBB33A7, '[]', '移动应用开发：Android与iOS开发实践。Mobile app development fundamentals.', 'https://m.media-amazon.com/images/I/717mgSNq8UL._SL1500_.jpg', '2024春季学期', '教学楼2103', 0, 0, '2024-10-05 17:00:00', '2025-11-22 03:20:19', 1, 0);
+INSERT INTO `mg_course` VALUES (0xB36F76A637264B9AB3CCAD6EF589920C, '线性代数', 0xD31BC6B36BB04E07BF279C4D4A94237B, NULL, '线性代数：矩阵、向量空间与特征值问题。Matrix theory and linear systems.', 'http://127.0.0.1:31589/sapientiacloud-user-avatar/course-covers/image_1765111928623.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=root%2F20251207%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20251207T125208Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=3a697a0674dd46274371cf7d999f4284370d965487f846f8fc93f25586ab0195', '2024春季学期', '教学楼2101', 0, 0, '2024-10-05 17:00:00', '2025-12-07 20:52:11', 1, 0);
+INSERT INTO `mg_course` VALUES (0xBB4824F32F97401E9A1AC92558CFC221, '数据结构', 0xDA4F9AD2736C4C0B8235D565EDDE803E, '[]', '数据结构：数组、链表、树与图的实现与应用。Core data structures and algorithmic usage.', 'https://pic2.zhimg.com/v2-e062a22854f59e55a2dc9fd5186f208d_1440w.jpg?source=172ae18b', '2024春季学期', '教学楼5104', 0, 0, '2024-10-05 17:00:00', '2025-11-22 03:20:19', 1, 0);
+INSERT INTO `mg_course` VALUES (0xC4DA4D8CE5BB4833B3C84896CD585DC2, '软件工程', 0xCF76A275F0F4492EBD1371E6EC75DE8A, '[]', '软件工程：需求、设计、测试与项目管理。Software development lifecycle and practices.', 'https://cdn.study.geekai.co/wp-content/uploads/2024/02/how-to-become-a-software-engineer.png', '2024春季学期', '教学楼4109', 0, 0, '2024-10-05 17:00:00', '2025-11-22 03:20:19', 1, 0);
+INSERT INTO `mg_course` VALUES (0xCD382D762B6F4239A309B2D739D14BFC, '大学物理', 0x0DB2D44697AC45F697FEE2AB9FBB33A7, '[]', '大学物理：力学、电学与光学基础。Fundamentals of mechanics and electromagnetism.', 'https://abook.hep.com.cn/ICourseFiles/MaterialsLibCovers/28a2e4c469504145a8d9df7dd6a6955d.e76db7623a59470fb24786d071ddfe54.cms/ee880a8f8f1f4720bf8ac5b84969e49b.jpg', '2024春季学期', '教学楼4103', 0, 0, '2024-10-05 17:00:00', '2025-11-22 03:20:19', 1, 0);
+INSERT INTO `mg_course` VALUES (0xCF9EF1C9BEEB4D4F8172E4190F3441A8, '数据库系统原理', 0x24C7DF031DD34B698686725EC68FD095, '[]', '数据库系统原理：关系模型与SQL优化。Relational DB design and SQL tuning.', 'https://picx.zhimg.com/v2-f3ccc9ef0e25c5118fb4affec34705aa_720w.jpg?source=172ae18b', '2024春季学期', '教学楼2107', 0, 0, '2024-10-05 17:00:00', '2025-11-22 03:20:19', 1, 0);
+INSERT INTO `mg_course` VALUES (0xD74B3092D98A4BD893FCD2A6226994AA, '大学英语', 0xFC65A56531A54EA283C1448426A01155, '[]', '大学英语：提高学术英语阅读与写作能力。Academic English skills.', 'https://www.flebm.com/images/kind/image/20211228/20211228103141_90597.jpg', '2024春季学期', '教学楼3102', 0, 0, '2024-10-05 17:00:00', '2025-11-22 03:20:19', 1, 0);
+INSERT INTO `mg_course` VALUES (0xDF1C0ED1CE5C425EB0FCEAEE54AD7192, '人工智能导论', 0x29408F577593489686090EFFDE16EE6B, '[]', '人工智能导论：机器学习、深度学习与NLP概览。Introduction to AI techniques.', 'https://th.bing.com/th/id/R.0013faba36152096f30f8e1256b49cee?rik=ZAmsOZ2%2b1kB3jA&riu=http%3a%2f%2fwww.tup.com.cn%2fupload%2fbigbookimg%2f084749-01.jpg&ehk=l%2f34KTYvoFglGABVqU%2fwumVTTlgi1aLqpMjBGmBHr14%3d&risl=&pid=ImgRaw&r=0', '2024春季学期', '教学楼5100', 0, 0, '2024-10-05 17:00:00', '2025-11-22 03:20:19', 1, 0);
+INSERT INTO `mg_course` VALUES (0xE0C9C5AC6E79421BB11007CB1059DC3D, '计算机组成原理', 0x4A7BAE3828D24B49A985D1AA2F3D072E, '[]', '计算机组成原理：CPU、存储与指令系统。Computer architecture basics.', 'https://img14.360buyimg.com/n0/jfs/t1/205620/16/26515/30722/631cb7f0E5c16c492/c5ec5f181cc183bc.png', '2024春季学期', '教学楼6105', 0, 0, '2024-10-05 17:00:00', '2025-11-22 03:20:19', 1, 0);
+INSERT INTO `mg_course` VALUES (0xFDE4EEFD75834F8ABD090E2DE4E9194B, '机器学习', 0xD31BC6B36BB04E07BF279C4D4A94237B, '[]', '机器学习：监督、无监督学习与模型评估。Machine learning algorithms and evaluation.', 'https://tse3.mm.bing.net/th/id/OIP.qNhdbvdo0uoBvuBGGMLKjAHaE2?cb=ucfimgc2&rs=1&pid=ImgDetMain&o=7&rm=3', '2024春季学期', '教学楼6101', 0, 0, '2024-10-05 17:00:00', '2025-11-22 03:20:19', 1, 0);
 
 -- ----------------------------
 -- Table structure for mg_course_record
 -- ----------------------------
 DROP TABLE IF EXISTS `mg_course_record`;
 CREATE TABLE `mg_course_record`  (
-                                     `id` binary(16) NOT NULL COMMENT '课程记录ID',
-                                     `course_id` binary(16) NOT NULL COMMENT '关联课程ID',
-                                     `teacher_id` binary(16) NOT NULL COMMENT '授课教师系统用户ID',
-                                     `course_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '课程名称',
-                                     `course_description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL COMMENT '课程内容简介',
-                                     `classroom_type` int NULL DEFAULT NULL COMMENT '教室类型 (0=小型教室, 1=中型教室, 2=大型教室, 3=超大型教室)',
-                                     `layout_rows` int NULL DEFAULT NULL COMMENT '行数 (仅传统布局或对齐布局使用)',
-                                     `layout_columns` int NULL DEFAULT NULL COMMENT '列数 (仅传统布局或对齐布局使用)',
-                                     `start_time` datetime NULL DEFAULT NULL COMMENT '课程开始时间',
-                                     `over_time` datetime NULL DEFAULT NULL COMMENT '课程结束时间',
-                                     `status` tinyint(1) NULL DEFAULT 0 COMMENT '课程状态 (0=未开始, 1=进行中, 2=已结束, 3=已取消)',
-                                     `is_deleted` tinyint(1) NULL DEFAULT 0 COMMENT '逻辑删除标记 (0=未删除, 1=已删除)',
-                                     `create_time` datetime NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-                                     `update_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-                                     `live_room_name` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '直播房间名',
-                                     `live_status` tinyint(1) NOT NULL DEFAULT 0 COMMENT '直播状态 (0未开始, 1直播中, 2已结束, 3已暂停)',
-                                     `live_lk_room_name` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'LiveKit 房间名',
-                                     `live_lk_room_sid` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'LiveKit 房间SID',
-                                     `live_lk_node_id` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'LiveKit 节点ID',
-                                     `live_start_time` datetime NULL DEFAULT NULL COMMENT '直播实际开始时间',
-                                     `live_expected_end_time` datetime NULL DEFAULT NULL COMMENT '直播预计结束时间',
-                                     `live_end_time` datetime NULL DEFAULT NULL COMMENT '直播实际结束时间',
-                                     `live_max_participants` int NULL DEFAULT 500 COMMENT '直播最大并发人数',
-                                     `live_recording_enabled` tinyint(1) NULL DEFAULT 0 COMMENT '是否开启录制',
-                                     `live_egress_task_id` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '录制任务ID',
-                                     `live_egress_status` tinyint(1) NULL DEFAULT 0 COMMENT '录制状态(0待启动,1进行中,2完成,3失败)',
-                                     `live_recording_asset_url` varchar(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '录制文件地址',
-                                     `live_stream_output_urls` json NULL COMMENT 'RTMP 推流集合(JSON)',
-                                     `live_metadata` json NULL COMMENT '直播扩展元数据',
-                                     PRIMARY KEY (`id`) USING BTREE,
-                                     UNIQUE INDEX `uk_live_lk_room_name`(`live_lk_room_name` ASC) USING BTREE,
-                                     INDEX `idx_course_id`(`course_id` ASC) USING BTREE,
-                                     INDEX `idx_teacher_id`(`teacher_id` ASC) USING BTREE,
-                                     INDEX `idx_live_status`(`live_status` ASC) USING BTREE,
-                                     CONSTRAINT `fk_course_record_course` FOREIGN KEY (`course_id`) REFERENCES `mg_course` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '课程教学记录表(含3D教室布局参数及行列信息)' ROW_FORMAT = DYNAMIC;
-
-SET FOREIGN_KEY_CHECKS = 1;
+  `id` binary(16) NOT NULL COMMENT '课程记录ID',
+  `course_id` binary(16) NOT NULL COMMENT '关联课程ID',
+  `teacher_id` binary(16) NOT NULL COMMENT '授课教师系统用户ID',
+  `course_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '课程名称',
+  `course_description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL COMMENT '课程内容简介',
+  `classroom_type` int NULL DEFAULT NULL COMMENT '教室类型 (0=小型教室, 1=中型教室, 2=大型教室, 3=超大型教室)',
+  `layout_rows` int NULL DEFAULT NULL COMMENT '行数 (仅传统布局或对齐布局使用)',
+  `layout_columns` int NULL DEFAULT NULL COMMENT '列数 (仅传统布局或对齐布局使用)',
+  `start_time` datetime NULL DEFAULT NULL COMMENT '课程开始时间',
+  `over_time` datetime NULL DEFAULT NULL COMMENT '课程结束时间',
+  `status` tinyint(1) NULL DEFAULT 0 COMMENT '课程状态 (0=未开始, 1=进行中, 2=已结束, 3=已取消)',
+  `is_deleted` tinyint(1) NULL DEFAULT 0 COMMENT '逻辑删除标记 (0=未删除, 1=已删除)',
+  `create_time` datetime NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `live_room_name` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '直播房间名',
+  `live_status` tinyint(1) NOT NULL DEFAULT 0 COMMENT '直播状态 (0未开始, 1直播中, 2已结束, 3已暂停)',
+  `live_lk_room_name` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'LiveKit 房间名',
+  `live_lk_room_sid` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'LiveKit 房间SID',
+  `live_lk_node_id` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'LiveKit 节点ID',
+  `live_start_time` datetime NULL DEFAULT NULL COMMENT '直播实际开始时间',
+  `live_expected_end_time` datetime NULL DEFAULT NULL COMMENT '直播预计结束时间',
+  `live_end_time` datetime NULL DEFAULT NULL COMMENT '直播实际结束时间',
+  `live_max_participants` int NULL DEFAULT 500 COMMENT '直播最大并发人数',
+  `live_recording_enabled` tinyint(1) NULL DEFAULT 0 COMMENT '是否开启录制',
+  `live_egress_task_id` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '录制任务ID',
+  `live_egress_status` tinyint(1) NULL DEFAULT 0 COMMENT '录制状态(0待启动,1进行中,2完成,3失败)',
+  `live_recording_asset_url` varchar(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '录制文件地址',
+  `live_stream_output_urls` json NULL COMMENT 'RTMP 推流集合(JSON)',
+  `live_metadata` json NULL COMMENT '直播扩展元数据',
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `uk_live_lk_room_name`(`live_lk_room_name` ASC) USING BTREE,
+  INDEX `idx_course_id`(`course_id` ASC) USING BTREE,
+  INDEX `idx_teacher_id`(`teacher_id` ASC) USING BTREE,
+  INDEX `idx_live_status`(`live_status` ASC) USING BTREE,
+  CONSTRAINT `fk_course_record_course` FOREIGN KEY (`course_id`) REFERENCES `mg_course` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '课程教学记录表（含直播参数与教室布局）' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of mg_course_record
 -- ----------------------------
-INSERT INTO `mg_course_record` VALUES (0x019A683BDC73791AA71C1CC5F1E08C58, 0xD74B3092D98A4BD893FCD2A6226994AA, 0x019A68223E6176C288A7D42B775797A6, NULL, NULL, 'classroomMini', 12, 4, 3, NULL, NULL, NULL, NULL, NULL, 0, 0, '2025-11-09 18:49:05', '2025-11-09 18:49:05');
-INSERT INTO `mg_course_record` VALUES (0x02E188A8FD884293A3AC644008FE6BE8, 0xD74B3092D98A4BD893FCD2A6226994AA, 0xFC65A56531A54EA283C1448426A01155, NULL, NULL, 'classroomSmall', 40, 5, 8, 1.11, '{\"rows\": 4, \"columns\": 5}', '\"aligned\"', '2025-07-07 17:00:00', '2025-07-07 21:00:00', 2, 0, '2025-07-07 17:00:00', '2025-11-09 17:00:00');
-INSERT INTO `mg_course_record` VALUES (0x0AB61F8AFE3B4FD7AA9C29FADA1E22AD, 0x173432DCEB2D4A33A6598B5EF9F15900, 0xB57F2213A13446248AC87EDC4E592F6D, NULL, NULL, 'classroomSmall', 20, 6, 8, 0.92, '{\"rows\": 4, \"columns\": 7}', '\"aligned\"', '2025-09-13 17:00:00', '2025-09-13 21:00:00', 2, 0, '2025-09-13 17:00:00', '2025-11-09 17:00:00');
-INSERT INTO `mg_course_record` VALUES (0x19212544051F49CA94E5222AD6E6BD4D, 0xB36F76A637264B9AB3CCAD6EF589920C, 0xD31BC6B36BB04E07BF279C4D4A94237B, NULL, NULL, 'classroomSmall', 20, 4, 7, 0.95, '{\"rows\": 5, \"columns\": 8}', '\"aligned\"', '2025-05-31 17:00:00', '2025-05-31 19:00:00', 2, 0, '2025-05-31 17:00:00', '2025-11-09 17:00:00');
-INSERT INTO `mg_course_record` VALUES (0x1A740C3EB41943E3811B3D9DAA110420, 0x2D9D9B8D250E455495CD1539735775F7, 0xB57F2213A13446248AC87EDC4E592F6D, NULL, NULL, 'classroomSmall', 30, 4, 8, 0.86, '{\"rows\": 5, \"columns\": 5}', '\"aligned\"', '2025-08-24 17:00:00', '2025-08-24 21:00:00', 2, 0, '2025-08-24 17:00:00', '2025-11-09 17:00:00');
-INSERT INTO `mg_course_record` VALUES (0x1D64E5808ADF474EA6B8FA8997EE7BF3, 0xA772626C10844B548D67086694BD39C0, 0x0DB2D44697AC45F697FEE2AB9FBB33A7, NULL, NULL, 'classroomSmall', 40, 5, 6, 1.05, '{\"rows\": 5, \"columns\": 7}', '\"aligned\"', '2025-01-22 17:00:00', '2025-01-22 20:00:00', 2, 0, '2025-01-22 17:00:00', '2025-11-09 17:00:00');
-INSERT INTO `mg_course_record` VALUES (0x245BCDA1BBDA4D6E917C1EFD557A48A0, 0x32E6B5E717924630B4339BA0739B003B, 0xB6BBCC62C65B44D385CBB8CA05A17993, NULL, NULL, 'classroomSmall', 20, 6, 7, 0.81, '{\"rows\": 4, \"columns\": 7}', '\"aligned\"', '2025-04-15 17:00:00', '2025-04-15 21:00:00', 2, 0, '2025-04-15 17:00:00', '2025-11-09 17:00:00');
-INSERT INTO `mg_course_record` VALUES (0x263F434231AA4F13B9041837B57B4FD7, 0xCD382D762B6F4239A309B2D739D14BFC, 0x0DB2D44697AC45F697FEE2AB9FBB33A7, NULL, NULL, 'classroomSmall', 40, 5, 7, 1.04, '{\"rows\": 5, \"columns\": 6}', '\"aligned\"', '2025-03-31 17:00:00', '2025-03-31 20:00:00', 2, 0, '2025-03-31 17:00:00', '2025-11-09 17:00:00');
-INSERT INTO `mg_course_record` VALUES (0x31134BA7E74343D3B7374A8A3BCD5356, 0x0CF2DBE8C12D4BE7B914545EDCF0FAD8, 0x29408F577593489686090EFFDE16EE6B, NULL, NULL, 'classroomSmall', 40, 6, 5, 1.14, '{\"rows\": 5, \"columns\": 5}', '\"aligned\"', '2025-08-28 17:00:00', '2025-08-28 21:00:00', 2, 0, '2025-08-28 17:00:00', '2025-11-09 17:00:00');
-INSERT INTO `mg_course_record` VALUES (0x338594EB214F43BE81843DDC34E8EA02, 0x2D9D9B8D250E455495CD1539735775F7, 0xB57F2213A13446248AC87EDC4E592F6D, NULL, NULL, 'classroomSmall', 20, 4, 5, 1.12, '{\"rows\": 6, \"columns\": 7}', '\"aligned\"', '2025-09-14 17:00:00', '2025-09-14 20:00:00', 2, 0, '2025-09-14 17:00:00', '2025-11-09 17:00:00');
-INSERT INTO `mg_course_record` VALUES (0x38B31B150BEC4B60A01970663ECDC996, 0x28E0BA838B52448CA932B83B536440C8, 0xB6BBCC62C65B44D385CBB8CA05A17993, NULL, NULL, 'classroomSmall', 40, 5, 5, 0.94, '{\"rows\": 5, \"columns\": 8}', '\"aligned\"', '2025-04-19 17:00:00', '2025-04-19 19:00:00', 2, 0, '2025-04-19 17:00:00', '2025-11-09 17:00:00');
-INSERT INTO `mg_course_record` VALUES (0x3B94C536368044819157EEF8EF37F5E6, 0x7D69B274DEB84B9A8E69CA93F10DD115, 0xFC65A56531A54EA283C1448426A01155, NULL, NULL, 'classroomSmall', 20, 5, 8, 1.14, '{\"rows\": 4, \"columns\": 5}', '\"aligned\"', '2025-06-27 17:00:00', '2025-06-27 21:00:00', 2, 0, '2025-06-27 17:00:00', '2025-11-09 17:00:00');
-INSERT INTO `mg_course_record` VALUES (0x4FCF2B9F5A8C4FEFAB58D07A633BB66E, 0xC4DA4D8CE5BB4833B3C84896CD585DC2, 0xCF76A275F0F4492EBD1371E6EC75DE8A, NULL, NULL, 'classroomSmall', 20, 6, 5, 0.86, '{\"rows\": 4, \"columns\": 8}', '\"aligned\"', '2025-09-16 17:00:00', '2025-09-16 20:00:00', 2, 0, '2025-09-16 17:00:00', '2025-11-09 17:00:00');
-INSERT INTO `mg_course_record` VALUES (0x5403568171C544C6810D707BC4E1DE8F, 0xA772626C10844B548D67086694BD39C0, 0x0DB2D44697AC45F697FEE2AB9FBB33A7, NULL, NULL, 'classroomSmall', 20, 5, 8, 1.02, '{\"rows\": 4, \"columns\": 6}', '\"aligned\"', '2025-03-18 17:00:00', '2025-03-18 21:00:00', 2, 0, '2025-03-18 17:00:00', '2025-11-09 17:00:00');
-INSERT INTO `mg_course_record` VALUES (0x5AD96D3B380D49BDA876286775475EA1, 0x8CAF6FCF501B427BB31D697C4B53DFBB, 0x4A7BAE3828D24B49A985D1AA2F3D072E, NULL, NULL, 'classroomSmall', 40, 6, 8, 0.82, '{\"rows\": 6, \"columns\": 8}', '\"aligned\"', '2025-07-22 17:00:00', '2025-07-22 20:00:00', 2, 0, '2025-07-22 17:00:00', '2025-11-09 17:00:00');
-INSERT INTO `mg_course_record` VALUES (0x5AEEC82D388D4D70B76FDB6FA9915093, 0xE0C9C5AC6E79421BB11007CB1059DC3D, 0x4A7BAE3828D24B49A985D1AA2F3D072E, NULL, NULL, 'classroomSmall', 40, 6, 8, 1.13, '{\"rows\": 6, \"columns\": 8}', '\"aligned\"', '2025-07-25 17:00:00', '2025-07-25 21:00:00', 2, 0, '2025-07-25 17:00:00', '2025-11-09 17:00:00');
-INSERT INTO `mg_course_record` VALUES (0x5C320CA9D4444518B589A2AD16B09077, 0xDF1C0ED1CE5C425EB0FCEAEE54AD7192, 0x29408F577593489686090EFFDE16EE6B, NULL, NULL, 'classroomSmall', 40, 6, 8, 0.83, '{\"rows\": 6, \"columns\": 8}', '\"aligned\"', '2025-07-21 17:00:00', '2025-07-21 21:00:00', 2, 0, '2025-07-21 17:00:00', '2025-11-09 17:00:00');
-INSERT INTO `mg_course_record` VALUES (0x6C84E7104A1A448CBBA6EBEC6AA5580C, 0x0F2231B3D31049C9913E1AD5E8F46E47, 0x24C7DF031DD34B698686725EC68FD095, NULL, NULL, 'classroomSmall', 20, 5, 7, 1.03, '{\"rows\": 6, \"columns\": 5}', '\"aligned\"', '2025-05-26 17:00:00', '2025-05-26 19:00:00', 2, 0, '2025-05-26 17:00:00', '2025-11-09 17:00:00');
-INSERT INTO `mg_course_record` VALUES (0x8442D593326141818CB53C8C8FB8C0A4, 0x28E0BA838B52448CA932B83B536440C8, 0xB6BBCC62C65B44D385CBB8CA05A17993, NULL, NULL, 'classroomSmall', 30, 6, 5, 1.12, '{\"rows\": 5, \"columns\": 6}', '\"aligned\"', '2025-06-13 17:00:00', '2025-06-13 20:00:00', 2, 0, '2025-06-13 17:00:00', '2025-11-09 17:00:00');
-INSERT INTO `mg_course_record` VALUES (0x884DBC6348014759B1084D54C27BC47A, 0xE0C9C5AC6E79421BB11007CB1059DC3D, 0x4A7BAE3828D24B49A985D1AA2F3D072E, NULL, NULL, 'classroomSmall', 40, 5, 8, 1.05, '{\"rows\": 4, \"columns\": 7}', '\"aligned\"', '2025-07-02 17:00:00', '2025-07-02 19:00:00', 2, 0, '2025-07-02 17:00:00', '2025-11-09 17:00:00');
-INSERT INTO `mg_course_record` VALUES (0x942BD91E974C415FAE8746C4BF2F91A3, 0x3A2A344431A346F683227D99A25A1796, 0xDA4F9AD2736C4C0B8235D565EDDE803E, NULL, NULL, 'classroomSmall', 40, 5, 7, 0.96, '{\"rows\": 5, \"columns\": 6}', '\"aligned\"', '2025-03-02 17:00:00', '2025-03-02 21:00:00', 2, 0, '2025-03-02 17:00:00', '2025-11-09 17:00:00');
-INSERT INTO `mg_course_record` VALUES (0xA1EB73E069724C44BAE2B1E0F7A92E6B, 0x0F2231B3D31049C9913E1AD5E8F46E47, 0x24C7DF031DD34B698686725EC68FD095, NULL, NULL, 'classroomSmall', 30, 4, 6, 0.9, '{\"rows\": 4, \"columns\": 5}', '\"aligned\"', '2025-04-16 17:00:00', '2025-04-16 21:00:00', 2, 0, '2025-04-16 17:00:00', '2025-11-09 17:00:00');
-INSERT INTO `mg_course_record` VALUES (0xA4918648994C4B908EC3BA0393DC9FC4, 0xFDE4EEFD75834F8ABD090E2DE4E9194B, 0xD31BC6B36BB04E07BF279C4D4A94237B, NULL, NULL, 'classroomSmall', 30, 5, 6, 1.02, '{\"rows\": 6, \"columns\": 6}', '\"aligned\"', '2025-07-27 17:00:00', '2025-07-27 21:00:00', 2, 0, '2025-07-27 17:00:00', '2025-11-09 17:00:00');
-INSERT INTO `mg_course_record` VALUES (0xBBE3F2FC2F4C44F0AB47EC0D52452365, 0xCD382D762B6F4239A309B2D739D14BFC, 0x0DB2D44697AC45F697FEE2AB9FBB33A7, NULL, NULL, 'classroomSmall', 30, 4, 7, 0.8, '{\"rows\": 4, \"columns\": 7}', '\"aligned\"', '2025-04-02 17:00:00', '2025-04-02 20:00:00', 2, 0, '2025-04-02 17:00:00', '2025-11-09 17:00:00');
-INSERT INTO `mg_course_record` VALUES (0xC15EB37FFF8D455190DBEAAA8A2C9052, 0xBB4824F32F97401E9A1AC92558CFC221, 0xDA4F9AD2736C4C0B8235D565EDDE803E, NULL, NULL, 'classroomSmall', 40, 4, 5, 0.87, '{\"rows\": 6, \"columns\": 6}', '\"aligned\"', '2025-02-18 17:00:00', '2025-02-18 21:00:00', 2, 0, '2025-02-18 17:00:00', '2025-11-09 17:00:00');
-INSERT INTO `mg_course_record` VALUES (0xC3642002681648FB9CE0BD52C90281D7, 0xC4DA4D8CE5BB4833B3C84896CD585DC2, 0xCF76A275F0F4492EBD1371E6EC75DE8A, NULL, NULL, 'classroomSmall', 20, 4, 8, 1.01, '{\"rows\": 5, \"columns\": 5}', '\"aligned\"', '2025-06-24 17:00:00', '2025-06-24 20:00:00', 2, 0, '2025-06-24 17:00:00', '2025-11-09 17:00:00');
-INSERT INTO `mg_course_record` VALUES (0xCA7774FC21AD4A2990FA57D033627699, 0x31E03FBE949648A39B3690EED2D8FB50, 0xCF76A275F0F4492EBD1371E6EC75DE8A, NULL, NULL, 'classroomSmall', 30, 6, 5, 0.87, '{\"rows\": 5, \"columns\": 5}', '\"aligned\"', '2025-01-16 17:00:00', '2025-01-16 21:00:00', 2, 0, '2025-01-16 17:00:00', '2025-11-09 17:00:00');
-INSERT INTO `mg_course_record` VALUES (0xCC77A62A1EEE4637B243372B526C85C1, 0x31E03FBE949648A39B3690EED2D8FB50, 0xCF76A275F0F4492EBD1371E6EC75DE8A, NULL, NULL, 'classroomSmall', 30, 4, 6, 0.84, '{\"rows\": 4, \"columns\": 5}', '\"aligned\"', '2025-07-09 17:00:00', '2025-07-09 20:00:00', 2, 0, '2025-07-09 17:00:00', '2025-11-09 17:00:00');
-INSERT INTO `mg_course_record` VALUES (0xCDE4266428FE4A16AD2B0BEA425E3BEF, 0xCF9EF1C9BEEB4D4F8172E4190F3441A8, 0x24C7DF031DD34B698686725EC68FD095, NULL, NULL, 'classroomSmall', 30, 6, 6, 1.05, '{\"rows\": 5, \"columns\": 6}', '\"aligned\"', '2025-09-11 17:00:00', '2025-09-11 21:00:00', 2, 0, '2025-09-11 17:00:00', '2025-11-09 17:00:00');
-INSERT INTO `mg_course_record` VALUES (0xDF6536C828A24227A8680780FDC55DB2, 0x3A2A344431A346F683227D99A25A1796, 0xDA4F9AD2736C4C0B8235D565EDDE803E, NULL, NULL, 'classroomSmall', 20, 6, 7, 1.04, '{\"rows\": 5, \"columns\": 5}', '\"aligned\"', '2025-06-24 17:00:00', '2025-06-24 20:00:00', 2, 0, '2025-06-24 17:00:00', '2025-11-09 17:00:00');
-
--- ----------------------------
--- Table structure for mg_course_record_student
--- ----------------------------
-/*
- Navicat Premium Dump SQL
-
- Source Server         : localhost_3306
- Source Server Type    : MySQL
- Source Server Version : 80031 (8.0.31)
- Source Host           : localhost:3306
- Source Schema         : sapientiacloud_edupivot
-
- Target Server Type    : MySQL
- Target Server Version : 80031 (8.0.31)
- File Encoding         : 65001
-
- Date: 04/12/2025 21:14:22
-*/
-
-SET NAMES utf8mb4;
-SET FOREIGN_KEY_CHECKS = 0;
+INSERT INTO `mg_course_record` VALUES (0x019AE9D1F48D74E59D0B71D6333EB6A1, 0x28E0BA838B52448CA932B83B536440C8, 0x019A68223E6176C288A7D42B775797A6, '11', '111', 0, 4, 3, '2025-12-04 06:43:52', '2025-12-31 06:43:55', 0, 0, '2025-12-04 22:44:02', '2025-12-13 23:05:50', '666', 1, 'cls-019ae9d1-f48d-74e5-9d0b-71d6333eb6a1-666', NULL, NULL, '2025-12-14 21:45:12', NULL, NULL, 500, 0, NULL, 0, NULL, NULL, NULL);
+INSERT INTO `mg_course_record` VALUES (0x019B0235A2967E788F1CA0287EAF2471, 0xFDE4EEFD75834F8ABD090E2DE4E9194B, 0x019A68223E6176C288A7D42B775797A6, '112213', '1321321313', 0, 4, 3, '2025-12-09 08:23:40', '2025-12-10 08:23:42', 0, 0, '2025-12-09 16:23:48', '2025-12-09 16:23:48', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, 500, 0, NULL, 0, NULL, NULL, NULL);
 
 -- ----------------------------
 -- Table structure for mg_course_record_student
 -- ----------------------------
 DROP TABLE IF EXISTS `mg_course_record_student`;
 CREATE TABLE `mg_course_record_student`  (
-                                             `id` binary(16) NOT NULL COMMENT '主键ID',
-                                             `record_id` binary(16) NOT NULL COMMENT '课堂记录ID（mg_course_record.id）',
-                                             `course_id` binary(16) NOT NULL COMMENT '课程ID（mg_course.id）',
-                                             `student_id` binary(16) NULL DEFAULT NULL COMMENT '学生ID（mg_student.id）',
-                                             `teacher_id` binary(16) NULL DEFAULT NULL COMMENT '教师ID（mg_teacher.id）',
-                                             `seat_index` int NULL DEFAULT NULL COMMENT '座位编号(从0开始)',
-                                             `location_x` float NULL DEFAULT NULL COMMENT '3D坐标X',
-                                             `location_y` float NULL DEFAULT NULL COMMENT '3D坐标Y',
-                                             `location_z` float NULL DEFAULT NULL COMMENT '3D坐标Z',
-                                             `rotation_y` float NULL DEFAULT NULL COMMENT '朝向角度(弧度制)',
-                                             `seat_status` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT 'normal' COMMENT '座位状态(normal/marked/reserved/occupied)',
-                                             `attendance_status` tinyint(1) NULL DEFAULT 0 COMMENT '出勤状态(0未签到,1已签到,2缺席)',
-                                             `participation_score` float NULL DEFAULT NULL COMMENT '课堂互动得分',
-                                             `live_join_time` datetime NULL DEFAULT NULL COMMENT '最近一次进入直播时间',
-                                             `live_leave_time` datetime NULL DEFAULT NULL COMMENT '最近一次离开直播时间',
-                                             `live_join_count` int NULL DEFAULT 0 COMMENT '进入直播次数',
-                                             `live_lk_identity` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '最近一次进入的 LiveKit identity',
-                                             `live_lk_participant_sid` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '最近一次 LiveKit participant SID',
-                                             `live_token_jti` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '最近一次 token JTI',
-                                             `live_join_ip` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '最近一次加入IP',
-                                             `live_client_platform` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '最近一次客户端平台',
-                                             `live_kicked_at` datetime NULL DEFAULT NULL COMMENT '最近一次被移除时间',
-                                             `live_remark` varchar(256) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '最近一次备注',
-                                             `create_time` datetime NULL DEFAULT CURRENT_TIMESTAMP,
-                                             `update_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                                             `is_deleted` tinyint(1) NULL DEFAULT NULL COMMENT '逻辑删除标记 (0=未删除, 1=已删除)',
-                                             PRIMARY KEY (`id`) USING BTREE,
-                                             INDEX `idx_course_id`(`course_id` ASC) USING BTREE,
-                                             INDEX `idx_student_id`(`student_id` ASC) USING BTREE,
-                                             INDEX `idx_teacher_id`(`teacher_id` ASC) USING BTREE,
-                                             INDEX `idx_record_id`(`record_id` ASC) USING BTREE,
-                                             CONSTRAINT `fk_record_student_course` FOREIGN KEY (`course_id`) REFERENCES `mg_course` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
-                                             CONSTRAINT `fk_record_student_record` FOREIGN KEY (`record_id`) REFERENCES `mg_course_record` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
-                                             CONSTRAINT `fk_record_student_student` FOREIGN KEY (`student_id`) REFERENCES `mg_student` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
-                                             CONSTRAINT `fk_record_student_teacher` FOREIGN KEY (`teacher_id`) REFERENCES `mg_teacher` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
-                                             CONSTRAINT `chk_teacher_student_exclusive` CHECK (((`student_id` is not null) and (`teacher_id` is null)) or ((`teacher_id` is not null) and (`student_id` is null)))
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '课堂学生参与表（含座位、出勤、直播参与信息）' ROW_FORMAT = DYNAMIC;
-
-SET FOREIGN_KEY_CHECKS = 1;
+  `id` binary(16) NOT NULL COMMENT '主键ID',
+  `record_id` binary(16) NOT NULL COMMENT '课堂记录ID（mg_course_record.id）',
+  `course_id` binary(16) NOT NULL COMMENT '课程ID（mg_course.id）',
+  `student_id` binary(16) NULL DEFAULT NULL COMMENT '学生ID（mg_student.id）',
+  `teacher_id` binary(16) NULL DEFAULT NULL COMMENT '教师ID（mg_teacher.id）',
+  `seat_index` int NULL DEFAULT NULL COMMENT '座位编号(从0开始)',
+  `location_x` float NULL DEFAULT NULL COMMENT '3D坐标X',
+  `location_y` float NULL DEFAULT NULL COMMENT '3D坐标Y',
+  `location_z` float NULL DEFAULT NULL COMMENT '3D坐标Z',
+  `rotation_y` float NULL DEFAULT NULL COMMENT '朝向角度(弧度制)',
+  `seat_status` tinyint(1) NULL DEFAULT NULL COMMENT '座位状态(normal/marked/reserved/occupied)',
+  `attendance_status` tinyint(1) NULL DEFAULT 0 COMMENT '出勤状态(0未签到,1已签到,2缺席)',
+  `participation_score` float NULL DEFAULT NULL COMMENT '课堂互动得分',
+  `live_join_time` datetime NULL DEFAULT NULL COMMENT '最近一次进入直播时间',
+  `live_leave_time` datetime NULL DEFAULT NULL COMMENT '最近一次离开直播时间',
+  `live_join_count` int NULL DEFAULT 0 COMMENT '进入直播次数',
+  `live_lk_identity` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '最近一次 LiveKit identity',
+  `live_lk_participant_sid` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '最近一次 LiveKit participant SID',
+  `live_token_jti` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '最近一次 token JTI',
+  `live_join_ip` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '最近一次加入IP',
+  `live_client_platform` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '最近一次客户端平台',
+  `live_kicked_at` datetime NULL DEFAULT NULL COMMENT '最近一次被移除时间',
+  `live_remark` varchar(256) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '最近一次备注',
+  `create_time` datetime NULL DEFAULT CURRENT_TIMESTAMP,
+  `update_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `is_deleted` tinyint(1) NULL DEFAULT 0 COMMENT '逻辑删除标记 (0=未删除, 1=已删除)',
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_course_id`(`course_id` ASC) USING BTREE,
+  INDEX `idx_student_id`(`student_id` ASC) USING BTREE,
+  INDEX `idx_teacher_id`(`teacher_id` ASC) USING BTREE,
+  INDEX `idx_record_id`(`record_id` ASC) USING BTREE,
+  CONSTRAINT `fk_record_student_course` FOREIGN KEY (`course_id`) REFERENCES `mg_course` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `fk_record_student_record` FOREIGN KEY (`record_id`) REFERENCES `mg_course_record` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `fk_record_student_student` FOREIGN KEY (`student_id`) REFERENCES `mg_student` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `fk_record_student_teacher` FOREIGN KEY (`teacher_id`) REFERENCES `mg_teacher` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `chk_teacher_student_exclusive` CHECK (((`student_id` is not null) and (`teacher_id` is null)) or ((`teacher_id` is not null) and (`student_id` is null)))
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '课堂学生参与表（含座位、出勤与直播参与信息）' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of mg_course_record_student
@@ -584,7 +541,7 @@ CREATE TABLE `mg_teacher`  (
 -- ----------------------------
 -- Records of mg_teacher
 -- ----------------------------
-INSERT INTO `mg_teacher` VALUES (0x019A68223E6176C288A7D42B775797A6, '202300503208', '马梦佳', '2025-11-12', '计算机学院', 3, NULL, NULL, 0x0197EE62BE087C57B1FF42B1FA3C8B3F, '2025-11-09 18:21:06', '2025-11-09 18:21:06', 0);
+INSERT INTO `mg_teacher` VALUES (0x019A68223E6176C288A7D42B775797A6, '202300503208', 'Admin', '2025-11-12', '计算机学院', 3, NULL, NULL, 0x0197EE62BE087C57B1FF42B1FA3C8B3F, '2025-11-09 18:21:06', '2025-11-10 14:11:32', 0);
 INSERT INTO `mg_teacher` VALUES (0x0DB2D44697AC45F697FEE2AB9FBB33A7, 'T20252003', '陈伟', '2004-07-02', '电子工程学院', 3, '嵌入式系统, 物联网', NULL, 0x0DB2D44697AC45F697FEE2AB9FBB33A7, '2025-11-09 17:00:00', '2025-11-09 17:00:00', 0);
 INSERT INTO `mg_teacher` VALUES (0x24C7DF031DD34B698686725EC68FD095, 'T20252007', '刘洋', '2008-11-18', '机电学院', 2, '自动化, 控制工程', NULL, 0x24C7DF031DD34B698686725EC68FD095, '2025-11-09 17:00:00', '2025-11-09 17:00:00', 0);
 INSERT INTO `mg_teacher` VALUES (0x29408F577593489686090EFFDE16EE6B, 'T20252000', '王静', '2001-03-20', '计算机学院', 3, '软件工程, 系统架构', NULL, 0x29408F577593489686090EFFDE16EE6B, '2025-11-09 17:00:00', '2025-11-09 17:00:00', 0);
@@ -756,6 +713,68 @@ INSERT INTO `sys_role_permission` VALUES (0x0198590CC13A7706AB89025C6BD7AAFC, 0x
 INSERT INTO `sys_role_permission` VALUES (0x0198590CC13A7706AB89025C6BD7AAFC, 0x01992A5CCE85716ABC4A67A3C741ECF0);
 INSERT INTO `sys_role_permission` VALUES (0x0198590CC13A7706AB89025C6BD7AAFC, 0x0198403B4FF376609FE48242DC1DC670);
 INSERT INTO `sys_role_permission` VALUES (0x0198590CC13A7706AB89025C6BD7AAFC, 0x01984032644870CCA0D25035379DD2C2);
+INSERT INTO `sys_role_permission` VALUES (0x0198590BF85F7B2FA5FE4CC0994F72D5, 0xD62E594DBD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590BF85F7B2FA5FE4CC0994F72D5, 0xD62D845FBD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590BF85F7B2FA5FE4CC0994F72D5, 0xD62C93E2BD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590BF85F7B2FA5FE4CC0994F72D5, 0xD62A9D6FBD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590BF85F7B2FA5FE4CC0994F72D5, 0xD62F088BBD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590BF85F7B2FA5FE4CC0994F72D5, 0xD62F9555BD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590BF85F7B2FA5FE4CC0994F72D5, 0xD630A575BD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590BF85F7B2FA5FE4CC0994F72D5, 0xD631E885BD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590BF85F7B2FA5FE4CC0994F72D5, 0xD6330EE9BD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590BF85F7B2FA5FE4CC0994F72D5, 0xD6340674BD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590BF85F7B2FA5FE4CC0994F72D5, 0xD634C5D5BD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590BF85F7B2FA5FE4CC0994F72D5, 0xD63593E6BD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590BF85F7B2FA5FE4CC0994F72D5, 0xD63630ABBD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590BF85F7B2FA5FE4CC0994F72D5, 0xD636B9B2BD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590BF85F7B2FA5FE4CC0994F72D5, 0xD63759DDBD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590BF85F7B2FA5FE4CC0994F72D5, 0xD637D063BD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590BF85F7B2FA5FE4CC0994F72D5, 0xD63A3F4DBD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590BF85F7B2FA5FE4CC0994F72D5, 0xD63867D1BD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590BF85F7B2FA5FE4CC0994F72D5, 0xD639079CBD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590BF85F7B2FA5FE4CC0994F72D5, 0xD63997F8BD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590BF85F7B2FA5FE4CC0994F72D5, 0xD63AF97FBD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590BF85F7B2FA5FE4CC0994F72D5, 0xD63BB044BD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590BF85F7B2FA5FE4CC0994F72D5, 0xD63C5AD0BD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590BF85F7B2FA5FE4CC0994F72D5, 0xD63CEABBBD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590BF85F7B2FA5FE4CC0994F72D5, 0xD63DB147BD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590BF85F7B2FA5FE4CC0994F72D5, 0xD63E43C3BD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590BF85F7B2FA5FE4CC0994F72D5, 0xD63EDC61BD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590BF85F7B2FA5FE4CC0994F72D5, 0xD63F6178BD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590BF85F7B2FA5FE4CC0994F72D5, 0xD6417F13BD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590BF85F7B2FA5FE4CC0994F72D5, 0xD64054D6BD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590BF85F7B2FA5FE4CC0994F72D5, 0xD640DDDEBD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590BF85F7B2FA5FE4CC0994F72D5, 0xD64347A1BD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590BF85F7B2FA5FE4CC0994F72D5, 0xD64228D5BD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590BF85F7B2FA5FE4CC0994F72D5, 0xD642ABC8BD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590BF85F7B2FA5FE4CC0994F72D5, 0xD643D705BD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590BF85F7B2FA5FE4CC0994F72D5, 0xD646386EBD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590BF85F7B2FA5FE4CC0994F72D5, 0xD6459CA2BD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590BF85F7B2FA5FE4CC0994F72D5, 0xD645069DBD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590BF85F7B2FA5FE4CC0994F72D5, 0xD6446F89BD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590BF85F7B2FA5FE4CC0994F72D5, 0xD6488999BD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590BF85F7B2FA5FE4CC0994F72D5, 0xD647E619BD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590BF85F7B2FA5FE4CC0994F72D5, 0xD6475E8CBD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590BF85F7B2FA5FE4CC0994F72D5, 0xD646B658BD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590BF85F7B2FA5FE4CC0994F72D5, 0xD64EF35BBD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590BF85F7B2FA5FE4CC0994F72D5, 0xD64FA3B1BD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590BF85F7B2FA5FE4CC0994F72D5, 0xD6503E9BBD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590BF85F7B2FA5FE4CC0994F72D5, 0xD650C589BD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590BF85F7B2FA5FE4CC0994F72D5, 0xD6515C1EBD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590CC13A7706AB89025C6BD7AAFC, 0xD64EF35BBD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590CC13A7706AB89025C6BD7AAFC, 0xD64FA3B1BD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590CC13A7706AB89025C6BD7AAFC, 0xD6503E9BBD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590CC13A7706AB89025C6BD7AAFC, 0xD650C589BD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590CC13A7706AB89025C6BD7AAFC, 0xD6515C1EBD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590CC13A7706AB89025C6BD7AAFC, 0xD6493171BD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590CC13A7706AB89025C6BD7AAFC, 0xD64E5781BD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590CC13A7706AB89025C6BD7AAFC, 0xD64DA966BD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590CC13A7706AB89025C6BD7AAFC, 0xD64D091ABD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590CC13A7706AB89025C6BD7AAFC, 0xD64C845ABD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590CC13A7706AB89025C6BD7AAFC, 0xD64BEE17BD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590CC13A7706AB89025C6BD7AAFC, 0xD64B2D6BBD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590CC13A7706AB89025C6BD7AAFC, 0xD64A8634BD6211F09D529A710A012D29);
+INSERT INTO `sys_role_permission` VALUES (0x0198590CC13A7706AB89025C6BD7AAFC, 0xD649FF7CBD6211F09D529A710A012D29);
 
 -- ----------------------------
 -- Table structure for sys_user
@@ -784,8 +803,8 @@ CREATE TABLE `sys_user`  (
 -- ----------------------------
 -- Records of sys_user
 -- ----------------------------
-INSERT INTO `sys_user` VALUES (0x0197EE62BE087C57B1FF42B1FA3C8B3F, 'admin', '$2a$10$R3cselz6LLpoog028pfkU.gNHcLMURQRV8QqOKwoqPEmq4DviwWr.', 'Admin', 'admin@qq.com', '18039801656', 2, 'http://127.0.0.1:31589/sapientiacloud-edupivot/avatar/avatar_1758019623800.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=root%2F20250916%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20250916T104703Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=383aef8f0cc16436b3d77699df795365da4f0586c206e4990a8f5ebed85d6752', 0, '2025-11-09 20:02:50', '2025-07-09 16:52:18', '2025-11-09 20:02:50', 0, NULL, NULL);
-INSERT INTO `sys_user` VALUES (0x29408F577593489686090EFFDE16EE6B, 't20252000', '$2a$10$DMKDGN8rtQ4RrT/MElyYkerFygI0bK5e/Lf4e1MXBJdMBJc.kwDsS', '王静', 't20252000@university.edu.cn', '13896292333', 1, NULL, 0, '2025-11-04 17:00:00', '2024-07-24 17:00:00', '2025-11-09 17:00:00', 0, NULL, NULL);
+INSERT INTO `sys_user` VALUES (0x0197EE62BE087C57B1FF42B1FA3C8B3F, 'admin', '$2a$10$R3cselz6LLpoog028pfkU.gNHcLMURQRV8QqOKwoqPEmq4DviwWr.', 'Admin', 'admin@qq.com', '18039801656', 2, 'http://127.0.0.1:31589/sapientiacloud-user-avatar/avatar/avatar_1765722426715.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=root%2F20251214%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20251214T142707Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=b3c13795d91f1a39ac3908db32ee7f037d6bf17f99efd727382d0d3d8ad26feb', 0, '2025-12-14 22:39:53', '2025-07-09 16:52:18', '2025-12-14 22:39:54', 0, '217931251', NULL);
+INSERT INTO `sys_user` VALUES (0x29408F577593489686090EFFDE16EE6B, 't20252000', '$2a$10$DMKDGN8rtQ4RrT/MElyYkerFygI0bK5e/Lf4e1MXBJdMBJc.kwDsS', '王静', 't20252000@university.edu.cn', '13896292333', 1, NULL, 0, '2025-12-05 23:05:01', '2024-07-24 17:00:00', '2025-12-05 23:05:02', 0, NULL, NULL);
 INSERT INTO `sys_user` VALUES (0xD31BC6B36BB04E07BF279C4D4A94237B, 't20252001', '$2a$10$DMKDGN8rtQ4RrT/MElyYkerFygI0bK5e/Lf4e1MXBJdMBJc.kwDsS', '李强', 't20252001@university.edu.cn', '13886655100', 1, NULL, 0, '2025-11-01 17:00:00', '2025-01-22 17:00:00', '2025-11-09 17:00:00', 0, NULL, NULL);
 INSERT INTO `sys_user` VALUES (0xFC65A56531A54EA283C1448426A01155, 't20252002', '$2a$10$DMKDGN8rtQ4RrT/MElyYkerFygI0bK5e/Lf4e1MXBJdMBJc.kwDsS', '赵娜', 't20252002@university.edu.cn', '13892131228', 1, NULL, 0, '2025-10-01 17:00:00', '2025-01-01 17:00:00', '2025-11-09 17:00:00', 0, NULL, NULL);
 INSERT INTO `sys_user` VALUES (0x0DB2D44697AC45F697FEE2AB9FBB33A7, 't20252003', '$2a$10$DMKDGN8rtQ4RrT/MElyYkerFygI0bK5e/Lf4e1MXBJdMBJc.kwDsS', '陈伟', 't20252003@university.edu.cn', '13852887882', 1, NULL, 0, '2025-08-21 17:00:00', '2025-03-30 17:00:00', '2025-11-09 17:00:00', 0, NULL, NULL);
@@ -805,14 +824,14 @@ INSERT INTO `sys_user` VALUES (0xEA9118046E8C4E4F82FA96D46B42A7FD, 's202530006',
 INSERT INTO `sys_user` VALUES (0xB4E0477D673344BAAD180C4B6D813C65, 's202530007', '$2a$10$DMKDGN8rtQ4RrT/MElyYkerFygI0bK5e/Lf4e1MXBJdMBJc.kwDsS', '黄婷', 's202530007@stu.university.edu.cn', '13980295942', 2, NULL, 0, '2025-02-02 17:00:00', '2025-07-29 17:00:00', '2025-11-09 17:00:00', 0, NULL, NULL);
 INSERT INTO `sys_user` VALUES (0x14EA5043D3274B54AF970E68148DD05B, 's202530008', '$2a$10$DMKDGN8rtQ4RrT/MElyYkerFygI0bK5e/Lf4e1MXBJdMBJc.kwDsS', '周晨', 's202530008@stu.university.edu.cn', '13973837379', 2, NULL, 0, '2025-03-10 17:00:00', '2024-11-25 17:00:00', '2025-11-09 17:00:00', 0, NULL, NULL);
 INSERT INTO `sys_user` VALUES (0x60F6920A93774F138B4AD7490B09E73E, 's202530009', '$2a$10$DMKDGN8rtQ4RrT/MElyYkerFygI0bK5e/Lf4e1MXBJdMBJc.kwDsS', '孙浩', 's202530009@stu.university.edu.cn', '13911351129', 2, NULL, 0, '2025-01-22 17:00:00', '2024-03-13 17:00:00', '2025-11-09 17:00:00', 0, NULL, NULL);
-INSERT INTO `sys_user` VALUES (0x99183E65EC214757A078D068163FAFC5, 's202530010', '$2a$10$DMKDGN8rtQ4RrT/MElyYkerFygI0bK5e/Lf4e1MXBJdMBJc.kwDsS', '吴昊', 's202530010@stu.university.edu.cn', '13962832691', 2, NULL, 0, '2025-08-19 17:00:00', '2024-11-08 17:00:00', '2025-11-09 17:00:00', 0, NULL, NULL);
-INSERT INTO `sys_user` VALUES (0x20E66995DD0248C7A25696E30AC706D8, 's202530011', '$2a$10$DMKDGN8rtQ4RrT/MElyYkerFygI0bK5e/Lf4e1MXBJdMBJc.kwDsS', '徐静', 's202530011@stu.university.edu.cn', '13965173491', 2, NULL, 0, '2025-04-02 17:00:00', '2025-01-23 17:00:00', '2025-11-09 17:00:00', 0, NULL, NULL);
+INSERT INTO `sys_user` VALUES (0x99183E65EC214757A078D068163FAFC5, 's202530010', '$2a$10$DMKDGN8rtQ4RrT/MElyYkerFygI0bK5e/Lf4e1MXBJdMBJc.kwDsS', '吴昊', 's202530010@stu.university.edu.cn', '13962832691', 2, NULL, 0, '2025-12-01 20:58:50', '2024-11-08 17:00:00', '2025-12-01 20:58:51', 0, NULL, NULL);
+INSERT INTO `sys_user` VALUES (0x20E66995DD0248C7A25696E30AC706D8, 's202530011', '$2a$10$DMKDGN8rtQ4RrT/MElyYkerFygI0bK5e/Lf4e1MXBJdMBJc.kwDsS', '徐静', 's202530011@stu.university.edu.cn', '13965173491', 2, NULL, 0, '2025-12-01 00:19:55', '2025-01-23 17:00:00', '2025-12-01 00:19:56', 0, NULL, NULL);
 INSERT INTO `sys_user` VALUES (0xA4D5D07362414578840CEA24A8567563, 's202530012', '$2a$10$DMKDGN8rtQ4RrT/MElyYkerFygI0bK5e/Lf4e1MXBJdMBJc.kwDsS', '马英杰', 's202530012@stu.university.edu.cn', '13925965164', 1, NULL, 0, '2025-05-15 17:00:00', '2024-06-29 17:00:00', '2025-11-09 17:00:00', 0, NULL, NULL);
 INSERT INTO `sys_user` VALUES (0xDF794B220B794F418FB566BFD0D22DEA, 's202530013', '$2a$10$DMKDGN8rtQ4RrT/MElyYkerFygI0bK5e/Lf4e1MXBJdMBJc.kwDsS', '朱敏', 's202530013@stu.university.edu.cn', '13944951536', 2, NULL, 0, '2025-05-17 17:00:00', '2024-10-08 17:00:00', '2025-11-09 17:00:00', 0, NULL, NULL);
 INSERT INTO `sys_user` VALUES (0x6705616AC3B34520A48B34A37B4CD974, 's202530014', '$2a$10$DMKDGN8rtQ4RrT/MElyYkerFygI0bK5e/Lf4e1MXBJdMBJc.kwDsS', '胡强', 's202530014@stu.university.edu.cn', '13960896274', 2, NULL, 0, '2025-09-12 17:00:00', '2024-11-22 17:00:00', '2025-11-09 17:00:00', 0, NULL, NULL);
 INSERT INTO `sys_user` VALUES (0xC85E0152A9BC4757B99FF4E0F8654635, 's202530015', '$2a$10$DMKDGN8rtQ4RrT/MElyYkerFygI0bK5e/Lf4e1MXBJdMBJc.kwDsS', '郭丽', 's202530015@stu.university.edu.cn', '13973086002', 2, NULL, 0, '2025-10-01 17:00:00', '2024-07-10 17:00:00', '2025-11-09 17:00:00', 0, NULL, NULL);
 INSERT INTO `sys_user` VALUES (0x478346CB69E546169AB8C4A96F116DA2, 's202530016', '$2a$10$DMKDGN8rtQ4RrT/MElyYkerFygI0bK5e/Lf4e1MXBJdMBJc.kwDsS', '何静', 's202530016@stu.university.edu.cn', '13919358076', 2, NULL, 0, '2025-06-06 17:00:00', '2025-06-09 17:00:00', '2025-11-09 17:00:00', 0, NULL, NULL);
-INSERT INTO `sys_user` VALUES (0x15B5B7A93382423FBAB32D9788A53A5C, 's202530017', '$2a$10$DMKDGN8rtQ4RrT/MElyYkerFygI0bK5e/Lf4e1MXBJdMBJc.kwDsS', '林峰', 's202530017@stu.university.edu.cn', '13924204794', 2, NULL, 0, '2025-05-01 17:00:00', '2025-03-25 17:00:00', '2025-11-09 17:00:00', 0, NULL, NULL);
+INSERT INTO `sys_user` VALUES (0x15B5B7A93382423FBAB32D9788A53A5C, 's202530017', '$2a$10$DMKDGN8rtQ4RrT/MElyYkerFygI0bK5e/Lf4e1MXBJdMBJc.kwDsS', '林峰', 's202530017@stu.university.edu.cn', '13924204794', 2, NULL, 0, '2025-12-14 22:27:50', '2025-03-25 17:00:00', '2025-12-14 22:27:51', 0, NULL, NULL);
 INSERT INTO `sys_user` VALUES (0xCA20044CE1AC4A91BFEA7F1EA22DBFA9, 's202530018', '$2a$10$DMKDGN8rtQ4RrT/MElyYkerFygI0bK5e/Lf4e1MXBJdMBJc.kwDsS', '宋佳', 's202530018@stu.university.edu.cn', '13978562706', 2, NULL, 0, '2025-05-16 17:00:00', '2024-02-06 17:00:00', '2025-11-09 17:00:00', 0, NULL, NULL);
 INSERT INTO `sys_user` VALUES (0x46A485DE179845089405228C88A3C6C8, 's202530019', '$2a$10$DMKDGN8rtQ4RrT/MElyYkerFygI0bK5e/Lf4e1MXBJdMBJc.kwDsS', '郑凯', 's202530019@stu.university.edu.cn', '13986144620', 2, NULL, 0, '2025-08-21 17:00:00', '2023-12-31 17:00:00', '2025-11-09 17:00:00', 0, NULL, NULL);
 INSERT INTO `sys_user` VALUES (0x50406D17B8AD4EF194C013AD94E90EA6, 's202530020', '$2a$10$DMKDGN8rtQ4RrT/MElyYkerFygI0bK5e/Lf4e1MXBJdMBJc.kwDsS', '潘婷', 's202530020@stu.university.edu.cn', '13930437596', 2, NULL, 0, '2025-04-07 17:00:00', '2024-03-14 17:00:00', '2025-11-09 17:00:00', 0, NULL, NULL);
@@ -822,7 +841,7 @@ INSERT INTO `sys_user` VALUES (0xA2C981E29BE94901A1CCCF95C3A64D1D, 's202530023',
 INSERT INTO `sys_user` VALUES (0xFE1F4971DF694A08AC47A6C74330B132, 's202530024', '$2a$10$DMKDGN8rtQ4RrT/MElyYkerFygI0bK5e/Lf4e1MXBJdMBJc.kwDsS', '蒋涛', 's202530024@stu.university.edu.cn', '13965701624', 2, NULL, 0, '2025-03-26 17:00:00', '2024-11-06 17:00:00', '2025-11-09 17:00:00', 0, NULL, NULL);
 INSERT INTO `sys_user` VALUES (0x3762750EF7AE46CB9D6B888DDF8BF97F, 's202530025', '$2a$10$DMKDGN8rtQ4RrT/MElyYkerFygI0bK5e/Lf4e1MXBJdMBJc.kwDsS', '蔡斌', 's202530025@stu.university.edu.cn', '13921156483', 2, NULL, 0, '2025-09-08 17:00:00', '2024-02-25 17:00:00', '2025-11-09 17:00:00', 0, NULL, NULL);
 INSERT INTO `sys_user` VALUES (0xCDD141929A2546A9AF86C53BF6D15148, 's202530026', '$2a$10$DMKDGN8rtQ4RrT/MElyYkerFygI0bK5e/Lf4e1MXBJdMBJc.kwDsS', '余欣', 's202530026@stu.university.edu.cn', '13995360047', 2, NULL, 0, '2025-10-22 17:00:00', '2025-07-11 17:00:00', '2025-11-09 17:00:00', 0, NULL, NULL);
-INSERT INTO `sys_user` VALUES (0x819878298AB0451F91B647A8AC3FBE02, 's202530027', '$2a$10$DMKDGN8rtQ4RrT/MElyYkerFygI0bK5e/Lf4e1MXBJdMBJc.kwDsS', '韩雪', 's202530027@stu.university.edu.cn', '13931987445', 2, NULL, 0, '2025-08-20 17:00:00', '2024-01-14 17:00:00', '2025-11-09 17:00:00', 0, NULL, NULL);
+INSERT INTO `sys_user` VALUES (0x819878298AB0451F91B647A8AC3FBE02, 's202530027', '$2a$10$DMKDGN8rtQ4RrT/MElyYkerFygI0bK5e/Lf4e1MXBJdMBJc.kwDsS', '韩雪', 's202530027@stu.university.edu.cn', '13931987445', 2, NULL, 0, '2025-11-16 15:42:41', '2024-01-14 17:00:00', '2025-11-16 15:42:42', 0, NULL, NULL);
 INSERT INTO `sys_user` VALUES (0x79DE3FDD3F3C482F8A612C8CA2424C5A, 's202530028', '$2a$10$DMKDGN8rtQ4RrT/MElyYkerFygI0bK5e/Lf4e1MXBJdMBJc.kwDsS', '邓超', 's202530028@stu.university.edu.cn', '13999586807', 2, NULL, 0, '2025-03-19 17:00:00', '2025-09-13 17:00:00', '2025-11-09 17:00:00', 0, NULL, NULL);
 INSERT INTO `sys_user` VALUES (0x470E0197459E4E6A9AF5D5CD51E571EC, 's202530029', '$2a$10$DMKDGN8rtQ4RrT/MElyYkerFygI0bK5e/Lf4e1MXBJdMBJc.kwDsS', '俞敏', 's202530029@stu.university.edu.cn', '13915964964', 2, NULL, 0, '2025-02-27 17:00:00', '2025-08-19 17:00:00', '2025-11-09 17:00:00', 0, NULL, NULL);
 INSERT INTO `sys_user` VALUES (0xED4001F30C9A4C58B1AB33A2F09837FA, 's202530030', '$2a$10$DMKDGN8rtQ4RrT/MElyYkerFygI0bK5e/Lf4e1MXBJdMBJc.kwDsS', '鲁明', 's202530030@stu.university.edu.cn', '13974404758', 2, NULL, 0, '2025-07-11 17:00:00', '2025-08-13 17:00:00', '2025-11-09 17:00:00', 0, NULL, NULL);
@@ -912,7 +931,7 @@ CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `v_mg_course` AS select b
 -- View structure for v_mg_course_record
 -- ----------------------------
 DROP VIEW IF EXISTS `v_mg_course_record`;
-CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `v_mg_course_record` AS select bin_to_uuid(`mg_course_record`.`id`) AS `id`,bin_to_uuid(`mg_course_record`.`course_id`) AS `course_id`,bin_to_uuid(`mg_course_record`.`teacher_id`) AS `teacher_id`,`mg_course_record`.`student_ids` AS `student_ids`,`mg_course_record`.`question_ids` AS `question_ids`,`mg_course_record`.`model_type` AS `model_type`,`mg_course_record`.`total_desks` AS `total_desks`,`mg_course_record`.`layout_rows` AS `layout_rows`,`mg_course_record`.`layout_columns` AS `layout_columns`,`mg_course_record`.`spacing` AS `spacing`,`mg_course_record`.`layout_config` AS `layout_config`,`mg_course_record`.`classroom_layout` AS `classroom_layout`,`mg_course_record`.`start_time` AS `start_time`,`mg_course_record`.`over_time` AS `over_time`,`mg_course_record`.`status` AS `status`,`mg_course_record`.`is_deleted` AS `is_deleted`,`mg_course_record`.`create_time` AS `create_time`,`mg_course_record`.`update_time` AS `update_time` from `mg_course_record`;
+CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `v_mg_course_record` AS select bin_to_uuid(`mg_course_record`.`id`) AS `id`,bin_to_uuid(`mg_course_record`.`course_id`) AS `course_id`,bin_to_uuid(`mg_course_record`.`teacher_id`) AS `teacher_id`,`mg_course_record`.`model_type` AS `model_type`,`mg_course_record`.`total_desks` AS `total_desks`,`mg_course_record`.`layout_rows` AS `layout_rows`,`mg_course_record`.`layout_columns` AS `layout_columns`,`mg_course_record`.`spacing` AS `spacing`,`mg_course_record`.`layout_config` AS `layout_config`,`mg_course_record`.`classroom_layout` AS `classroom_layout`,`mg_course_record`.`start_time` AS `start_time`,`mg_course_record`.`over_time` AS `over_time`,`mg_course_record`.`status` AS `status`,`mg_course_record`.`is_deleted` AS `is_deleted`,`mg_course_record`.`create_time` AS `create_time`,`mg_course_record`.`update_time` AS `update_time` from `mg_course_record`;
 
 -- ----------------------------
 -- View structure for v_mg_course_record_student
