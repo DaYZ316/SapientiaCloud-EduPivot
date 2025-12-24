@@ -9,6 +9,8 @@ import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysPermissionAddDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysPermissionDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysPermissionQueryDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.SysPermissionVO;
+import com.dayz.sapientiacloud_edupivot.system.entity.po.SysPermission;
+import org.springframework.beans.BeanUtils;
 import com.dayz.sapientiacloud_edupivot.system.service.ISysPermissionService;
 import com.github.pagehelper.PageInfo;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -59,8 +61,9 @@ public class SysPermissionController extends BaseController {
     public Result<SysPermissionVO> getPermissionById(
             @Parameter(name = "id", description = "权限ID", required = true) @PathVariable("id") UUID id
     ) {
+        SysPermission sysPermission = sysPermissionService.getPermissionById(id);
         SysPermissionVO sysPermissionVO = new SysPermissionVO();
-        sysPermissionService.getPermissionById(id);
+        BeanUtils.copyProperties(sysPermission, sysPermissionVO);
         return Result.success(sysPermissionVO);
     }
 
