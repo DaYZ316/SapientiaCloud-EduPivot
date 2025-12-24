@@ -2,7 +2,6 @@ package com.dayz.sapientiacloud_edupivot.system.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.dayz.sapientiacloud_edupivot.system.common.enums.DeletedEnum;
 import com.dayz.sapientiacloud_edupivot.system.common.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysPermissionAddDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.SysPermissionDTO;
@@ -69,17 +68,35 @@ public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, S
     @Override
     @Transactional(readOnly = true)
     @Cacheable(value = "SysPermission", key = "#p0", condition = "#p0 != null")
-    public SysPermission getPermissionById(UUID id) {
+    public SysPermissionVO getPermissionById(UUID id) {
         if (id == null) {
             throw new BusinessException(SysPermissionEnum.PERMISSION_NOT_FOUND);
         }
-
-        SysPermission sysPermission = this.getById(id);
-        if (sysPermission == null) {
+        List<SysPermissionVO> sysPermissionVOList = sysPermissionMapper.listPermissionWithChildrenByRootId(id);
+        if (sysPermissionVOList == null || sysPermissionVOList.isEmpty()) {
             throw new BusinessException(SysPermissionEnum.PERMISSION_NOT_FOUND);
         }
 
-        return sysPermission;
+        List<SysPermissionVO> permissionTree = buildPermissionTree(sysPermissionVOList);
+
+        SysPermissionVO target = null;
+        for (SysPermissionVO node : permissionTree) {
+            target = findPermissionVOById(node, id);
+            if (target != null) {
+                break;
+            }
+        }
+
+        if (target == null) {
+            for (SysPermissionVO vo : sysPermissionVOList) {
+                if (id.equals(vo.getId())) {
+                    return vo;
+                }
+            }
+            throw new BusinessException(SysPermissionEnum.PERMISSION_NOT_FOUND);
+        }
+
+        return target;
     }
 
     @Override
@@ -100,7 +117,6 @@ public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, S
         BeanUtils.copyProperties(sysPermissionDTO, sysPermission);
 
         sysPermission.setId(UuidCreator.getTimeOrderedEpoch());
-        sysPermission.setDeleted(DeletedEnum.NOT_DELETED.getCode());
         sysPermission.setCreateTime(LocalDateTime.now());
         sysPermission.setUpdateTime(LocalDateTime.now());
 
@@ -198,5 +214,23 @@ public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, S
             }
         }
         return rootNodes;
+    }
+
+    private SysPermissionVO findPermissionVOById(SysPermissionVO node, UUID id) {
+        if (node == null) {
+            return null;
+        }
+        if (id.equals(node.getId())) {
+            return node;
+        }
+        if (node.getChildren() != null) {
+            for (SysPermissionVO child : node.getChildren()) {
+                SysPermissionVO found = findPermissionVOById(child, id);
+                if (found != null) {
+                    return found;
+                }
+            }
+        }
+        return null;
     }
 } 

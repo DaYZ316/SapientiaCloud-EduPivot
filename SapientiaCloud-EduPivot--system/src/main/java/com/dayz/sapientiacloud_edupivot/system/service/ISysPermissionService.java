@@ -17,7 +17,7 @@ public interface ISysPermissionService extends IService<SysPermission> {
 
     List<SysPermissionVO> listSysPermissionTree();
 
-    SysPermission getPermissionById(UUID id);
+    SysPermissionVO getPermissionById(UUID id);
 
     Boolean addPermission(SysPermissionAddDTO sysPermissionDTO);
 
