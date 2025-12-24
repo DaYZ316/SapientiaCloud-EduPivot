@@ -10,8 +10,7 @@ create table sys_permission
     permission_key  varchar(100)                         not null,
     sort            int        default 0                 null,
     create_time     datetime   default CURRENT_TIMESTAMP null,
-    update_time     datetime   default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
-    is_deleted      tinyint(1) default 0                 null
+    update_time     datetime   default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP
 );
 
 -- ===============================================================

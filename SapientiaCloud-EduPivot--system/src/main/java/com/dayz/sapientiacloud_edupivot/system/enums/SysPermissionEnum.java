@@ -14,6 +14,7 @@ public enum SysPermissionEnum implements BaseEnum {
     PERMISSION_KEY_CANNOT_BE_EMPTY(3004, "权限标识不能为空"),
     PERMISSION_ID_CANNOT_BE_EMPTY(3005, "权限ID不能为空"),
     PERMISSION_KEY_EXISTS(3006, "权限标识已存在"),
+    PERMISSION_BOUND_TO_ROLE(3008, "权限已被角色绑定，无法删除"),
     PERMISSION_ACCESS_DENIED(3007, "没有访问该资源的权限");
 
     private final int code;

@@ -46,7 +46,8 @@ public class SysNotificationController extends BaseController {
 
     @HasPermission(
             summary = "listAllNotification",
-            description = "获取当前用户所有通知列表"
+            description = "获取当前用户所有通知列表",
+            permission = PermissionConstants.NOTIFICATION_QUERY
     )
     @GetMapping("/all")
     public Result<List<NotificationVO>> listAllNotification() {
@@ -57,7 +58,8 @@ public class SysNotificationController extends BaseController {
 
     @HasPermission(
             summary = "getUnreadCount",
-            description = "获取当前用户未读通知数量"
+            description = "获取当前用户未读通知数量",
+            permission = PermissionConstants.NOTIFICATION_QUERY
     )
     @GetMapping("/unread-count")
     public Result<Long> getUnreadCount() {
