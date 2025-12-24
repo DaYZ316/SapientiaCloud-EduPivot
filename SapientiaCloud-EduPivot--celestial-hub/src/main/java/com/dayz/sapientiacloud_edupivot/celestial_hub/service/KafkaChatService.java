@@ -235,9 +235,30 @@ public class KafkaChatService {
 
         ChatResponseType type = responseMessage.getType();
         switch (type) {
-            case CHUNK -> emitChunk(finalRequestId, responseSink, responseMessage.getContent());
-            case COMPLETE -> emitComplete(finalRequestId, responseSink);
-            case ERROR -> emitError(finalRequestId, responseSink, responseMessage.getError());
+            case CHUNK -> {
+                // 为了保证前端能正确解析并避免转义丢失，发送 JSON 包：{ type: 'CHUNK', content: '...' }
+                String payload = JSON.toJSONString(responseMessage);
+                emitChunk(finalRequestId, responseSink, payload);
+            }
+            case COMPLETE -> {
+                // 发送一个标识完成的 JSON 包，然后完成流
+                ChatResponseMessage completeMsg = new ChatResponseMessage();
+                completeMsg.setRequestId(finalRequestId);
+                completeMsg.setType(ChatResponseType.COMPLETE);
+                String payload = JSON.toJSONString(completeMsg);
+                emitChunk(finalRequestId, responseSink, payload);
+                emitComplete(finalRequestId, responseSink);
+            }
+            case ERROR -> {
+                // 发送错误信息的 JSON 包，然后触发错误处理
+                ChatResponseMessage errorMsg = new ChatResponseMessage();
+                errorMsg.setRequestId(finalRequestId);
+                errorMsg.setType(ChatResponseType.ERROR);
+                errorMsg.setError(responseMessage.getError());
+                String payload = JSON.toJSONString(errorMsg);
+                emitChunk(finalRequestId, responseSink, payload);
+                emitError(finalRequestId, responseSink, responseMessage.getError());
+            }
             default -> {
                 // 未知的响应类型，忽略
             }
