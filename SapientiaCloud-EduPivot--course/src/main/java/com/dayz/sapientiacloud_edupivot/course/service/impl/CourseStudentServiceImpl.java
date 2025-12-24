@@ -13,6 +13,8 @@ import com.dayz.sapientiacloud_edupivot.course.mapper.CourseStudentMapper;
 import com.dayz.sapientiacloud_edupivot.course.service.ICourseStudentService;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.dayz.sapientiacloud_edupivot.course.entity.dto.MyCourseForStudentQueryDTO;
+import com.dayz.sapientiacloud_edupivot.course.entity.vo.MyCourseVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.cache.annotation.CacheEvict;
@@ -39,6 +41,16 @@ public class CourseStudentServiceImpl extends ServiceImpl<CourseStudentMapper, C
 
         return PageHelper.startPage(courseStudentQueryDTO.getPageNum(), courseStudentQueryDTO.getPageSize())
                 .doSelectPageInfo(() -> courseStudentMapper.listCourseStudent(courseStudentQueryDTO));
+    }
+
+    @Override
+    public PageInfo<MyCourseVO> listMyCourseForStudent(MyCourseForStudentQueryDTO myCourseForStudentQueryDTO) {
+        if (myCourseForStudentQueryDTO == null) {
+            throw new BusinessException(CourseStudentEnum.COURSE_STUDENT_REQUIRED);
+        }
+
+        return PageHelper.startPage(myCourseForStudentQueryDTO.getPageNum(), myCourseForStudentQueryDTO.getPageSize())
+                .doSelectPageInfo(() -> courseStudentMapper.listMyCourseForStudent(myCourseForStudentQueryDTO));
     }
 
     @Override

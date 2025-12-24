@@ -2,6 +2,7 @@ package com.dayz.sapientiacloud_edupivot.course.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.dayz.sapientiacloud_edupivot.course.common.entity.vo.TeacherVO;
 import com.dayz.sapientiacloud_edupivot.course.common.enums.DeletedEnum;
 import com.dayz.sapientiacloud_edupivot.course.common.enums.StatusEnum;
 import com.dayz.sapientiacloud_edupivot.course.common.exception.BusinessException;
@@ -16,6 +17,7 @@ import com.dayz.sapientiacloud_edupivot.course.enums.CourseEnum;
 import com.dayz.sapientiacloud_edupivot.course.mapper.CourseMapper;
 import com.dayz.sapientiacloud_edupivot.course.service.ICourseService;
 import com.dayz.sapientiacloud_edupivot.course.service.ICourseStudentService;
+import com.dayz.sapientiacloud_edupivot.course.service.ICourseTeacherService;
 import com.github.f4b6a3.uuid.UuidCreator;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -32,8 +34,12 @@ import org.springframework.util.StringUtils;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
+import com.dayz.sapientiacloud_edupivot.course.mapper.CourseAssistantTeacherMapper;
 @Service
 @RequiredArgsConstructor
 public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> implements ICourseService {
@@ -43,6 +49,8 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
 
     private final CourseMapper courseMapper;
     private final ICourseStudentService courseStudentService;
+    private final ICourseTeacherService courseTeacherService;
+    private final CourseAssistantTeacherMapper courseAssistantTeacherMapper;
     private final RedisTemplate<String, Object> redisTemplate;
 
     @Override
@@ -73,6 +81,14 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
         CourseVO courseVO = courseMapper.getCourseById(courseId);
         if (courseVO == null) {
             throw new BusinessException(CourseEnum.COURSE_NOT_EXISTS);
+        }
+        // 从关联表中补充助教列表（迁移后助教关系保存在 mg_course_assistant_teacher）
+        try {
+            List<TeacherVO> assistantTeachers =
+                    courseAssistantTeacherMapper.listAssistantByCourseId(courseId);
+            courseVO.setAssistantTeachers(assistantTeachers);
+        } catch (Exception ignored) {
+            // 若 mapper 不可用或查询失败，仍返回基础 courseVO
         }
 
         return courseVO;
@@ -110,6 +126,16 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
         course.setUpdateTime(LocalDateTime.now());
 
         this.save(course);
+        // 如果传入了辅助教师列表，确保包含主讲教师（若缺失则加入），再批量插入关联表
+        if (courseDTO.getAssistantTeacherIds() != null && !courseDTO.getAssistantTeacherIds().isEmpty()) {
+            // 去重并保持为可变列表
+            List<UUID> assistantIds = new ArrayList<>(new HashSet<>(courseDTO.getAssistantTeacherIds()));
+            UUID mainTeacherId = course.getTeacherId();
+            if (mainTeacherId != null && !assistantIds.contains(mainTeacherId)) {
+                assistantIds.add(mainTeacherId);
+            }
+            courseTeacherService.batchAddAssistantTeachers(course.getId(), assistantIds);
+        }
         clearPublicCourseCache();
 
         CourseVO courseVO = new CourseVO();
@@ -155,9 +181,37 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
         // 确保公开状态不被更新，保持原值
         course.setIsPublic(existingCourse.getIsPublic());
         course.setUpdateTime(LocalDateTime.now());
-
         boolean updated = this.updateById(course);
         if (updated) {
+            // 处理助教关联（多删少补）：仅在 DTO 提供 assistantTeacherIds 时才进行变更
+            if (courseDTO.getAssistantTeacherIds() != null) {
+                // 目标集合：去重并确保包含主讲教师
+                List<UUID> targetList = new ArrayList<>(new HashSet<>(courseDTO.getAssistantTeacherIds()));
+                UUID mainTeacherId = course.getTeacherId();
+                if (mainTeacherId != null && !targetList.contains(mainTeacherId)) {
+                    targetList.add(mainTeacherId);
+                }
+
+                // 现有集合
+                // 从关联表中获取当前助教列表
+                List<UUID> existingAssistants = courseAssistantTeacherMapper.listAssistantIdsByCourseId(course.getId());
+
+                // 计算待删除和待新增
+                List<UUID> toRemove = existingAssistants.stream()
+                        .filter(id -> !targetList.contains(id))
+                        .collect(Collectors.toList());
+                List<UUID> toAdd = targetList.stream()
+                        .filter(id -> !existingAssistants.contains(id))
+                        .collect(Collectors.toList());
+
+                if (!toRemove.isEmpty()) {
+                    courseTeacherService.batchDeleteAssistantTeachers(course.getId(), toRemove);
+                }
+                if (!toAdd.isEmpty()) {
+                    courseTeacherService.batchAddAssistantTeachers(course.getId(), toAdd);
+                }
+
+            }
             clearPublicCourseCache();
         }
         return updated;

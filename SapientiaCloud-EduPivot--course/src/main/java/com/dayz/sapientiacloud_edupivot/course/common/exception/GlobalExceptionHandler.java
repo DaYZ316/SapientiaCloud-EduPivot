@@ -18,6 +18,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.util.Map;
 import java.util.Objects;
 
+import static com.baomidou.mybatisplus.extension.ddl.DdlScriptErrorHandler.PrintlnLogErrorHandler.log;
+
 /**
  * 全局异常处理器
  */
@@ -83,7 +85,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    public Result<Void> handleException() {
+    public Result<Void> handleException(Exception e) {
+        log.error("系统异常", e);
         return Result.fail(ResultEnum.SYSTEM_ERROR);
     }
 

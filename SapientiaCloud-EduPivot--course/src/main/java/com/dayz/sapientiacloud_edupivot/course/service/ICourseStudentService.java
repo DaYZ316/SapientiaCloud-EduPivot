@@ -2,7 +2,9 @@ package com.dayz.sapientiacloud_edupivot.course.service;
 
 import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseStudentDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseStudentQueryDTO;
+import com.dayz.sapientiacloud_edupivot.course.entity.dto.MyCourseForStudentQueryDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.vo.CourseStudentVO;
+import com.dayz.sapientiacloud_edupivot.course.entity.vo.MyCourseVO;
 import com.github.pagehelper.PageInfo;
 
 import java.util.List;
@@ -11,6 +13,8 @@ import java.util.UUID;
 public interface ICourseStudentService {
 
     PageInfo<CourseStudentVO> listCourseStudent(CourseStudentQueryDTO courseStudentQueryDTO);
+    
+    PageInfo<MyCourseVO> listMyCourseForStudent(MyCourseForStudentQueryDTO myCourseForStudentQueryDTO);
 
     List<CourseStudentVO> listAllCourseStudentByCourseId(UUID courseId);
 

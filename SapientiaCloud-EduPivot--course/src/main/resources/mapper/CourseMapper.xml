@@ -12,8 +12,7 @@
         <result column="teacher_id" property="teacherId"/>
         <result column="teacher_name" property="teacherName"/>
         <result column="teacher_avatar" property="teacherAvatar"/>
-        <result column="assistant_teacher_ids" property="assistantTeacherIds"
-                typeHandler="com.dayz.sapientiacloud_edupivot.course.common.config.UuidListTypeHandler"/>
+        <!-- assistant_teacher_ids 已拆分到 mg_course_assistant_teacher 关联表，由专门的 Mapper 提供 -->
         <result column="cover_image_url" property="coverImageUrl"/>
         <result column="status" property="status"/>
         <result column="is_public" property="isPublic"/>
@@ -67,7 +66,6 @@
         c.teacher_id,
         t.real_name as teacher_name,
         u.avatar as teacher_avatar,
-        c.assistant_teacher_ids,
         c.cover_image_url,
         c.status,
         c.is_public,
@@ -130,7 +128,6 @@
         c.teacher_id,
         t.real_name as teacher_name,
         u.avatar as teacher_avatar,
-        c.assistant_teacher_ids,
         c.cover_image_url,
         c.status,
         c.is_public,
@@ -176,7 +173,6 @@
         c.teacher_id,
         t.real_name as teacher_name,
         u.avatar as teacher_avatar,
-        c.assistant_teacher_ids,
         c.cover_image_url,
         c.status,
         c.is_public,
@@ -201,7 +197,6 @@
         c.teacher_id,
         t.real_name as teacher_name,
         u.avatar as teacher_avatar,
-        c.assistant_teacher_ids,
         c.cover_image_url,
         c.status,
         c.is_public,

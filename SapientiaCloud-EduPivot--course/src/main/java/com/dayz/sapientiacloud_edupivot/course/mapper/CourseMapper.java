@@ -7,6 +7,7 @@ import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseTeacherQueryDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.po.Course;
 import com.dayz.sapientiacloud_edupivot.course.entity.vo.CourseVO;
 import com.dayz.sapientiacloud_edupivot.course.entity.vo.PublicCourseVO;
+ 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -23,7 +24,6 @@ public interface CourseMapper extends BaseMapper<Course> {
     List<TeacherVO> listAllTeacherByCourseId(List<UUID> teacherIds);
 
     List<CourseVO> listAllCourseByTeacherId(@Param("teacherId") UUID teacherId);
-
     List<CourseVO> listCourseByTeacherId(CourseTeacherQueryDTO courseTeacherQueryDTO);
 
     CourseVO getCourseById(@Param("courseId") UUID courseId);

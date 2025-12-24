@@ -9,6 +9,7 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import com.dayz.sapientiacloud_edupivot.course.common.entity.vo.TeacherVO;
 
 @Data
 @Schema(description = "课程视图对象 (VO)")
@@ -45,7 +46,7 @@ public class CourseVO implements Serializable {
     private String teacherAvatar;
 
     @Schema(name = "assistantTeacherIds", description = "辅助教学教师ID列表")
-    private List<UUID> assistantTeacherIds;
+    private List<TeacherVO> assistantTeachers;
 
     @Schema(name = "coverImageUrl", description = "课程封面图片URL")
     private String coverImageUrl;
