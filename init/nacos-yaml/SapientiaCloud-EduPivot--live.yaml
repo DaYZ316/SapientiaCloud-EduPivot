@@ -43,6 +43,26 @@ spring:
       password: ${MONGODB_PASSWORD}
       authentication-database: ${MONGODB_AUTH_DATABASE}
       type-mapper: none
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: all
+      retries: 3
+      enable-idempotence: true
+      compression-type: snappy
+      batch-size: 16384
+      linger-ms: 10
+      buffer-memory: 33554432
+    consumer:
+      group-id: live-group
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      enable-auto-commit: false
+      auto-offset-reset: earliest
+    topic:
+      live-events: live-events-topic
 
 MONGODB_HOST: localhost
 MONGODB_PORT: 27017
@@ -65,9 +85,9 @@ livekit:
     layout: speaker-dark
     file-type: MP4
     output-prefix: live-playback
-    playback-base-url: http://localhost:31589/sapientiacloud-live-playback
+    playback-base-url: http://117.72.194.197:31589/sapientiacloud-live-playback
     s3:
-      endpoint: http://localhost:31589
+      endpoint: http://117.72.194.197:31589
       region: us-east-1
       bucket: sapientiacloud-live-playback
       access-key: root
@@ -82,7 +102,9 @@ livekit:
     username: livekit
     password: livekit123
 
-LIVEKIT_HOST: http://localhost:8080
-LIVEKIT_TURN_HOST: localhost
+LIVEKIT_HOST: http://117.72.194.197:7880
+LIVEKIT_TURN_HOST: 117.72.194.197
 LIVEKIT_API_KEY: "livekitdevkey001"
 LIVEKIT_API_SECRET: "livekitdevsecret001abcdef1234567890abcd"
+
+KAFKA_BOOTSTRAP_SERVERS: localhost:9092

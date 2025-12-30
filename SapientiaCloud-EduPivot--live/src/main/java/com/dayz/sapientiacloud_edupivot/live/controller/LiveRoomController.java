@@ -19,7 +19,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import com.dayz.sapientiacloud_edupivot.live.constant.LiveRoomConstants;
 import java.util.UUID;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.beans.factory.annotation.Value;
+import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 
 @Tag(name = "直播房间管理", description = "直播房间与令牌相关API")
 @RestController
@@ -29,6 +35,10 @@ public class LiveRoomController extends BaseController {
 
     private final ILiveRoomService liveRoomService;
     private final ILiveRoomMessageService liveRoomMessageService;
+    private final RedisTemplate<String, Object> redisTemplate;
+
+    @Value("${live.sse.token.ttl.seconds:60}")
+    private long sseTokenTtlSeconds;
 
     @HasPermission(summary = "addLiveRoom", description = "创建直播房间并返回房间信息", permission = "LIVE_ROOM_CREATE")
     @PostMapping("/add")
@@ -47,11 +57,38 @@ public class LiveRoomController extends BaseController {
 
     @Operation(summary = "issueRoomToken", description = "根据房间ID与用户角色签发访问令牌")
     @PostMapping("/token/{id}")
-    public Result<String> issueToken(@PathVariable("id") UUID id, @Valid @RequestBody LiveRoomTokenRequestDTO dto) {
+    public Result<Map<String, Object>> issueToken(@PathVariable("id") UUID id, @Valid @RequestBody LiveRoomTokenRequestDTO dto) {
         UUID userId = UserContextUtil.getCurrentUserId();
         String username = UserContextUtil.getCurrentUsername();
         String token = liveRoomService.issueToken(id, userId, username, dto.getRole());
-        return Result.success(token);
+        // 返回 token 与后端生成的 LiveKit 房间名（lkRoomName），方便前端使用或校验
+        LiveRoom room = liveRoomService.getLiveRoomById(id);
+        Map<String, Object> resp = new HashMap<>();
+        resp.put("token", token);
+        resp.put("roomName", room != null ? room.getLkRoomName() : null);
+        return Result.success(resp);
+    }
+
+    @Operation(summary = "getActiveLiveRoom", description = "查询当前课程/教室的进行中房间（若存在）")
+    @GetMapping("/active")
+    public Result<LiveRoom> getActive(@RequestParam(value = "courseId", required = false) UUID courseId,
+                                      @RequestParam(value = "classroomId", required = false) UUID classroomId) {
+        java.util.List<LiveRoom> list = liveRoomService.listRooms(LiveRoomConstants.STATUS_LIVING, courseId, classroomId);
+        if (list != null && !list.isEmpty()) {
+            return Result.success(list.get(0));
+        }
+        return Result.success(null);
+    }
+
+    @Operation(summary = "getLatestLiveRoom", description = "查询当前课程/教室的最新房间（不按状态过滤，返回最近一条）")
+    @GetMapping("/latest")
+    public Result<LiveRoom> getLatest(@RequestParam(value = "courseId", required = false) UUID courseId,
+                                      @RequestParam(value = "classroomId", required = false) UUID classroomId) {
+        java.util.List<LiveRoom> list = liveRoomService.listRooms(null, courseId, classroomId);
+        if (list != null && !list.isEmpty()) {
+            return Result.success(list.get(0));
+        }
+        return Result.success(null);
     }
 
     @Operation(summary = "listLiveRooms", description = "分页查询直播房间列表")
@@ -64,12 +101,47 @@ public class LiveRoomController extends BaseController {
         return getDataTable(list);
     }
 
+    @Operation(summary = "issueSseToken", description = "签发短期 SSE token 用于直播事件订阅")
+    @PostMapping("/sse-token")
+    public Result<String> issueSseToken(@RequestParam(value = "classroomId", required = false) UUID classroomId) {
+        // SSE token 不需要用户登录，可以匿名访问
+        String token = UUID.randomUUID().toString();
+        Map<String, Object> info = new HashMap<>();
+        // 如果有用户登录，则记录用户ID；否则为空（匿名用户）
+        try {
+            UUID userId = UserContextUtil.getCurrentUserId();
+            if (userId != null) {
+                info.put("userId", userId.toString());
+            }
+        } catch (Exception e) {
+            // 用户未登录，忽略异常
+        }
+        info.put("classroomId", classroomId != null ? classroomId.toString() : null);
+        redisTemplate.opsForValue().set("sse:token:" + token, info, Duration.ofSeconds(sseTokenTtlSeconds));
+        return Result.success(token);
+    }
+
     @Operation(summary = "getLiveRoomDetail", description = "获取直播房间详情")
     @GetMapping("/{id}")
     public Result<LiveRoom> detail(@PathVariable("id") UUID id) {
         LiveRoom room = liveRoomService.getLiveRoomById(id);
         return Result.success(room);
     }
+
+    @HasPermission(summary = "startLiveRoom", description = "根据房间ID开始直播", permission = "LIVE_ROOM_START")
+    @PostMapping("/start/{id}")
+    public Result<LiveRoom> startLive(@PathVariable("id") UUID id) {
+        LiveRoom room = liveRoomService.startLive(id);
+        return Result.success(room);
+    }
+
+    @HasPermission(summary = "endLiveRoom", description = "根据房间ID结束直播", permission = "LIVE_ROOM_END")
+    @PostMapping("/end/{id}")
+    public Result<LiveRoom> endLive(@PathVariable("id") UUID id) {
+        LiveRoom room = liveRoomService.endLive(id);
+        return Result.success(room);
+    }
+
 
     @Operation(summary = "listLiveRoomMessages", description = "获取直播房间最近的聊天消息")
     @GetMapping("/{id}/messages")

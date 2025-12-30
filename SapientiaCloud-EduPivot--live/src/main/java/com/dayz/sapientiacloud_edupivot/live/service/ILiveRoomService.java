@@ -18,4 +18,8 @@ public interface ILiveRoomService {
     LiveRoom startRecording(UUID roomId);
 
     LiveRoom stopRecording(UUID roomId);
+
+    LiveRoom startLive(UUID roomId);
+
+    LiveRoom endLive(UUID roomId);
 }

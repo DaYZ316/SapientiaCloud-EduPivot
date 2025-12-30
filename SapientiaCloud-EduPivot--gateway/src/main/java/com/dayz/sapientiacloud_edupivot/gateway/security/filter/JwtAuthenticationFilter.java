@@ -46,6 +46,8 @@ public class JwtAuthenticationFilter implements WebFilter {
             "/oauth2/**",
             "/login/oauth2/**",
             "/api/course/public/list",
+            "/api/live/subscribe",
+            "/api/live/live-room/sse-token",
             "/api/*/v3/api-docs/**",
             "/v3/api-docs/**",
             "/doc.html",

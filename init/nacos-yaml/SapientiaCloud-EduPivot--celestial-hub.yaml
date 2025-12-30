@@ -67,15 +67,10 @@ spring:
       file-vectorize: file-vectorize-topic
       question-request: question-request-topic
       question-response: question-response-topic
-kafka:
-  chat:
-    timeout-seconds: 300
-    sink-cache:
-      expire-after-write-minutes: 10
-      maximum-size: 1000
+      live-events: live-events-topic
   ai:
     dashscope:
-      api-key: ${TONGYI_API_KEY}
+      api-key: sk-20c0c396a3f64130ac4c56c1a4b3aa00
       chat:
         options:
           model: qwen3-max
@@ -88,6 +83,13 @@ kafka:
         index-name: knowledge-vector-index
         prefix: vector
         initialize-schema: true
+
+kafka:
+  chat:
+    timeout-seconds: 300
+    sink-cache:
+      expire-after-write-minutes: 10
+      maximum-size: 1000
 
 MONGODB_HOST: localhost
 MONGODB_PORT: 27017

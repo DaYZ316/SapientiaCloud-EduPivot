@@ -28,6 +28,9 @@ public class KafkaConfig {
     @Value("${spring.kafka.consumer.group-id:chat-group}")
     private String groupId;
 
+    @Value("${spring.kafka.topic.live-events:live-events-topic}")
+    private String liveEventsTopic;
+
     @Value("${spring.kafka.producer.compression-type:snappy}")
     private String compressionType;
 

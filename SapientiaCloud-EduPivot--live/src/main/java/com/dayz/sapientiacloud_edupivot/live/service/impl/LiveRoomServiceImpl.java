@@ -27,6 +27,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import org.springframework.kafka.core.KafkaTemplate;
+import com.alibaba.fastjson2.JSON;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -45,6 +48,10 @@ public class LiveRoomServiceImpl implements ILiveRoomService {
     private final TeacherClient teacherClient;
     private final StudentClient studentClient;
     private final LiveKitEgressClient liveKitEgressClient;
+    private final KafkaTemplate<String, String> kafkaTemplate;
+
+    @Value("${spring.kafka.topic.live-events:live-events-topic}")
+    private String liveEventsTopic;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -56,14 +63,33 @@ public class LiveRoomServiceImpl implements ILiveRoomService {
         if (room == null) {
             throw new BusinessException(LiveRoomEnum.CLASSROOM_NOT_EXISTS);
         }
-        room.setRoomName(roomName);
+
+        // 如果已有正在进行的直播（LIVE），不要回退状态；仅更新可编辑字段并返回
+        if (room.getStatus() != null && room.getStatus().equals(LiveRoomConstants.STATUS_LIVING)) {
+            if (StringUtils.hasText(roomName)) {
+                room.setRoomName(roomName);
+            }
+            if (courseId != null) {
+                room.setCourseId(courseId);
+            }
+            room.setMaxParticipants(resolveMaxParticipants(maxParticipants, room.getMaxParticipants()));
+            room.setRecordingEnabled(resolveRecordingEnabled(recordingEnabled, room.getRecordingEnabled()));
+            liveRoomMapper.updateById(room);
+            return room;
+        }
+
+        // 普通的初始化/更新逻辑（非 LIVE）
+        if (StringUtils.hasText(roomName)) {
+            room.setRoomName(roomName);
+        }
         if (courseId != null) {
             room.setCourseId(courseId);
         }
         if (creatorId != null && room.getTeacherId() == null) {
             room.setTeacherId(creatorId);
         }
-        room.setStatus(LiveRoomConstants.STATUS_NOT_STARTED);
+        // 仅在非 LIVE 情况下设置默认状态，避免覆盖 LIVE
+        room.setStatus(Objects.requireNonNullElse(room.getStatus(), LiveRoomConstants.STATUS_NOT_STARTED));
         String lkRoomName = room.getLkRoomName();
         if (!StringUtils.hasText(lkRoomName)) {
             lkRoomName = buildLkRoomName(roomName, classroomId);
@@ -82,9 +108,38 @@ public class LiveRoomServiceImpl implements ILiveRoomService {
         if (room == null) {
             throw new BusinessException(LiveRoomEnum.ROOM_NOT_EXISTS);
         }
+
+        // 如果有正在运行的 egress/录制，尝试停止并清理字段
+        try {
+            if (StringUtils.hasText(room.getEgressTaskId())) {
+                LiveKitEgressStopRequest stopRequest = new LiveKitEgressStopRequest();
+                stopRequest.setEgressId(room.getEgressTaskId());
+                liveKitEgressClient.stopEgress(stopRequest);
+                room.setEgressStatus(LiveEgressStatusEnum.STOPPED.getCode());
+                room.setEgressTaskId(null);
+                room.setRecordingAssetUrl(null);
+            }
+        } catch (Exception e) {
+            // 记录警告但不阻止关闭（可根据业务选择是否回滚）
+            // log.warn("stop egress failed", e);
+        }
+
         room.setStatus(LiveRoomConstants.STATUS_ENDED);
         room.setEndTime(LocalDateTime.now());
         liveRoomMapper.updateById(room);
+
+        // publish to kafka for hub forwarding
+        try {
+            var payload = new HashMap<String, Object>();
+            payload.put("event", "close");
+            payload.put("roomId", room.getId() != null ? room.getId().toString() : null);
+            payload.put("classroomId", room.getId() != null ? room.getId().toString() : null);
+            payload.put("courseId", room.getCourseId() != null ? room.getCourseId().toString() : null);
+            payload.put("status", room.getStatus());
+            payload.put("endTime", room.getEndTime() != null ? room.getEndTime().toString() : null);
+            kafkaTemplate.send(liveEventsTopic, room.getId() != null ? room.getId().toString() : null, JSON.toJSONString(payload));
+        } catch (Exception ignored) {
+        }
     }
 
     @Override
@@ -100,42 +155,72 @@ public class LiveRoomServiceImpl implements ILiveRoomService {
             throw new BusinessException(LiveRoomEnum.ROOM_NOT_LIVE_FOR_STUDENT);
         }
 
+        // ====== 如果是首次进入直播，切换为 LIVE ======
         if (room.getStatus() == LiveRoomConstants.STATUS_NOT_STARTED) {
             room.setStatus(LiveRoomConstants.STATUS_LIVING);
             room.setStartTime(LocalDateTime.now());
             liveRoomMapper.updateById(room);
-        }
-        String identity = userId + "-" + UUID.randomUUID();
-        // 允许学生(0)、老师(1)、助教(2)发布音视频
-        boolean canPublish = role != null && (role == 0 || role == 1 || role == 2);
-        String token = buildLiveKitAccessToken(room.getLkRoomName(), identity, username, canPublish);
 
+            try {
+                Map<String, Object> payload = new HashMap<>();
+                payload.put("event", "start");
+                payload.put("roomId", room.getId().toString());
+                payload.put("classroomId", room.getId().toString());
+                payload.put("courseId", room.getCourseId() != null ? room.getCourseId().toString() : null);
+                payload.put("status", room.getStatus());
+                payload.put("startTime", room.getStartTime().toString());
+                kafkaTemplate.send(liveEventsTopic, room.getId().toString(), JSON.toJSONString(payload));
+            } catch (Exception ignored) {
+            }
+        }
+
+        // ====== ★ 关键修复：确保 lkRoomName 一定存在 ======
+        String lkRoomName = room.getLkRoomName();
+        if (!StringUtils.hasText(lkRoomName)) {
+            String baseName = StringUtils.hasText(room.getRoomName())
+                    ? room.getRoomName()
+                    : "live";
+            lkRoomName = buildLkRoomName(baseName, room.getId());
+            room.setLkRoomName(lkRoomName);
+            liveRoomMapper.updateById(room);
+        }
+
+        // ====== identity & 权限 ======
+        String identity = userId + "-" + UUID.randomUUID();
+
+        int resolvedRole = Objects.requireNonNullElse(role, 0);
+        boolean canPublish = (resolvedRole == 0 || resolvedRole == 1 || resolvedRole == 2);
+
+        // ====== 生成 LiveKit Token ======
+        String token = buildLiveKitAccessToken(
+                lkRoomName,
+                identity,
+                username,
+                canPublish
+        );
+
+        // ====== 记录 LiveRoomUser ======
         LiveRoomUser liveRoomUser = new LiveRoomUser();
         liveRoomUser.setId(UUID.randomUUID());
         liveRoomUser.setLiveRoomId(roomId);
         liveRoomUser.setCourseId(room.getCourseId());
-        liveRoomUser.setRole(Objects.requireNonNullElse(role, 0));
+        liveRoomUser.setRole(resolvedRole);
         liveRoomUser.setJoinTime(LocalDateTime.now());
         liveRoomUser.setLkIdentity(identity);
         liveRoomUser.setTokenJti(extractJti(token));
 
-        boolean isTeacherRole = role != null && role != 0;
+        boolean isTeacherRole = resolvedRole != 0;
         UUID teacherId = null;
         UUID studentId = null;
+
         if (isTeacherRole) {
             TeacherVO teacher = fetchTeacherByUserId(userId);
             teacherId = teacher.getId();
+            liveRoomUser.setTeacherId(teacherId);
         } else {
             StudentVO student = fetchStudentByUserId(userId);
             studentId = student.getId();
-        }
-
-        if (isTeacherRole) {
-            liveRoomUser.setTeacherId(teacherId);
-            liveRoomUser.setStudentId(null);
-        } else {
             liveRoomUser.setStudentId(studentId);
-            liveRoomUser.setTeacherId(null);
         }
 
         LambdaQueryWrapper<LiveRoomUser> wrapper = new LambdaQueryWrapper<>();
@@ -144,6 +229,7 @@ public class LiveRoomServiceImpl implements ILiveRoomService {
                 .eq(!isTeacherRole, LiveRoomUser::getStudentId, studentId)
                 .isNull(LiveRoomUser::getLeaveTime)
                 .last("limit 1");
+
         LiveRoomUser existing = liveRoomUserMapper.selectOne(wrapper);
         if (existing == null) {
             liveRoomUserMapper.insert(liveRoomUser);
@@ -151,6 +237,7 @@ public class LiveRoomServiceImpl implements ILiveRoomService {
 
         return token;
     }
+
 
     @Override
     public LiveRoom getLiveRoomById(UUID id) {
@@ -173,7 +260,10 @@ public class LiveRoomServiceImpl implements ILiveRoomService {
         if (courseId != null) {
             wrapper.eq(LiveRoom::getCourseId, courseId);
         }
-        // 说明：mg_course_record 中目前无 classroomId 字段，这里暂不按 classroomId 过滤
+        // 支持按 classroomId（即 course record id）过滤
+        if (classroomId != null) {
+            wrapper.eq(LiveRoom::getId, classroomId);
+        }
         wrapper.orderByDesc(LiveRoom::getStartTime);
         return liveRoomMapper.selectList(wrapper);
     }
@@ -210,6 +300,66 @@ public class LiveRoomServiceImpl implements ILiveRoomService {
         room.setEgressStatus(LiveEgressStatusEnum.STOPPED.getCode());
         room.setEgressTaskId(null);
         liveRoomMapper.updateById(room);
+        return room;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public LiveRoom startLive(UUID roomId) {
+        LiveRoom room = requireRoom(roomId);
+        if (Objects.equals(room.getStatus(), LiveRoomConstants.STATUS_LIVING)) {
+            return room;
+        }
+        room.setStatus(LiveRoomConstants.STATUS_LIVING);
+        room.setStartTime(LocalDateTime.now());
+        liveRoomMapper.updateById(room);
+        // publish to kafka for hub forwarding
+        try {
+            var payload = new HashMap<String, Object>();
+            payload.put("event", "start");
+            payload.put("roomId", room.getId() != null ? room.getId().toString() : null);
+            payload.put("classroomId", room.getId() != null ? room.getId().toString() : null);
+            payload.put("courseId", room.getCourseId() != null ? room.getCourseId().toString() : null);
+            payload.put("status", room.getStatus());
+            payload.put("startTime", room.getStartTime() != null ? room.getStartTime().toString() : null);
+            kafkaTemplate.send(liveEventsTopic, room.getId() != null ? room.getId().toString() : null, JSON.toJSONString(payload));
+        } catch (Exception ignored) {
+        }
+        return room;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public LiveRoom endLive(UUID roomId) {
+        LiveRoom room = requireRoom(roomId);
+        // stop any ongoing egress first
+        try {
+            if (StringUtils.hasText(room.getEgressTaskId())) {
+                LiveKitEgressStopRequest stopRequest = new LiveKitEgressStopRequest();
+                stopRequest.setEgressId(room.getEgressTaskId());
+                liveKitEgressClient.stopEgress(stopRequest);
+                room.setEgressStatus(LiveEgressStatusEnum.STOPPED.getCode());
+                room.setEgressTaskId(null);
+                room.setRecordingAssetUrl(null);
+            }
+        } catch (Exception e) {
+            // ignore egress stop errors
+        }
+        room.setStatus(LiveRoomConstants.STATUS_ENDED);
+        room.setEndTime(LocalDateTime.now());
+        liveRoomMapper.updateById(room);
+        // publish to kafka for hub forwarding
+        try {
+            var payload = new HashMap<String, Object>();
+            payload.put("event", "end");
+            payload.put("roomId", room.getId() != null ? room.getId().toString() : null);
+            payload.put("classroomId", room.getId() != null ? room.getId().toString() : null);
+            payload.put("courseId", room.getCourseId() != null ? room.getCourseId().toString() : null);
+            payload.put("status", room.getStatus());
+            payload.put("endTime", room.getEndTime() != null ? room.getEndTime().toString() : null);
+            kafkaTemplate.send(liveEventsTopic, room.getId() != null ? room.getId().toString() : null, JSON.toJSONString(payload));
+        } catch (Exception ignored) {
+        }
         return room;
     }
 
