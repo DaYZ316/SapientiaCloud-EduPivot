@@ -43,7 +43,7 @@ public class LiveEventPublisher {
         if (list == null || list.isEmpty()) return;
         for (SseEmitter emitter : list) {
             try {
-                emitter.send(SseEmitter.event().name("room-status-change").data(payload));
+                emitter.send(SseEmitter.event().data(payload));
             } catch (IOException e) {
                 removeEmitter(key, emitter);
             }
