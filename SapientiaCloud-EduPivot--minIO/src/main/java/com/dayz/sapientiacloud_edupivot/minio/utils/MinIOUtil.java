@@ -1,6 +1,7 @@
 package com.dayz.sapientiacloud_edupivot.minio.utils;
 
 import com.dayz.sapientiacloud_edupivot.minio.config.MinioProperties;
+import com.dayz.sapientiacloud_edupivot.minio.constant.MinIOConstants;
 import com.dayz.sapientiacloud_edupivot.minio.entity.FileInfo;
 import com.dayz.sapientiacloud_edupivot.minio.enums.FileEnum;
 import com.dayz.sapientiacloud_edupivot.minio.exception.BusinessException;
@@ -279,12 +280,23 @@ public class MinIOUtil {
             }
 
             int expiryTime = expiry != null ? expiry : 7 * 24 * 3600;
-            return minioClient.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
+            String originalUrl = minioClient.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
                     .bucket(bucketContext.bucketName())
                     .object(objectName)
                     .method(Method.GET)
                     .expiry(expiryTime, TimeUnit.SECONDS)
                     .build());
+
+            // 只有在非本地开发环境时才替换 MinIO 内部地址为公网域名
+            String finalUrl = originalUrl;
+            String minioIp = minioProperties.getIp();
+            if (originalUrl != null && !MinIOConstants.LOCALHOST_IP.equals(minioIp) && !MinIOConstants.LOCALHOST_NAME.equals(minioIp)) {
+                if (originalUrl.contains(MinIOConstants.MINIO_INTERNAL_ENDPOINT)) {
+                    finalUrl = originalUrl.replace(MinIOConstants.MINIO_INTERNAL_ENDPOINT, MinIOConstants.PUBLIC_DOMAIN);
+                }
+            }
+
+            return finalUrl;
         } catch (BusinessException e) {
             throw e;
         } catch (Exception e) {

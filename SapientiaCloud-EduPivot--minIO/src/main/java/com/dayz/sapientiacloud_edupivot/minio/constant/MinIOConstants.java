@@ -58,6 +58,16 @@ public class MinIOConstants {
     public static final String SUCCESS_STATUS = "成功";
     public static final String FAILED_STATUS = "失败";
 
+    // ==================== URL替换相关常量 ====================
+
+    // MinIO内部地址和公网域名
+    public static final String MINIO_INTERNAL_ENDPOINT = "http://117.72.194.197:31589";
+    public static final String PUBLIC_DOMAIN = "https://edupivot.xyz";
+
+    // 本地开发环境标识
+    public static final String LOCALHOST_IP = "127.0.0.1";
+    public static final String LOCALHOST_NAME = "localhost";
+
     // ==================== 日志消息常量 ====================
 
     // MinIO客户端相关日志
