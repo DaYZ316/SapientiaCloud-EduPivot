@@ -1,6 +1,7 @@
 package com.dayz.sapientiacloud_edupivot.system.service;
 
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.NotificationAddDTO;
+import com.dayz.sapientiacloud_edupivot.system.entity.dto.NotificationBatchAddDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.NotificationDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.NotificationQueryDTO;
 import com.dayz.sapientiacloud_edupivot.system.entity.dto.NotificationScopeSendDTO;
@@ -22,7 +23,7 @@ public interface ISysNotificationService {
 
     NotificationVO addNotification(NotificationAddDTO addDTO);
 
-    Integer batchAddNotification(List<UUID> userIds, NotificationAddDTO addDTO);
+    Integer batchAddNotification(NotificationBatchAddDTO batchAddDTO);
 
     Integer sendNotificationByScope(NotificationScopeSendDTO scopeSendDTO);
 
@@ -33,6 +34,8 @@ public interface ISysNotificationService {
     Integer batchMarkAsRead(List<UUID> ids);
 
     Integer markAllAsRead(UUID userId);
+
+    Boolean removeNotificationMsg(UUID msgId);
 
     Boolean removeNotificationById(UUID id);
 

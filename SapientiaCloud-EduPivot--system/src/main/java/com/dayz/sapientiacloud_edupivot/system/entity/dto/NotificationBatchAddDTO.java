@@ -32,6 +32,9 @@ public class NotificationBatchAddDTO implements Serializable {
     @Schema(name = "content", description = "通知内容（富文本HTML）")
     private String content;
 
+    @Schema(name = "attachmentUrls", description = "附件URL列表（JSON字符串或URL数组，前端与MinIO配合使用）")
+    private String attachmentUrls;
+
     @Schema(name = "type", description = "通知类型 (0=系统通知, 1=课程通知, 2=作业通知, 3=直播通知, 4=其他)")
     @Min(value = 0, message = "通知类型输入不正确")
     @Max(value = 4, message = "通知类型输入不正确")
