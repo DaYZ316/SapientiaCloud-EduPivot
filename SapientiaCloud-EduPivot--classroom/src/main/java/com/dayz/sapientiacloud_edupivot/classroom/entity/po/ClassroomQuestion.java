@@ -1,5 +1,6 @@
 package com.dayz.sapientiacloud_edupivot.classroom.entity.po;
 
+import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -25,7 +26,7 @@ public class ClassroomQuestion extends BaseEntity {
     @Serial
     private static final long serialVersionUID = 5932842378423146571L;
 
-    @TableId("id")
+    @TableId(value = "id", type = IdType.ASSIGN_UUID)
     private UUID id;
 
     @Schema(description = "课堂记录ID")

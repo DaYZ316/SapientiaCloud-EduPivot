@@ -1,6 +1,8 @@
 package com.dayz.sapientiacloud_edupivot.classroom.entity.po;
 
+import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.dayz.sapientiacloud_edupivot.classroom.common.entity.base.BaseEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -22,6 +24,10 @@ public class CourseRecordStudent extends BaseEntity {
 
     @Serial
     private static final long serialVersionUID = 1246892565502037842L;
+
+    @Schema(description = "主键ID")
+    @TableId(value = "id", type = IdType.ASSIGN_UUID)
+    private UUID id;
 
     @Schema(description = "课程记录ID")
     @TableField(value = "record_id")

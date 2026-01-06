@@ -148,6 +148,7 @@ public class CourseRecordStudentServiceImpl extends ServiceImpl<CourseRecordStud
         // 创建座位记录
         CourseRecordStudent student = new CourseRecordStudent();
         BeanUtils.copyProperties(courseRecordStudentDTO, student);
+        student.setId(UUID.randomUUID());
         student.setCreateTime(LocalDateTime.now());
         student.setUpdateTime(LocalDateTime.now());
 
