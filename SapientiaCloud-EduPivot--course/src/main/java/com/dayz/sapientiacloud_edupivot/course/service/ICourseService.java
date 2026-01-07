@@ -26,4 +26,6 @@ public interface ICourseService {
     Integer removeCourseByIds(List<UUID> courseIds);
 
     List<PublicCourseVO> listPublicCourse();
+
+    Long getCourseCount();
 }

@@ -164,6 +164,12 @@ public class CourseFeign {
     public Result<List<QuestionVO>> listQuestionsByBankId(@PathVariable("bankId") UUID bankId) {
         return Result.success(questionService.listQuestionByQuestionBankId(bankId));
     }
+
+    @Operation(summary = "获取课程总数")
+    @GetMapping("/internal/count")
+    public Result<Long> getCourseCount() {
+        return Result.success(courseService.getCourseCount());
+    }
 }
 
 
