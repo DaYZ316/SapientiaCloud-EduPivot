@@ -21,7 +21,6 @@ public class NotificationBatchAddDTO implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @Schema(name = "userIds", description = "接收用户ID列表")
-    @NotEmpty(message = "接收用户ID列表不能为空")
     private List<UUID> userIds;
 
     @Schema(name = "title", description = "通知标题")

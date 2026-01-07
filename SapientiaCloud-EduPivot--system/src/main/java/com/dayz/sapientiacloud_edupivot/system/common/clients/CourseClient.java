@@ -26,6 +26,14 @@ public interface CourseClient {
      */
     @GetMapping("/internal/{courseId}/students")
     Result<List<CourseStudentClientVO>> listStudentsByCourseId(@PathVariable("courseId") UUID courseId);
+
+    /**
+     * 获取课程总数
+     *
+     * @return 课程总数
+     */
+    @GetMapping("/internal/count")
+    Result<Long> getCourseCount();
 }
 
 

@@ -27,6 +27,8 @@ public class PermissionConstants {
     public static final String NOTIFICATION_EDIT = "system:notification:edit";
     public static final String NOTIFICATION_DELETE = "system:notification:delete";
 
+    public static final String DASHBOARD_QUERY = "system:dashboard:query";
+
     private PermissionConstants() {
         // 禁止实例化
     }

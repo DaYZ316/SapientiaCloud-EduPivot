@@ -312,4 +312,9 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
     private void clearPublicCourseCache() {
         redisTemplate.delete(PUBLIC_COURSE_CACHE_KEY);
     }
+
+    @Override
+    public Long getCourseCount() {
+        return courseMapper.selectCount(null);
+    }
 }
