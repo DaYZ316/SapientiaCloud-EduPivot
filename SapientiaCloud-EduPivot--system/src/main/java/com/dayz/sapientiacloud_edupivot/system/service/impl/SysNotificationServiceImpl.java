@@ -14,6 +14,7 @@ import com.dayz.sapientiacloud_edupivot.system.entity.dto.NotificationScopeSendD
 import com.dayz.sapientiacloud_edupivot.system.entity.po.SysNotificationMsg;
 import com.dayz.sapientiacloud_edupivot.system.entity.po.SysNotificationUser;
 import com.dayz.sapientiacloud_edupivot.system.entity.po.SysRole;
+import com.dayz.sapientiacloud_edupivot.system.entity.po.SysUser;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.NotificationVO;
 import com.dayz.sapientiacloud_edupivot.system.enums.NotificationEnum;
 import com.dayz.sapientiacloud_edupivot.system.enums.NotificationStatusEnum;
@@ -22,6 +23,7 @@ import com.dayz.sapientiacloud_edupivot.system.enums.NotificationTypeEnum;
 import com.dayz.sapientiacloud_edupivot.system.mapper.SysNotificationMsgMapper;
 import com.dayz.sapientiacloud_edupivot.system.mapper.SysNotificationUserMapper;
 import com.dayz.sapientiacloud_edupivot.system.mapper.SysRoleMapper;
+import com.dayz.sapientiacloud_edupivot.system.mapper.SysUserMapper;
 import com.dayz.sapientiacloud_edupivot.system.mapper.SysUserRoleMapper;
 import com.dayz.sapientiacloud_edupivot.system.service.ISysNotificationService;
 import com.github.f4b6a3.uuid.UuidCreator;
@@ -50,6 +52,7 @@ public class SysNotificationServiceImpl extends ServiceImpl<SysNotificationMsgMa
     private final CourseClient courseClient;
     private final SysRoleMapper sysRoleMapper;
     private final SysUserRoleMapper sysUserRoleMapper;
+    private final SysUserMapper sysUserMapper;
 
     @Override
     @Transactional(readOnly = true)
@@ -73,7 +76,7 @@ public class SysNotificationServiceImpl extends ServiceImpl<SysNotificationMsgMa
 
         NotificationQueryDTO queryDTO = new NotificationQueryDTO();
         queryDTO.setUserId(userId);
-        
+
         List<NotificationVO> list = sysNotificationUserMapper.listNotificationVO(queryDTO);
         return convertToVOList(list);
     }
@@ -98,13 +101,13 @@ public class SysNotificationServiceImpl extends ServiceImpl<SysNotificationMsgMa
         if (id == null) {
             throw new BusinessException(NotificationEnum.NOTIFICATION_ID_REQUIRED);
         }
-        
+
         // 这里的ID是用户收件箱ID
         SysNotificationUser notificationUser = sysNotificationUserMapper.selectById(id);
         if (notificationUser == null) {
             throw new BusinessException(NotificationEnum.NOTIFICATION_NOT_EXISTS);
         }
-        
+
         SysNotificationMsg notificationMsg = sysNotificationMsgMapper.selectById(notificationUser.getNotificationId());
         if (notificationMsg == null || (notificationMsg.getDeleted() != null && notificationMsg.getDeleted().equals(DeletedEnum.DELETED.getCode()))) {
              throw new BusinessException(NotificationEnum.NOTIFICATION_NOT_EXISTS);
@@ -165,9 +168,9 @@ public class SysNotificationServiceImpl extends ServiceImpl<SysNotificationMsgMa
         msg.setCreateTime(LocalDateTime.now());
         msg.setUpdateTime(LocalDateTime.now());
         msg.setDeleted(DeletedEnum.NOT_DELETED.getCode());
-        
+
         this.save(msg);
-        
+
         // 2. 保存用户关联
         SysNotificationUser user = new SysNotificationUser();
         user.setId(UuidCreator.getTimeOrderedEpoch());
@@ -176,9 +179,9 @@ public class SysNotificationServiceImpl extends ServiceImpl<SysNotificationMsgMa
         user.setStatus(NotificationStatusEnum.UNREAD.getCode());
         user.setCreateTime(LocalDateTime.now());
         user.setUpdateTime(LocalDateTime.now());
-        
+
         sysNotificationUserMapper.insert(user);
-        
+
         return combineToVO(msg, user);
     }
 
@@ -191,7 +194,17 @@ public class SysNotificationServiceImpl extends ServiceImpl<SysNotificationMsgMa
 
         List<UUID> userIds = batchAddDTO.getUserIds();
         if (CollectionUtils.isEmpty(userIds)) {
-            throw new BusinessException(NotificationEnum.USER_ID_REQUIRED);
+            // 如果用户ID列表为空，则查询所有未删除的用户ID
+            userIds = sysUserMapper.selectList(new LambdaQueryWrapper<SysUser>()
+                            .select(SysUser::getId)
+                            .eq(SysUser::getDeleted, DeletedEnum.NOT_DELETED.getCode()))
+                    .stream()
+                    .map(SysUser::getId)
+                    .collect(Collectors.toList());
+
+            if (CollectionUtils.isEmpty(userIds)) {
+                return 0;
+            }
         }
 
         if (!StringUtils.hasText(batchAddDTO.getTitle())) {
@@ -216,7 +229,7 @@ public class SysNotificationServiceImpl extends ServiceImpl<SysNotificationMsgMa
         msg.setCreateTime(now);
         msg.setUpdateTime(now);
         msg.setDeleted(DeletedEnum.NOT_DELETED.getCode());
-        
+
         this.save(msg);
 
         // 2. 批量保存用户关联
@@ -231,7 +244,7 @@ public class SysNotificationServiceImpl extends ServiceImpl<SysNotificationMsgMa
             user.setStatus(NotificationStatusEnum.UNREAD.getCode());
             user.setCreateTime(now);
             user.setUpdateTime(now);
-            
+
             sysNotificationUserMapper.insert(user);
             successCount++;
         }
@@ -317,12 +330,12 @@ public class SysNotificationServiceImpl extends ServiceImpl<SysNotificationMsgMa
         if (notificationDTO == null || notificationDTO.getId() == null) {
             throw new BusinessException(NotificationEnum.NOTIFICATION_ID_REQUIRED);
         }
-        
+
         // 注意：这里的ID应该是MsgID，但如果是从列表点进去编辑，前端传的可能是MsgID
         // 假设这里更新的是Msg内容，那么需要传入的是MsgID。
         // 如果业务场景是用户修改自己的备注之类的，那是UserId。
         // 通常后台管理更新通知，是更新Msg。
-        
+
         SysNotificationMsg msg = this.getById(notificationDTO.getId());
         if (msg == null || (msg.getDeleted() != null && Integer.valueOf(DeletedEnum.DELETED.getCode()).equals(msg.getDeleted()))) {
             throw new BusinessException(NotificationEnum.NOTIFICATION_NOT_EXISTS);
@@ -445,7 +458,7 @@ public class SysNotificationServiceImpl extends ServiceImpl<SysNotificationMsgMa
         if (CollectionUtils.isEmpty(ids)) {
             throw new BusinessException(NotificationEnum.NOTIFICATION_IDS_REQUIRED);
         }
-        
+
         // 物理删除
         int count = sysNotificationUserMapper.deleteBatchIds(ids);
         if (count == 0) {
@@ -453,13 +466,13 @@ public class SysNotificationServiceImpl extends ServiceImpl<SysNotificationMsgMa
         }
         return count;
     }
-    
+
     /**
      * 组合 Msg 和 User 为 VO
      */
     private NotificationVO combineToVO(SysNotificationMsg msg, SysNotificationUser user) {
         if (msg == null) return null;
-        
+
         NotificationVO vo = new NotificationVO();
         // 复制 msg 属性
         BeanUtils.copyProperties(msg, vo);
@@ -470,7 +483,7 @@ public class SysNotificationServiceImpl extends ServiceImpl<SysNotificationMsgMa
         vo.setReadTime(user.getReadTime());
         vo.setCreateTime(user.getCreateTime());
         vo.setUpdateTime(user.getUpdateTime());
-        
+
         // 设置类型标签
         if (msg.getType() != null) {
             NotificationTypeEnum typeEnum = NotificationTypeEnum.fromCode(msg.getType());
@@ -482,7 +495,7 @@ public class SysNotificationServiceImpl extends ServiceImpl<SysNotificationMsgMa
             NotificationStatusEnum statusEnum = NotificationStatusEnum.fromCode(user.getStatus());
             vo.setStatusLabel(statusEnum != null ? statusEnum.getMessage() : null);
         }
-        
+
         return vo;
     }
 
