@@ -19,7 +19,7 @@
         FROM sys_notification_user u
         LEFT JOIN sys_notification_msg m ON u.notification_id = m.id
         <where>
-            AND m.is_deleted = 0
+            AND (m.is_deleted = 0 OR m.is_deleted IS NULL)
             <if test="query.userId != null">
                 AND u.user_id = #{query.userId}
             </if>

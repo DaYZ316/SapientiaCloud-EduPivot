@@ -19,6 +19,8 @@ import com.dayz.sapientiacloud_edupivot.system.entity.vo.NotificationVO;
 import com.dayz.sapientiacloud_edupivot.system.enums.NotificationEnum;
 import com.dayz.sapientiacloud_edupivot.system.enums.NotificationStatusEnum;
 import com.dayz.sapientiacloud_edupivot.system.enums.NotificationTargetScopeEnum;
+import com.dayz.sapientiacloud_edupivot.system.enums.NotificationBoxTypeEnum;
+import com.dayz.sapientiacloud_edupivot.system.common.security.utils.UserContextUtil;
 import com.dayz.sapientiacloud_edupivot.system.enums.NotificationTypeEnum;
 import com.dayz.sapientiacloud_edupivot.system.mapper.SysNotificationMsgMapper;
 import com.dayz.sapientiacloud_edupivot.system.mapper.SysNotificationUserMapper;
@@ -62,7 +64,23 @@ public class SysNotificationServiceImpl extends ServiceImpl<SysNotificationMsgMa
         }
 
         PageHelper.startPage(queryDTO.getPageNum(), queryDTO.getPageSize());
-        List<NotificationVO> list = sysNotificationUserMapper.listNotificationVO(queryDTO);
+        // boxType: 0 = received (收件箱), 1 = sent (已发送)
+        List<NotificationVO> list;
+        if (queryDTO.getBoxType() != null && queryDTO.getBoxType().intValue() == NotificationBoxTypeEnum.SENT.getCode()) {
+            // 已发送：以当前用户为 senderId 查询消息正文并聚合接收统计
+            UUID currentUserId = UserContextUtil.getCurrentUserId();
+            // 将 senderId 放入 query（mapper 使用 senderId）
+            queryDTO.setSenderId(currentUserId);
+            list = sysNotificationMsgMapper.listSentNotificationVO(queryDTO);
+        } else {
+            // 默认：收件箱（按收件记录查询）
+            // 如果未传 userId，则默认使用当前登录用户
+            if (queryDTO.getUserId() == null) {
+                queryDTO.setUserId(UserContextUtil.getCurrentUserId());
+            }
+            list = sysNotificationUserMapper.listNotificationVO(queryDTO);
+        }
+
         PageInfo<NotificationVO> pageInfo = new PageInfo<>(convertToVOList(list));
         return pageInfo;
     }
@@ -163,7 +181,9 @@ public class SysNotificationServiceImpl extends ServiceImpl<SysNotificationMsgMa
         msg.setContent(addDTO.getContent());
         msg.setAttachmentUrls(addDTO.getAttachmentUrls());
         msg.setType(addDTO.getType() != null ? addDTO.getType() : NotificationTypeEnum.SYSTEM.getCode());
-        msg.setSenderId(addDTO.getSenderId());
+        // 如果前端未传 senderId，使用当前登录用户作为发送者
+        UUID senderId = addDTO.getSenderId() != null ? addDTO.getSenderId() : com.dayz.sapientiacloud_edupivot.system.common.security.utils.UserContextUtil.getCurrentUserId();
+        msg.setSenderId(senderId);
         msg.setSenderName(addDTO.getSenderName());
         msg.setCreateTime(LocalDateTime.now());
         msg.setUpdateTime(LocalDateTime.now());
@@ -224,7 +244,9 @@ public class SysNotificationServiceImpl extends ServiceImpl<SysNotificationMsgMa
         msg.setContent(batchAddDTO.getContent());
         msg.setAttachmentUrls(batchAddDTO.getAttachmentUrls());
         msg.setType(batchAddDTO.getType() != null ? batchAddDTO.getType() : NotificationTypeEnum.SYSTEM.getCode());
-        msg.setSenderId(batchAddDTO.getSenderId());
+        // 如果未传 senderId，使用当前登录用户
+        UUID batchSenderId = batchAddDTO.getSenderId() != null ? batchAddDTO.getSenderId() : com.dayz.sapientiacloud_edupivot.system.common.security.utils.UserContextUtil.getCurrentUserId();
+        msg.setSenderId(batchSenderId);
         msg.setSenderName(batchAddDTO.getSenderName());
         msg.setCreateTime(now);
         msg.setUpdateTime(now);
@@ -317,7 +339,9 @@ public class SysNotificationServiceImpl extends ServiceImpl<SysNotificationMsgMa
         batchAddDTO.setTitle(scopeSendDTO.getTitle());
         batchAddDTO.setContent(scopeSendDTO.getContent());
         batchAddDTO.setType(scopeSendDTO.getType());
-        batchAddDTO.setSenderId(scopeSendDTO.getSenderId());
+        // 确保 senderId 存在（若未传则使用当前登录用户）
+        UUID scopeSenderId = scopeSendDTO.getSenderId() != null ? scopeSendDTO.getSenderId() : com.dayz.sapientiacloud_edupivot.system.common.security.utils.UserContextUtil.getCurrentUserId();
+        batchAddDTO.setSenderId(scopeSenderId);
         batchAddDTO.setSenderName(scopeSendDTO.getSenderName());
         batchAddDTO.setAttachmentUrls(scopeSendDTO.getAttachmentUrls());
 

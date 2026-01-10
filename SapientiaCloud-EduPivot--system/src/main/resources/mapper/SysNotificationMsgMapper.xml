@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dayz.sapientiacloud_edupivot.system.mapper.SysNotificationMsgMapper">
+
+    <!-- 分页查询当前用户已发送的消息（包含接收总数及已读数统计） -->
+    <select id="listSentNotificationVO" resultType="com.dayz.sapientiacloud_edupivot.system.entity.vo.NotificationVO">
+        SELECT
+            m.id,
+            NULL AS user_id,
+            m.title,
+            m.content,
+            m.attachment_urls AS attachmentUrls,
+            m.type,
+            NULL AS status,
+            NULL AS read_time,
+            m.sender_id,
+            m.sender_name,
+            m.create_time,
+            m.update_time,
+            COUNT(u.id) AS recipientCount,
+            SUM(CASE WHEN u.status = 1 THEN 1 ELSE 0 END) AS readCount
+        FROM sys_notification_msg m
+        LEFT JOIN sys_notification_user u ON u.notification_id = m.id
+        <where>
+            AND (m.is_deleted = 0 OR m.is_deleted IS NULL)
+            <if test="query != null and query.senderId != null">
+                AND m.sender_id = #{query.senderId}
+            </if>
+            <if test="query != null and query.title != null and query.title != ''">
+                AND m.title LIKE CONCAT('%', #{query.title}, '%')
+            </if>
+            <if test="query != null and query.type != null">
+                AND m.type = #{query.type}
+            </if>
+            <if test="query != null and query.startTime != null">
+                AND m.create_time &gt;= #{query.startTime}
+            </if>
+            <if test="query != null and query.endTime != null">
+                AND m.create_time &lt;= #{query.endTime}
+            </if>
+        </where>
+        GROUP BY m.id
+        ORDER BY m.create_time DESC
+    </select>
+
+</mapper>
+
+

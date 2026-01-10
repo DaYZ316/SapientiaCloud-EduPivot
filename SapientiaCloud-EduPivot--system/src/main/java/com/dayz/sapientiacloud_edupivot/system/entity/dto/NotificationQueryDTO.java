@@ -25,6 +25,14 @@ public class NotificationQueryDTO extends PageEntity implements Serializable {
     @Schema(name = "userId", description = "用户ID")
     private UUID userId;
 
+    @Schema(name = "senderId", description = "发送者ID（用于查询已发送）")
+    private UUID senderId;
+
+    @Schema(name = "boxType", description = "消息箱类型 (0=received/收件箱, 1=sent/已发送)")
+    @Min(value = 0, message = "消息箱类型输入不正确")
+    @Max(value = 1, message = "消息箱类型输入不正确")
+    private Integer boxType;
+
     @Schema(name = "type", description = "通知类型")
     @Min(value = 0, message = "通知类型输入不正确")
     @Max(value = 4, message = "通知类型输入不正确")

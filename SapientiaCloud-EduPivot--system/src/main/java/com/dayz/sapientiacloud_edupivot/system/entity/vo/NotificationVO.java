@@ -60,5 +60,11 @@ public class NotificationVO implements Serializable {
     @Schema(name = "updateTime", description = "更新时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updateTime;
+
+    @Schema(name = "recipientCount", description = "收件人数（仅对已发送消息有效）")
+    private Integer recipientCount;
+
+    @Schema(name = "readCount", description = "已读人数（仅对已发送消息有效）")
+    private Integer readCount;
 }
 
