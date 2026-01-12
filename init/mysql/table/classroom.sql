@@ -167,6 +167,7 @@ DROP TABLE IF EXISTS `mg_classroom_question`;
 CREATE TABLE `mg_classroom_question`  (
                                           `id` binary(16) NOT NULL COMMENT '主键ID（唯一标识一条课堂-题目关联记录）',
                                           `classroom_id` binary(16) NOT NULL COMMENT '关联课堂ID（对应mg_course_record.id）',
+                                          `course_id` binary(16) NOT NULL COMMENT '关联课程ID（对应mg_course.id）',
                                           `question_id` binary(16) NOT NULL COMMENT '关联题目ID（关联题库中题目的的唯一标识）',
                                           `question_title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '题目标题',
                                           `publish_order` int NULL DEFAULT 0 COMMENT '题目发布顺序（控制课堂内题目展示的先后顺序）',
@@ -181,6 +182,7 @@ CREATE TABLE `mg_classroom_question`  (
                                           PRIMARY KEY (`id`) USING BTREE,
                                           UNIQUE INDEX `idx_classroom_question`(`classroom_id` ASC, `question_id` ASC, `is_deleted` ASC) USING BTREE COMMENT '确保同一课堂内题目不重复',
                                           INDEX `idx_classroom_id`(`classroom_id` ASC) USING BTREE COMMENT '快速查询某课堂的所有题目',
+                                          INDEX `idx_course_id`(`course_id` ASC) USING BTREE COMMENT '快速查询某课程的所有题目',
                                           INDEX `idx_question_id`(`question_id` ASC) USING BTREE COMMENT '查询题目关联的课堂'
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '课堂-题目关联表（记录课堂发布的题目及配置信息）' ROW_FORMAT = DYNAMIC;
 

@@ -22,6 +22,9 @@ public class ClassroomQuestionQueryDTO extends PageEntity implements Serializabl
     @Schema(description = "课堂记录ID")
     private UUID classroomId;
 
+    @Schema(description = "课程ID")
+    private UUID courseId;
+
     @TableField(exist = false)
     private LocalDateTime createTime;
 

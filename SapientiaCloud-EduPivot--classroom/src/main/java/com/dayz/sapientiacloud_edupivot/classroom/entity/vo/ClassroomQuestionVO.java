@@ -21,6 +21,12 @@ public class ClassroomQuestionVO implements Serializable {
     @Schema(description = "课堂记录ID")
     private UUID classroomId;
 
+    @Schema(description = "课程ID")
+    private UUID courseId;
+
+    @Schema(description = "课程名称")
+    private String classroomName;
+
     @Schema(description = "题目ID")
     private UUID questionId;
 

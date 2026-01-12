@@ -34,11 +34,11 @@ public class QuestionController extends BaseController {
 
     private final IQuestionService questionService;
 
-    //    @HasPermission(
-//            summary = "listQuestion",
-//            description = "根据传入的条件分页查询题目信息。支持根据题目标题、题目类型、难度等级等字段进行查询。",
-//            permission = PermissionConstants.QUESTION_QUERY
-//    )
+        @HasPermission(
+            summary = "listQuestion",
+            description = "根据传入的条件分页查询题目信息。支持根据题目标题、题目类型、难度等级等字段进行查询。",
+            permission = PermissionConstants.QUESTION_QUERY
+    )
     @GetMapping("/list")
     public TableDataResult listQuestion(@ParameterObject QuestionQueryDTO questionQueryDTO) {
         startPage();
@@ -46,22 +46,22 @@ public class QuestionController extends BaseController {
         return getDataTable(pageInfo.getList());
     }
 
-    //    @HasPermission(
-//            summary = "listAllQuestion",
-//            description = "获取所有题目列表。",
-//            permission = PermissionConstants.QUESTION_QUERY
-//    )
+        @HasPermission(
+            summary = "listAllQuestion",
+            description = "获取所有题目列表。",
+            permission = PermissionConstants.QUESTION_QUERY
+    )
     @GetMapping("/all")
     public Result<List<QuestionVO>> listAllQuestion() {
         List<QuestionVO> questionVOList = questionService.listAllQuestion();
         return Result.success(questionVOList);
     }
 
-    //    @HasPermission(
-//            summary = "getQuestionById",
-//            description = "通过题目的唯一ID获取其详细信息。",
-//            permission = PermissionConstants.QUESTION_QUERY
-//    )
+        @HasPermission(
+            summary = "getQuestionById",
+            description = "通过题目的唯一ID获取其详细信息。",
+            permission = PermissionConstants.QUESTION_QUERY
+    )
     @GetMapping("/{id}")
     public Result<QuestionVO> getQuestionById(
             @Parameter(name = "id", description = "题目ID", required = true) @PathVariable("id") UUID id

@@ -7,6 +7,7 @@ public class QuestionConstants {
     // MongoDB 字段名称
     public static final String FIELD_ID = "_id";
     public static final String FIELD_QUESTION_BANK_ID = "question_bank_id";
+    public static final String FIELD_COURSE_ID = "course_id";
     public static final String FIELD_SYS_USER_ID = "sys_user_id";
     public static final String FIELD_QUESTION_TITLE = "question_title";
     public static final String FIELD_QUESTION_CONTENT = "question_content";

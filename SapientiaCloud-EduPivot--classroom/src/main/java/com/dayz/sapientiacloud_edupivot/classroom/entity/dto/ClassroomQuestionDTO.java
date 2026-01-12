@@ -26,6 +26,10 @@ public class ClassroomQuestionDTO implements Serializable {
     @NotNull(message = "课堂ID不能为空")
     private UUID classroomId;
 
+    @Schema(description = "课程ID")
+    @NotNull(message = "课程ID不能为空")
+    private UUID courseId;
+
     @Schema(description = "题目ID")
     @NotNull(message = "题目ID不能为空")
     private UUID questionId;

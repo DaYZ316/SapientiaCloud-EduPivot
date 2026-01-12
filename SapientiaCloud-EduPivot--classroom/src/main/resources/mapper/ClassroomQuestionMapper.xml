@@ -19,6 +19,8 @@
     <resultMap id="ClassroomQuestionVOMap" type="com.dayz.sapientiacloud_edupivot.classroom.entity.vo.ClassroomQuestionVO">
         <id column="id" property="id"/>
         <result column="classroom_id" property="classroomId"/>
+        <result column="course_id" property="courseId"/>
+        <result column="classroom_name" property="classroomName"/>
         <result column="question_id" property="questionId"/>
         <result column="question_title" property="questionTitle"/>
         <result column="publish_order" property="publishOrder"/>
@@ -70,20 +72,26 @@
 
     <select id="listClassroomQuestionVO" resultMap="ClassroomQuestionVOMap">
         SELECT
-            id,
-            classroom_id,
-            question_id,
-            question_title,
-            publish_order,
-            is_required,
-            start_time,
-            end_time
-        FROM mg_classroom_question
-        WHERE is_deleted = 0
+            cq.id,
+            cq.classroom_id,
+            cr.course_id,
+            cr.course_name as classroom_name,
+            cq.question_id,
+            cq.question_title,
+            cq.publish_order,
+            cq.is_required,
+            cq.start_time,
+            cq.end_time
+        FROM mg_classroom_question cq
+        LEFT JOIN mg_course_record cr ON cq.classroom_id = cr.id AND cr.is_deleted = 0
+        WHERE cq.is_deleted = 0
         <if test="classroomId != null">
-            AND classroom_id = #{classroomId}
+            AND cq.classroom_id = #{classroomId}
         </if>
-        ORDER BY publish_order ASC, create_time ASC
+        <if test="courseId != null">
+            AND cr.course_id = #{courseId}
+        </if>
+        ORDER BY cq.publish_order ASC, cq.create_time ASC
     </select>
 
     <update id="softDeleteById" parameterType="java.util.UUID">
@@ -95,19 +103,22 @@
 
     <select id="listVOByClassroomId" parameterType="java.util.UUID" resultMap="ClassroomQuestionVOMap">
         SELECT
-            id,
-            classroom_id,
-            question_id,
-            question_title,
-            publish_order,
-            score,
-            is_required,
-            start_time,
-            end_time
-        FROM mg_classroom_question
-        WHERE classroom_id = #{classroomId}
-          AND is_deleted = 0
-        ORDER BY publish_order ASC, create_time ASC
+            cq.id,
+            cq.classroom_id,
+            cr.course_id,
+            cr.course_name as classroom_name,
+            cq.question_id,
+            cq.question_title,
+            cq.publish_order,
+            cq.score,
+            cq.is_required,
+            cq.start_time,
+            cq.end_time
+        FROM mg_classroom_question cq
+        LEFT JOIN mg_course_record cr ON cq.classroom_id = cr.id AND cr.is_deleted = 0
+        WHERE cq.classroom_id = #{classroomId}
+          AND cq.is_deleted = 0
+        ORDER BY cq.publish_order ASC, cq.create_time ASC
     </select>
 
 </mapper>

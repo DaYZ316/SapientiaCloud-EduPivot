@@ -33,6 +33,10 @@ public class ClassroomQuestion extends BaseEntity {
     @TableField("classroom_id")
     private UUID classroomId;
 
+    @Schema(description = "课程ID")
+    @TableField("course_id")
+    private UUID courseId;
+
     @Schema(description = "题目ID")
     @TableField("question_id")
     private UUID questionId;

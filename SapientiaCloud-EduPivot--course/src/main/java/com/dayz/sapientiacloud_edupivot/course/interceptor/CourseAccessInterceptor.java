@@ -1,10 +1,10 @@
 package com.dayz.sapientiacloud_edupivot.course.interceptor;
 
 import com.dayz.sapientiacloud_edupivot.course.common.enums.ResultEnum;
-import com.dayz.sapientiacloud_edupivot.course.common.enums.StatusEnum;
 import com.dayz.sapientiacloud_edupivot.course.common.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.course.common.security.utils.UserContextUtil;
-import com.dayz.sapientiacloud_edupivot.course.entity.po.Course;
+import com.dayz.sapientiacloud_edupivot.course.entity.vo.CourseVO;
+import com.dayz.sapientiacloud_edupivot.course.enums.CourseEnum;
 import com.dayz.sapientiacloud_edupivot.course.enums.PublicStatusEnum;
 import com.dayz.sapientiacloud_edupivot.course.mapper.CourseAssistantTeacherMapper;
 import com.dayz.sapientiacloud_edupivot.course.mapper.CourseMapper;
@@ -34,6 +34,7 @@ public class CourseAccessInterceptor implements HandlerInterceptor {
 
     /**
      * 从请求路径中提取课程ID
+     * 只有当路径中包含/course/段落时，才会提取后续的UUID作为courseId
      * 支持的路径模式：
      * - /course/{courseId}
      * - /course/{courseId}/...
@@ -43,12 +44,16 @@ public class CourseAccessInterceptor implements HandlerInterceptor {
         String requestURI = request.getRequestURI();
         String[] pathSegments = requestURI.split("/");
 
-        // 查找路径中的课程ID (UUID格式)
-        for (String segment : pathSegments) {
-            try {
-                return UUID.fromString(segment);
-            } catch (IllegalArgumentException e) {
-                // 不是有效的UUID，继续查找
+        // 检查是否为course相关的路径模式
+        for (int i = 0; i < pathSegments.length - 1; i++) {
+            if ("course".equals(pathSegments[i])) {
+                // 找到course段落，后一个段落应该是courseId
+                String potentialCourseId = pathSegments[i + 1];
+                try {
+                    return UUID.fromString(potentialCourseId);
+                } catch (IllegalArgumentException e) {
+                    // 不是有效的UUID，继续查找
+                }
             }
         }
 
@@ -103,18 +108,13 @@ public class CourseAccessInterceptor implements HandlerInterceptor {
         }
 
         // 获取课程信息
-        Course course = courseMapper.selectById(courseId);
-        if (course == null) {
-            throw new BusinessException("课程不存在");
-        }
-
-        // 检查课程状态
-        if (!course.getStatus().equals(StatusEnum.NORMAL.getCode())) {
-            throw new BusinessException("课程已停课或不可用");
+        CourseVO courseVO = courseMapper.getCourseById(courseId);
+        if (courseVO == null) {
+            throw new BusinessException(CourseEnum.COURSE_NOT_EXISTS);
         }
 
         // 如果课程为公开，直接放行
-        if (course.getIsPublic().equals(PublicStatusEnum.PUBLIC.getCode())) {
+        if (courseVO.getIsPublic().equals(PublicStatusEnum.PUBLIC.getCode())) {
             return true;
         }
 
