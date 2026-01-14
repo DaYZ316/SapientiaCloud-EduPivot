@@ -2,6 +2,7 @@ package com.dayz.sapientiacloud_edupivot.student.common.controller;
 
 import com.dayz.sapientiacloud_edupivot.student.common.result.TableDataResult;
 import com.dayz.sapientiacloud_edupivot.student.common.utils.PageUtil;
+import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.WebDataBinder;
@@ -45,5 +46,9 @@ public class BaseController {
 
     protected TableDataResult getDataTable(List<?> list) {
         return PageUtil.getDataTable(list);
+    }
+
+    protected TableDataResult getDataTable(com.github.pagehelper.PageInfo<?> pageInfo) {
+        return PageUtil.getDataTable(pageInfo);
     }
 } 

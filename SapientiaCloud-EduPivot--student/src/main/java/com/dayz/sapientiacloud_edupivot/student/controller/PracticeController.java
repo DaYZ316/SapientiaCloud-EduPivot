@@ -3,9 +3,13 @@ package com.dayz.sapientiacloud_edupivot.student.controller;
 import com.dayz.sapientiacloud_edupivot.student.common.controller.BaseController;
 import com.dayz.sapientiacloud_edupivot.student.common.result.Result;
 import com.dayz.sapientiacloud_edupivot.student.common.result.TableDataResult;
+import com.github.pagehelper.PageInfo;
+import com.dayz.sapientiacloud_edupivot.student.common.security.annotation.HasPermission;
+import com.dayz.sapientiacloud_edupivot.student.constant.PermissionConstants;
 import com.dayz.sapientiacloud_edupivot.student.entity.dto.QuestionStudentAddDTO;
 import com.dayz.sapientiacloud_edupivot.student.entity.dto.QuestionStudentDTO;
 import com.dayz.sapientiacloud_edupivot.student.entity.dto.QuestionStudentQueryDTO;
+import com.dayz.sapientiacloud_edupivot.student.entity.vo.PracticeStatisticsVO;
 import com.dayz.sapientiacloud_edupivot.student.entity.vo.QuestionStudentVO;
 import com.dayz.sapientiacloud_edupivot.student.service.IQuestionStudentService;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -26,45 +30,44 @@ public class PracticeController extends BaseController {
 
     private final IQuestionStudentService questionStudentService;
 
-    //    @HasPermission(
-//            summary = "summaryMyPractice",
-//            description = "获取当前学生的练习汇总（跨课堂）",
-//            permission = PermissionConstants.STUDENT_PRACTICE_QUERY
-//    )
+        @HasPermission(
+            summary = "summaryMyPractice",
+            description = "获取当前学生的练习汇总（跨课堂）",
+            permission = PermissionConstants.STUDENT_PRACTICE_QUERY
+    )
     @GetMapping("/summary/me")
     public Result<List<QuestionStudentVO>> summaryMyPractice() {
         List<QuestionStudentVO> list = questionStudentService.summaryMy();
         return Result.success(list);
     }
 
-    //    @HasPermission(
-//            summary = "listPractice",
-//            description = "分页查询课堂练习作答记录",
-//            permission = PermissionConstants.STUDENT_PRACTICE_QUERY
-//    )
+        @HasPermission(
+            summary = "listPractice",
+            description = "分页查询课堂练习作答记录",
+            permission = PermissionConstants.STUDENT_PRACTICE_QUERY
+    )
     @GetMapping("/list")
     public TableDataResult listPractice(@ParameterObject QuestionStudentQueryDTO queryDTO) {
-        startPage();
-        List<QuestionStudentVO> list = questionStudentService.list(queryDTO);
-        return getDataTable(list);
+        PageInfo<QuestionStudentVO> pageInfo = questionStudentService.listPaged(queryDTO);
+        return getDataTable(pageInfo);
     }
 
-    //    @HasPermission(
-//            summary = "listAllPractice",
-//            description = "获取全部课堂练习作答记录",
-//            permission = PermissionConstants.STUDENT_PRACTICE_QUERY
-//    )
+        @HasPermission(
+            summary = "listAllPractice",
+            description = "获取全部课堂练习作答记录",
+            permission = PermissionConstants.STUDENT_PRACTICE_QUERY
+    )
     @GetMapping("/all")
     public Result<List<QuestionStudentVO>> listAllPractice() {
         List<QuestionStudentVO> list = questionStudentService.listAll();
         return Result.success(list);
     }
 
-    //    @HasPermission(
-//            summary = "listPracticeByClassroomAndStudent",
-//            description = "根据课堂ID和学生ID查询课堂练习作答记录",
-//            permission = PermissionConstants.STUDENT_PRACTICE_QUERY
-//    )
+        @HasPermission(
+            summary = "listPracticeByClassroomAndStudent",
+            description = "根据课堂ID和学生ID查询课堂练习作答记录",
+            permission = PermissionConstants.STUDENT_PRACTICE_QUERY
+    )
     @GetMapping("/classroom/{classroomId}/student/{studentId}")
     public Result<List<QuestionStudentVO>> listPracticeByClassroomAndStudent(
             @Parameter(name = "classroomId", description = "课堂ID", required = true) @PathVariable("classroomId") UUID classroomId,
@@ -77,11 +80,50 @@ public class PracticeController extends BaseController {
         return Result.success(list);
     }
 
-    //    @HasPermission(
-//            summary = "checkDuplicatePractice",
-//            description = "根据题目ID和学生ID查重，检查是否存在重复的练习记录",
-//            permission = PermissionConstants.STUDENT_PRACTICE_QUERY
-//    )
+        @HasPermission(
+            summary = "listPracticeByPractice",
+            description = "根据练习ID查询课堂练习作答记录",
+            permission = PermissionConstants.STUDENT_PRACTICE_QUERY
+    )
+    @GetMapping("/practice/{practiceId}")
+    public Result<List<QuestionStudentVO>> listPracticeByPractice(
+            @Parameter(name = "practiceId", description = "练习ID", required = true) @PathVariable("practiceId") UUID practiceId
+    ) {
+        List<QuestionStudentVO> list = questionStudentService.listByPractice(practiceId);
+        return Result.success(list);
+    }
+
+    @HasPermission(
+            summary = "getPracticeStatistics",
+            description = "获取练习统计信息（题目总数、正确/错误/半对数量）",
+            permission = PermissionConstants.STUDENT_PRACTICE_QUERY
+    )
+    @GetMapping("/statistics/{practiceId}")
+    public Result<PracticeStatisticsVO> getPracticeStatistics(
+            @Parameter(name = "practiceId", description = "练习ID", required = true) @PathVariable("practiceId") UUID practiceId
+    ) {
+        PracticeStatisticsVO statistics = questionStudentService.getPracticeStatistics(practiceId);
+        return Result.success(statistics);
+    }
+
+        @HasPermission(
+            summary = "listPracticeByCourse",
+            description = "根据课程ID查询课堂练习作答记录",
+            permission = PermissionConstants.STUDENT_PRACTICE_QUERY
+    )
+    @GetMapping("/course/{courseId}")
+    public Result<List<QuestionStudentVO>> listPracticeByCourse(
+            @Parameter(name = "courseId", description = "课程ID", required = true) @PathVariable("courseId") UUID courseId
+    ) {
+        List<QuestionStudentVO> list = questionStudentService.listByCourse(courseId);
+        return Result.success(list);
+    }
+
+        @HasPermission(
+            summary = "checkDuplicatePractice",
+            description = "根据题目ID和学生ID查重，检查是否存在重复的练习记录",
+            permission = PermissionConstants.STUDENT_PRACTICE_QUERY
+    )
     @GetMapping("/check-duplicate")
     public Result<Boolean> checkDuplicatePractice(
             @Parameter(name = "questionId", description = "题目ID", required = true) @RequestParam("questionId") UUID questionId,
@@ -91,11 +133,11 @@ public class PracticeController extends BaseController {
         return Result.success(exists);
     }
 
-    //    @HasPermission(
-//            summary = "getPracticeById",
-//            description = "根据ID获取课堂练习作答记录",
-//            permission = PermissionConstants.STUDENT_PRACTICE_QUERY
-//    )
+        @HasPermission(
+            summary = "getPracticeById",
+            description = "根据ID获取课堂练习作答记录",
+            permission = PermissionConstants.STUDENT_PRACTICE_QUERY
+    )
     @GetMapping("/{id}")
     public Result<QuestionStudentVO> getPracticeById(
             @Parameter(name = "id", description = "作答记录ID", required = true) @PathVariable("id") UUID id
@@ -104,11 +146,11 @@ public class PracticeController extends BaseController {
         return Result.success(data);
     }
 
-    //    @HasPermission(
-//            summary = "addPractice",
-//            description = "新增课堂练习作答记录",
-//            permission = PermissionConstants.STUDENT_PRACTICE_ADD
-//    )
+        @HasPermission(
+            summary = "addPractice",
+            description = "新增课堂练习作答记录",
+            permission = PermissionConstants.STUDENT_PRACTICE_ADD
+    )
     @PostMapping
     public Result<Boolean> addPractice(
             @Valid @RequestBody QuestionStudentAddDTO dto
@@ -117,11 +159,11 @@ public class PracticeController extends BaseController {
         return Result.success(result);
     }
 
-    //    @HasPermission(
-//            summary = "updatePractice",
-//            description = "更新课堂练习作答记录",
-//            permission = PermissionConstants.STUDENT_PRACTICE_EDIT
-//    )
+        @HasPermission(
+            summary = "updatePractice",
+            description = "更新课堂练习作答记录",
+            permission = PermissionConstants.STUDENT_PRACTICE_EDIT
+    )
     @PutMapping
     public Result<Boolean> updatePractice(
             @Valid @RequestBody QuestionStudentDTO dto
@@ -130,11 +172,11 @@ public class PracticeController extends BaseController {
         return Result.success(result);
     }
 
-    //    @HasPermission(
-//            summary = "removePracticeById",
-//            description = "根据ID删除课堂练习作答记录",
-//            permission = PermissionConstants.STUDENT_PRACTICE_DELETE
-//    )
+        @HasPermission(
+            summary = "removePracticeById",
+            description = "根据ID删除课堂练习作答记录",
+            permission = PermissionConstants.STUDENT_PRACTICE_DELETE
+    )
     @DeleteMapping("/{id}")
     public Result<Boolean> removePracticeById(
             @Parameter(name = "id", description = "作答记录ID", required = true) @PathVariable("id") UUID id
@@ -143,11 +185,11 @@ public class PracticeController extends BaseController {
         return Result.success(result);
     }
 
-    //    @HasPermission(
-//            summary = "removePracticeByIds",
-//            description = "批量删除课堂练习作答记录",
-//            permission = PermissionConstants.STUDENT_PRACTICE_DELETE
-//    )
+        @HasPermission(
+            summary = "removePracticeByIds",
+            description = "批量删除课堂练习作答记录",
+            permission = PermissionConstants.STUDENT_PRACTICE_DELETE
+    )
     @DeleteMapping
     public Result<Integer> removePracticeByIds(
             @RequestBody List<UUID> ids

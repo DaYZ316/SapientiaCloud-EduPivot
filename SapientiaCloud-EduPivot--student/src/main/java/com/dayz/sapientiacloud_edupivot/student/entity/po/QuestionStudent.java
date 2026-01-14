@@ -36,17 +36,20 @@ public class QuestionStudent implements Serializable {
     @Field("question_id")
     private UUID questionId;
 
+    @Field("practice_id")
+    private UUID practiceId;
+
+    @Field("course_id")
+    private UUID courseId;
+
     @Field("answer")
     private AnswerPayload answer;
 
     @Field("is_correct")
-    private Boolean isCorrect;
+    private Integer isCorrect;
 
     @Field("score")
     private Float score;
-
-    @Field("submit_time")
-    private LocalDateTime submitTime;
 
     @Field("create_time")
     private LocalDateTime createTime;

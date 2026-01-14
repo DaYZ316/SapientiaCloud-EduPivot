@@ -7,7 +7,6 @@ import lombok.Data;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
@@ -29,16 +28,19 @@ public class QuestionStudentAddDTO implements Serializable {
     @NotNull(message = "题目ID不能为空")
     private UUID questionId;
 
+    @Schema(description = "练习ID")
+    private UUID practiceId;
+
+    @Schema(description = "课程ID")
+    private UUID courseId;
+
     @Schema(description = "作答内容")
     private AnswerPayload answer;
 
-    @Schema(description = "是否正确")
-    private Boolean isCorrect;
+    @Schema(description = "是否正确(0-错误,1-正确,2-半对)")
+    private Integer isCorrect;
 
     @Schema(description = "得分")
     private Float score;
-
-    @Schema(description = "提交时间")
-    private LocalDateTime submitTime;
 }
 
