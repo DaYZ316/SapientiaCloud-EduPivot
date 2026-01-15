@@ -18,6 +18,8 @@ public interface IQuestionStudentService {
 
     List<QuestionStudentVO> listByPractice(UUID practiceId);
 
+    List<QuestionStudentVO> listByPracticeAndStudent(UUID practiceId, UUID studentId);
+
     List<QuestionStudentVO> listByCourse(UUID courseId);
 
     List<QuestionStudentVO> list(QuestionStudentQueryDTO queryDTO);

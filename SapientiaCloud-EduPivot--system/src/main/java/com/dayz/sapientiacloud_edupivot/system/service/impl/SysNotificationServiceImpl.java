@@ -1,32 +1,21 @@
 package com.dayz.sapientiacloud_edupivot.system.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dayz.sapientiacloud_edupivot.system.common.clients.CourseClient;
 import com.dayz.sapientiacloud_edupivot.system.common.clients.vo.CourseStudentClientVO;
 import com.dayz.sapientiacloud_edupivot.system.common.enums.DeletedEnum;
 import com.dayz.sapientiacloud_edupivot.system.common.exception.BusinessException;
-import com.dayz.sapientiacloud_edupivot.system.entity.dto.NotificationAddDTO;
-import com.dayz.sapientiacloud_edupivot.system.entity.dto.NotificationBatchAddDTO;
-import com.dayz.sapientiacloud_edupivot.system.entity.dto.NotificationDTO;
-import com.dayz.sapientiacloud_edupivot.system.entity.dto.NotificationQueryDTO;
-import com.dayz.sapientiacloud_edupivot.system.entity.dto.NotificationScopeSendDTO;
+import com.dayz.sapientiacloud_edupivot.system.common.security.utils.UserContextUtil;
+import com.dayz.sapientiacloud_edupivot.system.entity.dto.*;
 import com.dayz.sapientiacloud_edupivot.system.entity.po.SysNotificationMsg;
 import com.dayz.sapientiacloud_edupivot.system.entity.po.SysNotificationUser;
 import com.dayz.sapientiacloud_edupivot.system.entity.po.SysRole;
 import com.dayz.sapientiacloud_edupivot.system.entity.po.SysUser;
 import com.dayz.sapientiacloud_edupivot.system.entity.vo.NotificationVO;
-import com.dayz.sapientiacloud_edupivot.system.enums.NotificationEnum;
-import com.dayz.sapientiacloud_edupivot.system.enums.NotificationStatusEnum;
-import com.dayz.sapientiacloud_edupivot.system.enums.NotificationTargetScopeEnum;
-import com.dayz.sapientiacloud_edupivot.system.enums.NotificationBoxTypeEnum;
-import com.dayz.sapientiacloud_edupivot.system.common.security.utils.UserContextUtil;
-import com.dayz.sapientiacloud_edupivot.system.enums.NotificationTypeEnum;
-import com.dayz.sapientiacloud_edupivot.system.mapper.SysNotificationMsgMapper;
-import com.dayz.sapientiacloud_edupivot.system.mapper.SysNotificationUserMapper;
-import com.dayz.sapientiacloud_edupivot.system.mapper.SysRoleMapper;
-import com.dayz.sapientiacloud_edupivot.system.mapper.SysUserMapper;
-import com.dayz.sapientiacloud_edupivot.system.mapper.SysUserRoleMapper;
+import com.dayz.sapientiacloud_edupivot.system.enums.*;
+import com.dayz.sapientiacloud_edupivot.system.mapper.*;
 import com.dayz.sapientiacloud_edupivot.system.service.ISysNotificationService;
 import com.github.f4b6a3.uuid.UuidCreator;
 import com.github.pagehelper.PageHelper;
@@ -37,7 +26,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
-import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -128,7 +116,7 @@ public class SysNotificationServiceImpl extends ServiceImpl<SysNotificationMsgMa
 
         SysNotificationMsg notificationMsg = sysNotificationMsgMapper.selectById(notificationUser.getNotificationId());
         if (notificationMsg == null || (notificationMsg.getDeleted() != null && notificationMsg.getDeleted().equals(DeletedEnum.DELETED.getCode()))) {
-             throw new BusinessException(NotificationEnum.NOTIFICATION_NOT_EXISTS);
+            throw new BusinessException(NotificationEnum.NOTIFICATION_NOT_EXISTS);
         }
 
         return combineToVO(notificationMsg, notificationUser);
@@ -148,8 +136,8 @@ public class SysNotificationServiceImpl extends ServiceImpl<SysNotificationMsgMa
         // 使用显式的 UpdateWrapper 指定要更新的列，避免实体映射/更新策略导致字段未被持久化的问题
         UpdateWrapper<SysNotificationMsg> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq("id", msgId)
-                     .set("is_deleted", DeletedEnum.DELETED.getCode())
-                     .set("update_time", LocalDateTime.now());
+                .set("is_deleted", DeletedEnum.DELETED.getCode())
+                .set("update_time", LocalDateTime.now());
 
         int rows = sysNotificationMsgMapper.update(null, updateWrapper);
         return rows > 0;
@@ -398,7 +386,7 @@ public class SysNotificationServiceImpl extends ServiceImpl<SysNotificationMsgMa
 
         SysNotificationUser user = sysNotificationUserMapper.selectById(id);
         if (user == null) {
-             throw new BusinessException(NotificationEnum.NOTIFICATION_NOT_EXISTS);
+            throw new BusinessException(NotificationEnum.NOTIFICATION_NOT_EXISTS);
         }
 
         user.setStatus(NotificationStatusEnum.READ.getCode());
@@ -415,9 +403,11 @@ public class SysNotificationServiceImpl extends ServiceImpl<SysNotificationMsgMa
             throw new BusinessException(NotificationEnum.NOTIFICATION_IDS_REQUIRED);
         }
 
-        List<SysNotificationUser> userList = sysNotificationUserMapper.selectBatchIds(ids);
+        LambdaQueryWrapper<SysNotificationUser> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.in(SysNotificationUser::getId, ids);
+        List<SysNotificationUser> userList = sysNotificationUserMapper.selectList(queryWrapper);
         if (CollectionUtils.isEmpty(userList)) {
-             throw new BusinessException(NotificationEnum.NOTIFICATION_NOT_EXISTS);
+            throw new BusinessException(NotificationEnum.NOTIFICATION_NOT_EXISTS);
         }
 
         LocalDateTime now = LocalDateTime.now();
@@ -483,8 +473,11 @@ public class SysNotificationServiceImpl extends ServiceImpl<SysNotificationMsgMa
             throw new BusinessException(NotificationEnum.NOTIFICATION_IDS_REQUIRED);
         }
 
-        // 物理删除
-        int count = sysNotificationUserMapper.deleteBatchIds(ids);
+        // 使用 LambdaUpdateWrapper 进行批量删除
+        LambdaQueryWrapper<SysNotificationUser> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.in(SysNotificationUser::getId, ids);
+
+        int count = sysNotificationUserMapper.delete(queryWrapper);
         if (count == 0) {
             throw new BusinessException(NotificationEnum.NOTIFICATION_NOT_EXISTS);
         }
@@ -495,7 +488,9 @@ public class SysNotificationServiceImpl extends ServiceImpl<SysNotificationMsgMa
      * 组合 Msg 和 User 为 VO
      */
     private NotificationVO combineToVO(SysNotificationMsg msg, SysNotificationUser user) {
-        if (msg == null) return null;
+        if (msg == null) {
+            return null;
+        }
 
         NotificationVO vo = new NotificationVO();
         // 复制 msg 属性

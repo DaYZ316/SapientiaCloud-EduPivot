@@ -37,9 +37,8 @@ public class ClassroomPracticeController extends BaseController {
     )
     @GetMapping("/list")
     public TableDataResult listClassroomPractice(@ParameterObject ClassroomQuestionQueryDTO dto) {
-        startPage();
         PageInfo<ClassroomQuestionVO> pageInfo = classroomQuestionService.listPage(dto);
-        return getDataTable(pageInfo.getList());
+        return getDataTable(pageInfo);
     }
 
         @HasPermission(

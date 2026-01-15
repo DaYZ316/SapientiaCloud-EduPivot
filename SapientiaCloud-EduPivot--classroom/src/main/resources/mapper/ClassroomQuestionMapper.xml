@@ -91,6 +91,18 @@
         <if test="courseId != null">
             AND cr.course_id = #{courseId}
         </if>
+        <if test="title != null and title != ''">
+            AND cq.question_title LIKE CONCAT('%', #{title}, '%')
+        </if>
+        <if test="isRequired != null">
+            AND cq.is_required = #{isRequired}
+        </if>
+        <if test="startTime != null">
+            AND cq.start_time >= #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND cq.start_time <![CDATA[<=]]> #{endTime}
+        </if>
         ORDER BY cq.publish_order ASC, cq.create_time ASC
     </select>
 

@@ -40,7 +40,9 @@ public class LiveEventPublisher {
 
     private void publishToKey(String key, Object payload) {
         List<SseEmitter> list = emittersByClassroom.get(key);
-        if (list == null || list.isEmpty()) return;
+        if (list == null || list.isEmpty()) {
+            return;
+        }
         for (SseEmitter emitter : list) {
             try {
                 emitter.send(SseEmitter.event().data(payload));

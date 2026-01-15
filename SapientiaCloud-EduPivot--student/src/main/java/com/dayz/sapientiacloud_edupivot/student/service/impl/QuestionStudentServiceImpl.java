@@ -74,6 +74,20 @@ public class QuestionStudentServiceImpl implements IQuestionStudentService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "QuestionStudent", key = "'practice:' + #p0 + ':student:' + #p1", condition = "#p0 != null && #p1 != null")
+    public List<QuestionStudentVO> listByPracticeAndStudent(UUID practiceId, UUID studentId) {
+        if (practiceId == null) {
+            throw new BusinessException(StudentPracticeEnum.PRACTICE_ID_REQUIRED);
+        }
+        if (studentId == null) {
+            throw new BusinessException(StudentPracticeEnum.STUDENT_ID_REQUIRED);
+        }
+        List<QuestionStudent> list = questionStudentRepository.findByPracticeIdAndStudentIdAndIsDeleted(practiceId, studentId, QuestionStudentConstants.STATUS_NOT_DELETED);
+        return convertToVOList(list);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     @Cacheable(value = "QuestionStudent", key = "#p0", condition = "#p0 != null")
     public List<QuestionStudentVO> listByCourse(UUID courseId) {
         if (courseId == null) {
@@ -204,7 +218,7 @@ public class QuestionStudentServiceImpl implements IQuestionStudentService {
             throw new BusinessException(StudentPracticeEnum.SUBMISSION_NOT_FOUND);
         }
         QuestionStudent questionStudent = questionStudentRepository.findById(id)
-                .filter(q -> q.getIsDeleted() != null && q.getIsDeleted() == QuestionStudentConstants.STATUS_NOT_DELETED)
+                .filter(q -> q.getIsDeleted() != null && q.getIsDeleted().equals(QuestionStudentConstants.STATUS_NOT_DELETED))
                 .orElseThrow(() -> new BusinessException(StudentPracticeEnum.SUBMISSION_NOT_FOUND));
 
         // 获取学生信息并设置学生姓名
@@ -265,7 +279,7 @@ public class QuestionStudentServiceImpl implements IQuestionStudentService {
                             log.info("自动批阅成功: questionId={}, questionType={}, score={}, isCorrect={}",
                                     dto.getQuestionId(), questionType, reviewResult.score, reviewResult.isCorrect);
                         }
-                    } else if (questionType == QuestionStudentConstants.QUESTION_TYPE_ESSAY) {
+                    } else if (questionType.equals(QuestionStudentConstants.QUESTION_TYPE_ESSAY)) {
                         // 简答题设置为待批阅状态
                         entity.setIsCorrect(QuestionStudentConstants.ANSWER_PENDING_REVIEW);
                         entity.setScore(null);
@@ -298,7 +312,7 @@ public class QuestionStudentServiceImpl implements IQuestionStudentService {
             throw new BusinessException(StudentPracticeEnum.SUBMISSION_NOT_FOUND);
         }
         QuestionStudent existing = questionStudentRepository.findById(dto.getId())
-                .filter(q -> q.getIsDeleted() != null && q.getIsDeleted() == QuestionStudentConstants.STATUS_NOT_DELETED)
+                .filter(q -> q.getIsDeleted() != null && q.getIsDeleted().equals(QuestionStudentConstants.STATUS_NOT_DELETED))
                 .orElseThrow(() -> new BusinessException(StudentPracticeEnum.SUBMISSION_NOT_FOUND));
         existing.setClassroomId(dto.getClassroomId());
         existing.setStudentId(dto.getStudentId());
@@ -318,7 +332,7 @@ public class QuestionStudentServiceImpl implements IQuestionStudentService {
     @CacheEvict(value = "QuestionStudent", allEntries = true)
     public Boolean removeById(UUID id) {
         QuestionStudent existing = questionStudentRepository.findById(id)
-                .filter(q -> q.getIsDeleted() != null && q.getIsDeleted() == QuestionStudentConstants.STATUS_NOT_DELETED)
+                .filter(q -> q.getIsDeleted() != null && q.getIsDeleted().equals(QuestionStudentConstants.STATUS_NOT_DELETED))
                 .orElseThrow(() -> new BusinessException(StudentPracticeEnum.SUBMISSION_NOT_FOUND));
         existing.setIsDeleted(QuestionStudentConstants.STATUS_DELETED);
         existing.setUpdateTime(LocalDateTime.now());
@@ -334,7 +348,7 @@ public class QuestionStudentServiceImpl implements IQuestionStudentService {
             return 0;
         }
         List<QuestionStudent> list = questionStudentRepository.findAllById(ids).stream()
-                .filter(q -> q.getIsDeleted() != null && q.getIsDeleted() == QuestionStudentConstants.STATUS_NOT_DELETED)
+                .filter(q -> q.getIsDeleted() != null && q.getIsDeleted().equals(QuestionStudentConstants.STATUS_NOT_DELETED))
                 .collect(Collectors.toList());
         LocalDateTime now = LocalDateTime.now();
         list.forEach(q -> {
@@ -494,7 +508,7 @@ public class QuestionStudentServiceImpl implements IQuestionStudentService {
             Integer isCorrect = option.get(QuestionStudentConstants.OPTION_IS_CORRECT) != null ?
                     Integer.parseInt(option.get(QuestionStudentConstants.OPTION_IS_CORRECT).toString()) : QuestionStudentConstants.ANSWER_INCORRECT;
 
-            if (isCorrect == QuestionStudentConstants.ANSWER_CORRECT) {
+            if (isCorrect.equals(QuestionStudentConstants.ANSWER_CORRECT)) {
                 correctOptions.put(optionLabel.toLowerCase(), option);
             } else {
                 incorrectOptions.put(optionLabel.toLowerCase(), option);
@@ -514,7 +528,7 @@ public class QuestionStudentServiceImpl implements IQuestionStudentService {
 
         // 检查是否选择了错误选项 - 如果是，全错
         boolean hasIncorrectSelection = studentOptionLabels.stream()
-                .anyMatch(label -> incorrectOptions.containsKey(label));
+                .anyMatch(incorrectOptions::containsKey);
 
         if (hasIncorrectSelection) {
             return new AutoReviewResult(AnswerStatusEnum.INCORRECT.getCode(), 0f);
@@ -717,10 +731,10 @@ public class QuestionStudentServiceImpl implements IQuestionStudentService {
 
         // 统计各种状态的数量
         long totalQuestions = questionStudents.size();
-        long correctCount = questionStudents.stream().filter(qs -> qs.getIsCorrect() != null && qs.getIsCorrect() == QuestionStudentConstants.ANSWER_CORRECT).count();
-        long incorrectCount = questionStudents.stream().filter(qs -> qs.getIsCorrect() != null && qs.getIsCorrect() == QuestionStudentConstants.ANSWER_INCORRECT).count();
-        long partialCount = questionStudents.stream().filter(qs -> qs.getIsCorrect() != null && qs.getIsCorrect() == QuestionStudentConstants.ANSWER_PARTIALLY_CORRECT).count();
-        long pendingReviewCount = questionStudents.stream().filter(qs -> qs.getIsCorrect() != null && qs.getIsCorrect() == QuestionStudentConstants.ANSWER_PENDING_REVIEW).count();
+        long correctCount = questionStudents.stream().filter(qs -> qs.getIsCorrect() != null && qs.getIsCorrect().equals(QuestionStudentConstants.ANSWER_CORRECT)).count();
+        long incorrectCount = questionStudents.stream().filter(qs -> qs.getIsCorrect() != null && qs.getIsCorrect().equals(QuestionStudentConstants.ANSWER_INCORRECT)).count();
+        long partialCount = questionStudents.stream().filter(qs -> qs.getIsCorrect() != null && qs.getIsCorrect().equals(QuestionStudentConstants.ANSWER_PARTIALLY_CORRECT)).count();
+        long pendingReviewCount = questionStudents.stream().filter(qs -> qs.getIsCorrect() != null && qs.getIsCorrect().equals(QuestionStudentConstants.ANSWER_PENDING_REVIEW)).count();
 
         // 计算题目平均分
         double averageScore = questionStudents.stream()

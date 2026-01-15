@@ -19,7 +19,9 @@ public enum NotificationBoxTypeEnum {
 
     public static NotificationBoxTypeEnum fromCode(int code) {
         for (NotificationBoxTypeEnum e : values()) {
-            if (e.code == code) return e;
+            if (e.code == code) {
+                return e;
+            }
         }
         return null;
     }
