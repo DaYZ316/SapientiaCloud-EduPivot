@@ -25,6 +25,12 @@ public class ClassroomQuestionQueryDTO extends PageEntity implements Serializabl
     @Schema(description = "课程ID")
     private UUID courseId;
 
+    @Schema(description = "题目标题（模糊匹配）")
+    private String title;
+
+    @Schema(description = "是否必答（0-否，1-是）")
+    private Integer isRequired;
+
     @TableField(exist = false)
     private LocalDateTime createTime;
 

@@ -21,6 +21,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.apache.commons.lang3.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -36,8 +37,11 @@ public class ClassroomQuestionServiceImpl extends ServiceImpl<ClassroomQuestionM
     @Override
     @Transactional(readOnly = true)
     public PageInfo<ClassroomQuestionVO> listPage(ClassroomQuestionQueryDTO classroomQuestionQueryDTO) {
+        String orderBy = classroomQuestionQueryDTO != null && StringUtils.isNotEmpty(classroomQuestionQueryDTO.getOrderByColumn())
+            ? classroomQuestionQueryDTO.getOrderByColumn() + " " + classroomQuestionQueryDTO.getIsAsc()
+            : "";
         return PageHelper
-                .startPage(classroomQuestionQueryDTO == null ? 1 : classroomQuestionQueryDTO.getPageNum(), classroomQuestionQueryDTO == null ? 10 : classroomQuestionQueryDTO.getPageSize())
+                .startPage(classroomQuestionQueryDTO == null ? 1 : classroomQuestionQueryDTO.getPageNum(), classroomQuestionQueryDTO == null ? 10 : classroomQuestionQueryDTO.getPageSize(), orderBy)
                 .doSelectPageInfo(() -> classroomQuestionMapper.listClassroomQuestionVO(classroomQuestionQueryDTO));
     }
 

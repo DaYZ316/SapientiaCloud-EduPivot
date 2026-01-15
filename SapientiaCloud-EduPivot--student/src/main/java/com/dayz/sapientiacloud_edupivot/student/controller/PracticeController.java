@@ -30,7 +30,7 @@ public class PracticeController extends BaseController {
 
     private final IQuestionStudentService questionStudentService;
 
-        @HasPermission(
+    @HasPermission(
             summary = "summaryMyPractice",
             description = "获取当前学生的练习汇总（跨课堂）",
             permission = PermissionConstants.STUDENT_PRACTICE_QUERY
@@ -41,7 +41,7 @@ public class PracticeController extends BaseController {
         return Result.success(list);
     }
 
-        @HasPermission(
+    @HasPermission(
             summary = "listPractice",
             description = "分页查询课堂练习作答记录",
             permission = PermissionConstants.STUDENT_PRACTICE_QUERY
@@ -52,7 +52,7 @@ public class PracticeController extends BaseController {
         return getDataTable(pageInfo);
     }
 
-        @HasPermission(
+    @HasPermission(
             summary = "listAllPractice",
             description = "获取全部课堂练习作答记录",
             permission = PermissionConstants.STUDENT_PRACTICE_QUERY
@@ -63,7 +63,7 @@ public class PracticeController extends BaseController {
         return Result.success(list);
     }
 
-        @HasPermission(
+    @HasPermission(
             summary = "listPracticeByClassroomAndStudent",
             description = "根据课堂ID和学生ID查询课堂练习作答记录",
             permission = PermissionConstants.STUDENT_PRACTICE_QUERY
@@ -80,7 +80,7 @@ public class PracticeController extends BaseController {
         return Result.success(list);
     }
 
-        @HasPermission(
+    @HasPermission(
             summary = "listPracticeByPractice",
             description = "根据练习ID查询课堂练习作答记录",
             permission = PermissionConstants.STUDENT_PRACTICE_QUERY
@@ -90,6 +90,20 @@ public class PracticeController extends BaseController {
             @Parameter(name = "practiceId", description = "练习ID", required = true) @PathVariable("practiceId") UUID practiceId
     ) {
         List<QuestionStudentVO> list = questionStudentService.listByPractice(practiceId);
+        return Result.success(list);
+    }
+
+    @HasPermission(
+            summary = "listPracticeByPracticeAndStudent",
+            description = "根据练习ID和学生ID查询课堂练习作答记录",
+            permission = PermissionConstants.STUDENT_PRACTICE_QUERY
+    )
+    @GetMapping("/practice/{practiceId}/student/{studentId}")
+    public Result<List<QuestionStudentVO>> listPracticeByPracticeAndStudent(
+            @Parameter(name = "practiceId", description = "练习ID", required = true) @PathVariable("practiceId") UUID practiceId,
+            @Parameter(name = "studentId", description = "学生ID", required = true) @PathVariable("studentId") UUID studentId
+    ) {
+        List<QuestionStudentVO> list = questionStudentService.listByPracticeAndStudent(practiceId, studentId);
         return Result.success(list);
     }
 
@@ -106,7 +120,7 @@ public class PracticeController extends BaseController {
         return Result.success(statistics);
     }
 
-        @HasPermission(
+    @HasPermission(
             summary = "listPracticeByCourse",
             description = "根据课程ID查询课堂练习作答记录",
             permission = PermissionConstants.STUDENT_PRACTICE_QUERY
@@ -117,20 +131,6 @@ public class PracticeController extends BaseController {
     ) {
         List<QuestionStudentVO> list = questionStudentService.listByCourse(courseId);
         return Result.success(list);
-    }
-
-        @HasPermission(
-            summary = "checkDuplicatePractice",
-            description = "根据题目ID和学生ID查重，检查是否存在重复的练习记录",
-            permission = PermissionConstants.STUDENT_PRACTICE_QUERY
-    )
-    @GetMapping("/check-duplicate")
-    public Result<Boolean> checkDuplicatePractice(
-            @Parameter(name = "questionId", description = "题目ID", required = true) @RequestParam("questionId") UUID questionId,
-            @Parameter(name = "studentId", description = "学生ID", required = true) @RequestParam("studentId") UUID studentId
-    ) {
-        Boolean exists = questionStudentService.existsByQuestionIdAndStudentId(questionId, studentId);
-        return Result.success(exists);
     }
 
         @HasPermission(
