@@ -5,6 +5,7 @@ import com.dayz.sapientiacloud_edupivot.celestial_hub.common.result.Result;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.common.security.annotation.HasPermission;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.constant.PermissionConstants;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.ChatRequestDTO;
+import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.KafkaChatRequestDTO;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.po.ChatMessage;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.vo.ChatResponseVO;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.IChatMessageService;
@@ -46,6 +47,32 @@ public class ChatMessageController extends BaseController {
     @PostMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<String> chatStream(@Valid @RequestBody ChatRequestDTO request) {
         return chatMessageService.chatStream(request);
+    }
+
+    @HasPermission(
+            summary = "chatStreamKafka",
+            description = "通过Kafka转发消息并以流式方式接收AI回复",
+            permission = PermissionConstants.CELESTIAL_ADD
+    )
+    @PostMapping(value = "/stream/kafka", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<String> chatStreamKafka(@Valid @RequestBody KafkaChatRequestDTO request) {
+        return chatMessageService.chatStreamKafka(request);
+    }
+
+    // TODO 逻辑优化
+    @HasPermission(
+            summary = "cancelChatStreamKafka",
+            description = "取消Kafka流式聊天请求",
+            permission = PermissionConstants.CELESTIAL_EDIT
+    )
+    @PostMapping("/stream/kafka/{requestId}/cancel")
+    public Result<Boolean> cancelChatStreamKafka(
+            @Parameter(name = "requestId", description = "请求ID", required = true)
+            @PathVariable("requestId") String requestId,
+            @Parameter(name = "reason", description = "取消原因")
+            @RequestParam(value = "reason", required = false) String reason) {
+        chatMessageService.cancelKafkaChat(requestId, reason);
+        return Result.success(Boolean.TRUE);
     }
 
     @HasPermission(

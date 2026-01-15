@@ -46,10 +46,6 @@ public class CourseForum extends BaseEntity implements Serializable {
     @Field("forum_type")
     private Integer forumType;
 
-    @Schema(name = "isPublic", description = "是否公开 (0=仅课程成员, 1=公开)")
-    @Field("is_public")
-    private Integer isPublic;
-
     @Schema(name = "allowAnonymous", description = "是否允许匿名发帖 (0=不允许, 1=允许)")
     @Field("allow_anonymous")
     private Integer allowAnonymous;

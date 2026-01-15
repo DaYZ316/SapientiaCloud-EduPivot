@@ -178,6 +178,20 @@ public class CourseTaskServiceImpl implements ICourseTaskService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "CourseTask", key = "'all'")
+    public List<CourseTaskVO> listAllCourseTask() {
+        Query query = new Query();
+        Criteria criteria = new Criteria();
+        criteria.and(CourseTaskConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode());
+        query.addCriteria(criteria);
+        query.with(Sort.by(Sort.Direction.DESC, CourseTaskConstants.FIELD_CREATE_TIME));
+
+        List<CourseTask> tasks = mongoTemplate.find(query, CourseTask.class);
+        return convertToVOList(tasks);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     @Cacheable(value = "CourseTask", key = "'course:' + #p0 + ':status:' + #p1", condition = "#p0 != null && #p1 != null")
     public List<CourseTaskVO> listCourseTaskByCourseIdAndStatus(UUID courseId, Integer status) {
         if (courseId == null) {

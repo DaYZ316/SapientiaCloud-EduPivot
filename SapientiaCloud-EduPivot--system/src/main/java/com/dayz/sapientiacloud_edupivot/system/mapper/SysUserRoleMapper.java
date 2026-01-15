@@ -33,4 +33,7 @@ public interface SysUserRoleMapper {
     int removeUserRolesByRoleId(UUID id);
 
     int removeRolesByRoleIds(@Param("ids") List<UUID> ids);
+
+    @Select("SELECT user_id FROM sys_user_role WHERE role_id = #{roleId}")
+    List<UUID> getUserIdsByRoleId(UUID roleId);
 }

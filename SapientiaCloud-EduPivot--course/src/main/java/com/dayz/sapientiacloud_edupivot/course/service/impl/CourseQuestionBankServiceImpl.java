@@ -71,10 +71,6 @@ public class CourseQuestionBankServiceImpl implements ICourseQuestionBankService
             criteria.and(CourseQuestionBankConstants.FIELD_DIFFICULTY).is(courseQuestionBankQueryDTO.getDifficulty());
         }
 
-        if (courseQuestionBankQueryDTO.getIsPublic() != null) {
-            criteria.and(CourseQuestionBankConstants.FIELD_IS_PUBLIC).is(courseQuestionBankQueryDTO.getIsPublic());
-        }
-
         if (!CollectionUtils.isEmpty(courseQuestionBankQueryDTO.getTags())) {
             criteria.and(CourseQuestionBankConstants.FIELD_TAGS).in(courseQuestionBankQueryDTO.getTags());
         }
@@ -182,10 +178,6 @@ public class CourseQuestionBankServiceImpl implements ICourseQuestionBankService
             throw new BusinessException(CourseQuestionBankEnum.COURSE_QUESTION_BANK_DIFFICULTY_REQUIRED);
         }
 
-        if (courseQuestionBankDTO.getIsPublic() == null) {
-            throw new BusinessException(CourseQuestionBankEnum.COURSE_QUESTION_BANK_IS_PUBLIC_REQUIRED);
-        }
-
         if (courseQuestionBankDTO.getBankType() < CourseQuestionBankConstants.BANK_TYPE_MIN ||
                 courseQuestionBankDTO.getBankType() > CourseQuestionBankConstants.BANK_TYPE_MAX) {
             throw new BusinessException(CourseQuestionBankEnum.COURSE_QUESTION_BANK_TYPE_REQUIRED);
@@ -194,11 +186,6 @@ public class CourseQuestionBankServiceImpl implements ICourseQuestionBankService
         if (courseQuestionBankDTO.getDifficulty() < CourseQuestionBankConstants.DIFFICULTY_MIN ||
                 courseQuestionBankDTO.getDifficulty() > CourseQuestionBankConstants.DIFFICULTY_MAX) {
             throw new BusinessException(CourseQuestionBankEnum.COURSE_QUESTION_BANK_DIFFICULTY_REQUIRED);
-        }
-
-        if (courseQuestionBankDTO.getIsPublic() < CourseQuestionBankConstants.IS_PUBLIC_MIN ||
-                courseQuestionBankDTO.getIsPublic() > CourseQuestionBankConstants.IS_PUBLIC_MAX) {
-            throw new BusinessException(CourseQuestionBankEnum.COURSE_QUESTION_BANK_IS_PUBLIC_REQUIRED);
         }
 
         CourseQuestionBank questionBank = new CourseQuestionBank();
@@ -252,9 +239,6 @@ public class CourseQuestionBankServiceImpl implements ICourseQuestionBankService
         }
         if (courseQuestionBankDTO.getDifficulty() != null) {
             existingQuestionBank.setDifficulty(courseQuestionBankDTO.getDifficulty());
-        }
-        if (courseQuestionBankDTO.getIsPublic() != null) {
-            existingQuestionBank.setIsPublic(courseQuestionBankDTO.getIsPublic());
         }
 
         existingQuestionBank.setUpdateTime(LocalDateTime.now());

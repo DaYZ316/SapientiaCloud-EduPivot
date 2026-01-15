@@ -54,4 +54,9 @@ public class CourseDTO implements Serializable {
     @Min(value = 0, message = "课程状态输入不正确")
     @Max(value = 1, message = "课程状态输入不正确")
     private Integer status;
+
+    @Schema(name = "isPublic", description = "是否公开 (0=仅课程成员, 1=公开)")
+    @Min(value = 0, message = "公开状态输入不正确")
+    @Max(value = 1, message = "公开状态输入不正确")
+    private Integer isPublic;
 }

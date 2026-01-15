@@ -2,8 +2,10 @@ package com.dayz.sapientiacloud_edupivot.course.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseStudentQueryDTO;
+import com.dayz.sapientiacloud_edupivot.course.entity.dto.MyCourseForStudentQueryDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.po.CourseStudent;
 import com.dayz.sapientiacloud_edupivot.course.entity.vo.CourseStudentVO;
+import com.dayz.sapientiacloud_edupivot.course.entity.vo.MyCourseVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -30,4 +32,6 @@ public interface CourseStudentMapper extends BaseMapper<CourseStudent> {
     Integer removeCourseStudentByIds(@Param("courseId") UUID courseId, @Param("studentIds") List<UUID> studentIds);
 
     List<CourseStudentVO> listAllCourseStudentByCourseIds(@Param("courseIds") List<UUID> courseIds);
+
+    List<MyCourseVO> listMyCourseForStudent(MyCourseForStudentQueryDTO myCourseForStudentQueryDTO);
 }

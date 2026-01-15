@@ -43,9 +43,34 @@ spring:
       password: ${MONGODB_PASSWORD}
       authentication-database: ${MONGODB_AUTH_DATABASE}
       type-mapper: none
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: all
+      retries: 3
+      enable-idempotence: true
+      compression-type: snappy
+      batch-size: 16384
+      linger-ms: 10
+      buffer-memory: 33554432
+    consumer:
+      group-id: chat-group
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      enable-auto-commit: false
+      auto-offset-reset: earliest
+    topic:
+      chat-request: chat-request-topic
+      chat-response: chat-response-topic
+      file-vectorize: file-vectorize-topic
+      question-request: question-request-topic
+      question-response: question-response-topic
+      live-events: live-events-topic
   ai:
     dashscope:
-      api-key: ${TONGYI_API_KEY}
+      api-key: sk-20c0c396a3f64130ac4c56c1a4b3aa00
       chat:
         options:
           model: qwen3-max
@@ -55,10 +80,16 @@ spring:
           model: text-embedding-v1
     vectorstore:
       redis:
-        initialize-schema: true
         index-name: knowledge-vector-index
-        prefix:
-          vector:
+        prefix: vector
+        initialize-schema: true
+
+kafka:
+  chat:
+    timeout-seconds: 300
+    sink-cache:
+      expire-after-write-minutes: 10
+      maximum-size: 1000
 
 MONGODB_HOST: localhost
 MONGODB_PORT: 27017
@@ -66,3 +97,5 @@ MONGODB_DATABASE: sapientiacloud_edupivot
 MONGODB_USERNAME: root
 MONGODB_PASSWORD: zhaosheng123
 MONGODB_AUTH_DATABASE: admin
+
+KAFKA_BOOTSTRAP_SERVERS: localhost:9092

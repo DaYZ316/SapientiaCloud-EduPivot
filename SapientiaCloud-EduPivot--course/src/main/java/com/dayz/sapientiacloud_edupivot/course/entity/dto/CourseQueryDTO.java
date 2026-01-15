@@ -37,4 +37,7 @@ public class CourseQueryDTO extends PageEntity implements Serializable {
 
     @Schema(name = "studentId", description = "学生ID")
     private UUID studentId;
+
+    @Schema(name = "isPublic", description = "是否公开 (0=仅课程成员, 1=公开)")
+    private Integer isPublic;
 }

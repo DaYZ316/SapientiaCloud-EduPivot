@@ -3,7 +3,6 @@ package com.dayz.sapientiacloud_edupivot.course.entity.po;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.dayz.sapientiacloud_edupivot.course.common.config.UuidListTypeHandler;
 import com.dayz.sapientiacloud_edupivot.course.common.entity.base.BaseEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -13,7 +12,6 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -39,10 +37,6 @@ public class Course extends BaseEntity implements Serializable {
     @TableField("teacher_id")
     private UUID teacherId;
 
-    @Schema(name = "assistantTeacherIds", description = "辅助教学教师ID列表")
-    @TableField(value = "assistant_teacher_ids", typeHandler = UuidListTypeHandler.class)
-    private List<UUID> assistantTeacherIds;
-
     @Schema(name = "description", description = "课程描述")
     @TableField("description")
     private String description;
@@ -66,4 +60,8 @@ public class Course extends BaseEntity implements Serializable {
     @Schema(name = "status", description = "课程状态 (0=正常, 1=停课)", example = "0")
     @TableField("status")
     private Integer status;
+
+    @Schema(name = "isPublic", description = "是否公开 (0=仅课程成员, 1=公开)")
+    @TableField("is_public")
+    private Integer isPublic;
 }

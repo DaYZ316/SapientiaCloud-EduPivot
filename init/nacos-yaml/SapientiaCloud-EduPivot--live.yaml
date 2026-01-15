@@ -1,0 +1,110 @@
+pagehelper:
+  helper-dialect: mysql
+  reasonable: true
+  support-methods-arguments: true
+  params: count=countSql
+
+mybatis-plus:
+  type-aliases-package: com.dayz.sapientiacloud_edupivot.live.common.entity
+  mapper-locations: classpath:mapper/**/*.xml
+  configuration:
+    cache-enabled: false
+    map-underscore-to-camel-case: true
+  global-config:
+    db-config:
+      id-type: assign_id
+      update-strategy: not_null
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 5000
+        readTimeout: 5000
+        loggerLevel: full
+  httpclient:
+    enabled: true
+
+spring:
+  jpa:
+    open-in-view: false
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+  data:
+    mongodb:
+      host: ${MONGODB_HOST}
+      port: ${MONGODB_PORT}
+      database: ${MONGODB_DATABASE}
+      username: ${MONGODB_USERNAME}
+      password: ${MONGODB_PASSWORD}
+      authentication-database: ${MONGODB_AUTH_DATABASE}
+      type-mapper: none
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: all
+      retries: 3
+      enable-idempotence: true
+      compression-type: snappy
+      batch-size: 16384
+      linger-ms: 10
+      buffer-memory: 33554432
+    consumer:
+      group-id: live-group
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      enable-auto-commit: false
+      auto-offset-reset: earliest
+    topic:
+      live-events: live-events-topic
+
+MONGODB_HOST: localhost
+MONGODB_PORT: 27017
+MONGODB_DATABASE: sapientiacloud_edupivot
+MONGODB_USERNAME: root
+MONGODB_PASSWORD: zhaosheng123
+MONGODB_AUTH_DATABASE: admin
+
+livekit:
+  host: ${LIVEKIT_HOST}
+  api-key: ${LIVEKIT_API_KEY}
+  api-secret: ${LIVEKIT_API_SECRET}
+  token-ttl-seconds: 7200
+  room:
+    empty-timeout-seconds: 300
+    departure-timeout-seconds: 20
+    max-participants: 500
+  egress:
+    enable: true
+    layout: speaker-dark
+    file-type: MP4
+    output-prefix: live-playback
+    playback-base-url: http://117.72.194.197:31589/sapientiacloud-live-playback
+    s3:
+      endpoint: http://117.72.194.197:31589
+      region: us-east-1
+      bucket: sapientiacloud-live-playback
+      access-key: root
+      secret-key: zhaosheng123
+      force-path-style: true
+
+  stun-servers:
+    - stun:stun.l.google.com:19302
+    - stun:stun.cloudflare.com:3478
+  turn:
+    urls: turn:${LIVEKIT_TURN_HOST}:3478?transport=udp
+    username: livekit
+    password: livekit123
+
+LIVEKIT_HOST: http://117.72.194.197:7880
+LIVEKIT_TURN_HOST: 117.72.194.197
+LIVEKIT_API_KEY: "livekitdevkey001"
+LIVEKIT_API_SECRET: "livekitdevsecret001abcdef1234567890abcd"
+
+KAFKA_BOOTSTRAP_SERVERS: localhost:9092

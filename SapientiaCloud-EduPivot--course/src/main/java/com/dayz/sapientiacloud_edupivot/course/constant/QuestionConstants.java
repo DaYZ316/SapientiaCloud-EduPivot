@@ -7,6 +7,7 @@ public class QuestionConstants {
     // MongoDB 字段名称
     public static final String FIELD_ID = "_id";
     public static final String FIELD_QUESTION_BANK_ID = "question_bank_id";
+    public static final String FIELD_COURSE_ID = "course_id";
     public static final String FIELD_SYS_USER_ID = "sys_user_id";
     public static final String FIELD_QUESTION_TITLE = "question_title";
     public static final String FIELD_QUESTION_CONTENT = "question_content";
@@ -21,6 +22,7 @@ public class QuestionConstants {
     public static final String FIELD_REFERENCE_ANSWER = "reference_answer";
     public static final String FIELD_IS_RANDOM = "is_random";
     public static final String FIELD_VIEW_COUNT = "view_count";
+    public static final String FIELD_CELESTIAL_QUESTION_ID = "celestial_question_id";
     public static final String FIELD_IS_DELETED = "is_deleted";
     public static final String FIELD_CREATE_TIME = "create_time";
     public static final String FIELD_UPDATE_TIME = "update_time";

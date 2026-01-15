@@ -34,32 +34,17 @@ public class CourseRecordStudentVO implements Serializable {
     @Schema(description = "课程ID")
     private UUID courseId;
 
-    @Schema(description = "课程名称")
-    private String courseName;
-
     @Schema(description = "座位编号 (从0开始)")
     private Integer seatIndex;
 
-    @Schema(description = "3D坐标X (横向)")
-    private Float locationX;
+    @Schema(description = "学生座位的x坐标")
+    private Integer locationX;
 
-    @Schema(description = "3D坐标Y (高度)")
-    private Float locationY;
+    @Schema(description = "学生座位的y坐标")
+    private Integer locationY;
 
-    @Schema(description = "3D坐标Z (纵深)")
-    private Float locationZ;
-
-    @Schema(description = "朝向角度 (弧度制)")
-    private Float rotationY;
-
-    @Schema(description = "座位状态 (normal, marked, reserved, occupied)")
-    private String seatStatus;
-
-    @Schema(description = "出勤状态 (0=未签到, 1=已签到, 2=缺席)")
-    private Integer attendanceStatus;
-
-    @Schema(description = "课堂互动得分 (可选)")
-    private Float participationScore;
+    @Schema(description = "座位状态 (0=正常, 2=已预留, 3=已占用)")
+    private Integer seatStatus;
 
     @Schema(description = "创建时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")

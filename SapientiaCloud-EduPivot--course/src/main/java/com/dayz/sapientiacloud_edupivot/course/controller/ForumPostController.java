@@ -67,6 +67,17 @@ public class ForumPostController extends BaseController {
     }
 
     @HasPermission(
+            summary = "listAllForumPost",
+            description = "获取所有论坛帖子列表。",
+            permission = PermissionConstants.POST_QUERY
+    )
+    @GetMapping("/all")
+    public Result<List<ForumPostVO>> listAllForumPost() {
+        List<ForumPostVO> postList = forumPostService.listAllForumPost();
+        return Result.success(postList);
+    }
+
+    @HasPermission(
             summary = "getForumPostById",
             description = "通过帖子的唯一ID获取其详细信息。",
             permission = PermissionConstants.POST_QUERY

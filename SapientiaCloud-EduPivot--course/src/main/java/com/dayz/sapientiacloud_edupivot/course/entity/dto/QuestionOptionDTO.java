@@ -13,12 +13,6 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * 题目选项数据传输对象
- *
- * @author SapientiaCloud
- * @since 2024-01-01
- */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -33,6 +27,9 @@ public class QuestionOptionDTO implements Serializable {
 
     @Schema(name = "questionId", description = "所属题目ID")
     private UUID questionId;
+
+    @Schema(name = "courseId", description = "所属课程ID")
+    private UUID courseId;
 
     @Schema(name = "optionContent", description = "选项内容")
     @NotBlank(message = "选项内容不能为空")

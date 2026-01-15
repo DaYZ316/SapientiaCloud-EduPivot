@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <include resource="org/springframework/boot/logging/logback/base.xml"/>
+
+    <appender name="KAFKA" class="com.github.danielwegener.logback.kafka.KafkaAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+        </encoder>
+
+        <topic>sapientiacloud-edupivot-all-logs</topic>
+
+        <producerConfig>bootstrap.servers=localhost:9092</producerConfig>
+
+        <fallbackAppender>CONSOLE</fallbackAppender>
+    </appender>
+
+    <logger name="com.dayz.sapientiacloud_edupivot" level="INFO" additivity="false">
+        <appender-ref ref="KAFKA"/>
+        <appender-ref ref="CONSOLE"/>
+    </logger>
+
+    <logger name="org.springframework" level="WARN">
+        <appender-ref ref="KAFKA"/>
+        <appender-ref ref="CONSOLE"/>
+    </logger>
+
+    <root level="INFO">
+        <appender-ref ref="KAFKA"/>
+        <appender-ref ref="CONSOLE"/>
+    </root>
+
+</configuration>

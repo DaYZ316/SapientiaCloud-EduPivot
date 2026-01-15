@@ -172,5 +172,18 @@ public class ChatSessionController extends BaseController {
         Boolean result = chatSessionService.archiveSession(id);
         return Result.success(result);
     }
+
+    @HasPermission(
+            summary = "generateSessionTitle",
+            description = "根据对话内容使用AI生成会话标题。",
+            permission = PermissionConstants.CELESTIAL_EDIT
+    )
+    @PostMapping("/{id}/generate-title")
+    public Result<String> generateSessionTitle(
+            @Parameter(name = "id", description = "会话ID", required = true) @PathVariable("id") UUID id
+    ) {
+        String title = chatSessionService.generateSessionTitle(id);
+        return Result.success(title);
+    }
 }
 

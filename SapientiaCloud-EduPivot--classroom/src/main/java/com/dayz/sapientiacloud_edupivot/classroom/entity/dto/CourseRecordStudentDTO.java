@@ -1,7 +1,9 @@
 package com.dayz.sapientiacloud_edupivot.classroom.entity.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.io.Serial;
@@ -32,32 +34,16 @@ public class CourseRecordStudentDTO implements Serializable {
     @Min(value = 0, message = "座位编号不能小于0")
     private Integer seatIndex;
 
-    @Schema(description = "3D坐标X (横向)")
-    @NotNull(message = "3D坐标X不能为空")
-    private Float locationX;
+    @Schema(description = "学生座位的x坐标")
+    @NotNull(message = "学生座位的x坐标不能为空")
+    private Integer locationX;
 
-    @Schema(description = "3D坐标Y (高度)")
-    @NotNull(message = "3D坐标Y不能为空")
-    private Float locationY;
+    @Schema(description = "学生座位的y坐标")
+    @NotNull(message = "学生座位的y坐标不能为空")
+    private Integer locationY;
 
-    @Schema(description = "3D坐标Z (纵深)")
-    @NotNull(message = "3D坐标Z不能为空")
-    private Float locationZ;
-
-    @Schema(description = "朝向角度 (弧度制)")
-    private Float rotationY;
-
-    @Schema(description = "座位状态 (normal, marked, reserved, occupied)")
-    @Size(max = 20, message = "座位状态不能超过20个字符")
-    private String seatStatus;
-
-    @Schema(description = "出勤状态 (0=未签到, 1=已签到, 2=缺席)")
-    @Min(value = 0, message = "出勤状态值无效")
-    @Max(value = 2, message = "出勤状态值无效")
-    private Integer attendanceStatus;
-
-    @Schema(description = "课堂互动得分 (可选)")
-    @DecimalMin(value = "0.0", message = "互动得分不能小于0")
-    @DecimalMax(value = "100.0", message = "互动得分不能大于100")
-    private Float participationScore;
+    @Schema(description = "座位状态 (0=正常, 2=已预留, 3=已占用)")
+    @Min(value = 0, message = "座位状态值无效")
+    @Max(value = 3, message = "座位状态值无效")
+    private Integer seatStatus;
 }

@@ -7,6 +7,7 @@ import com.dayz.sapientiacloud_edupivot.course.common.result.TableDataResult;
 import com.dayz.sapientiacloud_edupivot.course.common.security.annotation.HasPermission;
 import com.dayz.sapientiacloud_edupivot.course.constant.PermissionConstants;
 import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseTeacherQueryDTO;
+import com.dayz.sapientiacloud_edupivot.course.entity.dto.MyCourseForTeacherQueryDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.vo.CourseVO;
 import com.dayz.sapientiacloud_edupivot.course.service.ICourseTeacherService;
 import com.github.pagehelper.PageInfo;
@@ -67,19 +68,6 @@ public class CourseTeacherController extends BaseController {
     }
 
     @HasPermission(
-            summary = "assignTeacher",
-            description = "为指定课程分配主讲教师。",
-            permission = PermissionConstants.TEACHER_EDIT
-    )
-    @PostMapping("/{courseId}/teacher")
-    public Result<Boolean> assignTeacher(
-            @Parameter(name = "courseId", description = "课程ID", required = true) @PathVariable("courseId") UUID courseId,
-            @Parameter(name = "teacherId", description = "教师ID", required = true) @RequestParam("teacherId") UUID teacherId
-    ) {
-        return Result.success(courseTeacherService.assignTeacher(courseId, teacherId));
-    }
-
-    @HasPermission(
             summary = "assignCourseTeachers",
             description = "为指定课程批量分配教师团队，支持添加和移除教师。",
             permission = PermissionConstants.TEACHER_EDIT
@@ -90,5 +78,44 @@ public class CourseTeacherController extends BaseController {
             @Parameter(name = "teacherIds", description = "教师ID列表", required = true) @RequestBody List<UUID> teacherIds
     ) {
         return Result.success(courseTeacherService.assignCourseTeachers(courseId, teacherIds));
+    }
+
+    @HasPermission(
+            summary = "listMyCourseForTeacher",
+            description = "分页获取当前教师作为助教参与的课程。",
+            permission = PermissionConstants.TEACHER_QUERY
+    )
+    @GetMapping("my-course")
+    public TableDataResult listMyCourseForTeacher(@ParameterObject MyCourseForTeacherQueryDTO myCourseForTeacherQueryDTO) {
+        startPage();
+        PageInfo<CourseVO> pageInfo = courseTeacherService.listMyCourseForTeacher(myCourseForTeacherQueryDTO);
+        return getDataTable(pageInfo.getList());
+    }
+
+    @HasPermission(
+            summary = "batchAddAssistantTeachers",
+            description = "为指定课程批量添加助教教师关系。",
+            permission = PermissionConstants.TEACHER_EDIT
+    )
+    @PostMapping("/{courseId}/assistants/batch")
+    public Result<Boolean> batchAddAssistantTeachers(
+            @Parameter(name = "courseId", description = "课程ID", required = true) @PathVariable("courseId") UUID courseId,
+            @Parameter(name = "teacherIds", description = "教师ID列表", required = true) @RequestBody List<UUID> teacherIds
+    ) {
+        return Result.success(courseTeacherService.batchAddAssistantTeachers(courseId, teacherIds));
+    }
+
+    @HasPermission(
+            summary = "batchDeleteAssistantTeachers",
+            description = "为指定课程批量删除助教教师关系。",
+            permission = PermissionConstants.TEACHER_EDIT
+    )
+    @DeleteMapping("/{courseId}/assistants/batch")
+    public Result<Integer> batchDeleteAssistantTeachers(
+            @Parameter(name = "courseId", description = "课程ID", required = true) @PathVariable("courseId") UUID courseId,
+            @Parameter(name = "teacherIds", description = "教师ID列表", required = true) @RequestBody List<UUID> teacherIds
+    ) {
+        Integer result = courseTeacherService.batchDeleteAssistantTeachers(courseId, teacherIds);
+        return Result.success(result);
     }
 }

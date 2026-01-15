@@ -5,8 +5,10 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dayz.sapientiacloud_edupivot.course.common.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseStudentDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseStudentQueryDTO;
+import com.dayz.sapientiacloud_edupivot.course.entity.dto.MyCourseForStudentQueryDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.po.CourseStudent;
 import com.dayz.sapientiacloud_edupivot.course.entity.vo.CourseStudentVO;
+import com.dayz.sapientiacloud_edupivot.course.entity.vo.MyCourseVO;
 import com.dayz.sapientiacloud_edupivot.course.enums.CourseStudentEnum;
 import com.dayz.sapientiacloud_edupivot.course.enums.EnrollmentStatusEnum;
 import com.dayz.sapientiacloud_edupivot.course.mapper.CourseStudentMapper;
@@ -39,6 +41,16 @@ public class CourseStudentServiceImpl extends ServiceImpl<CourseStudentMapper, C
 
         return PageHelper.startPage(courseStudentQueryDTO.getPageNum(), courseStudentQueryDTO.getPageSize())
                 .doSelectPageInfo(() -> courseStudentMapper.listCourseStudent(courseStudentQueryDTO));
+    }
+
+    @Override
+    public PageInfo<MyCourseVO> listMyCourseForStudent(MyCourseForStudentQueryDTO myCourseForStudentQueryDTO) {
+        if (myCourseForStudentQueryDTO == null) {
+            throw new BusinessException(CourseStudentEnum.COURSE_STUDENT_REQUIRED);
+        }
+
+        return PageHelper.startPage(myCourseForStudentQueryDTO.getPageNum(), myCourseForStudentQueryDTO.getPageSize())
+                .doSelectPageInfo(() -> courseStudentMapper.listMyCourseForStudent(myCourseForStudentQueryDTO));
     }
 
     @Override

@@ -16,6 +16,8 @@ public interface IForumPostService {
 
     List<ForumPostVO> listAllForumPostByCourseId(UUID courseId);
 
+    List<ForumPostVO> listAllForumPost();
+
     ForumPostVO getForumPostById(UUID id);
 
     ForumPostVO addForumPost(ForumPostDTO forumPostDTO);

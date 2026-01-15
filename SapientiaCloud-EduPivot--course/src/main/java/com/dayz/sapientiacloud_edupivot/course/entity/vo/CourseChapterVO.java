@@ -40,7 +40,6 @@ public class CourseChapterVO implements Serializable {
     @Schema(name = "content", description = "章节内容")
     private String content;
 
-
     @Schema(name = "attachmentUrls", description = "附件URL列表")
     private List<String> attachmentUrls;
 

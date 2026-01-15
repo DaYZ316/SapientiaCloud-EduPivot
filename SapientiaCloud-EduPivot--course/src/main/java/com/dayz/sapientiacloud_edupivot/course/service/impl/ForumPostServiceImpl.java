@@ -163,6 +163,25 @@ public class ForumPostServiceImpl implements IForumPostService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "ForumPost", key = "'all'")
+    public List<ForumPostVO> listAllForumPost() {
+        Query query = new Query();
+        Criteria criteria = new Criteria();
+        criteria.and(ForumPostConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode());
+        query.addCriteria(criteria);
+        query.with(Sort.by(
+                Sort.Order.desc(ForumPostConstants.FIELD_IS_TOP),
+                Sort.Order.desc(ForumPostConstants.FIELD_IS_ESSENCE),
+                Sort.Order.desc(ForumPostConstants.FIELD_LIKE_COUNT),
+                Sort.Order.desc(ForumPostConstants.FIELD_CREATE_TIME)
+        ));
+
+        List<ForumPost> posts = mongoTemplate.find(query, ForumPost.class);
+        return convertToVOList(posts);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     @Cacheable(value = "ForumPost", key = "#p0", condition = "#p0 != null")
     public ForumPostVO getForumPostById(UUID id) {
         if (id == null) {

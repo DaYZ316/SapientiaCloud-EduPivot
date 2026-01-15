@@ -129,6 +129,20 @@ public class CourseChapterServiceImpl implements ICourseChapterService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "CourseChapter", key = "'all'")
+    public List<CourseChapterVO> listAllCourseChapter() {
+        Query query = new Query();
+        Criteria criteria = new Criteria();
+        criteria.and(CourseChapterConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode());
+        query.addCriteria(criteria);
+        query.with(Sort.by(Sort.Direction.ASC, CourseChapterConstants.FIELD_SORT_ORDER));
+
+        List<CourseChapter> chapters = mongoTemplate.find(query, CourseChapter.class);
+        return convertToVO(chapters);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     @Cacheable(value = "CourseChapter", key = "'tree:' + #p0", condition = "#p0 != null")
     public List<CourseChapterVO> listCourseChapterTree(UUID courseId) {
         if (courseId == null) {

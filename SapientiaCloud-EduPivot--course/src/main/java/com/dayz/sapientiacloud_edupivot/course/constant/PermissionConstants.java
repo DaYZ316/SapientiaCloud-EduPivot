@@ -69,21 +69,7 @@ public class PermissionConstants {
     public static final String QUESTION_ADD = "manage:question:add";
     public static final String QUESTION_EDIT = "manage:question:edit";
     public static final String QUESTION_DELETE = "manage:question:delete";
-    public static final String QUESTION_PUBLISH = "manage:question:publish";
-    public static final String QUESTION_UNPUBLISH = "manage:question:unpublish";
     public static final String QUESTION_VIEW = "manage:question:view";
-
-    // 题目选项权限
-    public static final String QUESTION_OPTION_QUERY = "manage:question-option:query";
-    public static final String QUESTION_OPTION_ADD = "manage:question-option:add";
-    public static final String QUESTION_OPTION_EDIT = "manage:question-option:edit";
-    public static final String QUESTION_OPTION_DELETE = "manage:question-option:delete";
-
-    // 题目答案权限
-    public static final String QUESTION_ANSWER_QUERY = "manage:question-answer:query";
-    public static final String QUESTION_ANSWER_ADD = "manage:question-answer:add";
-    public static final String QUESTION_ANSWER_EDIT = "manage:question-answer:edit";
-    public static final String QUESTION_ANSWER_DELETE = "manage:question-answer:delete";
 
     private PermissionConstants() {
         // 禁止实例化

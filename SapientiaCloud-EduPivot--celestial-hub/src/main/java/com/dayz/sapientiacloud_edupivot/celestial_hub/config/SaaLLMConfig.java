@@ -13,10 +13,15 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class SaaLLMConfig {
-    private final String QWEN_MODEL = "qwen3-max";
 
     @Value("${spring.ai.dashscope.api-key}")
     private String apiKey;
+
+    @Value("${spring.ai.dashscope.chat.options.model:qwen3-max}")
+    private String chatModel;
+
+    @Value("${spring.ai.dashscope.chat.options.temperature:0.7}")
+    private Double temperature;
 
     @Bean(name = "QWen")
     public ChatModel qWen() {
@@ -26,7 +31,8 @@ public class SaaLLMConfig {
                         .build())
                 .defaultOptions(
                         DashScopeChatOptions.builder()
-                                .withModel(QWEN_MODEL)
+                                .withModel(chatModel)
+                                .withTemperature(temperature)
                                 .build()
                 )
                 .build();
@@ -36,7 +42,7 @@ public class SaaLLMConfig {
     public ChatClient qWenChatClient(@Qualifier("QWen") ChatModel qwen) {
         return ChatClient.builder(qwen)
                 .defaultOptions(ChatOptions.builder()
-                        .model(QWEN_MODEL)
+                        .model(chatModel)
                         .build())
                 .build();
     }

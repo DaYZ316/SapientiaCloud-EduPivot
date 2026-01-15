@@ -11,7 +11,7 @@
  Target Server Version : 80031 (8.0.31)
  File Encoding         : 65001
 
- Date: 16/10/2025 22:53:27
+ Date: 16/12/2025 00:31:50
 */
 
 SET NAMES utf8mb4;
@@ -21,98 +21,59 @@ SET FOREIGN_KEY_CHECKS = 0;
 -- Table structure for config_info
 -- ----------------------------
 DROP TABLE IF EXISTS `config_info`;
-CREATE TABLE `config_info`
-(
-    `id`                 bigint                                                 NOT NULL AUTO_INCREMENT COMMENT 'id',
-    `data_id`            varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NOT NULL COMMENT 'data_id',
-    `group_id`           varchar(128) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NULL DEFAULT NULL,
-    `content`            longtext CHARACTER SET utf8mb3 COLLATE utf8mb3_bin     NOT NULL COMMENT 'content',
-    `md5`                varchar(32) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin  NULL DEFAULT NULL COMMENT 'md5',
-    `gmt_create`         datetime                                               NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `gmt_modified`       datetime                                               NULL DEFAULT CURRENT_TIMESTAMP COMMENT '修改时间',
-    `src_user`           text CHARACTER SET utf8mb3 COLLATE utf8mb3_bin         NULL COMMENT 'source user',
-    `src_ip`             varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin  NULL DEFAULT NULL COMMENT 'source ip',
-    `app_name`           varchar(128) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NULL DEFAULT NULL,
-    `tenant_id`          varchar(128) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NULL DEFAULT '' COMMENT '租户字段',
-    `c_desc`             varchar(256) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NULL DEFAULT NULL,
-    `c_use`              varchar(64) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin  NULL DEFAULT NULL,
-    `effect`             varchar(64) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin  NULL DEFAULT NULL,
-    `type`               varchar(64) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin  NULL DEFAULT NULL,
-    `c_schema`           text CHARACTER SET utf8mb3 COLLATE utf8mb3_bin         NULL,
-    `encrypted_data_key` text CHARACTER SET utf8mb3 COLLATE utf8mb3_bin         NULL COMMENT '秘钥',
-    PRIMARY KEY (`id`) USING BTREE,
-    UNIQUE INDEX `uk_configinfo_datagrouptenant` (`data_id` ASC, `group_id` ASC, `tenant_id` ASC) USING BTREE
-) ENGINE = InnoDB
-  AUTO_INCREMENT = 16
-  CHARACTER SET = utf8mb3
-  COLLATE = utf8mb3_bin COMMENT = 'config_info'
-  ROW_FORMAT = DYNAMIC;
+CREATE TABLE `config_info`  (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT 'id',
+  `data_id` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NOT NULL COMMENT 'data_id',
+  `group_id` varchar(128) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NULL DEFAULT NULL,
+  `content` longtext CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NOT NULL COMMENT 'content',
+  `md5` varchar(32) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NULL DEFAULT NULL COMMENT 'md5',
+  `gmt_create` datetime NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `gmt_modified` datetime NULL DEFAULT CURRENT_TIMESTAMP COMMENT '修改时间',
+  `src_user` text CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NULL COMMENT 'source user',
+  `src_ip` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NULL DEFAULT NULL COMMENT 'source ip',
+  `app_name` varchar(128) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NULL DEFAULT NULL,
+  `tenant_id` varchar(128) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NULL DEFAULT '' COMMENT '租户字段',
+  `c_desc` varchar(256) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NULL DEFAULT NULL,
+  `c_use` varchar(64) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NULL DEFAULT NULL,
+  `effect` varchar(64) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NULL DEFAULT NULL,
+  `type` varchar(64) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NULL DEFAULT NULL,
+  `c_schema` text CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NULL,
+  `encrypted_data_key` text CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NULL COMMENT '秘钥',
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `uk_configinfo_datagrouptenant`(`data_id` ASC, `group_id` ASC, `tenant_id` ASC) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 179 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_bin COMMENT = 'config_info' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of config_info
 -- ----------------------------
-INSERT INTO `config_info`
-VALUES (1, 'application.yaml', 'DEFAULT_GROUP',
-        'spring:\r\n  datasource:\r\n    driver-class-name: com.mysql.cj.jdbc.Driver\r\n    url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DATABASE}?rewriteBatchedStatements=true&characterEncoding=UTF-8&autoReconnect=true&failOverReadOnly=false&serverTimezone=Asia/Shanghai&allowMultiQueries=true\r\n    username: ${MYSQL_USERNAME}\r\n    password: ${MYSQL_PASSWORD}\r\n\r\n  data:\r\n    redis:\r\n      port: ${REDIS_PORT}\r\n      host: ${REDIS_HOST}\r\n      password: ${REDIS_PASSWORD}\r\n      timeout: 6000ms\r\n      lettuce:\r\n        pool:\r\n          max-active: 8\r\n          max-wait: -1ms\r\n          max-idle: 8\r\n          min-idle: 0\r\n\r\n  cache:\r\n    type: redis\r\n    redis:\r\n      time-to-live: 1800000\r\n      cache-null-values: true\r\n      use-key-prefix: true\r\n      key-prefix: SapientiaCloud-EduPivot\r\n    caffeine:\r\n      spec: maximumSize=500,expireAfterWrite=10m\r\n\r\nknife4j:\r\n  enable: true\r\n  basic:\r\n    enable: true\r\n    username: ${KNIFE4J_USERNAME}\r\n    password: ${KNIFE4J_PASSWORD}\r\n\r\nlogging:\r\n  level:\r\n    com.dayz.sapientiacloud_edupivot.*.mapper: DEBUG\r\n    org.springframework.http.server.reactive: DEBUG\r\n    org.springframework.web.reactive: DEBUG\r\n\r\n\r\nMYSQL_HOST: 127.0.0.1\r\nMYSQL_PORT: 3306\r\nMYSQL_USERNAME: root\r\nMYSQL_PASSWORD: zhaosheng123\r\nMYSQL_DATABASE: sapientiacloud_edupivot\r\nREDIS_HOST: 127.0.0.1\r\nREDIS_PORT: 6379\r\nREDIS_USERNAME:\r\nREDIS_PASSWORD: zhaosheng123\r\nKNIFE4J_USERNAME: admin\r\nKNIFE4J_PASSWORD: zhaosheng123',
-        '905c5618e5bdda82660a1d9807000413', '2025-08-04 23:56:52', '2025-08-04 23:56:52', 'nacos', '172.18.0.1', '', '',
-        NULL, NULL, NULL, 'yaml', NULL, '');
-INSERT INTO `config_info`
-VALUES (2, 'SapientiaCloud-EduPivot--auth.yaml', 'DEFAULT_GROUP',
-        'feign:\r\n  client:\r\n    config:\r\n      default:\r\n        connectTimeout: 5000\r\n        readTimeout: 5000\r\n        loggerLevel: full\r\n\r\nspring:\r\n  jpa:\r\n    open-in-view: false',
-        '0186b93d3bfbe0c2bdc55dd8cd270225', '2025-08-04 23:57:10', '2025-08-04 23:57:10', 'nacos', '172.18.0.1', '', '',
-        NULL, NULL, NULL, 'yaml', NULL, '');
-INSERT INTO `config_info`
-VALUES (3, 'SapientiaCloud-EduPivot--system.yaml', 'DEFAULT_GROUP',
-        'pagehelper:\r\n  helper-dialect: mysql\r\n  reasonable: true\r\n  support-methods-arguments: true\r\n  params: count=countSql\r\n\r\nmybatis-plus:\r\n  type-aliases-package: com.dayz.sapientiacloud_edupivot.system.entity\r\n  mapper-locations: classpath:mapper/**/*.xml\r\n  configuration:\r\n    cache-enabled: false\r\n    map-underscore-to-camel-case: true\r\n  global-config:\r\n    db-config:\r\n      id-type: assign_id\r\n      update-strategy: not_null\r\n      logic-delete-field: deleted\r\n      logic-delete-value: 1\r\n      logic-not-delete-value: 0\r\n\r\nfeign:\r\n  client:\r\n    config:\r\n      default:\r\n        connectTimeout: 5000\r\n        readTimeout: 5000\r\n        loggerLevel: full\r\n  httpclient:\r\n    enabled: true\r\n\r\nspring:\r\n  jpa:\r\n    open-in-view: false\r\n    show-sql: true\r\n    hibernate:\r\n      ddl-auto: update',
-        '63f71f1ecb3d3303b0f70ca818e225f8', '2025-08-05 00:14:29', '2025-08-05 00:14:29', 'nacos', '172.18.0.1', '', '',
-        NULL, NULL, NULL, 'yaml', NULL, '');
-INSERT INTO `config_info`
-VALUES (4, 'SapientiaCloud-EduPivot--gateway.yaml', 'DEFAULT_GROUP',
-        'spring:\n  cloud:\n    gateway:\n      routes:\n        - id: SapientiaCloud-EduPivot--system\n          uri: lb://SapientiaCloud-EduPivot--system\n          predicates:\n            - Path=/api/system/**\n          filters:\n            - StripPrefix=2\n        - id: SapientiaCloud-EduPivot--auth\n          uri: lb://SapientiaCloud-EduPivot--auth\n          predicates:\n            - Path=/api/auth/**\n          filters:\n            - StripPrefix=2\n        - id: SapientiaCloud-EduPivot--minIO\n          uri: lb://SapientiaCloud-EduPivot--minIO\n          predicates:\n            - Path=/api/minIO/**\n          filters:\n            - StripPrefix=2\n        - id: SapientiaCloud-EduPivot--teacher\n          uri: lb://SapientiaCloud-EduPivot--teacher\n          predicates:\n            - Path=/api/teacher/**\n          filters:\n            - StripPrefix=2\n        - id: SapientiaCloud-EduPivot--student\n          uri: lb://SapientiaCloud-EduPivot--student\n          predicates:\n            - Path=/api/student/**\n          filters:\n            - StripPrefix=2\n        - id: SapientiaCloud-EduPivot--course\n          uri: lb://SapientiaCloud-EduPivot--course\n          predicates:\n            - Path=/api/course/**\n          filters:\n            - StripPrefix=2\n\n  data:\n    redis:\n      host: ${REDIS_HOST}\n      port: ${REDIS_PORT}\n      password: ${REDIS_PASSWORD}\n      timeout: 6000ms\n      lettuce:\n        pool:\n          max-active: 8\n          max-wait: -1ms\n          max-idle: 8\n          min-idle: 0\n\nknife4j:\n  gateway:\n    enabled: true\n    strategy: discover\n    discover:\n      enabled: true\n      version: openapi3\n\ncache:\n  caffeine:\n    spec: maximumSize=500,expireAfterWrite=10m\n\nlogging:\n  level:\n    org.springframework.cloud.gateway: DEBUG\n\nREDIS_HOST: 127.0.0.1\nREDIS_PORT: 6379\nREDIS_USERNAME:\nREDIS_PASSWORD: zhaosheng123',
-        '638fc3ca884122e94e44d910742b4916', '2025-08-05 00:22:43', '2025-08-05 00:27:49', 'nacos', '172.18.0.1', '', '',
-        '', '', '', 'yaml', '', '');
-INSERT INTO `config_info`
-VALUES (5, 'SapientiaCloud-EduPivot--minIO.yaml', 'DEFAULT_GROUP',
-        'minio:\r\n  config:\r\n    ip: ${MINIO_IP}\r\n    port: ${MINIO_PORT}\r\n    accessKey: ${MINIO_USERNAME}\r\n    secretKey: ${MINIO_PASSWORD}\r\n    bucketName: ${MINIO_BUCKET_NAME}\r\n\r\nspring:\r\n  servlet:\r\n    multipart:\r\n      enabled: true\r\n      max-file-size: 50MB\r\n      max-request-size: 100MB\r\n      file-size-threshold: 2MB\r\n\r\nlogging:\r\n  level:\r\n    com.dayz.sapientiacloud_edupivot.minio: DEBUG\r\n\r\n\r\nMINIO_IP: 127.0.0.1\r\nMINIO_PORT: 31589\r\nMINIO_USERNAME: root\r\nMINIO_PASSWORD: zhaosheng123\r\nMINIO_BUCKET_NAME: sapientiacloud-edupivot',
-        'f531610c2d758e6c11923eebb6559354', '2025-08-05 00:23:12', '2025-08-05 00:23:12', NULL, '172.18.0.1', '', '',
-        NULL, NULL, NULL, 'yaml', NULL, '');
-INSERT INTO `config_info`
-VALUES (6, 'SapientiaCloud-EduPivot--course.yaml', 'DEFAULT_GROUP',
-        'pagehelper:\n  helper-dialect: mysql\n  reasonable: true\n  support-methods-arguments: true\n  params: count=countSql\n\nmybatis-plus:\n  type-aliases-package: com.dayz.sapientiacloud_edupivot.course.entity\n  mapper-locations: classpath:mapper/**/*.xml\n  configuration:\n    cache-enabled: false\n    map-underscore-to-camel-case: true\n  global-config:\n    db-config:\n      id-type: assign_id\n      update-strategy: not_null\n      logic-delete-field: deleted\n      logic-delete-value: 1\n      logic-not-delete-value: 0\n\nfeign:\n  client:\n    config:\n      default:\n        connectTimeout: 5000\n        readTimeout: 5000\n        loggerLevel: full\n  httpclient:\n    enabled: true\n\nspring:\n  jpa:\n    open-in-view: false\n    show-sql: true\n    hibernate:\n      ddl-auto: update\n  data:\n    mongodb:\n      host: ${MONGODB_HOST}\n      port: ${MONGODB_PORT}\n      database: ${MONGODB_DATABASE}\n      username: ${MONGODB_USERNAME}\n      password: ${MONGODB_PASSWORD}\n      authentication-database: ${MONGODB_AUTH_DATABASE}\n      type-mapper: none\n      \n      \nMONGODB_HOST: localhost\nMONGODB_PORT: 27017\nMONGODB_DATABASE: sapientiacloud_edupivot\nMONGODB_USERNAME: root\nMONGODB_PASSWORD: zhaosheng123\nMONGODB_AUTH_DATABASE: admin',
-        'c1ceed1b81e1ca5300d1f905614e27b7', '2025-08-05 00:23:35', '2025-09-27 11:54:34', 'nacos', '172.18.0.1', '', '',
-        '', '', '', 'yaml', '', '');
-INSERT INTO `config_info`
-VALUES (7, 'SapientiaCloud-EduPivot--student.yaml', 'DEFAULT_GROUP',
-        'pagehelper:\r\n  helper-dialect: mysql\r\n  reasonable: true\r\n  support-methods-arguments: true\r\n  params: count=countSql\r\n\r\nmybatis-plus:\r\n  type-aliases-package: com.dayz.sapientiacloud_edupivot.student.entity\r\n  mapper-locations: classpath:mapper/**/*.xml\r\n  configuration:\r\n    cache-enabled: false\r\n    map-underscore-to-camel-case: true\r\n  global-config:\r\n    db-config:\r\n      id-type: assign_id\r\n      update-strategy: not_null\r\n      logic-delete-field: deleted\r\n      logic-delete-value: 1\r\n      logic-not-delete-value: 0\r\n\r\nfeign:\r\n  client:\r\n    config:\r\n      default:\r\n        connectTimeout: 5000\r\n        readTimeout: 5000\r\n        loggerLevel: full\r\n  httpclient:\r\n    enabled: true\r\n\r\nspring:\r\n  jpa:\r\n    open-in-view: false\r\n    show-sql: true\r\n    hibernate:\r\n      ddl-auto: update',
-        'ca924e9ee68d99638b7090d450fcb1c4', '2025-08-05 00:24:20', '2025-08-05 00:24:20', NULL, '172.18.0.1', '', '',
-        NULL, NULL, NULL, 'yaml', NULL, '');
-INSERT INTO `config_info`
-VALUES (8, 'SapientiaCloud-EduPivot--teacher.yaml', 'DEFAULT_GROUP',
-        'pagehelper:\r\n  helper-dialect: mysql\r\n  reasonable: true\r\n  support-methods-arguments: true\r\n  params: count=countSql\r\n\r\nmybatis-plus:\r\n  type-aliases-package: com.dayz.sapientiacloud_edupivot.teacher.entity\r\n  mapper-locations: classpath:mapper/**/*.xml\r\n  configuration:\r\n    cache-enabled: false\r\n    map-underscore-to-camel-case: true\r\n  global-config:\r\n    db-config:\r\n      id-type: assign_id\r\n      update-strategy: not_null\r\n      logic-delete-field: deleted\r\n      logic-delete-value: 1\r\n      logic-not-delete-value: 0\r\n\r\nfeign:\r\n  client:\r\n    config:\r\n      default:\r\n        connectTimeout: 5000\r\n        readTimeout: 5000\r\n        loggerLevel: full\r\n  httpclient:\r\n    enabled: true\r\n\r\nspring:\r\n  jpa:\r\n    open-in-view: false\r\n    show-sql: true\r\n    hibernate:\r\n      ddl-auto: update',
-        'c426f80a9941ae3402503a299113cbb8', '2025-08-05 00:25:40', '2025-08-05 00:25:40', NULL, '172.18.0.1', '', '',
-        NULL, NULL, NULL, 'yaml', NULL, '');
+INSERT INTO `config_info` VALUES (1, 'application.yaml', 'DEFAULT_GROUP', 'spring:\n  datasource:\n    driver-class-name: com.mysql.cj.jdbc.Driver\n    url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DATABASE}?rewriteBatchedStatements=true&characterEncoding=UTF-8&autoReconnect=true&failOverReadOnly=false&serverTimezone=Asia/Shanghai&allowMultiQueries=true\n    username: ${MYSQL_USERNAME}\n    password: ${MYSQL_PASSWORD}\n\n  data:\n    redis:\n      port: ${REDIS_PORT}\n      host: ${REDIS_HOST}\n      password: ${REDIS_PASSWORD}\n      database: 0\n      timeout: 6000ms\n      lettuce:\n        pool:\n          max-active: 8\n          max-wait: -1ms\n          max-idle: 8\n          min-idle: 0\n\n  cache:\n    type: redis\n    redis:\n      time-to-live: 1800000\n      cache-null-values: true\n      use-key-prefix: true\n      key-prefix: SapientiaCloud-EduPivot\n    caffeine:\n      spec: maximumSize=500,expireAfterWrite=10m\n\nknife4j:\n  enable: true\n  basic:\n    enable: true\n    username: ${KNIFE4J_USERNAME}\n    password: ${KNIFE4J_PASSWORD}\n\nmanagement:\n  tracing:\n    enabled: true\n    sampling:\n      probability: 1.0\n  zipkin:\n    tracing:\n      endpoint: http://localhost:9411/api/v2/spans\n\nlogging:\n  level:\n    root: INFO\n    com.dayz: TRACE\n\n\nMYSQL_HOST: 127.0.0.1\nMYSQL_PORT: 3306\nMYSQL_USERNAME: root\nMYSQL_PASSWORD: zhaosheng123\nMYSQL_DATABASE: sapientiacloud_edupivot\nREDIS_HOST: 127.0.0.1\nREDIS_PORT: 6379\nREDIS_USERNAME:\nREDIS_PASSWORD: zhaosheng123\nKNIFE4J_USERNAME: admin\nKNIFE4J_PASSWORD: zhaosheng123', '8ea6d70cc2b943403d5d560c81a27d7f', '2025-08-04 23:56:52', '2025-11-27 22:06:04', 'nacos', '172.18.0.1', '', '', '', '', '', 'yaml', '', '');
+INSERT INTO `config_info` VALUES (2, 'SapientiaCloud-EduPivot--auth.yaml', 'DEFAULT_GROUP', 'feign:\n  client:\n    config:\n      default:\n        connectTimeout: 5000\n        readTimeout: 5000\n        loggerLevel: full\n\nspring:\n  jpa:\n    open-in-view: false\n\noauth2:\n  github:\n    client-id: ${GITHUB_CLIENT_ID:Ov23litqHal3tJSRdGLD}\n    client-secret: ${GITHUB_CLIENT_SECRET:2b5cc1dc3e5495559ce2e49a9e148217f9c21e5e}\n    redirect-uri: http://localhost:5173/api/auth/oauth2/callback/github\n    scope: user:email,read:user\n\n\nGITHUB_CLIENT_ID: Ov23litqHal3tJSRdGLD\nGITHUB_CLIENT_SECRET: 2b5cc1dc3e5495559ce2e49a9e148217f9c21e5e', 'e9153c3845922ec4b4f2ba06f8dfa184', '2025-08-04 23:57:10', '2025-11-03 23:55:33', NULL, '172.18.0.1', '', '', NULL, NULL, NULL, 'text', NULL, '');
+INSERT INTO `config_info` VALUES (3, 'SapientiaCloud-EduPivot--system.yaml', 'DEFAULT_GROUP', 'pagehelper:\r\n  helper-dialect: mysql\r\n  reasonable: true\r\n  support-methods-arguments: true\r\n  params: count=countSql\r\n\r\nmybatis-plus:\r\n  type-aliases-package: com.dayz.sapientiacloud_edupivot.system.entity\r\n  mapper-locations: classpath:mapper/**/*.xml\r\n  configuration:\r\n    cache-enabled: false\r\n    map-underscore-to-camel-case: true\r\n  global-config:\r\n    db-config:\r\n      id-type: assign_id\r\n      update-strategy: not_null\r\n      logic-delete-field: deleted\r\n      logic-delete-value: 1\r\n      logic-not-delete-value: 0\r\n\r\nfeign:\r\n  client:\r\n    config:\r\n      default:\r\n        connectTimeout: 5000\r\n        readTimeout: 5000\r\n        loggerLevel: full\r\n  httpclient:\r\n    enabled: true\r\n\r\nspring:\r\n  jpa:\r\n    open-in-view: false\r\n    show-sql: true\r\n    hibernate:\r\n      ddl-auto: update', '63f71f1ecb3d3303b0f70ca818e225f8', '2025-08-05 00:14:29', '2025-08-05 00:14:29', 'nacos', '172.18.0.1', '', '', NULL, NULL, NULL, 'yaml', NULL, '');
+INSERT INTO `config_info` VALUES (4, 'SapientiaCloud-EduPivot--gateway.yaml', 'DEFAULT_GROUP', 'spring:\n  cloud:\n    gateway:\n      routes:\n        - id: SapientiaCloud-EduPivot--system\n          uri: lb://SapientiaCloud-EduPivot--system\n          predicates:\n            - Path=/api/system/**\n          filters:\n            - StripPrefix=2\n        - id: SapientiaCloud-EduPivot--auth\n          uri: lb://SapientiaCloud-EduPivot--auth\n          predicates:\n            - Path=/api/auth/**\n          filters:\n            - StripPrefix=2\n        - id: SapientiaCloud-EduPivot--minIO\n          uri: lb://SapientiaCloud-EduPivot--minIO\n          predicates:\n            - Path=/api/minIO/**\n          filters:\n            - StripPrefix=2\n        - id: SapientiaCloud-EduPivot--teacher\n          uri: lb://SapientiaCloud-EduPivot--teacher\n          predicates:\n            - Path=/api/teacher/**\n          filters:\n            - StripPrefix=2\n        - id: SapientiaCloud-EduPivot--student\n          uri: lb://SapientiaCloud-EduPivot--student\n          predicates:\n            - Path=/api/student/**\n          filters:\n            - StripPrefix=2\n        - id: SapientiaCloud-EduPivot--course\n          uri: lb://SapientiaCloud-EduPivot--course\n          predicates:\n            - Path=/api/course/**\n          filters:\n            - StripPrefix=2\n        - id: SapientiaCloud-EduPivot--classroom\n          uri: lb://SapientiaCloud-EduPivot--classroom\n          predicates:\n            - Path=/api/classroom/**\n          filters:\n            - StripPrefix=2\n        - id: SapientiaCloud-EduPivot--celestial-hub\n          uri: lb://SapientiaCloud-EduPivot--celestial-hub\n          predicates:\n            - Path=/api/celestial-hub/**\n          filters:\n            - StripPrefix=2\n        - id: SapientiaCloud-EduPivot--live\n          uri: lb://SapientiaCloud-EduPivot--live\n          predicates:\n            - Path=/api/live/**\n          filters:\n            - StripPrefix=2\n\n  data:\n    redis:\n      host: ${REDIS_HOST}\n      port: ${REDIS_PORT}\n      password: ${REDIS_PASSWORD}\n      timeout: 6000ms\n      lettuce:\n        pool:\n          max-active: 8\n          max-wait: -1ms\n          max-idle: 8\n          min-idle: 0\n\nknife4j:\n  gateway:\n    enabled: true\n    strategy: discover\n    discover:\n      enabled: true\n      version: openapi3\n\ncache:\n  caffeine:\n    spec: maximumSize=500,expireAfterWrite=10m\n\nmanagement:\n  tracing:\n    enabled: true\n    sampling:\n      probability: 1.0\n  zipkin:\n    tracing:\n      endpoint: http://localhost:9411/api/v2/spans\n\nlogging:\n  level:\n    root: INFO\n    com.dayz: INFO\n\nREDIS_HOST: 127.0.0.1\nREDIS_PORT: 6379\nREDIS_USERNAME:\nREDIS_PASSWORD: zhaosheng123', '86ca11eb6122e37c1c4d7a0d8e47d830', '2025-08-05 00:22:43', '2025-12-04 22:31:24', 'nacos', '172.18.0.1', '', '', '', '', '', 'yaml', '', '');
+INSERT INTO `config_info` VALUES (5, 'SapientiaCloud-EduPivot--minIO.yaml', 'DEFAULT_GROUP', 'minio:\n  config:\n    ip: ${MINIO_IP}\n    port: ${MINIO_PORT}\n    secure: ${MINIO_SECURE:false}\n    accessKey: ${MINIO_USERNAME}\n    secretKey: ${MINIO_PASSWORD}\n    bucketName: ${MINIO_BUCKET_NAME}\n    defaultBucketCode: USER_AVATAR\n    buckets:\n      - code: USER_AVATAR\n        bucketName: ${MINIO_BUCKET_USER_AVATAR:sapientiacloud-user-avatar}\n        description: 用户头像/证件照\n        access: PRIVATE\n        refreshCdnOnWrite: true\n        versioning:\n          enabled: true\n        lifecycle:\n          numVersions: 3\n        audit:\n          bucketLogging: true\n          notifyOnWrite: true\n      - code: COURSE_PUBLIC\n        bucketName: ${MINIO_BUCKET_COURSE_PUBLIC:sapientiacloud-course-public}\n        description: 课程公开课件/论坛封面\n        access: PUBLIC_READ\n        objectLockEnabled: true\n        objectLockMode: GOVERNANCE\n        objectLockRetentionDays: 7\n        versioning:\n          enabled: true\n        lifecycle:\n          numVersions: 10\n          transitionToInfrequentDays: 45\n        audit:\n          bucketLogging: true\n      - code: COURSE_PRIVATE\n        bucketName: ${MINIO_BUCKET_COURSE_PRIVATE:sapientiacloud-course-private}\n        description: 学员/教师私有资料\n        access: TOKEN_ONLY\n        versioning:\n          enabled: true\n        lifecycle:\n          transitionToInfrequentDays: 90\n          transitionToArchiveDays: 180\n        audit:\n          bucketLogging: true\n          objectTagging: true\n      - code: LIVE_PLAYBACK\n        bucketName: ${MINIO_BUCKET_LIVE_PLAYBACK:sapientiacloud-live-playback}\n        description: 直播录制\n        access: TOKEN_ONLY\n        versioning:\n          enabled: true\n        lifecycle:\n          transitionToInfrequentDays: 30\n          transitionToArchiveDays: 120\n        audit:\n          notifyOnWrite: true\n      - code: AI_QA_ASSET\n        bucketName: ${MINIO_BUCKET_AI_QA:sapientiacloud-ai-qa}\n        description: AI 问答资产\n        access: TOKEN_ONLY\n        versioning:\n          enabled: true\n        lifecycle:\n          expireAfterDays: 90\n        audit:\n          objectTagging: true\n          notifyOnWrite: true\n\nspring:\n  servlet:\n    multipart:\n      enabled: true\n      max-file-size: 50MB\n      max-request-size: 100MB\n      file-size-threshold: 2MB\n\nMINIO_IP: 127.0.0.1\nMINIO_PORT: 31589\nMINIO_USERNAME: root\nMINIO_PASSWORD: zhaosheng123\nMINIO_BUCKET_NAME: sapientiacloud-edupivot\nMINIO_BUCKET_USER_AVATAR: sapientiacloud-user-avatar\nMINIO_BUCKET_COURSE_PUBLIC: sapientiacloud-course-public\nMINIO_BUCKET_COURSE_PRIVATE: sapientiacloud-course-private\nMINIO_BUCKET_LIVE_PLAYBACK: sapientiacloud-live-playback\nMINIO_BUCKET_AI_QA: sapientiacloud-ai-qa\n\n# 服务器\n#MINIO_IP: 117.72.***.***(服务器地址)\n#MINIO_PORT: 31589\n#MINIO_USERNAME: root\n#MINIO_PASSWORD: zhaosheng123\n#MINIO_BUCKET_NAME: sapientiacloud-edupivot', 'bd1f5cb7f16d7f0d78c02f2291292de7', '2025-08-05 00:23:12', '2025-11-19 20:45:58', 'nacos', '172.18.0.1', '', '', '', '', '', 'yaml', '', '');
+INSERT INTO `config_info` VALUES (6, 'SapientiaCloud-EduPivot--course.yaml', 'DEFAULT_GROUP', 'pagehelper:\n  helper-dialect: mysql\n  reasonable: true\n  support-methods-arguments: true\n  params: count=countSql\n\nmybatis-plus:\n  type-aliases-package: com.dayz.sapientiacloud_edupivot.course.entity\n  mapper-locations: classpath:mapper/**/*.xml\n  configuration:\n    cache-enabled: false\n    map-underscore-to-camel-case: true\n  global-config:\n    db-config:\n      id-type: assign_id\n      update-strategy: not_null\n      logic-delete-field: deleted\n      logic-delete-value: 1\n      logic-not-delete-value: 0\n\nfeign:\n  client:\n    config:\n      default:\n        connectTimeout: 5000\n        readTimeout: 5000\n        loggerLevel: full\n  httpclient:\n    enabled: true\n\nspring:\n  jpa:\n    open-in-view: false\n    show-sql: true\n    hibernate:\n      ddl-auto: update\n  data:\n    mongodb:\n      host: ${MONGODB_HOST}\n      port: ${MONGODB_PORT}\n      database: ${MONGODB_DATABASE}\n      username: ${MONGODB_USERNAME}\n      password: ${MONGODB_PASSWORD}\n      authentication-database: ${MONGODB_AUTH_DATABASE}\n      type-mapper: none\n      \n      \nMONGODB_HOST: localhost\nMONGODB_PORT: 27017\nMONGODB_DATABASE: sapientiacloud_edupivot\nMONGODB_USERNAME: root\nMONGODB_PASSWORD: zhaosheng123\nMONGODB_AUTH_DATABASE: admin', 'c1ceed1b81e1ca5300d1f905614e27b7', '2025-08-05 00:23:35', '2025-09-27 11:54:34', 'nacos', '172.18.0.1', '', '', '', '', '', 'yaml', '', '');
+INSERT INTO `config_info` VALUES (7, 'SapientiaCloud-EduPivot--student.yaml', 'DEFAULT_GROUP', 'pagehelper:\n  helper-dialect: mysql\n  reasonable: true\n  support-methods-arguments: true\n  params: count=countSql\n\nmybatis-plus:\n  type-aliases-package: com.dayz.sapientiacloud_edupivot.student.entity\n  mapper-locations: classpath:mapper/**/*.xml\n  configuration:\n    cache-enabled: false\n    map-underscore-to-camel-case: true\n  global-config:\n    db-config:\n      id-type: assign_id\n      update-strategy: not_null\n      logic-delete-field: deleted\n      logic-delete-value: 1\n      logic-not-delete-value: 0\n\nfeign:\n  client:\n    config:\n      default:\n        connectTimeout: 5000\n        readTimeout: 5000\n        loggerLevel: full\n  httpclient:\n    enabled: true\n\nspring:\n  jpa:\n    open-in-view: false\n    show-sql: true\n    hibernate:\n      ddl-auto: update\n  data:\n    mongodb:\n      host: ${MONGODB_HOST}\n      port: ${MONGODB_PORT}\n      database: ${MONGODB_DATABASE}\n      username: ${MONGODB_USERNAME}\n      password: ${MONGODB_PASSWORD}\n      authentication-database: ${MONGODB_AUTH_DATABASE}\n      type-mapper: none\n      \n      \nMONGODB_HOST: localhost\nMONGODB_PORT: 27017\nMONGODB_DATABASE: sapientiacloud_edupivot\nMONGODB_USERNAME: root\nMONGODB_PASSWORD: zhaosheng123\nMONGODB_AUTH_DATABASE: admin', '48a2cdd3409d6810b5c17c60a068fa06', '2025-08-05 00:24:20', '2025-12-12 22:33:38', 'nacos', '172.18.0.1', '', '', '', '', '', 'yaml', '', '');
+INSERT INTO `config_info` VALUES (8, 'SapientiaCloud-EduPivot--teacher.yaml', 'DEFAULT_GROUP', 'pagehelper:\r\n  helper-dialect: mysql\r\n  reasonable: true\r\n  support-methods-arguments: true\r\n  params: count=countSql\r\n\r\nmybatis-plus:\r\n  type-aliases-package: com.dayz.sapientiacloud_edupivot.teacher.entity\r\n  mapper-locations: classpath:mapper/**/*.xml\r\n  configuration:\r\n    cache-enabled: false\r\n    map-underscore-to-camel-case: true\r\n  global-config:\r\n    db-config:\r\n      id-type: assign_id\r\n      update-strategy: not_null\r\n      logic-delete-field: deleted\r\n      logic-delete-value: 1\r\n      logic-not-delete-value: 0\r\n\r\nfeign:\r\n  client:\r\n    config:\r\n      default:\r\n        connectTimeout: 5000\r\n        readTimeout: 5000\r\n        loggerLevel: full\r\n  httpclient:\r\n    enabled: true\r\n\r\nspring:\r\n  jpa:\r\n    open-in-view: false\r\n    show-sql: true\r\n    hibernate:\r\n      ddl-auto: update', 'c426f80a9941ae3402503a299113cbb8', '2025-08-05 00:25:40', '2025-08-05 00:25:40', NULL, '172.18.0.1', '', '', NULL, NULL, NULL, 'yaml', NULL, '');
+INSERT INTO `config_info` VALUES (79, 'SapientiaCloud-EduPivot--classroom.yaml', 'DEFAULT_GROUP', 'pagehelper:\n  helper-dialect: mysql\n  reasonable: true\n  support-methods-arguments: true\n  params: count=countSql\n\nmybatis-plus:\n  type-aliases-package: com.dayz.sapientiacloud_edupivot.classroom.entity\n  mapper-locations: classpath:mapper/**/*.xml\n  configuration:\n    cache-enabled: false\n    map-underscore-to-camel-case: true\n  global-config:\n    db-config:\n      id-type: assign_id\n      update-strategy: not_null\n      logic-delete-field: deleted\n      logic-delete-value: 1\n      logic-not-delete-value: 0\n\nfeign:\n  client:\n    config:\n      default:\n        connectTimeout: 5000\n        readTimeout: 5000\n        loggerLevel: full\n  httpclient:\n    enabled: true\n\nspring:\n  jpa:\n    open-in-view: false\n    show-sql: true\n    hibernate:\n      ddl-auto: update\n  data:\n    mongodb:\n      host: ${MONGODB_HOST}\n      port: ${MONGODB_PORT}\n      database: ${MONGODB_DATABASE}\n      username: ${MONGODB_USERNAME}\n      password: ${MONGODB_PASSWORD}\n      authentication-database: ${MONGODB_AUTH_DATABASE}\n      type-mapper: none\n\n\nMONGODB_HOST: localhost\nMONGODB_PORT: 27017\nMONGODB_DATABASE: sapientiacloud_edupivot\nMONGODB_USERNAME: root\nMONGODB_PASSWORD: zhaosheng123\nMONGODB_AUTH_DATABASE: admin', '6fda210dfdcb86e41067624ebbd5959d', '2025-10-20 20:58:26', '2025-10-25 17:25:50', 'nacos', '172.18.0.1', '', '', '', '', '', 'yaml', '', '');
+INSERT INTO `config_info` VALUES (81, 'SapientiaCloud-EduPivot--celestial-hub.yaml', 'DEFAULT_GROUP', 'pagehelper:\n  helper-dialect: mysql\n  reasonable: true\n  support-methods-arguments: true\n  params: count=countSql\n\nmybatis-plus:\n  type-aliases-package: com.dayz.sapientiacloud_edupivot.celestial_hub.entity\n  mapper-locations: classpath:mapper/**/*.xml\n  configuration:\n    cache-enabled: false\n    map-underscore-to-camel-case: true\n  global-config:\n    db-config:\n      id-type: assign_id\n      update-strategy: not_null\n      logic-delete-field: deleted\n      logic-delete-value: 1\n      logic-not-delete-value: 0\n\nfeign:\n  client:\n    config:\n      default:\n        connectTimeout: 5000\n        readTimeout: 5000\n        loggerLevel: full\n  httpclient:\n    enabled: true\n\nspring:\n  jpa:\n    open-in-view: false\n    show-sql: true\n    hibernate:\n      ddl-auto: update\n  data:\n    mongodb:\n      host: ${MONGODB_HOST}\n      port: ${MONGODB_PORT}\n      database: ${MONGODB_DATABASE}\n      username: ${MONGODB_USERNAME}\n      password: ${MONGODB_PASSWORD}\n      authentication-database: ${MONGODB_AUTH_DATABASE}\n      type-mapper: none\n  ai:\n    dashscope:\n      api-key: ${TONGYI_API_KEY}\n      chat:\n        options:\n          model: qwen3-max\n          temperature: 0.7\n      embedding:\n        options:\n          model: text-embedding-v1\n    vectorstore:\n      redis:\n        index-name: knowledge-vector-index\n        prefix: vector\n        module-prefix: celestial-hub\n        initialize-schema: true\n        database: 1\n  kafka:\n    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}\n    producer:\n      key-serializer: org.apache.kafka.common.serialization.StringSerializer\n      value-serializer: org.apache.kafka.common.serialization.StringSerializer\n      acks: all\n      retries: 3\n      enable-idempotence: true\n      compression-type: snappy\n      batch-size: 16384\n      linger-ms: 10\n      buffer-memory: 33554432\n    consumer:\n      group-id: chat-group\n      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer\n      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer\n      enable-auto-commit: false\n      auto-offset-reset: earliest\n    topic:\n      chat-request: chat-request-topic\n      chat-response: chat-response-topic\n      file-vectorize: file-vectorize-topic\n      question-request: question-request-topic\n      question-response: question-response-topic\n\nkafka:\n  chat:\n    timeout-seconds: 300\n    sink-cache:\n      expire-after-write-minutes: 10\n      maximum-size: 1000\n\n\nMONGODB_HOST: localhost\nMONGODB_PORT: 27017\nMONGODB_DATABASE: sapientiacloud_edupivot\nMONGODB_USERNAME: root\nMONGODB_PASSWORD: zhaosheng123\nMONGODB_AUTH_DATABASE: admin\nTONGYI_API_KEY: sk-20c0c396a3f64130ac4c56c1a4b3aa00\nKAFKA_BOOTSTRAP_SERVERS: localhost:9092', 'a3cdb746f670342948e1f49a3c10de92', '2025-10-25 17:28:36', '2025-12-02 17:20:00', 'nacos', '172.18.0.1', '', '', '', '', '', 'yaml', '', '');
+INSERT INTO `config_info` VALUES (162, 'SapientiaCloud-EduPivot--live.yaml', 'DEFAULT_GROUP', 'pagehelper:\n  helper-dialect: mysql\n  reasonable: true\n  support-methods-arguments: true\n  params: count=countSql\n\nmybatis-plus:\n  type-aliases-package: com.dayz.sapientiacloud_edupivot.live.common.entity\n  mapper-locations: classpath:mapper/**/*.xml\n  configuration:\n    cache-enabled: false\n    map-underscore-to-camel-case: true\n  global-config:\n    db-config:\n      id-type: assign_id\n      update-strategy: not_null\n      logic-delete-field: deleted\n      logic-delete-value: 1\n      logic-not-delete-value: 0\n\nfeign:\n  client:\n    config:\n      default:\n        connectTimeout: 5000\n        readTimeout: 5000\n        loggerLevel: full\n  httpclient:\n    enabled: true\n\nspring:\n  jpa:\n    open-in-view: false\n    show-sql: true\n    hibernate:\n      ddl-auto: update\n  data:\n    mongodb:\n      host: ${MONGODB_HOST}\n      port: ${MONGODB_PORT}\n      database: ${MONGODB_DATABASE}\n      username: ${MONGODB_USERNAME}\n      password: ${MONGODB_PASSWORD}\n      authentication-database: ${MONGODB_AUTH_DATABASE}\n      type-mapper: none\n\nMONGODB_HOST: localhost\nMONGODB_PORT: 27017\nMONGODB_DATABASE: sapientiacloud_edupivot\nMONGODB_USERNAME: root\nMONGODB_PASSWORD: zhaosheng123\nMONGODB_AUTH_DATABASE: admin\n\nlivekit:\n  host: ${LIVEKIT_HOST}\n  api-key: ${LIVEKIT_API_KEY}\n  api-secret: ${LIVEKIT_API_SECRET}\n  token-ttl-seconds: 7200\n  room:\n    empty-timeout-seconds: 300\n    departure-timeout-seconds: 20\n    max-participants: 500\n  egress:\n    enable: true\n    layout: speaker-dark\n    file-type: MP4\n    output-prefix: live-playback\n    playback-base-url: http://localhost:31589/sapientiacloud-live-playback\n    s3:\n      endpoint: http://localhost:31589\n      region: us-east-1\n      bucket: sapientiacloud-live-playback\n      access-key: root\n      secret-key: zhaosheng123\n      force-path-style: true\n\n  stun-servers:\n    - stun:stun.l.google.com:19302\n    - stun:stun.cloudflare.com:3478\n  turn:\n    urls: turn:${LIVEKIT_TURN_HOST}:3478?transport=udp\n    username: livekit\n    password: livekit123\n\nLIVEKIT_HOST: http://localhost:8080\nLIVEKIT_TURN_HOST: localhost\nLIVEKIT_API_KEY: \"livekitdevkey001\"\nLIVEKIT_API_SECRET: \"livekitdevsecret001abcdef1234567890abcd\"\n', 'fd0832d29cf1032808d642f7cd067804', '2025-11-16 16:41:03', '2025-12-14 21:26:47', 'nacos', '172.18.0.1', '', '', '', '', '', 'yaml', '', '');
 
 -- ----------------------------
 -- Table structure for config_info_aggr
 -- ----------------------------
 DROP TABLE IF EXISTS `config_info_aggr`;
-CREATE TABLE `config_info_aggr`
-(
-    `id`           bigint                                                 NOT NULL AUTO_INCREMENT COMMENT 'id',
-    `data_id`      varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NOT NULL COMMENT 'data_id',
-    `group_id`     varchar(128) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NOT NULL COMMENT 'group_id',
-    `datum_id`     varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NOT NULL COMMENT 'datum_id',
-    `content`      longtext CHARACTER SET utf8mb3 COLLATE utf8mb3_bin     NOT NULL COMMENT '内容',
-    `gmt_modified` datetime                                               NULL DEFAULT NULL COMMENT '修改时间',
-    `app_name`     varchar(128) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NULL DEFAULT NULL,
-    `tenant_id`    varchar(128) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NULL DEFAULT '' COMMENT '租户字段',
-    PRIMARY KEY (`id`) USING BTREE,
-    UNIQUE INDEX `uk_configinfoaggr_datagrouptenantdatum` (`data_id` ASC, `group_id` ASC, `tenant_id` ASC, `datum_id` ASC) USING BTREE
-) ENGINE = InnoDB
-  AUTO_INCREMENT = 1
-  CHARACTER SET = utf8mb3
-  COLLATE = utf8mb3_bin COMMENT = '增加租户字段'
-  ROW_FORMAT = DYNAMIC;
+CREATE TABLE `config_info_aggr`  (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT 'id',
+  `data_id` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NOT NULL COMMENT 'data_id',
+  `group_id` varchar(128) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NOT NULL COMMENT 'group_id',
+  `datum_id` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NOT NULL COMMENT 'datum_id',
+  `content` longtext CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NOT NULL COMMENT '内容',
+  `gmt_modified` datetime NULL DEFAULT NULL COMMENT '修改时间',
+  `app_name` varchar(128) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NULL DEFAULT NULL,
+  `tenant_id` varchar(128) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NULL DEFAULT '' COMMENT '租户字段',
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `uk_configinfoaggr_datagrouptenantdatum`(`data_id` ASC, `group_id` ASC, `tenant_id` ASC, `datum_id` ASC) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_bin COMMENT = '增加租户字段' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of config_info_aggr
@@ -122,28 +83,23 @@ CREATE TABLE `config_info_aggr`
 -- Table structure for config_info_beta
 -- ----------------------------
 DROP TABLE IF EXISTS `config_info_beta`;
-CREATE TABLE `config_info_beta`
-(
-    `id`                 bigint                                                  NOT NULL AUTO_INCREMENT COMMENT 'id',
-    `data_id`            varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin  NOT NULL COMMENT 'data_id',
-    `group_id`           varchar(128) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin  NOT NULL COMMENT 'group_id',
-    `app_name`           varchar(128) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin  NULL DEFAULT NULL COMMENT 'app_name',
-    `content`            longtext CHARACTER SET utf8mb3 COLLATE utf8mb3_bin      NOT NULL COMMENT 'content',
-    `beta_ips`           varchar(1024) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NULL DEFAULT NULL COMMENT 'betaIps',
-    `md5`                varchar(32) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin   NULL DEFAULT NULL COMMENT 'md5',
-    `gmt_create`         datetime                                                NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `gmt_modified`       datetime                                                NULL DEFAULT CURRENT_TIMESTAMP COMMENT '修改时间',
-    `src_user`           text CHARACTER SET utf8mb3 COLLATE utf8mb3_bin          NULL COMMENT 'source user',
-    `src_ip`             varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin   NULL DEFAULT NULL COMMENT 'source ip',
-    `tenant_id`          varchar(128) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin  NULL DEFAULT '' COMMENT '租户字段',
-    `encrypted_data_key` text CHARACTER SET utf8mb3 COLLATE utf8mb3_bin          NULL COMMENT '秘钥',
-    PRIMARY KEY (`id`) USING BTREE,
-    UNIQUE INDEX `uk_configinfobeta_datagrouptenant` (`data_id` ASC, `group_id` ASC, `tenant_id` ASC) USING BTREE
-) ENGINE = InnoDB
-  AUTO_INCREMENT = 1
-  CHARACTER SET = utf8mb3
-  COLLATE = utf8mb3_bin COMMENT = 'config_info_beta'
-  ROW_FORMAT = DYNAMIC;
+CREATE TABLE `config_info_beta`  (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT 'id',
+  `data_id` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NOT NULL COMMENT 'data_id',
+  `group_id` varchar(128) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NOT NULL COMMENT 'group_id',
+  `app_name` varchar(128) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NULL DEFAULT NULL COMMENT 'app_name',
+  `content` longtext CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NOT NULL COMMENT 'content',
+  `beta_ips` varchar(1024) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NULL DEFAULT NULL COMMENT 'betaIps',
+  `md5` varchar(32) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NULL DEFAULT NULL COMMENT 'md5',
+  `gmt_create` datetime NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `gmt_modified` datetime NULL DEFAULT CURRENT_TIMESTAMP COMMENT '修改时间',
+  `src_user` text CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NULL COMMENT 'source user',
+  `src_ip` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NULL DEFAULT NULL COMMENT 'source ip',
+  `tenant_id` varchar(128) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NULL DEFAULT '' COMMENT '租户字段',
+  `encrypted_data_key` text CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NULL COMMENT '秘钥',
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `uk_configinfobeta_datagrouptenant`(`data_id` ASC, `group_id` ASC, `tenant_id` ASC) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_bin COMMENT = 'config_info_beta' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of config_info_beta
@@ -153,27 +109,22 @@ CREATE TABLE `config_info_beta`
 -- Table structure for config_info_tag
 -- ----------------------------
 DROP TABLE IF EXISTS `config_info_tag`;
-CREATE TABLE `config_info_tag`
-(
-    `id`           bigint                                                 NOT NULL AUTO_INCREMENT COMMENT 'id',
-    `data_id`      varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NOT NULL COMMENT 'data_id',
-    `group_id`     varchar(128) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NOT NULL COMMENT 'group_id',
-    `tenant_id`    varchar(128) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NULL DEFAULT '' COMMENT 'tenant_id',
-    `tag_id`       varchar(128) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NOT NULL COMMENT 'tag_id',
-    `app_name`     varchar(128) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NULL DEFAULT NULL COMMENT 'app_name',
-    `content`      longtext CHARACTER SET utf8mb3 COLLATE utf8mb3_bin     NOT NULL COMMENT 'content',
-    `md5`          varchar(32) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin  NULL DEFAULT NULL COMMENT 'md5',
-    `gmt_create`   datetime                                               NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `gmt_modified` datetime                                               NULL DEFAULT CURRENT_TIMESTAMP COMMENT '修改时间',
-    `src_user`     text CHARACTER SET utf8mb3 COLLATE utf8mb3_bin         NULL COMMENT 'source user',
-    `src_ip`       varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin  NULL DEFAULT NULL COMMENT 'source ip',
-    PRIMARY KEY (`id`) USING BTREE,
-    UNIQUE INDEX `uk_configinfotag_datagrouptenanttag` (`data_id` ASC, `group_id` ASC, `tenant_id` ASC, `tag_id` ASC) USING BTREE
-) ENGINE = InnoDB
-  AUTO_INCREMENT = 1
-  CHARACTER SET = utf8mb3
-  COLLATE = utf8mb3_bin COMMENT = 'config_info_tag'
-  ROW_FORMAT = DYNAMIC;
+CREATE TABLE `config_info_tag`  (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT 'id',
+  `data_id` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NOT NULL COMMENT 'data_id',
+  `group_id` varchar(128) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NOT NULL COMMENT 'group_id',
+  `tenant_id` varchar(128) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NULL DEFAULT '' COMMENT 'tenant_id',
+  `tag_id` varchar(128) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NOT NULL COMMENT 'tag_id',
+  `app_name` varchar(128) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NULL DEFAULT NULL COMMENT 'app_name',
+  `content` longtext CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NOT NULL COMMENT 'content',
+  `md5` varchar(32) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NULL DEFAULT NULL COMMENT 'md5',
+  `gmt_create` datetime NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `gmt_modified` datetime NULL DEFAULT CURRENT_TIMESTAMP COMMENT '修改时间',
+  `src_user` text CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NULL COMMENT 'source user',
+  `src_ip` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NULL DEFAULT NULL COMMENT 'source ip',
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `uk_configinfotag_datagrouptenanttag`(`data_id` ASC, `group_id` ASC, `tenant_id` ASC, `tag_id` ASC) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_bin COMMENT = 'config_info_tag' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of config_info_tag
@@ -183,23 +134,18 @@ CREATE TABLE `config_info_tag`
 -- Table structure for config_tags_relation
 -- ----------------------------
 DROP TABLE IF EXISTS `config_tags_relation`;
-CREATE TABLE `config_tags_relation`
-(
-    `id`        bigint                                                 NOT NULL COMMENT 'id',
-    `tag_name`  varchar(128) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NOT NULL COMMENT 'tag_name',
-    `tag_type`  varchar(64) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin  NULL DEFAULT NULL COMMENT 'tag_type',
-    `data_id`   varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NOT NULL COMMENT 'data_id',
-    `group_id`  varchar(128) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NOT NULL COMMENT 'group_id',
-    `tenant_id` varchar(128) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NULL DEFAULT '' COMMENT 'tenant_id',
-    `nid`       bigint                                                 NOT NULL AUTO_INCREMENT,
-    PRIMARY KEY (`nid`) USING BTREE,
-    UNIQUE INDEX `uk_configtagrelation_configidtag` (`id` ASC, `tag_name` ASC, `tag_type` ASC) USING BTREE,
-    INDEX `idx_tenant_id` (`tenant_id` ASC) USING BTREE
-) ENGINE = InnoDB
-  AUTO_INCREMENT = 1
-  CHARACTER SET = utf8mb3
-  COLLATE = utf8mb3_bin COMMENT = 'config_tag_relation'
-  ROW_FORMAT = DYNAMIC;
+CREATE TABLE `config_tags_relation`  (
+  `id` bigint NOT NULL COMMENT 'id',
+  `tag_name` varchar(128) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NOT NULL COMMENT 'tag_name',
+  `tag_type` varchar(64) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NULL DEFAULT NULL COMMENT 'tag_type',
+  `data_id` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NOT NULL COMMENT 'data_id',
+  `group_id` varchar(128) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NOT NULL COMMENT 'group_id',
+  `tenant_id` varchar(128) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NULL DEFAULT '' COMMENT 'tenant_id',
+  `nid` bigint NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (`nid`) USING BTREE,
+  UNIQUE INDEX `uk_configtagrelation_configidtag`(`id` ASC, `tag_name` ASC, `tag_type` ASC) USING BTREE,
+  INDEX `idx_tenant_id`(`tenant_id` ASC) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb3 COLLATE = utf8mb3_bin COMMENT = 'config_tag_relation' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of config_tags_relation
@@ -209,25 +155,20 @@ CREATE TABLE `config_tags_relation`
 -- Table structure for group_capacity
 -- ----------------------------
 DROP TABLE IF EXISTS `group_capacity`;
-CREATE TABLE `group_capacity`
-(
-    `id`                bigint UNSIGNED                                        NOT NULL AUTO_INCREMENT COMMENT '主键ID',
-    `group_id`          varchar(128) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NOT NULL DEFAULT '' COMMENT 'Group ID，空字符表示整个集群',
-    `quota`             int UNSIGNED                                           NOT NULL DEFAULT 0 COMMENT '配额，0表示使用默认值',
-    `usage`             int UNSIGNED                                           NOT NULL DEFAULT 0 COMMENT '使用量',
-    `max_size`          int UNSIGNED                                           NOT NULL DEFAULT 0 COMMENT '单个配置大小上限，单位为字节，0表示使用默认值',
-    `max_aggr_count`    int UNSIGNED                                           NOT NULL DEFAULT 0 COMMENT '聚合子配置最大个数，，0表示使用默认值',
-    `max_aggr_size`     int UNSIGNED                                           NOT NULL DEFAULT 0 COMMENT '单个聚合数据的子配置大小上限，单位为字节，0表示使用默认值',
-    `max_history_count` int UNSIGNED                                           NOT NULL DEFAULT 0 COMMENT '最大变更历史数量',
-    `gmt_create`        datetime                                               NULL     DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `gmt_modified`      datetime                                               NULL     DEFAULT CURRENT_TIMESTAMP COMMENT '修改时间',
-    PRIMARY KEY (`id`) USING BTREE,
-    UNIQUE INDEX `uk_group_id` (`group_id` ASC) USING BTREE
-) ENGINE = InnoDB
-  AUTO_INCREMENT = 1
-  CHARACTER SET = utf8mb3
-  COLLATE = utf8mb3_bin COMMENT = '集群、各Group容量信息表'
-  ROW_FORMAT = DYNAMIC;
+CREATE TABLE `group_capacity`  (
+  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `group_id` varchar(128) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NOT NULL DEFAULT '' COMMENT 'Group ID，空字符表示整个集群',
+  `quota` int UNSIGNED NOT NULL DEFAULT 0 COMMENT '配额，0表示使用默认值',
+  `usage` int UNSIGNED NOT NULL DEFAULT 0 COMMENT '使用量',
+  `max_size` int UNSIGNED NOT NULL DEFAULT 0 COMMENT '单个配置大小上限，单位为字节，0表示使用默认值',
+  `max_aggr_count` int UNSIGNED NOT NULL DEFAULT 0 COMMENT '聚合子配置最大个数，，0表示使用默认值',
+  `max_aggr_size` int UNSIGNED NOT NULL DEFAULT 0 COMMENT '单个聚合数据的子配置大小上限，单位为字节，0表示使用默认值',
+  `max_history_count` int UNSIGNED NOT NULL DEFAULT 0 COMMENT '最大变更历史数量',
+  `gmt_create` datetime NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `gmt_modified` datetime NULL DEFAULT CURRENT_TIMESTAMP COMMENT '修改时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `uk_group_id`(`group_id` ASC) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_bin COMMENT = '集群、各Group容量信息表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of group_capacity
@@ -237,80 +178,60 @@ CREATE TABLE `group_capacity`
 -- Table structure for his_config_info
 -- ----------------------------
 DROP TABLE IF EXISTS `his_config_info`;
-CREATE TABLE `his_config_info`
-(
-    `id`                 bigint UNSIGNED                                        NOT NULL,
-    `nid`                bigint UNSIGNED                                        NOT NULL AUTO_INCREMENT,
-    `data_id`            varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NOT NULL,
-    `group_id`           varchar(128) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NOT NULL,
-    `app_name`           varchar(128) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NULL DEFAULT NULL COMMENT 'app_name',
-    `content`            longtext CHARACTER SET utf8mb3 COLLATE utf8mb3_bin     NOT NULL,
-    `md5`                varchar(32) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin  NULL DEFAULT NULL,
-    `gmt_create`         datetime                                               NULL DEFAULT CURRENT_TIMESTAMP,
-    `gmt_modified`       datetime                                               NULL DEFAULT CURRENT_TIMESTAMP,
-    `src_user`           text CHARACTER SET utf8mb3 COLLATE utf8mb3_bin         NULL,
-    `src_ip`             varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin  NULL DEFAULT NULL,
-    `op_type`            char(10) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin     NULL DEFAULT NULL,
-    `tenant_id`          varchar(128) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NULL DEFAULT '' COMMENT '租户字段',
-    `encrypted_data_key` text CHARACTER SET utf8mb3 COLLATE utf8mb3_bin         NULL COMMENT '秘钥',
-    PRIMARY KEY (`nid`) USING BTREE,
-    INDEX `idx_gmt_create` (`gmt_create` ASC) USING BTREE,
-    INDEX `idx_gmt_modified` (`gmt_modified` ASC) USING BTREE,
-    INDEX `idx_did` (`data_id` ASC) USING BTREE
-) ENGINE = InnoDB
-  AUTO_INCREMENT = 18
-  CHARACTER SET = utf8mb3
-  COLLATE = utf8mb3_bin COMMENT = '多租户改造'
-  ROW_FORMAT = DYNAMIC;
+CREATE TABLE `his_config_info`  (
+  `id` bigint UNSIGNED NOT NULL,
+  `nid` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+  `data_id` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NOT NULL,
+  `group_id` varchar(128) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NOT NULL,
+  `app_name` varchar(128) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NULL DEFAULT NULL COMMENT 'app_name',
+  `content` longtext CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NOT NULL,
+  `md5` varchar(32) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NULL DEFAULT NULL,
+  `gmt_create` datetime NULL DEFAULT CURRENT_TIMESTAMP,
+  `gmt_modified` datetime NULL DEFAULT CURRENT_TIMESTAMP,
+  `src_user` text CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NULL,
+  `src_ip` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NULL DEFAULT NULL,
+  `op_type` char(10) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NULL DEFAULT NULL,
+  `tenant_id` varchar(128) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NULL DEFAULT '' COMMENT '租户字段',
+  `encrypted_data_key` text CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NULL COMMENT '秘钥',
+  PRIMARY KEY (`nid`) USING BTREE,
+  INDEX `idx_gmt_create`(`gmt_create` ASC) USING BTREE,
+  INDEX `idx_gmt_modified`(`gmt_modified` ASC) USING BTREE,
+  INDEX `idx_did`(`data_id` ASC) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 181 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_bin COMMENT = '多租户改造' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of his_config_info
 -- ----------------------------
-INSERT INTO `his_config_info`
-VALUES (6, 12, 'SapientiaCloud-EduPivot--course.yaml', 'DEFAULT_GROUP', '',
-        'pagehelper:\r\n  helper-dialect: mysql\r\n  reasonable: true\r\n  support-methods-arguments: true\r\n  params: count=countSql\r\n\r\nmybatis-plus:\r\n  type-aliases-package: com.dayz.sapientiacloud_edupivot.course.entity\r\n  mapper-locations: classpath:mapper/**/*.xml\r\n  configuration:\r\n    cache-enabled: false\r\n    map-underscore-to-camel-case: true\r\n  global-config:\r\n    db-config:\r\n      id-type: assign_id\r\n      update-strategy: not_null\r\n      logic-delete-field: deleted\r\n      logic-delete-value: 1\r\n      logic-not-delete-value: 0\r\n\r\nfeign:\r\n  client:\r\n    config:\r\n      default:\r\n        connectTimeout: 5000\r\n        readTimeout: 5000\r\n        loggerLevel: full\r\n  httpclient:\r\n    enabled: true\r\n\r\nspring:\r\n  jpa:\r\n    open-in-view: false\r\n    show-sql: true\r\n    hibernate:\r\n      ddl-auto: update',
-        '0300dfa307f15cd7d15857fc26fc470e', '2025-09-22 14:36:44', '2025-09-22 22:36:44', 'nacos', '172.18.0.1', 'U',
-        '', '');
-INSERT INTO `his_config_info`
-VALUES (6, 13, 'SapientiaCloud-EduPivot--course.yaml', 'DEFAULT_GROUP', '',
-        'pagehelper:\n  helper-dialect: mysql\n  reasonable: true\n  support-methods-arguments: true\n  params: count=countSql\n\nmybatis-plus:\n  type-aliases-package: com.dayz.sapientiacloud_edupivot.course.entity\n  mapper-locations: classpath:mapper/**/*.xml\n  configuration:\n    cache-enabled: false\n    map-underscore-to-camel-case: true\n  global-config:\n    db-config:\n      id-type: assign_id\n      update-strategy: not_null\n      logic-delete-field: deleted\n      logic-delete-value: 1\n      logic-not-delete-value: 0\n\nfeign:\n  client:\n    config:\n      default:\n        connectTimeout: 5000\n        readTimeout: 5000\n        loggerLevel: full\n  httpclient:\n    enabled: true\n\nspring:\n  jpa:\n    open-in-view: false\n    show-sql: true\n    hibernate:\n      ddl-auto: update\n  data:\n    mongodb:\n      host: ${MONGODB_HOST}\n      port: ${MONGODB_PORT}\n      database: ${MONGODB_DATABASE}\n      username: ${MONGODB_USERNAME}\n      password: ${MONGODB_PASSWORD}\n      authentication-database: ${MONGODB_AUTH_DATABASE}\n      \n      \nMONGODB_HOST: localhost\nMONGODB_PORT: 27017\nMONGODB_DATABASE: sapientiacloud_edupivot\nMONGODB_USERNAME: root\nMONGODB_PASSWORD: zhaosheng123\nMONGODB_AUTH_DATABASE: admin',
-        'cdcfccec82060a9a03999123e249576f', '2025-09-23 11:34:22', '2025-09-23 19:34:22', 'nacos', '172.18.0.1', 'U',
-        '', '');
-INSERT INTO `his_config_info`
-VALUES (6, 14, 'SapientiaCloud-EduPivot--course.yaml', 'DEFAULT_GROUP', '',
-        'pagehelper:\n  helper-dialect: mysql\n  reasonable: true\n  support-methods-arguments: true\n  params: count=countSql\n\nmybatis-plus:\n  type-aliases-package: com.dayz.sapientiacloud_edupivot.course.entity\n  mapper-locations: classpath:mapper/**/*.xml\n  configuration:\n    cache-enabled: false\n    map-underscore-to-camel-case: true\n  global-config:\n    db-config:\n      id-type: assign_id\n      update-strategy: not_null\n      logic-delete-field: deleted\n      logic-delete-value: 1\n      logic-not-delete-value: 0\n\nfeign:\n  client:\n    config:\n      default:\n        connectTimeout: 5000\n        readTimeout: 5000\n        loggerLevel: full\n  httpclient:\n    enabled: true\n\nspring:\n  jpa:\n    open-in-view: false\n    show-sql: true\n    hibernate:\n      ddl-auto: update\n  data:\n    mongodb:\n      uri: mongodb://root:zhaosheng123@localhost:27017/sapientiacloud_edupivot?authSource=admin\n      \n      \nMONGODB_HOST: localhost\nMONGODB_PORT: 27017\nMONGODB_DATABASE: sapientiacloud_edupivot\nMONGODB_USERNAME: root\nMONGODB_PASSWORD: zhaosheng123\nMONGODB_AUTH_DATABASE: admin',
-        'e74bf7274279617d8fd3069f4aa48e87', '2025-09-23 11:35:39', '2025-09-23 19:35:40', NULL, '172.18.0.1', 'U', '',
-        '');
-INSERT INTO `his_config_info`
-VALUES (6, 15, 'SapientiaCloud-EduPivot--course.yaml', 'DEFAULT_GROUP', '',
-        'pagehelper:\n  helper-dialect: mysql\n  reasonable: true\n  support-methods-arguments: true\n  params: count=countSql\n\nmybatis-plus:\n  type-aliases-package: com.dayz.sapientiacloud_edupivot.course.entity\n  mapper-locations: classpath:mapper/**/*.xml\n  configuration:\n    cache-enabled: false\n    map-underscore-to-camel-case: true\n  global-config:\n    db-config:\n      id-type: assign_id\n      update-strategy: not_null\n      logic-delete-field: deleted\n      logic-delete-value: 1\n      logic-not-delete-value: 0\n\nfeign:\n  client:\n    config:\n      default:\n        connectTimeout: 5000\n        readTimeout: 5000\n        loggerLevel: full\n  httpclient:\n    enabled: true\n\nspring:\n  jpa:\n    open-in-view: false\n    show-sql: true\n    hibernate:\n      ddl-auto: update\n  data:\n    mongodb:\n      host: ${MONGODB_HOST}\n      port: ${MONGODB_PORT}\n      database: ${MONGODB_DATABASE}\n      username: ${MONGODB_USERNAME}\n      password: ${MONGODB_PASSWORD}\n      authentication-database: ${MONGODB_AUTH_DATABASE}\n      \n      \nMONGODB_HOST: localhost\nMONGODB_PORT: 27017\nMONGODB_DATABASE: sapientiacloud_edupivot\nMONGODB_USERNAME: root\nMONGODB_PASSWORD: zhaosheng123\nMONGODB_AUTH_DATABASE: admin',
-        'cdcfccec82060a9a03999123e249576f', '2025-09-23 11:36:06', '2025-09-23 19:36:06', 'nacos', '172.18.0.1', 'U',
-        '', '');
-INSERT INTO `his_config_info`
-VALUES (6, 16, 'SapientiaCloud-EduPivot--course.yaml', 'DEFAULT_GROUP', '',
-        'pagehelper:\n  helper-dialect: mysql\n  reasonable: true\n  support-methods-arguments: true\n  params: count=countSql\n\nmybatis-plus:\n  type-aliases-package: com.dayz.sapientiacloud_edupivot.course.entity\n  mapper-locations: classpath:mapper/**/*.xml\n  configuration:\n    cache-enabled: false\n    map-underscore-to-camel-case: true\n  global-config:\n    db-config:\n      id-type: assign_id\n      update-strategy: not_null\n      logic-delete-field: deleted\n      logic-delete-value: 1\n      logic-not-delete-value: 0\n\nfeign:\n  client:\n    config:\n      default:\n        connectTimeout: 5000\n        readTimeout: 5000\n        loggerLevel: full\n  httpclient:\n    enabled: true\n\nspring:\n  jpa:\n    open-in-view: false\n    show-sql: true\n    hibernate:\n      ddl-auto: update\n  data:\n    mongodb:\n      host: ${MONGODB_HOST}\n      port: ${MONGODB_PORT}\n      database: ${MONGODB_DATABASE}\n      username: ${MONGODB_USERNAME}\n      password: ${MONGODB_PASSWORD}\n      authentication-database: ${MONGODB_AUTH_DATABASE}\n      \n      \nMONGODB_HOST: localhost\nMONGODB_PORT: 27017\nMONGODB_DATABASE: sapientiacloud_edupivot\nMONGODB_USERNAME: root\nMONGODB_PASSWORD: zhaosheng12\nMONGODB_AUTH_DATABASE: admin',
-        '2402ae5cbd5b6f5288aaaa23cf08cb46', '2025-09-23 11:36:39', '2025-09-23 19:36:40', 'nacos', '172.18.0.1', 'U',
-        '', '');
-INSERT INTO `his_config_info`
-VALUES (6, 17, 'SapientiaCloud-EduPivot--course.yaml', 'DEFAULT_GROUP', '',
-        'pagehelper:\n  helper-dialect: mysql\n  reasonable: true\n  support-methods-arguments: true\n  params: count=countSql\n\nmybatis-plus:\n  type-aliases-package: com.dayz.sapientiacloud_edupivot.course.entity\n  mapper-locations: classpath:mapper/**/*.xml\n  configuration:\n    cache-enabled: false\n    map-underscore-to-camel-case: true\n  global-config:\n    db-config:\n      id-type: assign_id\n      update-strategy: not_null\n      logic-delete-field: deleted\n      logic-delete-value: 1\n      logic-not-delete-value: 0\n\nfeign:\n  client:\n    config:\n      default:\n        connectTimeout: 5000\n        readTimeout: 5000\n        loggerLevel: full\n  httpclient:\n    enabled: true\n\nspring:\n  jpa:\n    open-in-view: false\n    show-sql: true\n    hibernate:\n      ddl-auto: update\n  data:\n    mongodb:\n      host: ${MONGODB_HOST}\n      port: ${MONGODB_PORT}\n      database: ${MONGODB_DATABASE}\n      username: ${MONGODB_USERNAME}\n      password: ${MONGODB_PASSWORD}\n      authentication-database: ${MONGODB_AUTH_DATABASE}\n      \n      \nMONGODB_HOST: localhost\nMONGODB_PORT: 27017\nMONGODB_DATABASE: sapientiacloud_edupivot\nMONGODB_USERNAME: root\nMONGODB_PASSWORD: zhaosheng123\nMONGODB_AUTH_DATABASE: admin',
-        'cdcfccec82060a9a03999123e249576f', '2025-09-27 03:54:34', '2025-09-27 11:54:34', 'nacos', '172.18.0.1', 'U',
-        '', '');
+INSERT INTO `his_config_info` VALUES (1, 162, 'application.yaml', 'DEFAULT_GROUP', '', 'spring:\n  datasource:\n    driver-class-name: com.mysql.cj.jdbc.Driver\n    url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DATABASE}?rewriteBatchedStatements=true&characterEncoding=UTF-8&autoReconnect=true&failOverReadOnly=false&serverTimezone=Asia/Shanghai&allowMultiQueries=true\n    username: ${MYSQL_USERNAME}\n    password: ${MYSQL_PASSWORD}\n\n  data:\n    redis:\n      port: ${REDIS_PORT}\n      host: ${REDIS_HOST}\n      password: ${REDIS_PASSWORD}\n      database: 0\n      timeout: 6000ms\n      lettuce:\n        pool:\n          max-active: 8\n          max-wait: -1ms\n          max-idle: 8\n          min-idle: 0\n\n  cache:\n    type: redis\n    redis:\n      time-to-live: 1800000\n      cache-null-values: true\n      use-key-prefix: true\n      key-prefix: SapientiaCloud-EduPivot\n    caffeine:\n      spec: maximumSize=500,expireAfterWrite=10m\n\nknife4j:\n  enable: true\n  basic:\n    enable: true\n    username: ${KNIFE4J_USERNAME}\n    password: ${KNIFE4J_PASSWORD}\n\nmanagement:\n  tracing:\n    enabled: true\n    sampling:\n      probability: 1.0\n  zipkin:\n    tracing:\n      endpoint: http://localhost:9411/api/v2/spans\n\nlogging:\n  level:\n    root: INFO\n    com.dayz: INFO\n\n\nMYSQL_HOST: 127.0.0.1\nMYSQL_PORT: 3306\nMYSQL_USERNAME: root\nMYSQL_PASSWORD: zhaosheng123\nMYSQL_DATABASE: sapientiacloud_edupivot\nREDIS_HOST: 127.0.0.1\nREDIS_PORT: 6379\nREDIS_USERNAME:\nREDIS_PASSWORD: zhaosheng123\nKNIFE4J_USERNAME: admin\nKNIFE4J_PASSWORD: zhaosheng123', '0a38d47469123204faa6386b2b325738', '2025-11-16 07:31:30', '2025-11-16 15:31:31', 'nacos', '172.18.0.1', 'U', '', '');
+INSERT INTO `his_config_info` VALUES (1, 163, 'application.yaml', 'DEFAULT_GROUP', '', 'spring:\n  datasource:\n    driver-class-name: com.mysql.cj.jdbc.Driver\n    url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DATABASE}?rewriteBatchedStatements=true&characterEncoding=UTF-8&autoReconnect=true&failOverReadOnly=false&serverTimezone=Asia/Shanghai&allowMultiQueries=true\n    username: ${MYSQL_USERNAME}\n    password: ${MYSQL_PASSWORD}\n\n  data:\n    redis:\n      port: ${REDIS_PORT}\n      host: ${REDIS_HOST}\n      password: ${REDIS_PASSWORD}\n      database: 0\n      timeout: 6000ms\n      lettuce:\n        pool:\n          max-active: 8\n          max-wait: -1ms\n          max-idle: 8\n          min-idle: 0\n\n  cache:\n    type: redis\n    redis:\n      time-to-live: 1800000\n      cache-null-values: true\n      use-key-prefix: true\n      key-prefix: SapientiaCloud-EduPivot\n    caffeine:\n      spec: maximumSize=500,expireAfterWrite=10m\n\nknife4j:\n  enable: true\n  basic:\n    enable: true\n    username: ${KNIFE4J_USERNAME}\n    password: ${KNIFE4J_PASSWORD}\n\nmanagement:\n  tracing:\n    enabled: true\n    sampling:\n      probability: 1.0\n  zipkin:\n    tracing:\n      endpoint: http://localhost:9411/api/v2/spans\n\nlogging:\n  level:\n    root: INFO\n    com.dayz: DEBUG\n\n\nMYSQL_HOST: 127.0.0.1\nMYSQL_PORT: 3306\nMYSQL_USERNAME: root\nMYSQL_PASSWORD: zhaosheng123\nMYSQL_DATABASE: sapientiacloud_edupivot\nREDIS_HOST: 127.0.0.1\nREDIS_PORT: 6379\nREDIS_USERNAME:\nREDIS_PASSWORD: zhaosheng123\nKNIFE4J_USERNAME: admin\nKNIFE4J_PASSWORD: zhaosheng123', 'd62ea8784c4336c324703e0fb66ea79a', '2025-11-16 08:40:29', '2025-11-16 16:40:30', 'nacos', '172.18.0.1', 'U', '', '');
+INSERT INTO `his_config_info` VALUES (0, 164, 'SapientiaCloud-EduPivot--live.yaml', 'DEFAULT_GROUP', '', 'pagehelper:\r\n  helper-dialect: mysql\r\n  reasonable: true\r\n  support-methods-arguments: true\r\n  params: count=countSql\r\n\r\nmybatis-plus:\r\n  type-aliases-package: com.dayz.sapientiacloud_edupivot.course.entity\r\n  mapper-locations: classpath:mapper/**/*.xml\r\n  configuration:\r\n    cache-enabled: false\r\n    map-underscore-to-camel-case: true\r\n  global-config:\r\n    db-config:\r\n      id-type: assign_id\r\n      update-strategy: not_null\r\n      logic-delete-field: deleted\r\n      logic-delete-value: 1\r\n      logic-not-delete-value: 0\r\n\r\nfeign:\r\n  client:\r\n    config:\r\n      default:\r\n        connectTimeout: 5000\r\n        readTimeout: 5000\r\n        loggerLevel: full\r\n  httpclient:\r\n    enabled: true\r\n\r\nspring:\r\n  jpa:\r\n    open-in-view: false\r\n    show-sql: true\r\n    hibernate:\r\n      ddl-auto: update\r\n  data:\r\n    mongodb:\r\n      host: ${MONGODB_HOST}\r\n      port: ${MONGODB_PORT}\r\n      database: ${MONGODB_DATABASE}\r\n      username: ${MONGODB_USERNAME}\r\n      password: ${MONGODB_PASSWORD}\r\n      authentication-database: ${MONGODB_AUTH_DATABASE}\r\n      type-mapper: none\r\n\r\n\r\nMONGODB_HOST: localhost\r\nMONGODB_PORT: 27017\r\nMONGODB_DATABASE: sapientiacloud_edupivot\r\nMONGODB_USERNAME: root\r\nMONGODB_PASSWORD: zhaosheng123\r\nMONGODB_AUTH_DATABASE: admin', '19da2350484b358d8bfc46161513d2c8', '2025-11-16 08:41:02', '2025-11-16 16:41:03', NULL, '172.18.0.1', 'I', '', '');
+INSERT INTO `his_config_info` VALUES (5, 165, 'SapientiaCloud-EduPivot--minIO.yaml', 'DEFAULT_GROUP', '', 'minio:\n  config:\n    ip: ${MINIO_IP}\n    port: ${MINIO_PORT}\n    accessKey: ${MINIO_USERNAME}\n    secretKey: ${MINIO_PASSWORD}\n    bucketName: ${MINIO_BUCKET_NAME}\n\nspring:\n  servlet:\n    multipart:\n      enabled: true\n      max-file-size: 50MB\n      max-request-size: 100MB\n      file-size-threshold: 2MB\n\n\nMINIO_IP: 127.0.0.1\nMINIO_PORT: 31589\nMINIO_USERNAME: root\nMINIO_PASSWORD: zhaosheng123\nMINIO_BUCKET_NAME: sapientiacloud-edupivot', '9052a1df053b6283fd5add4fb2de291a', '2025-11-19 03:19:11', '2025-11-19 11:19:12', 'nacos', '172.18.0.1', 'U', '', '');
+INSERT INTO `his_config_info` VALUES (1, 166, 'application.yaml', 'DEFAULT_GROUP', '', 'spring:\n  datasource:\n    driver-class-name: com.mysql.cj.jdbc.Driver\n    url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DATABASE}?rewriteBatchedStatements=true&characterEncoding=UTF-8&autoReconnect=true&failOverReadOnly=false&serverTimezone=Asia/Shanghai&allowMultiQueries=true\n    username: ${MYSQL_USERNAME}\n    password: ${MYSQL_PASSWORD}\n\n  data:\n    redis:\n      port: ${REDIS_PORT}\n      host: ${REDIS_HOST}\n      password: ${REDIS_PASSWORD}\n      database: 0\n      timeout: 6000ms\n      lettuce:\n        pool:\n          max-active: 8\n          max-wait: -1ms\n          max-idle: 8\n          min-idle: 0\n\n  cache:\n    type: redis\n    redis:\n      time-to-live: 1800000\n      cache-null-values: true\n      use-key-prefix: true\n      key-prefix: SapientiaCloud-EduPivot\n    caffeine:\n      spec: maximumSize=500,expireAfterWrite=10m\n\nknife4j:\n  enable: true\n  basic:\n    enable: true\n    username: ${KNIFE4J_USERNAME}\n    password: ${KNIFE4J_PASSWORD}\n\nmanagement:\n  tracing:\n    enabled: true\n    sampling:\n      probability: 1.0\n  zipkin:\n    tracing:\n      endpoint: http://localhost:9411/api/v2/spans\n\nlogging:\n  level:\n    root: INFO\n    com.dayz: INFO\n\n\nMYSQL_HOST: 127.0.0.1\nMYSQL_PORT: 3306\nMYSQL_USERNAME: root\nMYSQL_PASSWORD: zhaosheng123\nMYSQL_DATABASE: sapientiacloud_edupivot\nREDIS_HOST: 127.0.0.1\nREDIS_PORT: 6379\nREDIS_USERNAME:\nREDIS_PASSWORD: zhaosheng123\nKNIFE4J_USERNAME: admin\nKNIFE4J_PASSWORD: zhaosheng123', '0a38d47469123204faa6386b2b325738', '2025-11-19 03:38:31', '2025-11-19 11:38:31', 'nacos', '172.18.0.1', 'U', '', '');
+INSERT INTO `his_config_info` VALUES (5, 167, 'SapientiaCloud-EduPivot--minIO.yaml', 'DEFAULT_GROUP', '', 'minio:\n  config:\n    ip: ${MINIO_IP}\n    port: ${MINIO_PORT}\n    accessKey: ${MINIO_USERNAME}\n    secretKey: ${MINIO_PASSWORD}\n    bucketName: ${MINIO_BUCKET_NAME}\n  bucket-plan:\n    tenant-prefix: ${MINIO_BUCKET_TENANT:sapientiacloud-edupivot}\n    rules:\n      user-avatar:\n        bucket: ${MINIO_BUCKET_USER_AVATAR:${minio.bucket-plan.tenant-prefix}-user-avatar}\n        description: \"个人头像/证件照，默认私有，仅允许签名访问\"\n        access:\n          mode: PRIVATE\n          allowEduViewerRead: true\n          enforceSignedUrl: true\n        versioning:\n          enabled: true\n          keepLatestVersions: 3\n        lifecycle:\n          noncurrent-expiration-days: 7\n        upload:\n          onlyServerUpload: true\n          cacheRefresh: true\n        audit:\n          accessLog: true\n      course-public:\n        bucket: ${MINIO_BUCKET_COURSE_PUBLIC:${minio.bucket-plan.tenant-prefix}-course-public}\n        description: \"公开课件/论坛封面，默认公有读\"\n        access:\n          mode: PUBLIC_READ\n        versioning:\n          enabled: true\n          objectLock: true\n          lockMode: GOVERNANCE\n          lockRetentionDays: 7\n        lifecycle:\n          transitionInfrequentDays: 30\n          transitionArchiveDays: 180\n        audit:\n          accessLog: true\n      course-private:\n        bucket: ${MINIO_BUCKET_COURSE_PRIVATE:${minio.bucket-plan.tenant-prefix}-course-private}\n        description: \"学员/教师私有资料，SSE-KMS 加密\"\n        access:\n          mode: SIGNED_ONLY\n          enforceSignedUrl: true\n        versioning:\n          enabled: true\n        lifecycle:\n          transitionInfrequentDays: 45\n          transitionArchiveDays: 180\n          expirationDays: 730\n          noncurrentExpirationDays: 90\n        encryption:\n          sseKms: true\n          kmsKeyId: ${MINIO_KMS_KEY_ID:kms-edupivot}\n        audit:\n          accessLog: true\n      live-playback:\n        bucket: ${MINIO_BUCKET_LIVE_PLAYBACK:${minio.bucket-plan.tenant-prefix}-live-playback}\n        description: \"直播录制回放，上传完成后触发转码\"\n        access:\n          mode: SIGNED_ONLY\n        versioning:\n          enabled: true\n        lifecycle:\n          transitionInfrequentDays: 30\n          transitionArchiveDays: 120\n          expirationDays: 365\n          abortIncompleteMultipartDays: 3\n        upload:\n          requireMultipart: true\n      ai-qa-asset:\n        bucket: ${MINIO_BUCKET_AI_QA_ASSET:${minio.bucket-plan.tenant-prefix}-ai-qa-asset}\n        description: \"AI 问答资产，默认 90 天生命周期\"\n        access:\n          mode: PRIVATE\n          enforceSignedUrl: true\n        versioning:\n          enabled: true\n        lifecycle:\n          expirationDays: 90\n          transitionArchiveDays: 120\n        audit:\n          accessLog: true\n          notificationEnabled: true\n          notificationTarget: kafka://ai-audit-stream\n\nspring:\n  servlet:\n    multipart:\n      enabled: true\n      max-file-size: 50MB\n      max-request-size: 100MB\n      file-size-threshold: 2MB\n\nMINIO_IP: 127.0.0.1\nMINIO_PORT: 31589\nMINIO_USERNAME: root\nMINIO_PASSWORD: zhaosheng123\nMINIO_BUCKET_NAME: sapientiacloud-edupivot\nMINIO_BUCKET_TENANT: sapientiacloud-edupivot\nMINIO_BUCKET_USER_AVATAR: sapientiacloud-edupivot-user-avatar\nMINIO_BUCKET_COURSE_PUBLIC: sapientiacloud-edupivot-course-public\nMINIO_BUCKET_COURSE_PRIVATE: sapientiacloud-edupivot-course-private\nMINIO_BUCKET_LIVE_PLAYBACK: sapientiacloud-edupivot-live-playback\nMINIO_BUCKET_AI_QA_ASSET: sapientiacloud-edupivot-ai-qa\nMINIO_KMS_KEY_ID: sc-edupivot-kms-key', '551ad305a29d563aaf7f67bfdb3efc9f', '2025-11-19 12:45:58', '2025-11-19 20:45:58', 'nacos', '172.18.0.1', 'U', '', '');
+INSERT INTO `his_config_info` VALUES (81, 168, 'SapientiaCloud-EduPivot--celestial-hub.yaml', 'DEFAULT_GROUP', '', 'pagehelper:\n  helper-dialect: mysql\n  reasonable: true\n  support-methods-arguments: true\n  params: count=countSql\n\nmybatis-plus:\n  type-aliases-package: com.dayz.sapientiacloud_edupivot.celestial_hub.entity\n  mapper-locations: classpath:mapper/**/*.xml\n  configuration:\n    cache-enabled: false\n    map-underscore-to-camel-case: true\n  global-config:\n    db-config:\n      id-type: assign_id\n      update-strategy: not_null\n      logic-delete-field: deleted\n      logic-delete-value: 1\n      logic-not-delete-value: 0\n\nfeign:\n  client:\n    config:\n      default:\n        connectTimeout: 5000\n        readTimeout: 5000\n        loggerLevel: full\n  httpclient:\n    enabled: true\n\nspring:\n  jpa:\n    open-in-view: false\n    show-sql: true\n    hibernate:\n      ddl-auto: update\n  data:\n    mongodb:\n      host: ${MONGODB_HOST}\n      port: ${MONGODB_PORT}\n      database: ${MONGODB_DATABASE}\n      username: ${MONGODB_USERNAME}\n      password: ${MONGODB_PASSWORD}\n      authentication-database: ${MONGODB_AUTH_DATABASE}\n      type-mapper: none\n  ai:\n    dashscope:\n      api-key: ${TONGYI_API_KEY}\n      chat:\n        options:\n          model: qwen3-max\n          temperature: 0.7\n      embedding:\n        options:\n          model: text-embedding-v1\n    vectorstore:\n      redis:\n        index-name: knowledge-vector-index\n        prefix: vector\n        module-prefix: celestial-hub\n        initialize-schema: true\n        database: 1\n  kafka:\n    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}\n    producer:\n      key-serializer: org.apache.kafka.common.serialization.StringSerializer\n      value-serializer: org.apache.kafka.common.serialization.StringSerializer\n      acks: all\n      retries: 3\n      enable-idempotence: true\n      compression-type: snappy\n      batch-size: 16384\n      linger-ms: 10\n      buffer-memory: 33554432\n    consumer:\n      group-id: chat-group\n      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer\n      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer\n      enable-auto-commit: false\n      auto-offset-reset: earliest\n    topic:\n      chat-request: chat-request-topic\n      chat-response: chat-response-topic\n\nkafka:\n  chat:\n    timeout-seconds: 300\n    sink-cache:\n      expire-after-write-minutes: 10\n      maximum-size: 1000\n\n\nMONGODB_HOST: localhost\nMONGODB_PORT: 27017\nMONGODB_DATABASE: sapientiacloud_edupivot\nMONGODB_USERNAME: root\nMONGODB_PASSWORD: zhaosheng123\nMONGODB_AUTH_DATABASE: admin\nTONGYI_API_KEY: sk-20c0c396a3f64130ac4c56c1a4b3aa00\nKAFKA_BOOTSTRAP_SERVERS: localhost:9092', '19f2765c86a1ea76948b08a6a1c6e9ac', '2025-11-23 08:28:14', '2025-11-23 16:28:15', 'nacos', '172.18.0.1', 'U', '', '');
+INSERT INTO `his_config_info` VALUES (1, 169, 'application.yaml', 'DEFAULT_GROUP', '', 'spring:\n  datasource:\n    driver-class-name: com.mysql.cj.jdbc.Driver\n    url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DATABASE}?rewriteBatchedStatements=true&characterEncoding=UTF-8&autoReconnect=true&failOverReadOnly=false&serverTimezone=Asia/Shanghai&allowMultiQueries=true\n    username: ${MYSQL_USERNAME}\n    password: ${MYSQL_PASSWORD}\n\n  data:\n    redis:\n      port: ${REDIS_PORT}\n      host: ${REDIS_HOST}\n      password: ${REDIS_PASSWORD}\n      database: 0\n      timeout: 6000ms\n      lettuce:\n        pool:\n          max-active: 8\n          max-wait: -1ms\n          max-idle: 8\n          min-idle: 0\n\n  cache:\n    type: redis\n    redis:\n      time-to-live: 1800000\n      cache-null-values: true\n      use-key-prefix: true\n      key-prefix: SapientiaCloud-EduPivot\n    caffeine:\n      spec: maximumSize=500,expireAfterWrite=10m\n\nknife4j:\n  enable: true\n  basic:\n    enable: true\n    username: ${KNIFE4J_USERNAME}\n    password: ${KNIFE4J_PASSWORD}\n\nmanagement:\n  tracing:\n    enabled: true\n    sampling:\n      probability: 1.0\n  zipkin:\n    tracing:\n      endpoint: http://localhost:9411/api/v2/spans\n\nlogging:\n  level:\n    root: INFO\n    com.dayz: DEBUG\n\n\nMYSQL_HOST: 127.0.0.1\nMYSQL_PORT: 3306\nMYSQL_USERNAME: root\nMYSQL_PASSWORD: zhaosheng123\nMYSQL_DATABASE: sapientiacloud_edupivot\nREDIS_HOST: 127.0.0.1\nREDIS_PORT: 6379\nREDIS_USERNAME:\nREDIS_PASSWORD: zhaosheng123\nKNIFE4J_USERNAME: admin\nKNIFE4J_PASSWORD: zhaosheng123', 'd62ea8784c4336c324703e0fb66ea79a', '2025-11-25 13:27:48', '2025-11-25 21:27:48', 'nacos', '172.18.0.1', 'U', '', '');
+INSERT INTO `his_config_info` VALUES (1, 170, 'application.yaml', 'DEFAULT_GROUP', '', 'spring:\n  datasource:\n    driver-class-name: com.mysql.cj.jdbc.Driver\n    url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DATABASE}?rewriteBatchedStatements=true&characterEncoding=UTF-8&autoReconnect=true&failOverReadOnly=false&serverTimezone=Asia/Shanghai&allowMultiQueries=true\n    username: ${MYSQL_USERNAME}\n    password: ${MYSQL_PASSWORD}\n\n  data:\n    redis:\n      port: ${REDIS_PORT}\n      host: ${REDIS_HOST}\n      password: ${REDIS_PASSWORD}\n      database: 0\n      timeout: 6000ms\n      lettuce:\n        pool:\n          max-active: 8\n          max-wait: -1ms\n          max-idle: 8\n          min-idle: 0\n\n  cache:\n    type: redis\n    redis:\n      time-to-live: 1800000\n      cache-null-values: true\n      use-key-prefix: true\n      key-prefix: SapientiaCloud-EduPivot\n    caffeine:\n      spec: maximumSize=500,expireAfterWrite=10m\n\nknife4j:\n  enable: true\n  basic:\n    enable: true\n    username: ${KNIFE4J_USERNAME}\n    password: ${KNIFE4J_PASSWORD}\n\nmanagement:\n  tracing:\n    enabled: true\n    sampling:\n      probability: 1.0\n  zipkin:\n    tracing:\n      endpoint: http://localhost:9411/api/v2/spans\n\nlogging:\n  level:\n    root: INFO\n    com.dayz: INFO\n\n\nMYSQL_HOST: 127.0.0.1\nMYSQL_PORT: 3306\nMYSQL_USERNAME: root\nMYSQL_PASSWORD: zhaosheng123\nMYSQL_DATABASE: sapientiacloud_edupivot\nREDIS_HOST: 127.0.0.1\nREDIS_PORT: 6379\nREDIS_USERNAME:\nREDIS_PASSWORD: zhaosheng123\nKNIFE4J_USERNAME: admin\nKNIFE4J_PASSWORD: zhaosheng123', '0a38d47469123204faa6386b2b325738', '2025-11-26 12:22:00', '2025-11-26 20:22:01', 'nacos', '172.18.0.1', 'U', '', '');
+INSERT INTO `his_config_info` VALUES (1, 171, 'application.yaml', 'DEFAULT_GROUP', '', 'spring:\n  datasource:\n    driver-class-name: com.mysql.cj.jdbc.Driver\n    url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DATABASE}?rewriteBatchedStatements=true&characterEncoding=UTF-8&autoReconnect=true&failOverReadOnly=false&serverTimezone=Asia/Shanghai&allowMultiQueries=true\n    username: ${MYSQL_USERNAME}\n    password: ${MYSQL_PASSWORD}\n\n  data:\n    redis:\n      port: ${REDIS_PORT}\n      host: ${REDIS_HOST}\n      password: ${REDIS_PASSWORD}\n      database: 0\n      timeout: 6000ms\n      lettuce:\n        pool:\n          max-active: 8\n          max-wait: -1ms\n          max-idle: 8\n          min-idle: 0\n\n  cache:\n    type: redis\n    redis:\n      time-to-live: 1800000\n      cache-null-values: true\n      use-key-prefix: true\n      key-prefix: SapientiaCloud-EduPivot\n    caffeine:\n      spec: maximumSize=500,expireAfterWrite=10m\n\nknife4j:\n  enable: true\n  basic:\n    enable: true\n    username: ${KNIFE4J_USERNAME}\n    password: ${KNIFE4J_PASSWORD}\n\nmanagement:\n  tracing:\n    enabled: true\n    sampling:\n      probability: 1.0\n  zipkin:\n    tracing:\n      endpoint: http://localhost:9411/api/v2/spans\n\nlogging:\n  level:\n    root: INFO\n    com.dayz: DEBUG\n\n\nMYSQL_HOST: 127.0.0.1\nMYSQL_PORT: 3306\nMYSQL_USERNAME: root\nMYSQL_PASSWORD: zhaosheng123\nMYSQL_DATABASE: sapientiacloud_edupivot\nREDIS_HOST: 127.0.0.1\nREDIS_PORT: 6379\nREDIS_USERNAME:\nREDIS_PASSWORD: zhaosheng123\nKNIFE4J_USERNAME: admin\nKNIFE4J_PASSWORD: zhaosheng123', 'd62ea8784c4336c324703e0fb66ea79a', '2025-11-27 11:00:10', '2025-11-27 19:00:10', 'nacos', '172.18.0.1', 'U', '', '');
+INSERT INTO `his_config_info` VALUES (1, 172, 'application.yaml', 'DEFAULT_GROUP', '', 'spring:\n  datasource:\n    driver-class-name: com.mysql.cj.jdbc.Driver\n    url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DATABASE}?rewriteBatchedStatements=true&characterEncoding=UTF-8&autoReconnect=true&failOverReadOnly=false&serverTimezone=Asia/Shanghai&allowMultiQueries=true\n    username: ${MYSQL_USERNAME}\n    password: ${MYSQL_PASSWORD}\n\n  data:\n    redis:\n      port: ${REDIS_PORT}\n      host: ${REDIS_HOST}\n      password: ${REDIS_PASSWORD}\n      database: 0\n      timeout: 6000ms\n      lettuce:\n        pool:\n          max-active: 8\n          max-wait: -1ms\n          max-idle: 8\n          min-idle: 0\n\n  cache:\n    type: redis\n    redis:\n      time-to-live: 1800000\n      cache-null-values: true\n      use-key-prefix: true\n      key-prefix: SapientiaCloud-EduPivot\n    caffeine:\n      spec: maximumSize=500,expireAfterWrite=10m\n\nknife4j:\n  enable: true\n  basic:\n    enable: true\n    username: ${KNIFE4J_USERNAME}\n    password: ${KNIFE4J_PASSWORD}\n\nmanagement:\n  tracing:\n    enabled: true\n    sampling:\n      probability: 1.0\n  zipkin:\n    tracing:\n      endpoint: http://localhost:9411/api/v2/spans\n\nlogging:\n  level:\n    root: INFO\n    com.dayz: INFO\n\n\nMYSQL_HOST: 127.0.0.1\nMYSQL_PORT: 3306\nMYSQL_USERNAME: root\nMYSQL_PASSWORD: zhaosheng123\nMYSQL_DATABASE: sapientiacloud_edupivot\nREDIS_HOST: 127.0.0.1\nREDIS_PORT: 6379\nREDIS_USERNAME:\nREDIS_PASSWORD: zhaosheng123\nKNIFE4J_USERNAME: admin\nKNIFE4J_PASSWORD: zhaosheng123', '0a38d47469123204faa6386b2b325738', '2025-11-27 11:04:51', '2025-11-27 19:04:51', 'nacos', '172.18.0.1', 'U', '', '');
+INSERT INTO `his_config_info` VALUES (1, 173, 'application.yaml', 'DEFAULT_GROUP', '', 'spring:\n  datasource:\n    driver-class-name: com.mysql.cj.jdbc.Driver\n    url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DATABASE}?rewriteBatchedStatements=true&characterEncoding=UTF-8&autoReconnect=true&failOverReadOnly=false&serverTimezone=Asia/Shanghai&allowMultiQueries=true\n    username: ${MYSQL_USERNAME}\n    password: ${MYSQL_PASSWORD}\n\n  data:\n    redis:\n      port: ${REDIS_PORT}\n      host: ${REDIS_HOST}\n      password: ${REDIS_PASSWORD}\n      database: 0\n      timeout: 6000ms\n      lettuce:\n        pool:\n          max-active: 8\n          max-wait: -1ms\n          max-idle: 8\n          min-idle: 0\n\n  cache:\n    type: redis\n    redis:\n      time-to-live: 1800000\n      cache-null-values: true\n      use-key-prefix: true\n      key-prefix: SapientiaCloud-EduPivot\n    caffeine:\n      spec: maximumSize=500,expireAfterWrite=10m\n\nknife4j:\n  enable: true\n  basic:\n    enable: true\n    username: ${KNIFE4J_USERNAME}\n    password: ${KNIFE4J_PASSWORD}\n\nmanagement:\n  tracing:\n    enabled: true\n    sampling:\n      probability: 1.0\n  zipkin:\n    tracing:\n      endpoint: http://localhost:9411/api/v2/spans\n\nlogging:\n  level:\n    root: INFO\n    com.dayz: DEBUG\n\n\nMYSQL_HOST: 127.0.0.1\nMYSQL_PORT: 3306\nMYSQL_USERNAME: root\nMYSQL_PASSWORD: zhaosheng123\nMYSQL_DATABASE: sapientiacloud_edupivot\nREDIS_HOST: 127.0.0.1\nREDIS_PORT: 6379\nREDIS_USERNAME:\nREDIS_PASSWORD: zhaosheng123\nKNIFE4J_USERNAME: admin\nKNIFE4J_PASSWORD: zhaosheng123', 'd62ea8784c4336c324703e0fb66ea79a', '2025-11-27 14:06:04', '2025-11-27 22:06:04', 'nacos', '172.18.0.1', 'U', '', '');
+INSERT INTO `his_config_info` VALUES (81, 174, 'SapientiaCloud-EduPivot--celestial-hub.yaml', 'DEFAULT_GROUP', '', 'pagehelper:\n  helper-dialect: mysql\n  reasonable: true\n  support-methods-arguments: true\n  params: count=countSql\n\nmybatis-plus:\n  type-aliases-package: com.dayz.sapientiacloud_edupivot.celestial_hub.entity\n  mapper-locations: classpath:mapper/**/*.xml\n  configuration:\n    cache-enabled: false\n    map-underscore-to-camel-case: true\n  global-config:\n    db-config:\n      id-type: assign_id\n      update-strategy: not_null\n      logic-delete-field: deleted\n      logic-delete-value: 1\n      logic-not-delete-value: 0\n\nfeign:\n  client:\n    config:\n      default:\n        connectTimeout: 5000\n        readTimeout: 5000\n        loggerLevel: full\n  httpclient:\n    enabled: true\n\nspring:\n  jpa:\n    open-in-view: false\n    show-sql: true\n    hibernate:\n      ddl-auto: update\n  data:\n    mongodb:\n      host: ${MONGODB_HOST}\n      port: ${MONGODB_PORT}\n      database: ${MONGODB_DATABASE}\n      username: ${MONGODB_USERNAME}\n      password: ${MONGODB_PASSWORD}\n      authentication-database: ${MONGODB_AUTH_DATABASE}\n      type-mapper: none\n  ai:\n    dashscope:\n      api-key: ${TONGYI_API_KEY}\n      chat:\n        options:\n          model: qwen3-max\n          temperature: 0.7\n      embedding:\n        options:\n          model: text-embedding-v1\n    vectorstore:\n      redis:\n        index-name: knowledge-vector-index\n        prefix: vector\n        module-prefix: celestial-hub\n        initialize-schema: true\n        database: 1\n  kafka:\n    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}\n    producer:\n      key-serializer: org.apache.kafka.common.serialization.StringSerializer\n      value-serializer: org.apache.kafka.common.serialization.StringSerializer\n      acks: all\n      retries: 3\n      enable-idempotence: true\n      compression-type: snappy\n      batch-size: 16384\n      linger-ms: 10\n      buffer-memory: 33554432\n    consumer:\n      group-id: chat-group\n      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer\n      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer\n      enable-auto-commit: false\n      auto-offset-reset: earliest\n    topic:\n      chat-request: chat-request-topic\n      chat-response: chat-response-topic\n      file-vectorize: file-vectorize-topic\n\nkafka:\n  chat:\n    timeout-seconds: 300\n    sink-cache:\n      expire-after-write-minutes: 10\n      maximum-size: 1000\n\n\nMONGODB_HOST: localhost\nMONGODB_PORT: 27017\nMONGODB_DATABASE: sapientiacloud_edupivot\nMONGODB_USERNAME: root\nMONGODB_PASSWORD: zhaosheng123\nMONGODB_AUTH_DATABASE: admin\nTONGYI_API_KEY: sk-20c0c396a3f64130ac4c56c1a4b3aa00\nKAFKA_BOOTSTRAP_SERVERS: localhost:9092', 'b4d54d2ca596f96007b83bf2c2c6f7e0', '2025-12-02 09:20:00', '2025-12-02 17:20:00', 'nacos', '172.18.0.1', 'U', '', '');
+INSERT INTO `his_config_info` VALUES (162, 175, 'SapientiaCloud-EduPivot--live.yaml', 'DEFAULT_GROUP', '', 'pagehelper:\r\n  helper-dialect: mysql\r\n  reasonable: true\r\n  support-methods-arguments: true\r\n  params: count=countSql\r\n\r\nmybatis-plus:\r\n  type-aliases-package: com.dayz.sapientiacloud_edupivot.course.entity\r\n  mapper-locations: classpath:mapper/**/*.xml\r\n  configuration:\r\n    cache-enabled: false\r\n    map-underscore-to-camel-case: true\r\n  global-config:\r\n    db-config:\r\n      id-type: assign_id\r\n      update-strategy: not_null\r\n      logic-delete-field: deleted\r\n      logic-delete-value: 1\r\n      logic-not-delete-value: 0\r\n\r\nfeign:\r\n  client:\r\n    config:\r\n      default:\r\n        connectTimeout: 5000\r\n        readTimeout: 5000\r\n        loggerLevel: full\r\n  httpclient:\r\n    enabled: true\r\n\r\nspring:\r\n  jpa:\r\n    open-in-view: false\r\n    show-sql: true\r\n    hibernate:\r\n      ddl-auto: update\r\n  data:\r\n    mongodb:\r\n      host: ${MONGODB_HOST}\r\n      port: ${MONGODB_PORT}\r\n      database: ${MONGODB_DATABASE}\r\n      username: ${MONGODB_USERNAME}\r\n      password: ${MONGODB_PASSWORD}\r\n      authentication-database: ${MONGODB_AUTH_DATABASE}\r\n      type-mapper: none\r\n\r\n\r\nMONGODB_HOST: localhost\r\nMONGODB_PORT: 27017\r\nMONGODB_DATABASE: sapientiacloud_edupivot\r\nMONGODB_USERNAME: root\r\nMONGODB_PASSWORD: zhaosheng123\r\nMONGODB_AUTH_DATABASE: admin', '19da2350484b358d8bfc46161513d2c8', '2025-12-04 14:18:31', '2025-12-04 22:18:31', 'nacos', '172.18.0.1', 'U', '', '');
+INSERT INTO `his_config_info` VALUES (162, 176, 'SapientiaCloud-EduPivot--live.yaml', 'DEFAULT_GROUP', '', 'pagehelper:\n  helper-dialect: mysql\n  reasonable: true\n  support-methods-arguments: true\n  params: count=countSql\n\nmybatis-plus:\n  type-aliases-package: com.dayz.sapientiacloud_edupivot.live.common.entity\n  type-handlers-package: com.dayz.sapientiacloud_edupivot.live.common.config # register UUID type handlers\n  mapper-locations: classpath:mapper/**/*.xml\n  configuration:\n    cache-enabled: false\n    map-underscore-to-camel-case: true\n  global-config:\n    db-config:\n      id-type: assign_id\n      update-strategy: not_null\n      logic-delete-field: deleted\n      logic-delete-value: 1\n      logic-not-delete-value: 0\n\nfeign:\n  client:\n    config:\n      default:\n        connectTimeout: 5000\n        readTimeout: 5000\n        loggerLevel: full\n  httpclient:\n    enabled: true\n\nspring:\n  jpa:\n    open-in-view: false\n    show-sql: true\n    hibernate:\n      ddl-auto: update\n  data:\n    mongodb:\n      host: ${MONGODB_HOST}\n      port: ${MONGODB_PORT}\n      database: ${MONGODB_DATABASE}\n      username: ${MONGODB_USERNAME}\n      password: ${MONGODB_PASSWORD}\n      authentication-database: ${MONGODB_AUTH_DATABASE}\n      type-mapper: none\n\n\nMONGODB_HOST: localhost\nMONGODB_PORT: 27017\nMONGODB_DATABASE: sapientiacloud_edupivot\nMONGODB_USERNAME: root\nMONGODB_PASSWORD: zhaosheng123\nMONGODB_AUTH_DATABASE: admin\n\nlivekit:\n  host: ${LIVEKIT_HOST}\n  api-key: ${LIVEKIT_API_KEY}\n  api-secret: ${LIVEKIT_API_SECRET}\n  token-ttl-seconds: 7200\n  room:\n    empty-timeout-seconds: 300\n    departure-timeout-seconds: 20\n    max-participants: 500\n  egress:\n    enable: true\n    layout: speaker-dark\n    file-type: MP4\n    output-prefix: live-playback\n    playback-base-url: http://localhost:9000/sapientiacloud-live-playback\n  stun-servers:\n    - stun:stun.l.google.com:19302\n    - stun:stun.cloudflare.com:3478\n  turn:\n    urls: turn:${LIVEKIT_TURN_HOST}:3478?transport=udp\n    username: livekit\n    password: livekit123\n\nLIVEKIT_HOST: ws://localhost:7880\nLIVEKIT_TURN_HOST: localhost\nLIVEKIT_API_KEY: \"livekitdevkey001\"\nLIVEKIT_API_SECRET: \"livekitdevsecret001abcdef1234567890abcd\"\n', 'cb6dc6cba81a4265510ddc9c1a2ead64', '2025-12-04 14:22:58', '2025-12-04 22:22:58', 'nacos', '172.18.0.1', 'U', '', '');
+INSERT INTO `his_config_info` VALUES (4, 177, 'SapientiaCloud-EduPivot--gateway.yaml', 'DEFAULT_GROUP', '', 'spring:\n  cloud:\n    gateway:\n      routes:\n        - id: SapientiaCloud-EduPivot--system\n          uri: lb://SapientiaCloud-EduPivot--system\n          predicates:\n            - Path=/api/system/**\n          filters:\n            - StripPrefix=2\n        - id: SapientiaCloud-EduPivot--auth\n          uri: lb://SapientiaCloud-EduPivot--auth\n          predicates:\n            - Path=/api/auth/**\n          filters:\n            - StripPrefix=2\n        - id: SapientiaCloud-EduPivot--minIO\n          uri: lb://SapientiaCloud-EduPivot--minIO\n          predicates:\n            - Path=/api/minIO/**\n          filters:\n            - StripPrefix=2\n        - id: SapientiaCloud-EduPivot--teacher\n          uri: lb://SapientiaCloud-EduPivot--teacher\n          predicates:\n            - Path=/api/teacher/**\n          filters:\n            - StripPrefix=2\n        - id: SapientiaCloud-EduPivot--student\n          uri: lb://SapientiaCloud-EduPivot--student\n          predicates:\n            - Path=/api/student/**\n          filters:\n            - StripPrefix=2\n        - id: SapientiaCloud-EduPivot--course\n          uri: lb://SapientiaCloud-EduPivot--course\n          predicates:\n            - Path=/api/course/**\n          filters:\n            - StripPrefix=2\n        - id: SapientiaCloud-EduPivot--classroom\n          uri: lb://SapientiaCloud-EduPivot--classroom\n          predicates:\n            - Path=/api/classroom/**\n          filters:\n            - StripPrefix=2\n        - id: SapientiaCloud-EduPivot--celestial-hub\n          uri: lb://SapientiaCloud-EduPivot--celestial-hub\n          predicates:\n            - Path=/api/celestial-hub/**\n          filters:\n            - StripPrefix=2\n        - id: websocket-ai-chat-route\n          uri: lb://SapientiaCloud-EduPivot--celestial-hub\n          predicates:\n            - Path=/api/ws/**\n          filters:\n            - StripPrefix=1\n\n  data:\n    redis:\n      host: ${REDIS_HOST}\n      port: ${REDIS_PORT}\n      password: ${REDIS_PASSWORD}\n      timeout: 6000ms\n      lettuce:\n        pool:\n          max-active: 8\n          max-wait: -1ms\n          max-idle: 8\n          min-idle: 0\n\nknife4j:\n  gateway:\n    enabled: true\n    strategy: discover\n    discover:\n      enabled: true\n      version: openapi3\n\ncache:\n  caffeine:\n    spec: maximumSize=500,expireAfterWrite=10m\n\nmanagement:\n  tracing:\n    enabled: true\n    sampling:\n      probability: 1.0\n  zipkin:\n    tracing:\n      endpoint: http://localhost:9411/api/v2/spans\n\nlogging:\n  level:\n    root: INFO\n    com.dayz: INFO\n\nREDIS_HOST: 127.0.0.1\nREDIS_PORT: 6379\nREDIS_USERNAME:\nREDIS_PASSWORD: zhaosheng123', '7baf091b8802052622eb1474b221c780', '2025-12-04 14:29:19', '2025-12-04 22:29:20', 'nacos', '172.18.0.1', 'U', '', '');
+INSERT INTO `his_config_info` VALUES (4, 178, 'SapientiaCloud-EduPivot--gateway.yaml', 'DEFAULT_GROUP', '', 'spring:\n  cloud:\n    gateway:\n      routes:\n        - id: SapientiaCloud-EduPivot--system\n          uri: lb://SapientiaCloud-EduPivot--system\n          predicates:\n            - Path=/api/system/**\n          filters:\n            - StripPrefix=2\n        - id: SapientiaCloud-EduPivot--auth\n          uri: lb://SapientiaCloud-EduPivot--auth\n          predicates:\n            - Path=/api/auth/**\n          filters:\n            - StripPrefix=2\n        - id: SapientiaCloud-EduPivot--minIO\n          uri: lb://SapientiaCloud-EduPivot--minIO\n          predicates:\n            - Path=/api/minIO/**\n          filters:\n            - StripPrefix=2\n        - id: SapientiaCloud-EduPivot--teacher\n          uri: lb://SapientiaCloud-EduPivot--teacher\n          predicates:\n            - Path=/api/teacher/**\n          filters:\n            - StripPrefix=2\n        - id: SapientiaCloud-EduPivot--student\n          uri: lb://SapientiaCloud-EduPivot--student\n          predicates:\n            - Path=/api/student/**\n          filters:\n            - StripPrefix=2\n        - id: SapientiaCloud-EduPivot--course\n          uri: lb://SapientiaCloud-EduPivot--course\n          predicates:\n            - Path=/api/course/**\n          filters:\n            - StripPrefix=2\n        - id: SapientiaCloud-EduPivot--classroom\n          uri: lb://SapientiaCloud-EduPivot--classroom\n          predicates:\n            - Path=/api/classroom/**\n          filters:\n            - StripPrefix=2\n        - id: SapientiaCloud-EduPivot--celestial-hub\n          uri: lb://SapientiaCloud-EduPivot--celestial-hub\n          predicates:\n            - Path=/api/celestial-hub/**\n          filters:\n            - StripPrefix=2\n        - id: SapientiaCloud-EduPivot--live\n          uri: lb://SapientiaCloud-EduPivot--live\n          predicates:\n            - Path=/api/live/**\n          filters:\n            - StripPrefix=2\n\n  data:\n    redis:\n      host: ${REDIS_HOST}\n      port: ${REDIS_PORT}\n      password: ${REDIS_PASSWORD}\n      timeout: 6000ms\n      lettuce:\n        pool:\n          max-active: 8\n          max-wait: -1ms\n          max-idle: 8\n          min-idle: 0\n\nknife4j:\n  gateway:\n    enabled: true\n    strategy: discover\n    discover:\n      enabled: true\n      version: openapi3\n\ncache:\n  caffeine:\n    spec: maximumSize=500,expireAfterWrite=10m\n\nmanagement:\n  tracing:\n    enabled: true\n    sampling:\n      probability: 1.0\n  zipkin:\n    tracing:\n      endpoint: http://localhost:9411/api/v2/spans\n\nlogging:\n  level:\n    root: INFO\n    com.dayz: INFO\n\nREDIS_HOST: 127.0.0.1\nREDIS_PORT: 6379\nREDIS_USERNAME:\nREDIS_PASSWORD: zhaosheng123', '86ca11eb6122e37c1c4d7a0d8e47d830', '2025-12-04 14:31:23', '2025-12-04 22:31:24', 'nacos', '172.18.0.1', 'U', '', '');
+INSERT INTO `his_config_info` VALUES (7, 179, 'SapientiaCloud-EduPivot--student.yaml', 'DEFAULT_GROUP', '', 'pagehelper:\r\n  helper-dialect: mysql\r\n  reasonable: true\r\n  support-methods-arguments: true\r\n  params: count=countSql\r\n\r\nmybatis-plus:\r\n  type-aliases-package: com.dayz.sapientiacloud_edupivot.student.entity\r\n  mapper-locations: classpath:mapper/**/*.xml\r\n  configuration:\r\n    cache-enabled: false\r\n    map-underscore-to-camel-case: true\r\n  global-config:\r\n    db-config:\r\n      id-type: assign_id\r\n      update-strategy: not_null\r\n      logic-delete-field: deleted\r\n      logic-delete-value: 1\r\n      logic-not-delete-value: 0\r\n\r\nfeign:\r\n  client:\r\n    config:\r\n      default:\r\n        connectTimeout: 5000\r\n        readTimeout: 5000\r\n        loggerLevel: full\r\n  httpclient:\r\n    enabled: true\r\n\r\nspring:\r\n  jpa:\r\n    open-in-view: false\r\n    show-sql: true\r\n    hibernate:\r\n      ddl-auto: update', 'ca924e9ee68d99638b7090d450fcb1c4', '2025-12-12 14:33:38', '2025-12-12 22:33:38', 'nacos', '172.18.0.1', 'U', '', '');
+INSERT INTO `his_config_info` VALUES (162, 180, 'SapientiaCloud-EduPivot--live.yaml', 'DEFAULT_GROUP', '', 'pagehelper:\n  helper-dialect: mysql\n  reasonable: true\n  support-methods-arguments: true\n  params: count=countSql\n\nmybatis-plus:\n  type-aliases-package: com.dayz.sapientiacloud_edupivot.live.common.entity\n  mapper-locations: classpath:mapper/**/*.xml\n  configuration:\n    cache-enabled: false\n    map-underscore-to-camel-case: true\n  global-config:\n    db-config:\n      id-type: assign_id\n      update-strategy: not_null\n      logic-delete-field: deleted\n      logic-delete-value: 1\n      logic-not-delete-value: 0\n\nfeign:\n  client:\n    config:\n      default:\n        connectTimeout: 5000\n        readTimeout: 5000\n        loggerLevel: full\n  httpclient:\n    enabled: true\n\nspring:\n  jpa:\n    open-in-view: false\n    show-sql: true\n    hibernate:\n      ddl-auto: update\n  data:\n    mongodb:\n      host: ${MONGODB_HOST}\n      port: ${MONGODB_PORT}\n      database: ${MONGODB_DATABASE}\n      username: ${MONGODB_USERNAME}\n      password: ${MONGODB_PASSWORD}\n      authentication-database: ${MONGODB_AUTH_DATABASE}\n      type-mapper: none\n\n\nMONGODB_HOST: localhost\nMONGODB_PORT: 27017\nMONGODB_DATABASE: sapientiacloud_edupivot\nMONGODB_USERNAME: root\nMONGODB_PASSWORD: zhaosheng123\nMONGODB_AUTH_DATABASE: admin\n\nlivekit:\n  host: ${LIVEKIT_HOST}\n  api-key: ${LIVEKIT_API_KEY}\n  api-secret: ${LIVEKIT_API_SECRET}\n  token-ttl-seconds: 7200\n  room:\n    empty-timeout-seconds: 300\n    departure-timeout-seconds: 20\n    max-participants: 500\n  egress:\n    enable: true\n    layout: speaker-dark\n    file-type: MP4\n    output-prefix: live-playback\n    playback-base-url: http://localhost:9000/sapientiacloud-live-playback\n  stun-servers:\n    - stun:stun.l.google.com:19302\n    - stun:stun.cloudflare.com:3478\n  turn:\n    urls: turn:${LIVEKIT_TURN_HOST}:3478?transport=udp\n    username: livekit\n    password: livekit123\n\nLIVEKIT_HOST: ws://localhost:7880\nLIVEKIT_TURN_HOST: localhost\nLIVEKIT_API_KEY: \"livekitdevkey001\"\nLIVEKIT_API_SECRET: \"livekitdevsecret001abcdef1234567890abcd\"\n', '322641fd1176e647a03617b9a0e3db04', '2025-12-14 13:26:47', '2025-12-14 21:26:47', 'nacos', '172.18.0.1', 'U', '', '');
 
 -- ----------------------------
 -- Table structure for permissions
 -- ----------------------------
 DROP TABLE IF EXISTS `permissions`;
-CREATE TABLE `permissions`
-(
-    `role`     varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  NOT NULL,
-    `resource` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-    `action`   varchar(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci   NOT NULL,
-    UNIQUE INDEX `uk_role_permission` (`role` ASC, `resource` ASC, `action` ASC) USING BTREE
-) ENGINE = InnoDB
-  CHARACTER SET = utf8mb4
-  COLLATE = utf8mb4_general_ci
-  ROW_FORMAT = DYNAMIC;
+CREATE TABLE `permissions`  (
+  `role` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `resource` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `action` varchar(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  UNIQUE INDEX `uk_role_permission`(`role` ASC, `resource` ASC, `action` ASC) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of permissions
@@ -320,45 +241,35 @@ CREATE TABLE `permissions`
 -- Table structure for roles
 -- ----------------------------
 DROP TABLE IF EXISTS `roles`;
-CREATE TABLE `roles`
-(
-    `username` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-    `role`     varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-    UNIQUE INDEX `idx_user_role` (`username` ASC, `role` ASC) USING BTREE
-) ENGINE = InnoDB
-  CHARACTER SET = utf8mb4
-  COLLATE = utf8mb4_general_ci
-  ROW_FORMAT = DYNAMIC;
+CREATE TABLE `roles`  (
+  `username` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `role` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  UNIQUE INDEX `idx_user_role`(`username` ASC, `role` ASC) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of roles
 -- ----------------------------
-INSERT INTO `roles`
-VALUES ('nacos', 'ROLE_ADMIN');
+INSERT INTO `roles` VALUES ('nacos', 'ROLE_ADMIN');
 
 -- ----------------------------
 -- Table structure for tenant_capacity
 -- ----------------------------
 DROP TABLE IF EXISTS `tenant_capacity`;
-CREATE TABLE `tenant_capacity`
-(
-    `id`                bigint UNSIGNED                                        NOT NULL AUTO_INCREMENT COMMENT '主键ID',
-    `tenant_id`         varchar(128) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NOT NULL DEFAULT '' COMMENT 'Tenant ID',
-    `quota`             int UNSIGNED                                           NOT NULL DEFAULT 0 COMMENT '配额，0表示使用默认值',
-    `usage`             int UNSIGNED                                           NOT NULL DEFAULT 0 COMMENT '使用量',
-    `max_size`          int UNSIGNED                                           NOT NULL DEFAULT 0 COMMENT '单个配置大小上限，单位为字节，0表示使用默认值',
-    `max_aggr_count`    int UNSIGNED                                           NOT NULL DEFAULT 0 COMMENT '聚合子配置最大个数',
-    `max_aggr_size`     int UNSIGNED                                           NOT NULL DEFAULT 0 COMMENT '单个聚合数据的子配置大小上限，单位为字节，0表示使用默认值',
-    `max_history_count` int UNSIGNED                                           NOT NULL DEFAULT 0 COMMENT '最大变更历史数量',
-    `gmt_create`        datetime                                               NULL     DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `gmt_modified`      datetime                                               NULL     DEFAULT CURRENT_TIMESTAMP COMMENT '修改时间',
-    PRIMARY KEY (`id`) USING BTREE,
-    UNIQUE INDEX `uk_tenant_id` (`tenant_id` ASC) USING BTREE
-) ENGINE = InnoDB
-  AUTO_INCREMENT = 1
-  CHARACTER SET = utf8mb3
-  COLLATE = utf8mb3_bin COMMENT = '租户容量信息表'
-  ROW_FORMAT = DYNAMIC;
+CREATE TABLE `tenant_capacity`  (
+  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `tenant_id` varchar(128) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NOT NULL DEFAULT '' COMMENT 'Tenant ID',
+  `quota` int UNSIGNED NOT NULL DEFAULT 0 COMMENT '配额，0表示使用默认值',
+  `usage` int UNSIGNED NOT NULL DEFAULT 0 COMMENT '使用量',
+  `max_size` int UNSIGNED NOT NULL DEFAULT 0 COMMENT '单个配置大小上限，单位为字节，0表示使用默认值',
+  `max_aggr_count` int UNSIGNED NOT NULL DEFAULT 0 COMMENT '聚合子配置最大个数',
+  `max_aggr_size` int UNSIGNED NOT NULL DEFAULT 0 COMMENT '单个聚合数据的子配置大小上限，单位为字节，0表示使用默认值',
+  `max_history_count` int UNSIGNED NOT NULL DEFAULT 0 COMMENT '最大变更历史数量',
+  `gmt_create` datetime NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `gmt_modified` datetime NULL DEFAULT CURRENT_TIMESTAMP COMMENT '修改时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `uk_tenant_id`(`tenant_id` ASC) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_bin COMMENT = '租户容量信息表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of tenant_capacity
@@ -368,24 +279,19 @@ CREATE TABLE `tenant_capacity`
 -- Table structure for tenant_info
 -- ----------------------------
 DROP TABLE IF EXISTS `tenant_info`;
-CREATE TABLE `tenant_info`
-(
-    `id`            bigint                                                 NOT NULL AUTO_INCREMENT COMMENT 'id',
-    `kp`            varchar(128) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NOT NULL COMMENT 'kp',
-    `tenant_id`     varchar(128) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NULL DEFAULT '' COMMENT 'tenant_id',
-    `tenant_name`   varchar(128) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NULL DEFAULT '' COMMENT 'tenant_name',
-    `tenant_desc`   varchar(256) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NULL DEFAULT NULL COMMENT 'tenant_desc',
-    `create_source` varchar(32) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin  NULL DEFAULT NULL COMMENT 'create_source',
-    `gmt_create`    bigint                                                 NULL DEFAULT NULL COMMENT '创建时间',
-    `gmt_modified`  bigint                                                 NULL DEFAULT NULL COMMENT '修改时间',
-    PRIMARY KEY (`id`) USING BTREE,
-    UNIQUE INDEX `uk_tenant_info_kptenantid` (`kp` ASC, `tenant_id` ASC) USING BTREE,
-    INDEX `idx_tenant_id` (`tenant_id` ASC) USING BTREE
-) ENGINE = InnoDB
-  AUTO_INCREMENT = 1
-  CHARACTER SET = utf8mb3
-  COLLATE = utf8mb3_bin COMMENT = 'tenant_info'
-  ROW_FORMAT = DYNAMIC;
+CREATE TABLE `tenant_info`  (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT 'id',
+  `kp` varchar(128) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NOT NULL COMMENT 'kp',
+  `tenant_id` varchar(128) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NULL DEFAULT '' COMMENT 'tenant_id',
+  `tenant_name` varchar(128) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NULL DEFAULT '' COMMENT 'tenant_name',
+  `tenant_desc` varchar(256) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NULL DEFAULT NULL COMMENT 'tenant_desc',
+  `create_source` varchar(32) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NULL DEFAULT NULL COMMENT 'create_source',
+  `gmt_create` bigint NULL DEFAULT NULL COMMENT '创建时间',
+  `gmt_modified` bigint NULL DEFAULT NULL COMMENT '修改时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `uk_tenant_info_kptenantid`(`kp` ASC, `tenant_id` ASC) USING BTREE,
+  INDEX `idx_tenant_id`(`tenant_id` ASC) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_bin COMMENT = 'tenant_info' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of tenant_info
@@ -395,21 +301,16 @@ CREATE TABLE `tenant_info`
 -- Table structure for users
 -- ----------------------------
 DROP TABLE IF EXISTS `users`;
-CREATE TABLE `users`
-(
-    `username` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  NOT NULL,
-    `password` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-    `enabled`  tinyint(1)                                                    NOT NULL,
-    PRIMARY KEY (`username`) USING BTREE
-) ENGINE = InnoDB
-  CHARACTER SET = utf8mb4
-  COLLATE = utf8mb4_general_ci
-  ROW_FORMAT = DYNAMIC;
+CREATE TABLE `users`  (
+  `username` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `password` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `enabled` tinyint(1) NOT NULL,
+  PRIMARY KEY (`username`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of users
 -- ----------------------------
-INSERT INTO `users`
-VALUES ('nacos', '$2a$10$k3Pb1RMscWhysKCYT0zMoONDKH1f3QKJEYf9zcjBFd/V73AH3G/7G', 1);
+INSERT INTO `users` VALUES ('nacos', '$2a$10$k3Pb1RMscWhysKCYT0zMoONDKH1f3QKJEYf9zcjBFd/V73AH3G/7G', 1);
 
 SET FOREIGN_KEY_CHECKS = 1;

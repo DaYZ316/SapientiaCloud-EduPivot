@@ -3,7 +3,6 @@ CREATE TABLE `mg_course`
     `id`                    binary(16)   NOT NULL COMMENT '课程ID',
     `course_name`           varchar(100) NOT NULL COMMENT '课程名称',
     `teacher_id`            binary(16)   NOT NULL COMMENT '授课教师ID',
-    `assistant_teacher_ids` json         DEFAULT NULL COMMENT '辅助教学教师ID列表 (JSON array)',
     `description`           text         DEFAULT NULL COMMENT '课程描述',
     `cover_image_url`       varchar(512) DEFAULT NULL COMMENT '课程封面图片URL',
     `semester`              varchar(20)  DEFAULT NULL COMMENT '开设学期 (例如: 2025秋季)',
@@ -33,3 +32,14 @@ CREATE TABLE `mg_course_student`
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_unicode_ci COMMENT ='学生选课关联表';
+
+CREATE TABLE `mg_course_assistant_teacher`
+(
+    `course_id`           binary(16)   NOT NULL COMMENT '课程ID',
+    `assistant_teacher_id` binary(16)  NOT NULL COMMENT '辅助教师ID',
+    `create_time`         datetime     DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    KEY `idx_course_id` (`course_id`),
+    KEY `idx_assistant_teacher_id` (`assistant_teacher_id`)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci COMMENT ='课程-辅助教师关联表';

@@ -5,7 +5,6 @@ import com.dayz.sapientiacloud_edupivot.auth.enums.ResultEnum;
 import com.dayz.sapientiacloud_edupivot.auth.enums.SysUserEnum;
 import com.dayz.sapientiacloud_edupivot.auth.result.Result;
 import com.dayz.sapientiacloud_edupivot.auth.utils.EnumUtil;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.BindException;
@@ -17,7 +16,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.util.Map;
 import java.util.Objects;
 
-@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     private static final String USER = "user";
@@ -37,7 +35,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    public Result<Void> handleException() {
+    public Result<Void> handleException(Exception e) {
         return Result.fail(ResultEnum.SYSTEM_ERROR);
     }
 

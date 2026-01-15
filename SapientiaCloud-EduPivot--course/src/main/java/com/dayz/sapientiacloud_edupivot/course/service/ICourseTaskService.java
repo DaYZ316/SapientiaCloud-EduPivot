@@ -16,6 +16,8 @@ public interface ICourseTaskService {
 
     List<CourseTaskVO> listAllCourseTaskByUserId(UUID sysUserId);
 
+    List<CourseTaskVO> listAllCourseTask();
+
     List<CourseTaskVO> listCourseTaskByCourseIdAndStatus(UUID courseId, Integer status);
 
     List<CourseTaskVO> listCourseTaskByCourseIdAndTaskType(UUID courseId, Integer taskType);

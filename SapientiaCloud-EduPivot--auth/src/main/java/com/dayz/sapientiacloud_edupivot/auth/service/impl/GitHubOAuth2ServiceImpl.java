@@ -8,6 +8,7 @@ import com.dayz.sapientiacloud_edupivot.auth.enums.OAuth2Enum;
 import com.dayz.sapientiacloud_edupivot.auth.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.auth.result.Result;
 import com.dayz.sapientiacloud_edupivot.auth.security.config.OAuth2Config;
+import com.dayz.sapientiacloud_edupivot.auth.security.config.OAuth2ProviderConfig;
 import com.dayz.sapientiacloud_edupivot.auth.security.utils.GitHubUserInfoUtil;
 import com.dayz.sapientiacloud_edupivot.auth.security.utils.JwtUtil;
 import com.dayz.sapientiacloud_edupivot.auth.service.IGitHubOAuth2Service;
@@ -36,14 +37,15 @@ public class GitHubOAuth2ServiceImpl implements IGitHubOAuth2Service {
     private final JwtUtil jwtUtil;
     private final RestTemplate restTemplate;
     private final OAuth2Config OAuth2Config;
+    private final OAuth2ProviderConfig OAuth2ProviderConfig;
 
     @Override
     public String buildAuthorizeUrl(String state) {
         String clientId = OAuth2Config.getClientId();
         String redirectUri = OAuth2Config.getRedirectUri();
-        String scope = OAuth2Config.getScope();
+        String scope = String.join(" ", OAuth2Config.getScope());
 
-        String url = UriComponentsBuilder.fromUriString(OAuth2Constants.GITHUB_AUTHORIZE_URL)
+        String url = UriComponentsBuilder.fromUriString(OAuth2ProviderConfig.getAuthorizationUri())
                 .queryParam(OAuth2Constants.PARAM_CLIENT_ID, clientId)
                 .queryParam(OAuth2Constants.PARAM_REDIRECT_URI, redirectUri)
                 .queryParam(OAuth2Constants.PARAM_SCOPE, scope)
@@ -89,7 +91,7 @@ public class GitHubOAuth2ServiceImpl implements IGitHubOAuth2Service {
     @Override
     @SuppressWarnings("unchecked")
     public String getAccessToken(String code) {
-        String url = OAuth2Constants.GITHUB_ACCESS_TOKEN_URL;
+        String url = OAuth2ProviderConfig.getTokenUri();
         HttpHeaders headers = new HttpHeaders();
         headers.set(OAuth2Constants.HEADER_ACCEPT, OAuth2Constants.ACCEPT_JSON);
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
@@ -121,7 +123,7 @@ public class GitHubOAuth2ServiceImpl implements IGitHubOAuth2Service {
     @Override
     @SuppressWarnings("unchecked")
     public Map<String, Object> getGitHubUserInfo(String accessToken) {
-        String url = OAuth2Constants.GITHUB_USER_API_URL;
+        String url = OAuth2ProviderConfig.getUserInfoUri();
         HttpHeaders headers = new HttpHeaders();
         headers.set(OAuth2Constants.HEADER_AUTHORIZATION, OAuth2Constants.AUTHORIZATION_BEARER_PREFIX + accessToken);
         headers.set(OAuth2Constants.HEADER_ACCEPT, OAuth2Constants.ACCEPT_GITHUB_V3);

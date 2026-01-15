@@ -44,7 +44,15 @@ public enum CourseEnum implements BaseEnum {
     TEACHER_ID_LIST_REQUIRED(40021, "教师ID列表不能为空"),
 
     // 课程删除相关错误
-    COURSE_HAS_STUDENTS(40022, "课程中还有学生，无法删除");
+    COURSE_HAS_STUDENTS(40022, "课程中还有学生，无法删除"),
+
+    // 公开状态错误
+    COURSE_PUBLIC_STATUS_INVALID(40023, "课程公开状态无效 (0=仅课程成员, 1=公开)"),
+    COURSE_PUBLIC_STATUS_CANNOT_UPDATE(40026, "不允许更新课程的公开状态"),
+
+    // 课程访问权限错误
+    COURSE_ACCESS_DENIED(40024, "您没有权限访问该课程"),
+    COURSE_NOT_PUBLIC_AND_NOT_STUDENT(40025, "该课程为私有课程，您不是该课程的学生");
 
     private final int code;
 

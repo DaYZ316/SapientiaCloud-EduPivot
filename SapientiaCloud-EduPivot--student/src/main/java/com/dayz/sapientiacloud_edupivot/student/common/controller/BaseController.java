@@ -46,4 +46,8 @@ public class BaseController {
     protected TableDataResult getDataTable(List<?> list) {
         return PageUtil.getDataTable(list);
     }
+
+    protected TableDataResult getDataTable(com.github.pagehelper.PageInfo<?> pageInfo) {
+        return PageUtil.getDataTable(pageInfo);
+    }
 } 

@@ -1,7 +1,7 @@
 package com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,17 +21,14 @@ import java.util.UUID;
 public class VectorizeRequestDTO implements Serializable {
 
     @Serial
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 6174902419812147722L;
 
     @Schema(description = "课程ID")
     private UUID courseId;
 
-    @Schema(description = "章节ID")
-    private UUID chapterId;
-
-    @NotBlank(message = "内容类型不能为空")
-    @Schema(description = "内容类型: chapter-章节, question-问题, answer-答案, forum-论坛", requiredMode = Schema.RequiredMode.REQUIRED)
-    private String contentType;
+    @NotNull(message = "内容类型不能为空")
+    @Schema(description = "内容类型: 0-章节, 1-问题, 2-任务, 3-论坛", requiredMode = Schema.RequiredMode.REQUIRED)
+    private Integer contentType;
 
     @Schema(description = "是否强制重新向量化")
     private Boolean forceReindex;

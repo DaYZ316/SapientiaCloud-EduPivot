@@ -5,20 +5,21 @@ import com.dayz.sapientiacloud_edupivot.classroom.entity.dto.CourseRecordQueryDT
 import com.dayz.sapientiacloud_edupivot.classroom.entity.vo.CourseRecordVO;
 import com.github.pagehelper.PageInfo;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
 public interface ICourseRecordService {
 
-    PageInfo<CourseRecordVO> listCourseRecordPage(CourseRecordQueryDTO dto);
+    PageInfo<CourseRecordVO> listCourseRecordPage(CourseRecordQueryDTO courseRecordQueryDTO);
 
     List<CourseRecordVO> listAllCourseRecord();
 
     CourseRecordVO getCourseRecordById(UUID id);
 
-    CourseRecordVO addCourseRecord(CourseRecordDTO dto);
+    CourseRecordVO addCourseRecord(CourseRecordDTO courseRecordDTO);
 
-    Boolean updateCourseRecord(CourseRecordDTO dto);
+    Boolean updateCourseRecord(CourseRecordDTO courseRecordDTO);
 
     Boolean removeCourseRecordById(UUID id);
 
@@ -29,4 +30,6 @@ public interface ICourseRecordService {
     List<CourseRecordVO> listCourseRecordByTeacherId(UUID teacherId);
 
     Boolean endCourseRecord(UUID id);
+
+    LocalDateTime getCourseEndTimeById(UUID id);
 }

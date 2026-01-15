@@ -44,4 +44,7 @@ public class SysPermission extends BaseEntity implements Serializable {
     @Schema(name = "sort", description = "排序")
     @TableField("sort")
     private Integer sort;
+
+    @TableField(exist = false)
+    private Integer deleted;
 } 

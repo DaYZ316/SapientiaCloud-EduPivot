@@ -59,8 +59,7 @@ public class SysPermissionController extends BaseController {
     public Result<SysPermissionVO> getPermissionById(
             @Parameter(name = "id", description = "权限ID", required = true) @PathVariable("id") UUID id
     ) {
-        SysPermissionVO sysPermissionVO = new SysPermissionVO();
-        sysPermissionService.getPermissionById(id);
+        SysPermissionVO sysPermissionVO = sysPermissionService.getPermissionById(id);
         return Result.success(sysPermissionVO);
     }
 
