@@ -3,6 +3,7 @@ package com.dayz.sapientiacloud_edupivot.course.service;
 import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseQueryDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.vo.CourseVO;
+import com.dayz.sapientiacloud_edupivot.course.entity.vo.PublicCourseVO;
 import com.github.pagehelper.PageInfo;
 
 import java.util.List;
@@ -23,4 +24,8 @@ public interface ICourseService {
     Boolean removeCourseById(UUID courseId);
 
     Integer removeCourseByIds(List<UUID> courseIds);
+
+    List<PublicCourseVO> listPublicCourse();
+
+    Long getCourseCount();
 }

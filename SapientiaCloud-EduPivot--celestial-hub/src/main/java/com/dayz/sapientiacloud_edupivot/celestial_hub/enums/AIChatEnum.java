@@ -12,12 +12,14 @@ public enum AIChatEnum implements BaseEnum {
     SESSION_NOT_EXISTS(50001, "会话不存在"),
     SESSION_ID_REQUIRED(50002, "会话ID不能为空"),
     SESSION_USER_ID_REQUIRED(50003, "会话用户ID不能为空"),
+    SESSION_NO_MESSAGES(50004, "会话中没有消息，无法生成标题"),
 
     // 消息相关错误
     MESSAGE_NOT_EXISTS(50011, "消息不存在"),
     MESSAGE_ID_REQUIRED(50012, "消息ID不能为空"),
     MESSAGE_CONTENT_REQUIRED(50013, "消息内容不能为空"),
     MESSAGE_ROLE_INVALID(50014, "消息角色无效"),
+    REQUEST_ID_REQUIRED(50015, "请求ID不能为空"),
 
     // AI服务相关错误
     AI_SERVICE_ERROR(50021, "AI服务异常，请稍后重试"),

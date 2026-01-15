@@ -29,7 +29,7 @@ import java.util.UUID;
 public class KnowledgeVector extends BaseEntity {
 
     @Serial
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = -7809471544065509632L;
 
     @Id
     @Schema(description = "向量ID")
@@ -43,8 +43,36 @@ public class KnowledgeVector extends BaseEntity {
     @Schema(description = "章节ID")
     private UUID chapterId;
 
+    @Field("question_bank_id")
+    @Schema(description = "题库ID（问题类型时使用）")
+    private UUID questionBankId;
+
+    @Field("question_id")
+    @Schema(description = "问题ID（问题类型时使用）")
+    private UUID questionId;
+
+    @Field("task_id")
+    @Schema(description = "任务ID（任务类型时使用）")
+    private UUID taskId;
+
+    @Field("forum_id")
+    @Schema(description = "论坛ID（论坛类型时使用）")
+    private UUID forumId;
+
+    @Field("post_id")
+    @Schema(description = "帖子ID（论坛类型时使用）")
+    private UUID postId;
+
+    @Field("user_id")
+    @Schema(description = "用户ID")
+    private UUID userId;
+
+    @Field("session_id")
+    @Schema(description = "会话ID，仅 AI 对话文件上传使用")
+    private UUID sessionId;
+
     @Field("content_type")
-    @Schema(description = "内容类型: 0-章节, 1-问题, 2-答案, 3-论坛")
+    @Schema(description = "内容类型: 0-章节, 1-问题, 2-任务, 3-论坛")
     private Integer contentType;
 
     @Field("content_id")

@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dayz.sapientiacloud_edupivot.course.mapper.CourseAssistantTeacherMapper">
+
+    <select id="listCourseByAssistantId" resultMap="com.dayz.sapientiacloud_edupivot.course.mapper.CourseMapper.CourseVOMap" parameterType="java.util.UUID">
+        SELECT
+        c.id,
+        c.course_name,
+        c.description,
+        c.course_type,
+        c.semester,
+        c.location,
+        c.teacher_id,
+        t.real_name as teacher_name,
+        u.avatar as teacher_avatar,
+        c.cover_image_url,
+        c.status,
+        c.is_public,
+        c.create_time,
+        c.update_time
+        FROM mg_course c
+        LEFT JOIN mg_teacher t ON c.teacher_id = t.id
+        LEFT JOIN sys_user u ON t.sys_user_id = u.id
+        INNER JOIN mg_course_assistant_teacher at ON c.id = at.course_id
+        <where>
+            c.is_deleted = 0
+            AND t.is_deleted = 0
+            AND at.assistant_teacher_id = #{assistantTeacherId}
+        </where>
+        ORDER BY c.create_time DESC
+    </select>
+
+    <insert id="batchInsertAssistantTeachers" parameterType="java.util.List">
+        INSERT INTO mg_course_assistant_teacher (course_id, assistant_teacher_id, create_time)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.courseId}, #{item.assistantTeacherId}, NOW())
+        </foreach>
+    </insert>
+
+    <delete id="deleteAssistantTeachers" parameterType="map">
+        DELETE FROM mg_course_assistant_teacher
+        WHERE course_id = #{courseId}
+        AND assistant_teacher_id IN
+        <foreach collection="teacherIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <delete id="deleteAssistantTeachersByCourseId" parameterType="java.util.UUID">
+        DELETE FROM mg_course_assistant_teacher
+        WHERE course_id = #{courseId}
+    </delete>
+
+    <select id="listAssistantIdsByCourseId" resultType="java.util.UUID" parameterType="java.util.UUID">
+        SELECT assistant_teacher_id FROM mg_course_assistant_teacher
+        WHERE course_id = #{courseId}
+        ORDER BY create_time DESC
+    </select>
+
+    <select id="listAssistantByCourseId" resultType="com.dayz.sapientiacloud_edupivot.course.common.entity.vo.TeacherVO" parameterType="java.util.UUID">
+        SELECT
+        t.id,
+        t.teacher_code,
+        t.real_name,
+        t.birth_date,
+        t.department,
+        t.education,
+        t.specialization,
+        t.description,
+        t.sys_user_id,
+        u.avatar,
+        u.username,
+        u.nick_name,
+        u.email,
+        u.mobile,
+        t.create_time,
+        t.update_time,
+        u.last_login_time
+        FROM mg_teacher t
+        LEFT JOIN sys_user u ON t.sys_user_id = u.id
+        INNER JOIN mg_course_assistant_teacher at ON t.id = at.assistant_teacher_id
+        <where>
+            t.is_deleted = 0
+            AND at.course_id = #{courseId}
+        </where>
+        ORDER BY at.create_time DESC
+    </select>
+
+</mapper>
+
+

@@ -27,7 +27,7 @@ import java.util.UUID;
 public class ChatSession extends BaseEntity {
 
     @Serial
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = -711905654357771434L;
 
     @Id
     @Schema(description = "会话ID")

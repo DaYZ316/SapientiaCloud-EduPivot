@@ -18,7 +18,7 @@ import java.util.UUID;
 public class ChatSessionQueryDTO extends PageEntity implements Serializable {
 
     @Serial
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 3526417668851031247L;
 
     @Schema(description = "用户ID")
     private UUID sysUserId;

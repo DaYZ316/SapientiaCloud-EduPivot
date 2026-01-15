@@ -18,4 +18,6 @@ public interface SysPermissionMapper extends BaseMapper<SysPermission> {
     int removeChildrenById(UUID id);
 
     int removeChildrenByIds(@Param("ids") List<UUID> ids);
+
+    List<SysPermissionVO> listPermissionWithChildrenByRootId(@Param("id") UUID id);
 }

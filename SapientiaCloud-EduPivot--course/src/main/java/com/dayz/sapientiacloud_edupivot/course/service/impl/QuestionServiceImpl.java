@@ -7,12 +7,12 @@ import com.dayz.sapientiacloud_edupivot.course.common.enums.StatusEnum;
 import com.dayz.sapientiacloud_edupivot.course.common.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.course.common.result.Result;
 import com.dayz.sapientiacloud_edupivot.course.constant.QuestionConstants;
-import com.dayz.sapientiacloud_edupivot.course.entity.dto.QuestionAddDTO;
+import com.dayz.sapientiacloud_edupivot.course.constant.QuestionOptionConstants;
+import com.dayz.sapientiacloud_edupivot.course.entity.dto.QuestionAnswerDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.dto.QuestionDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.dto.QuestionOptionDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.dto.QuestionQueryDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.po.Question;
-import com.dayz.sapientiacloud_edupivot.course.entity.vo.QuestionAnswerVO;
 import com.dayz.sapientiacloud_edupivot.course.entity.vo.QuestionVO;
 import com.dayz.sapientiacloud_edupivot.course.enums.QuestionEnum;
 import com.dayz.sapientiacloud_edupivot.course.repository.QuestionRepository;
@@ -20,6 +20,7 @@ import com.dayz.sapientiacloud_edupivot.course.service.IQuestionAnswerService;
 import com.dayz.sapientiacloud_edupivot.course.service.IQuestionOptionService;
 import com.dayz.sapientiacloud_edupivot.course.service.IQuestionService;
 import com.github.f4b6a3.uuid.UuidCreator;
+import com.github.pagehelper.Page;
 import com.github.pagehelper.PageInfo;
 import com.mongodb.client.result.UpdateResult;
 import lombok.RequiredArgsConstructor;
@@ -60,48 +61,9 @@ public class QuestionServiceImpl implements IQuestionService {
             throw new BusinessException(QuestionEnum.QUESTION_REQUIRED);
         }
 
-        Query query = new Query();
-        Criteria criteria = new Criteria();
-
-        if (questionQueryDTO.getQuestionBankId() != null) {
-            criteria.and(QuestionConstants.FIELD_QUESTION_BANK_ID).is(questionQueryDTO.getQuestionBankId());
-        }
-
-        if (StringUtils.hasText(questionQueryDTO.getQuestionTitle())) {
-            criteria.and(QuestionConstants.FIELD_QUESTION_TITLE).regex(questionQueryDTO.getQuestionTitle(), QuestionConstants.REGEX_CASE_INSENSITIVE);
-        }
-
-        if (questionQueryDTO.getQuestionType() != null) {
-            criteria.and(QuestionConstants.FIELD_QUESTION_TYPE).is(questionQueryDTO.getQuestionType());
-        }
-
-        if (questionQueryDTO.getDifficulty() != null) {
-            criteria.and(QuestionConstants.FIELD_DIFFICULTY).is(questionQueryDTO.getDifficulty());
-        }
-
-        if (questionQueryDTO.getStatus() != null) {
-            criteria.and(QuestionConstants.FIELD_STATUS).is(questionQueryDTO.getStatus());
-        }
-
-        if (!CollectionUtils.isEmpty(questionQueryDTO.getTags())) {
-            criteria.and(QuestionConstants.FIELD_TAGS).in(questionQueryDTO.getTags());
-        }
-
-        if (StringUtils.hasText(questionQueryDTO.getCreateTimeStart())) {
-            criteria.and(QuestionConstants.FIELD_CREATE_TIME).gte(questionQueryDTO.getCreateTimeStart());
-        }
-
-        if (StringUtils.hasText(questionQueryDTO.getCreateTimeEnd())) {
-            criteria.and(QuestionConstants.FIELD_CREATE_TIME).lte(questionQueryDTO.getCreateTimeEnd());
-        }
-
-        criteria.and(QuestionConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode());
-
-        query.addCriteria(criteria);
+        Criteria criteria = buildQueryCriteria(questionQueryDTO);
+        Query query = new Query(criteria);
         query.with(Sort.by(Sort.Direction.DESC, QuestionConstants.FIELD_CREATE_TIME));
-
-        Query countQuery = new Query();
-        countQuery.addCriteria(criteria);
 
         Pageable pageable = PageRequest.of(
                 questionQueryDTO.getPageNum() - QuestionConstants.PAGE_NUM_OFFSET,
@@ -110,17 +72,17 @@ public class QuestionServiceImpl implements IQuestionService {
         query.with(pageable);
 
         List<Question> questions = mongoTemplate.find(query, Question.class);
-        long total = mongoTemplate.count(countQuery, Question.class);
+        long total = mongoTemplate.count(new Query(criteria), Question.class);
 
         List<QuestionVO> questionVOList = convertToVOList(questions);
 
-        PageInfo<QuestionVO> pageInfo = new PageInfo<>(questionVOList);
-        pageInfo.setTotal(total);
-        pageInfo.setPageNum(questionQueryDTO.getPageNum());
-        pageInfo.setPageSize(questionQueryDTO.getPageSize());
-        pageInfo.setPages((int) Math.ceil((double) total / questionQueryDTO.getPageSize()));
+        // 使用 Page 封装分页元数据，保持与 PageHelper 处理方式一致，便于 TableDataResult 正确获取 total
+        Page<QuestionVO> page = new Page<>(questionQueryDTO.getPageNum(), questionQueryDTO.getPageSize());
+        page.setTotal(total);
+        page.setPages((int) Math.ceil((double) total / questionQueryDTO.getPageSize()));
+        page.addAll(questionVOList);
 
-        return pageInfo;
+        return new PageInfo<>(page);
     }
 
     @Override
@@ -145,17 +107,7 @@ public class QuestionServiceImpl implements IQuestionService {
             throw new BusinessException(QuestionEnum.QUESTION_ID_REQUIRED);
         }
 
-        Query query = new Query();
-        Criteria criteria = new Criteria();
-        criteria.and(QuestionConstants.FIELD_ID).is(id);
-        criteria.and(QuestionConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode());
-        query.addCriteria(criteria);
-
-        Question question = mongoTemplate.findOne(query, Question.class);
-        if (question == null) {
-            throw new BusinessException(QuestionEnum.QUESTION_NOT_EXISTS);
-        }
-
+        Question question = findQuestionById(id);
         return convertToVO(question);
     }
 
@@ -180,31 +132,52 @@ public class QuestionServiceImpl implements IQuestionService {
 
     @Override
     @Transactional
-    @Caching(evict = {
-            @CacheEvict(value = "Question", allEntries = true)
-    })
-    public QuestionVO addQuestion(QuestionAddDTO questionAddDTO) {
-        if (questionAddDTO == null) {
+    @CacheEvict(value = "Question", allEntries = true)
+    public QuestionVO addQuestion(QuestionDTO questionDTO) {
+        if (questionDTO == null) {
             throw new BusinessException(QuestionEnum.QUESTION_REQUIRED);
         }
 
+        // 新增时，id 应该为空
+        if (questionDTO.getId() != null) {
+            throw new BusinessException(QuestionEnum.QUESTION_ID_SHOULD_BE_NULL_ON_ADD);
+        }
 
-        if (questionAddDTO.getQuestionType() < QuestionConstants.QUESTION_TYPE_MIN ||
-                questionAddDTO.getQuestionType() > QuestionConstants.QUESTION_TYPE_MAX) {
+        // 新增时，sysUserId 必填
+        if (questionDTO.getSysUserId() == null) {
+            throw new BusinessException(QuestionEnum.QUESTION_SYS_USER_ID_REQUIRED);
+        }
+
+        if (questionDTO.getQuestionType() < QuestionConstants.QUESTION_TYPE_MIN ||
+                questionDTO.getQuestionType() > QuestionConstants.QUESTION_TYPE_MAX) {
             throw new BusinessException(QuestionEnum.QUESTION_TYPE_INVALID);
         }
 
-        if (questionAddDTO.getDifficulty() < QuestionConstants.DIFFICULTY_MIN ||
-                questionAddDTO.getDifficulty() > QuestionConstants.DIFFICULTY_MAX) {
+        if (questionDTO.getDifficulty() < QuestionConstants.DIFFICULTY_MIN ||
+                questionDTO.getDifficulty() > QuestionConstants.DIFFICULTY_MAX) {
             throw new BusinessException(QuestionEnum.QUESTION_DIFFICULTY_INVALID);
         }
 
         // 验证选项和答案的业务逻辑
-        validateQuestionOptionsAndAnswer(questionAddDTO);
+        validateQuestionOptionsAndAnswer(questionDTO);
+
+        // 如果传入了celestialQuestionId，检查同一题库中是否已存在相同ID的题目
+        if (questionDTO.getCelestialQuestionId() != null) {
+            Query checkQuery = new Query();
+            Criteria checkCriteria = new Criteria();
+            checkCriteria.and(QuestionConstants.FIELD_CELESTIAL_QUESTION_ID).is(questionDTO.getCelestialQuestionId());
+            checkCriteria.and(QuestionConstants.FIELD_QUESTION_BANK_ID).is(questionDTO.getQuestionBankId());
+            checkCriteria.and(QuestionConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode());
+            checkQuery.addCriteria(checkCriteria);
+
+            if (mongoTemplate.exists(checkQuery, Question.class)) {
+                throw new BusinessException(QuestionEnum.QUESTION_CELESTIAL_QUESTION_ID_EXISTS);
+            }
+        }
 
         // 创建Question实体
         Question question = new Question();
-        BeanUtils.copyProperties(questionAddDTO, question);
+        BeanUtils.copyProperties(questionDTO, question);
 
         // 设置ID
         question.setId(UuidCreator.getTimeOrderedEpoch());
@@ -233,12 +206,20 @@ public class QuestionServiceImpl implements IQuestionService {
         Question savedQuestion = questionRepository.save(question);
 
         // 保存选项列表（选择题、判断题需要）
-        if (!CollectionUtils.isEmpty(questionAddDTO.getOptions())) {
-            List<QuestionOptionDTO> optionDTOs = questionAddDTO.getOptions();
+        if (!CollectionUtils.isEmpty(questionDTO.getOptions())) {
+            List<QuestionOptionDTO> optionDTOs = questionDTO.getOptions();
             // 为每个选项设置题目ID
             optionDTOs.forEach(option -> option.setQuestionId(savedQuestion.getId()));
 
             questionOptionService.addQuestionOptions(optionDTOs);
+        }
+
+        // 保存答案列表（填空题、简答题使用）
+        if (isAnswerQuestionType(question.getQuestionType()) && !CollectionUtils.isEmpty(questionDTO.getAnswers())) {
+            List<QuestionAnswerDTO> answerDTOs = buildAnswerDTOs(questionDTO.getAnswers(), savedQuestion.getId(), true);
+            if (!CollectionUtils.isEmpty(answerDTOs)) {
+                questionAnswerService.addQuestionAnswers(answerDTOs);
+            }
         }
 
         return convertToVO(savedQuestion);
@@ -247,87 +228,89 @@ public class QuestionServiceImpl implements IQuestionService {
     @Override
     @Transactional
     @Caching(evict = {
-            @CacheEvict(value = "Question", key = "#p0.id"),
-            @CacheEvict(value = "Question", allEntries = true)
+            @CacheEvict(value = "Question", allEntries = true),
+            @CacheEvict(value = "QuestionOption", allEntries = true),
+            @CacheEvict(value = "QuestionAnswer", allEntries = true)
     })
     public Boolean updateQuestion(QuestionDTO questionDTO) {
         if (questionDTO == null || questionDTO.getId() == null) {
             throw new BusinessException(QuestionEnum.QUESTION_INFO_OR_ID_REQUIRED);
         }
 
-        Query query = new Query();
-        Criteria criteria = new Criteria();
-        criteria.and(QuestionConstants.FIELD_ID).is(questionDTO.getId());
-        criteria.and(QuestionConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode());
-        query.addCriteria(criteria);
+        Question existingQuestion = findQuestionById(questionDTO.getId());
 
-        Question existingQuestion = mongoTemplate.findOne(query, Question.class);
-        if (existingQuestion == null) {
-            throw new BusinessException(QuestionEnum.QUESTION_NOT_EXISTS);
-        }
-
-        if (StringUtils.hasText(questionDTO.getQuestionTitle())) {
-            existingQuestion.setQuestionTitle(questionDTO.getQuestionTitle());
-        }
-        if (StringUtils.hasText(questionDTO.getQuestionContent())) {
-            existingQuestion.setQuestionContent(questionDTO.getQuestionContent());
-        }
+        // 验证题目类型和难度
         if (questionDTO.getQuestionType() != null) {
-            existingQuestion.setQuestionType(questionDTO.getQuestionType());
+            if (questionDTO.getQuestionType() < QuestionConstants.QUESTION_TYPE_MIN ||
+                    questionDTO.getQuestionType() > QuestionConstants.QUESTION_TYPE_MAX) {
+                throw new BusinessException(QuestionEnum.QUESTION_TYPE_INVALID);
+            }
         }
+
         if (questionDTO.getDifficulty() != null) {
-            existingQuestion.setDifficulty(questionDTO.getDifficulty());
-        }
-        if (questionDTO.getScore() != null) {
-            existingQuestion.setScore(questionDTO.getScore());
-        }
-        if (questionDTO.getEstimatedTime() != null) {
-            existingQuestion.setEstimatedTime(questionDTO.getEstimatedTime());
-        }
-        if (questionDTO.getTags() != null) {
-            existingQuestion.setTags(questionDTO.getTags());
-        }
-        if (questionDTO.getImageUrls() != null) {
-            existingQuestion.setImageUrls(questionDTO.getImageUrls());
-        }
-        if (questionDTO.getAllowPartialCredit() != null) {
-            existingQuestion.setAllowPartialCredit(questionDTO.getAllowPartialCredit());
-        }
-        if (questionDTO.getStatus() != null) {
-            existingQuestion.setStatus(questionDTO.getStatus());
+            if (questionDTO.getDifficulty() < QuestionConstants.DIFFICULTY_MIN ||
+                    questionDTO.getDifficulty() > QuestionConstants.DIFFICULTY_MAX) {
+                throw new BusinessException(QuestionEnum.QUESTION_DIFFICULTY_INVALID);
+            }
         }
 
+        // 如果传入了选项或答案，需要验证业务逻辑
+        if (questionDTO.getOptions() != null || questionDTO.getAnswers() != null) {
+            validateQuestionOptionsAndAnswer(questionDTO);
+        }
+
+        updateQuestionFields(existingQuestion, questionDTO);
         existingQuestion.setUpdateTime(LocalDateTime.now());
-
         questionRepository.save(existingQuestion);
+
+        // 处理选项更新：如果传入了选项列表，先删除所有旧选项，再添加新选项
+        if (questionDTO.getOptions() != null) {
+            // 删除该题目的所有旧选项
+            questionOptionService.removeQuestionOptionsByQuestionId(questionDTO.getId());
+
+            // 添加新选项
+            if (!CollectionUtils.isEmpty(questionDTO.getOptions())) {
+                List<QuestionOptionDTO> optionDTOs = questionDTO.getOptions();
+                // 为每个选项设置题目ID
+                optionDTOs.forEach(option -> {
+                    option.setQuestionId(questionDTO.getId());
+                    // 清除选项ID，确保创建新选项
+                    option.setId(null);
+                });
+
+                questionOptionService.addQuestionOptions(optionDTOs);
+            }
+        }
+
+        if (questionDTO.getAnswers() != null) {
+            // 删除旧答案
+            questionAnswerService.removeQuestionAnswersByQuestionId(questionDTO.getId());
+
+            if (!CollectionUtils.isEmpty(questionDTO.getAnswers()) && isAnswerQuestionType(existingQuestion.getQuestionType())) {
+                List<QuestionAnswerDTO> answerDTOs = buildAnswerDTOs(questionDTO.getAnswers(), questionDTO.getId(), true);
+                if (!CollectionUtils.isEmpty(answerDTOs)) {
+                    questionAnswerService.addQuestionAnswers(answerDTOs);
+                }
+            }
+        }
 
         return true;
     }
 
     @Override
     @Transactional
-    @Caching(evict = {
-            @CacheEvict(value = "Question", allEntries = true)
-    })
+    @CacheEvict(value = "Question", allEntries = true)
     public Boolean removeQuestionById(UUID id) {
         if (id == null) {
             throw new BusinessException(QuestionEnum.QUESTION_ID_REQUIRED);
         }
 
-        Query query = new Query();
-        Criteria criteria = new Criteria();
-        criteria.and(QuestionConstants.FIELD_ID).is(id);
-        criteria.and(QuestionConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode());
-        query.addCriteria(criteria);
-
-        Question question = mongoTemplate.findOne(query, Question.class);
-        if (question == null) {
-            throw new BusinessException(QuestionEnum.QUESTION_NOT_EXISTS);
-        }
-
+        Question question = findQuestionById(id);
         question.setDeleted(DeletedEnum.DELETED.getCode());
         question.setUpdateTime(LocalDateTime.now());
         questionRepository.save(question);
+
+        questionAnswerService.removeQuestionAnswersByQuestionId(id);
 
         return true;
     }
@@ -352,31 +335,20 @@ public class QuestionServiceImpl implements IQuestionService {
         UpdateResult updateResult = mongoTemplate.updateMulti(query, update, Question.class);
         int deletedCount = (int) updateResult.getModifiedCount();
 
+        ids.forEach(questionAnswerService::removeQuestionAnswersByQuestionId);
+
         return deletedCount;
     }
 
     @Override
     @Transactional
-    @Caching(evict = {
-            @CacheEvict(value = "Question", key = "#p0"),
-            @CacheEvict(value = "Question", allEntries = true)
-    })
+    @CacheEvict(value = "Question", allEntries = true)
     public Boolean publishQuestion(UUID id) {
         if (id == null) {
             throw new BusinessException(QuestionEnum.QUESTION_ID_REQUIRED);
         }
 
-        Query query = new Query();
-        Criteria criteria = new Criteria();
-        criteria.and(QuestionConstants.FIELD_ID).is(id);
-        criteria.and(QuestionConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode());
-        query.addCriteria(criteria);
-
-        Question question = mongoTemplate.findOne(query, Question.class);
-        if (question == null) {
-            throw new BusinessException(QuestionEnum.QUESTION_NOT_EXISTS);
-        }
-
+        Question question = findQuestionById(id);
         question.setStatus(StatusEnum.NORMAL.getCode());
         question.setUpdateTime(LocalDateTime.now());
         questionRepository.save(question);
@@ -386,27 +358,14 @@ public class QuestionServiceImpl implements IQuestionService {
 
     @Override
     @Transactional
-    @Caching(evict = {
-            @CacheEvict(value = "Question", key = "#p0"),
-            @CacheEvict(value = "Question", allEntries = true)
-    })
+    @CacheEvict(value = "Question", allEntries = true)
     public Boolean unpublishQuestion(UUID id) {
         if (id == null) {
             throw new BusinessException(QuestionEnum.QUESTION_ID_REQUIRED);
         }
 
-        Query query = new Query();
-        Criteria criteria = new Criteria();
-        criteria.and(QuestionConstants.FIELD_ID).is(id);
-        criteria.and(QuestionConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode());
-        query.addCriteria(criteria);
-
-        Question question = mongoTemplate.findOne(query, Question.class);
-        if (question == null) {
-            throw new BusinessException(QuestionEnum.QUESTION_NOT_EXISTS);
-        }
-
-        question.setStatus(2);
+        Question question = findQuestionById(id);
+        question.setStatus(StatusEnum.DISABLED.getCode());
         question.setUpdateTime(LocalDateTime.now());
         questionRepository.save(question);
 
@@ -415,10 +374,7 @@ public class QuestionServiceImpl implements IQuestionService {
 
     @Override
     @Transactional
-    @Caching(evict = {
-            @CacheEvict(value = "Question", key = "#p0"),
-            @CacheEvict(value = "Question", allEntries = true)
-    })
+    @CacheEvict(value = "Question", allEntries = true)
     public Boolean viewQuestion(UUID id) {
         if (id == null) {
             throw new BusinessException(QuestionEnum.QUESTION_ID_REQUIRED);
@@ -463,9 +419,49 @@ public class QuestionServiceImpl implements IQuestionService {
         BeanUtils.copyProperties(question, vo);
 
         fillUserInfoWithMap(vo, question.getSysUserId(), userMap);
-        fillAnswerInfo(vo, question.getId());
+
+        if (isOptionQuestionType(question.getQuestionType())) {
+            vo.setOptions(questionOptionService.listQuestionOptionByQuestionId(question.getId()));
+        }
+        if (isAnswerQuestionType(question.getQuestionType())) {
+            vo.setAnswers(questionAnswerService.listQuestionAnswerByQuestionId(question.getId()));
+        }
 
         return vo;
+    }
+
+    private boolean isOptionQuestionType(Integer questionType) {
+        if (questionType == null) {
+            return false;
+        }
+        return questionType == QuestionConstants.QUESTION_TYPE_SINGLE_CHOICE
+                || questionType == QuestionConstants.QUESTION_TYPE_MULTIPLE_CHOICE
+                || questionType == QuestionConstants.QUESTION_TYPE_TRUE_FALSE;
+    }
+
+    private boolean isAnswerQuestionType(Integer questionType) {
+        if (questionType == null) {
+            return false;
+        }
+        return questionType == QuestionConstants.QUESTION_TYPE_FILL_BLANK
+                || questionType == QuestionConstants.QUESTION_TYPE_SHORT_ANSWER;
+    }
+
+    private List<QuestionAnswerDTO> buildAnswerDTOs(List<QuestionAnswerDTO> answers, UUID questionId, boolean clearIds) {
+        if (CollectionUtils.isEmpty(answers)) {
+            return new ArrayList<>();
+        }
+        return answers.stream()
+                .map(answer -> {
+                    QuestionAnswerDTO dto = new QuestionAnswerDTO();
+                    BeanUtils.copyProperties(answer, dto);
+                    dto.setQuestionId(questionId);
+                    if (clearIds) {
+                        dto.setId(null);
+                    }
+                    return dto;
+                })
+                .toList();
     }
 
     private Map<UUID, SysUserVO> getUserMap() {
@@ -488,49 +484,164 @@ public class QuestionServiceImpl implements IQuestionService {
         }
     }
 
-    private void fillAnswerInfo(QuestionVO vo, UUID questionId) {
-        if (questionId == null) {
-            return;
+    /**
+     * 构建查询条件
+     *
+     * @param questionQueryDTO 查询DTO
+     * @return 查询条件
+     */
+    private Criteria buildQueryCriteria(QuestionQueryDTO questionQueryDTO) {
+        Criteria criteria = new Criteria();
+
+        if (questionQueryDTO.getQuestionBankId() != null) {
+            criteria.and(QuestionConstants.FIELD_QUESTION_BANK_ID).is(questionQueryDTO.getQuestionBankId());
         }
 
-        // 获取题目的所有答案，通常取第一个作为标准答案
-        List<QuestionAnswerVO> answers = questionAnswerService.listAllQuestionAnswerByQuestionId(questionId);
-        if (!CollectionUtils.isEmpty(answers)) {
-            // 取第一个答案作为标准答案
-            vo.setAnswer(answers.get(0));
+        if (questionQueryDTO.getSysUserId() != null) {
+            criteria.and(QuestionConstants.FIELD_SYS_USER_ID).is(questionQueryDTO.getSysUserId());
+        }
+
+        if (StringUtils.hasText(questionQueryDTO.getQuestionTitle())) {
+            criteria.and(QuestionConstants.FIELD_QUESTION_TITLE).regex(questionQueryDTO.getQuestionTitle(), QuestionConstants.REGEX_CASE_INSENSITIVE);
+        }
+
+        if (questionQueryDTO.getQuestionType() != null) {
+            criteria.and(QuestionConstants.FIELD_QUESTION_TYPE).is(questionQueryDTO.getQuestionType());
+        }
+
+        if (questionQueryDTO.getDifficulty() != null) {
+            criteria.and(QuestionConstants.FIELD_DIFFICULTY).is(questionQueryDTO.getDifficulty());
+        }
+
+        if (questionQueryDTO.getStatus() != null) {
+            criteria.and(QuestionConstants.FIELD_STATUS).is(questionQueryDTO.getStatus());
+        }
+
+        if (!CollectionUtils.isEmpty(questionQueryDTO.getTags())) {
+            criteria.and(QuestionConstants.FIELD_TAGS).in(questionQueryDTO.getTags());
+        }
+
+        if (StringUtils.hasText(questionQueryDTO.getCreateTimeStart())) {
+            criteria.and(QuestionConstants.FIELD_CREATE_TIME).gte(questionQueryDTO.getCreateTimeStart());
+        }
+
+        if (StringUtils.hasText(questionQueryDTO.getCreateTimeEnd())) {
+            criteria.and(QuestionConstants.FIELD_CREATE_TIME).lte(questionQueryDTO.getCreateTimeEnd());
+        }
+
+        criteria.and(QuestionConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode());
+
+        return criteria;
+    }
+
+    /**
+     * 根据ID查找题目（未删除）
+     *
+     * @param id 题目ID
+     * @return 题目实体
+     * @throws BusinessException 题目不存在时抛出异常
+     */
+    private Question findQuestionById(UUID id) {
+        Query query = new Query();
+        Criteria criteria = new Criteria();
+        criteria.and(QuestionConstants.FIELD_ID).is(id);
+        criteria.and(QuestionConstants.FIELD_IS_DELETED).is(DeletedEnum.NOT_DELETED.getCode());
+        query.addCriteria(criteria);
+
+        Question question = mongoTemplate.findOne(query, Question.class);
+        if (question == null) {
+            throw new BusinessException(QuestionEnum.QUESTION_NOT_EXISTS);
+        }
+        return question;
+    }
+
+    /**
+     * 更新题目字段
+     *
+     * @param question    题目实体
+     * @param questionDTO 更新DTO
+     */
+    private void updateQuestionFields(Question question, QuestionDTO questionDTO) {
+        if (questionDTO.getQuestionBankId() != null) {
+            question.setQuestionBankId(questionDTO.getQuestionBankId());
+        }
+        if (StringUtils.hasText(questionDTO.getQuestionTitle())) {
+            question.setQuestionTitle(questionDTO.getQuestionTitle());
+        }
+        if (StringUtils.hasText(questionDTO.getQuestionContent())) {
+            question.setQuestionContent(questionDTO.getQuestionContent());
+        }
+        if (questionDTO.getQuestionType() != null) {
+            question.setQuestionType(questionDTO.getQuestionType());
+        }
+        if (questionDTO.getDifficulty() != null) {
+            question.setDifficulty(questionDTO.getDifficulty());
+        }
+        if (questionDTO.getScore() != null) {
+            question.setScore(questionDTO.getScore());
+        }
+        if (questionDTO.getEstimatedTime() != null) {
+            question.setEstimatedTime(questionDTO.getEstimatedTime());
+        }
+        if (questionDTO.getTags() != null) {
+            question.setTags(questionDTO.getTags());
+        }
+        if (questionDTO.getImageUrls() != null) {
+            question.setImageUrls(questionDTO.getImageUrls());
+        }
+        if (questionDTO.getAllowPartialCredit() != null) {
+            question.setAllowPartialCredit(questionDTO.getAllowPartialCredit());
+        }
+        if (questionDTO.getStatus() != null) {
+            question.setStatus(questionDTO.getStatus());
+        }
+        if (questionDTO.getCelestialQuestionId() != null) {
+            question.setCelestialQuestionId(questionDTO.getCelestialQuestionId());
         }
     }
 
     /**
      * 验证题目选项和答案的业务逻辑
      *
-     * @param questionAddDTO 题目新增DTO
+     * @param questionDTO 题目DTO
      */
-    private void validateQuestionOptionsAndAnswer(QuestionAddDTO questionAddDTO) {
-        Integer questionType = questionAddDTO.getQuestionType();
+    private void validateQuestionOptionsAndAnswer(QuestionDTO questionDTO) {
+        Integer questionType = questionDTO.getQuestionType();
 
         // 选择题（单选题、多选题、判断题）需要选项
-        if (questionType == 0 || questionType == 1 || questionType == 2) {
-            if (CollectionUtils.isEmpty(questionAddDTO.getOptions())) {
+        if (isOptionQuestionType(questionType)) {
+            if (CollectionUtils.isEmpty(questionDTO.getOptions())) {
                 throw new BusinessException(QuestionEnum.QUESTION_OPTION_SAVE_FAILED);
             }
 
-            // 验证选项数量
-            if (questionType == 0 && questionAddDTO.getOptions().size() < 2) {
+            int optionSize = questionDTO.getOptions().size();
+            // 验证选项数量：单选题和多选题至少2个选项，判断题必须2个选项
+            if ((questionType == QuestionConstants.QUESTION_TYPE_SINGLE_CHOICE ||
+                    questionType == QuestionConstants.QUESTION_TYPE_MULTIPLE_CHOICE) && optionSize < 2) {
                 throw new BusinessException(QuestionEnum.QUESTION_OPTION_SAVE_FAILED);
             }
-            if (questionType == 1 && questionAddDTO.getOptions().size() < 2) {
-                throw new BusinessException(QuestionEnum.QUESTION_OPTION_SAVE_FAILED);
-            }
-            if (questionType == 2 && questionAddDTO.getOptions().size() != 2) {
+            if (questionType == QuestionConstants.QUESTION_TYPE_TRUE_FALSE && optionSize != 2) {
                 throw new BusinessException(QuestionEnum.QUESTION_OPTION_SAVE_FAILED);
             }
 
             // 验证是否有正确答案
-            boolean hasCorrectOption = questionAddDTO.getOptions().stream()
-                    .anyMatch(option -> option.getIsCorrect() != null && option.getIsCorrect() == 1);
+            boolean hasCorrectOption = questionDTO.getOptions().stream()
+                    .anyMatch(option -> option.getIsCorrect() != null &&
+                            option.getIsCorrect().equals(QuestionOptionConstants.IS_CORRECT_CORRECT));
             if (!hasCorrectOption) {
-                throw new BusinessException(QuestionEnum.QUESTION_OPTION_SAVE_FAILED);
+                throw new BusinessException(QuestionEnum.QUESTION_OPTION_REQUIRED_CORRECT);
+            }
+        }
+
+        if (isAnswerQuestionType(questionType)) {
+            if (CollectionUtils.isEmpty(questionDTO.getAnswers())) {
+                throw new BusinessException(QuestionEnum.QUESTION_ANSWER_SAVE_FAILED);
+            }
+
+            boolean hasValidAnswer = questionDTO.getAnswers().stream()
+                    .allMatch(answer -> answer != null && StringUtils.hasText(answer.getAnswerContent()));
+            if (!hasValidAnswer) {
+                throw new BusinessException(QuestionEnum.QUESTION_ANSWER_SAVE_FAILED);
             }
         }
     }

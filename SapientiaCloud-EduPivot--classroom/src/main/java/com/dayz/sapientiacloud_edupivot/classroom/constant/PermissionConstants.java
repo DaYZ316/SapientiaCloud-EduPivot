@@ -14,6 +14,12 @@ public class PermissionConstants {
     public static final String COURSE_RECORD_STUDENT_EDIT = "classroom:record:student:edit";
     public static final String COURSE_RECORD_STUDENT_DELETE = "classroom:record:student:delete";
 
+    // 课堂练习管理权限
+    public static final String CLASSROOM_PRACTICE_QUERY = "classroom:practice:query";
+    public static final String CLASSROOM_PRACTICE_ADD = "classroom:practice:add";
+    public static final String CLASSROOM_PRACTICE_EDIT = "classroom:practice:edit";
+    public static final String CLASSROOM_PRACTICE_DELETE = "classroom:practice:delete";
+
     private PermissionConstants() {
         // 禁止实例化
     }

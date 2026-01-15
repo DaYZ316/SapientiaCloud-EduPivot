@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dayz.sapientiacloud_edupivot.system.mapper.SysNotificationUserMapper">
+
+    <select id="listNotificationVO" resultType="com.dayz.sapientiacloud_edupivot.system.entity.vo.NotificationVO">
+        SELECT
+            u.id,
+            u.user_id,
+            m.title,
+            m.content,
+            m.attachment_urls AS attachmentUrls,
+            m.type,
+            u.status,
+            u.read_time,
+            m.sender_id,
+            m.sender_name,
+            u.create_time,
+            u.update_time
+        FROM sys_notification_user u
+        LEFT JOIN sys_notification_msg m ON u.notification_id = m.id
+        <where>
+            AND (m.is_deleted = 0 OR m.is_deleted IS NULL)
+            <if test="query.userId != null">
+                AND u.user_id = #{query.userId}
+            </if>
+            <if test="query.type != null">
+                AND m.type = #{query.type}
+            </if>
+            <if test="query.status != null">
+                AND u.status = #{query.status}
+            </if>
+            <if test="query.title != null and query.title != ''">
+                AND m.title LIKE CONCAT('%', #{query.title}, '%')
+            </if>
+            <if test="query.startTime != null">
+                AND u.create_time &gt;= #{query.startTime}
+            </if>
+            <if test="query.endTime != null">
+                AND u.create_time &lt;= #{query.endTime}
+            </if>
+        </where>
+        ORDER BY u.create_time DESC
+    </select>
+
+</mapper>

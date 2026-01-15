@@ -12,10 +12,10 @@
         <result column="teacher_id" property="teacherId"/>
         <result column="teacher_name" property="teacherName"/>
         <result column="teacher_avatar" property="teacherAvatar"/>
-        <result column="assistant_teacher_ids" property="assistantTeacherIds"
-                typeHandler="com.dayz.sapientiacloud_edupivot.course.common.config.UuidListTypeHandler"/>
+        <!-- assistant_teacher_ids 已拆分到 mg_course_assistant_teacher 关联表，由专门的 Mapper 提供 -->
         <result column="cover_image_url" property="coverImageUrl"/>
         <result column="status" property="status"/>
+        <result column="is_public" property="isPublic"/>
         <result column="create_time" property="createTime"/>
         <result column="update_time" property="updateTime"/>
     </resultMap>
@@ -42,6 +42,18 @@
         <result column="last_login_time" property="lastLoginTime"/>
     </resultMap>
 
+    <resultMap id="PublicCourseVOMap" type="com.dayz.sapientiacloud_edupivot.course.entity.vo.PublicCourseVO">
+        <id column="id" property="id"/>
+        <result column="course_name" property="courseName"/>
+        <result column="description" property="description"/>
+        <result column="cover_image_url" property="coverImageUrl"/>
+        <result column="course_type" property="courseType"/>
+        <result column="semester" property="semester"/>
+        <result column="location" property="location"/>
+        <result column="teacher_name" property="teacherName"/>
+        <result column="teacher_avatar" property="teacherAvatar"/>
+    </resultMap>
+
     <select id="listCourse" resultMap="CourseVOMap"
             parameterType="com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseQueryDTO">
         SELECT
@@ -54,9 +66,9 @@
         c.teacher_id,
         t.real_name as teacher_name,
         u.avatar as teacher_avatar,
-        c.assistant_teacher_ids,
         c.cover_image_url,
         c.status,
+        c.is_public,
         c.create_time,
         c.update_time
         FROM mg_course c
@@ -78,6 +90,9 @@
             </if>
             <if test="status != null">
                 AND c.status = #{status}
+            </if>
+            <if test="isPublic != null">
+                AND c.is_public = #{isPublic}
             </if>
             <if test="startTime != null or endTime != null">
                 <choose>
@@ -113,9 +128,9 @@
         c.teacher_id,
         t.real_name as teacher_name,
         u.avatar as teacher_avatar,
-        c.assistant_teacher_ids,
         c.cover_image_url,
         c.status,
+        c.is_public,
         c.create_time,
         c.update_time
         FROM mg_course c
@@ -158,9 +173,9 @@
         c.teacher_id,
         t.real_name as teacher_name,
         u.avatar as teacher_avatar,
-        c.assistant_teacher_ids,
         c.cover_image_url,
         c.status,
+        c.is_public,
         c.create_time,
         c.update_time
         FROM mg_course c
@@ -182,9 +197,9 @@
         c.teacher_id,
         t.real_name as teacher_name,
         u.avatar as teacher_avatar,
-        c.assistant_teacher_ids,
         c.cover_image_url,
         c.status,
+        c.is_public,
         c.create_time,
         c.update_time
         FROM mg_course c
@@ -210,6 +225,7 @@
         c.assistant_teacher_ids,
         c.cover_image_url,
         c.status,
+        c.is_public,
         c.create_time,
         c.update_time
         FROM mg_course c
@@ -262,4 +278,29 @@
         ORDER BY t.create_time DESC
     </select>
 
+    <select id="listPublicCourse" resultMap="PublicCourseVOMap" parameterType="java.lang.Integer">
+        SELECT
+        c.id,
+        c.course_name,
+        c.description,
+        c.cover_image_url,
+        c.course_type,
+        c.semester,
+        c.location,
+        t.real_name as teacher_name,
+        u.avatar as teacher_avatar,
+        c.is_public,
+        c.create_time
+        FROM mg_course c
+        LEFT JOIN mg_teacher t ON c.teacher_id = t.id
+        LEFT JOIN sys_user u ON t.sys_user_id = u.id
+        <where>
+            c.is_deleted = 0
+            AND (t.is_deleted = 0 OR t.id IS NULL)
+            AND c.status = 0
+            AND c.is_public = #{isPublic}
+        </where>
+        ORDER BY RAND()
+        LIMIT 8
+    </select>
 </mapper>

@@ -136,6 +136,90 @@ services:
     volumes:
       - ./elk/logstash/pipeline:/usr/share/logstash/pipeline:ro
 
+  coturn:
+    image: coturn/coturn:latest
+    container_name: coturn
+    command: >
+      -n
+      --log-file stdout
+      --min-port 50000 --max-port 50050
+      --fingerprint
+      --realm livekit.local
+      --external-ip ${LIVEKIT_PUBLIC_IP:-localhost}
+      --user livekit:livekit123
+    ports:
+      - "3478:3478/tcp"
+      - "3478:3478/udp"
+      - "50000-50050:50000-50050/udp"
+    restart: unless-stopped
+
+  livekit:
+    image: livekit/livekit-server:latest
+    container_name: livekit
+    environment:
+      LIVEKIT_CONFIG: |
+        port: 7880
+        log_level: debug
+        bind_addresses: ["0.0.0.0"]
+        rtc:
+          node_ip: ${LIVEKIT_PUBLIC_IP:-localhost}
+          tcp_port: 7881
+          port_range_start: 60000
+          port_range_end: 60050
+          use_external_ip: true
+          turn_servers:
+            - host: ${LIVEKIT_PUBLIC_IP:-localhost}
+              port: 3478
+              protocol: udp
+              username: livekit
+              credential: livekit123
+        redis:
+          address: "redis:6379"
+          password: "zhaosheng123"
+          db: 0
+        keys:
+          "livekitdevkey001": "livekitdevsecret001abcdef1234567890abcd"
+    ports:
+      - "7880:7880/tcp"
+      - "7881:7881/tcp"
+      - "60000-60050:60000-60050/udp"
+    depends_on:
+      - coturn
+      - redis
+    restart: unless-stopped
+
+  egress:
+    image: livekit/egress:latest
+    container_name: livekit-egress
+    restart: unless-stopped
+    depends_on:
+      - livekit
+      - redis
+      - minio
+    ports:
+      - "8080:8080"
+    environment:
+      LIVEKIT_WS_URL: ws://livekit:7880
+      LIVEKIT_API_KEY: livekitdevkey001
+      LIVEKIT_API_SECRET: livekitdevsecret001abcdef1234567890abcd
+      EGRESS_CONFIG_BODY: |
+        log_level: debug
+        api_key: "livekitdevkey001"
+        api_secret: "livekitdevsecret001abcdef1234567890abcd"
+        ws_url: "ws://livekit:7880"
+        redis:
+          address: "redis:6379"
+          password: "zhaosheng123"
+          db: 0
+        s3:
+          access_key: "root"
+          secret: "zhaosheng123"
+          region: "us-east-1"
+          endpoint: "http://minio:31589"
+          bucket: "sapientiacloud-live-playback"
+          force_path_style: true
+        health_port: 8081
+
 volumes:
   mysql_data:
   redis_data:

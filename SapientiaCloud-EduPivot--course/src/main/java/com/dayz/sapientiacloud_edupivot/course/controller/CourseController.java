@@ -8,8 +8,10 @@ import com.dayz.sapientiacloud_edupivot.course.constant.PermissionConstants;
 import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseQueryDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.vo.CourseVO;
+import com.dayz.sapientiacloud_edupivot.course.entity.vo.PublicCourseVO;
 import com.dayz.sapientiacloud_edupivot.course.service.ICourseService;
 import com.github.pagehelper.PageInfo;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -49,6 +51,13 @@ public class CourseController extends BaseController {
     public Result<List<CourseVO>> listAllCourse() {
         List<CourseVO> courseVOList = courseService.listAllCourse();
         return Result.success(courseVOList);
+    }
+
+    @Operation(summary = "listPublicCourse", description = "获取公开课程列表。该接口无需权限验证，可供未登录用户访问，仅返回正常状态的课程，不包含敏感信息。")
+    @GetMapping("/public/list")
+    public Result<List<PublicCourseVO>> listPublicCourse() {
+        List<PublicCourseVO> publicCourseVOList = courseService.listPublicCourse();
+        return Result.success(publicCourseVOList);
     }
 
     @HasPermission(

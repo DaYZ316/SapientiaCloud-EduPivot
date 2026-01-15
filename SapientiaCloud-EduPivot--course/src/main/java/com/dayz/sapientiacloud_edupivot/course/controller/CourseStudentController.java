@@ -7,7 +7,9 @@ import com.dayz.sapientiacloud_edupivot.course.common.security.annotation.HasPer
 import com.dayz.sapientiacloud_edupivot.course.constant.PermissionConstants;
 import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseStudentDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseStudentQueryDTO;
+import com.dayz.sapientiacloud_edupivot.course.entity.dto.MyCourseForStudentQueryDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.vo.CourseStudentVO;
+import com.dayz.sapientiacloud_edupivot.course.entity.vo.MyCourseVO;
 import com.dayz.sapientiacloud_edupivot.course.service.ICourseStudentService;
 import com.github.pagehelper.PageInfo;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -37,6 +39,18 @@ public class CourseStudentController extends BaseController {
     public TableDataResult listCourseStudent(@ParameterObject CourseStudentQueryDTO courseStudentQueryDTO) {
         startPage();
         PageInfo<CourseStudentVO> pageInfo = courseStudentService.listCourseStudent(courseStudentQueryDTO);
+        return getDataTable(pageInfo.getList());
+    }
+
+    @HasPermission(
+            summary = "listMyCourseForStudent",
+            description = "批量查询选课记录。",
+            permission = PermissionConstants.STUDENT_QUERY
+    )
+    @GetMapping("/my-course")
+    public TableDataResult listMyCourseForStudent(@ParameterObject MyCourseForStudentQueryDTO myCourseForStudentQueryDTO) {
+        startPage();
+        PageInfo<MyCourseVO> pageInfo = courseStudentService.listMyCourseForStudent(myCourseForStudentQueryDTO);
         return getDataTable(pageInfo.getList());
     }
 

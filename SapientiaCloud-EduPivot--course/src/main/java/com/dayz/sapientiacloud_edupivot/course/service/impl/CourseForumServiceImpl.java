@@ -242,9 +242,6 @@ public class CourseForumServiceImpl implements ICourseForumService {
         if (courseForumDTO.getForumType() != null) {
             existingForum.setForumType(courseForumDTO.getForumType());
         }
-        if (courseForumDTO.getIsPublic() != null) {
-            existingForum.setIsPublic(courseForumDTO.getIsPublic());
-        }
         if (courseForumDTO.getAllowAnonymous() != null) {
             existingForum.setAllowAnonymous(courseForumDTO.getAllowAnonymous());
         }

@@ -35,6 +35,10 @@ public class Question extends BaseEntity implements Serializable {
     @Field("question_bank_id")
     private UUID questionBankId;
 
+    @Schema(name = "courseId", description = "所属课程ID")
+    @Field("course_id")
+    private UUID courseId;
+
     @Schema(name = "sysUserId", description = "创建用户ID")
     @Field("sys_user_id")
     private UUID sysUserId;
@@ -82,5 +86,9 @@ public class Question extends BaseEntity implements Serializable {
     @Schema(name = "status", description = "题目状态 (0=草稿, 1=发布, 2=停用)")
     @Field("status")
     private Integer status;
+
+    @Schema(name = "celestialQuestionId", description = "AI生成题目的ID（可选）")
+    @Field("celestial_question_id")
+    private UUID celestialQuestionId;
 
 }

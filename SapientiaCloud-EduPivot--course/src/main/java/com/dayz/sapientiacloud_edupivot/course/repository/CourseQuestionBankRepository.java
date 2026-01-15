@@ -20,7 +20,5 @@ public interface CourseQuestionBankRepository extends MongoRepository<CourseQues
 
     List<CourseQuestionBank> findByBankTypeAndDeleted(Integer bankType, Integer deleted);
 
-    List<CourseQuestionBank> findByIsPublicAndDeleted(Integer isPublic, Integer deleted);
-
     List<CourseQuestionBank> findByDifficultyAndDeleted(Integer difficulty, Integer deleted);
 }

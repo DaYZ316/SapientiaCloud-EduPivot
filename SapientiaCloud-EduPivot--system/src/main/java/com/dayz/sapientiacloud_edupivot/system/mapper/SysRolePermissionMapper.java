@@ -30,4 +30,9 @@ public interface SysRolePermissionMapper {
     int removePermissionsById(UUID id);
 
     int removePermissionsByIds(@Param("ids") List<UUID> ids);
+
+    @Select("SELECT COUNT(*) FROM sys_role_permission WHERE permission_id = #{id}")
+    int countByPermissionId(UUID id);
+
+    int countByPermissionIds(@Param("ids") List<UUID> ids);
 }

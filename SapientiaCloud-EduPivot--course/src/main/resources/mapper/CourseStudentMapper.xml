@@ -180,4 +180,86 @@
         ORDER BY cs.create_time DESC
     </select>
 
+    <resultMap id="MyCourseVOMap" type="com.dayz.sapientiacloud_edupivot.course.entity.vo.MyCourseVO">
+        <result column="grade" property="grade"/>
+        <result column="status" property="status"/>
+        <result column="create_time" property="createTime"/>
+        <association property="courseVO" javaType="com.dayz.sapientiacloud_edupivot.course.entity.vo.CourseVO">
+            <id column="course_id" property="id"/>
+            <result column="course_name" property="courseName"/>
+            <result column="description" property="description"/>
+            <result column="course_type" property="courseType"/>
+            <result column="semester" property="semester"/>
+            <result column="location" property="location"/>
+            <result column="teacher_id" property="teacherId"/>
+            <result column="teacher_name" property="teacherName"/>
+            <result column="teacher_avatar" property="teacherAvatar"/>
+            <result column="cover_image_url" property="coverImageUrl"/>
+            <result column="course_status" property="status"/>
+            <result column="is_public" property="isPublic"/>
+            <result column="course_create_time" property="createTime"/>
+            <result column="course_update_time" property="updateTime"/>
+        </association>
+    </resultMap>
+
+    <select id="listMyCourseForStudent" resultMap="MyCourseVOMap"
+            parameterType="com.dayz.sapientiacloud_edupivot.course.entity.dto.MyCourseForStudentQueryDTO">
+        SELECT
+        cs.grade,
+        cs.status,
+        cs.create_time,
+        c.id AS course_id,
+        c.course_name,
+        c.description,
+        c.course_type,
+        c.semester,
+        c.location,
+        c.teacher_id,
+        t.real_name AS teacher_name,
+        u.avatar AS teacher_avatar,
+        c.cover_image_url,
+        c.status AS course_status,
+        c.is_public,
+        c.create_time AS course_create_time,
+        c.update_time AS course_update_time
+        FROM mg_course_student cs
+        LEFT JOIN mg_course c ON cs.course_id = c.id AND c.is_deleted = 0
+        LEFT JOIN mg_teacher t ON c.teacher_id = t.id
+        LEFT JOIN sys_user u ON t.sys_user_id = u.id
+        <where>
+            cs.student_id = #{studentId}
+            <if test="courseName != null and courseName != ''">
+                AND c.course_name LIKE CONCAT('%', #{courseName}, '%')
+            </if>
+            <if test="courseType != null">
+                AND c.course_type = #{courseType}
+            </if>
+            <if test="status != null">
+                AND c.status = #{status}
+            </if>
+            <if test="isPublic != null">
+                AND c.is_public = #{isPublic}
+            </if>
+            <if test="startTime != null or endTime != null">
+                <choose>
+                    <when test="startTime != null and endTime == null">
+                        AND cs.create_time &gt;= #{startTime}
+                    </when>
+                    <when test="startTime == null and endTime != null">
+                        AND cs.create_time &lt;= #{endTime}
+                    </when>
+                    <otherwise>
+                        AND cs.create_time BETWEEN #{startTime} AND #{endTime}
+                    </otherwise>
+                </choose>
+            </if>
+        </where>
+        <if test="orderByColumn != null and orderByColumn != ''">
+            ORDER BY ${orderByColumn} ${isAsc == 'asc' ? 'ASC' : 'DESC'}
+        </if>
+        <if test="orderByColumn == null or orderByColumn == ''">
+            ORDER BY cs.create_time DESC
+        </if>
+    </select>
+
 </mapper>

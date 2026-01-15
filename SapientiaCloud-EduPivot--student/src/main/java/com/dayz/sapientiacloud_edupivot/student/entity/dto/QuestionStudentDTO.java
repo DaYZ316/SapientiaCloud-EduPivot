@@ -1,0 +1,50 @@
+package com.dayz.sapientiacloud_edupivot.student.entity.dto;
+
+import com.dayz.sapientiacloud_edupivot.student.entity.po.QuestionStudent.AnswerPayload;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotNull;
+import lombok.Data;
+
+import java.io.Serial;
+import java.io.Serializable;
+import java.util.UUID;
+
+@Data
+@Schema(description = "课堂练习作答更新DTO")
+public class QuestionStudentDTO implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 120112345987612342L;
+
+    @Schema(description = "作答记录ID", requiredMode = Schema.RequiredMode.REQUIRED, example = "00000000-0000-0000-0000-000000000000")
+    @NotNull(message = "作答记录ID不能为空")
+    private UUID id;
+
+    @Schema(description = "课堂记录ID")
+    @NotNull(message = "课堂记录ID不能为空")
+    private UUID classroomId;
+
+    @Schema(description = "学生ID")
+    @NotNull(message = "学生ID不能为空")
+    private UUID studentId;
+
+    @Schema(description = "题目ID")
+    @NotNull(message = "题目ID不能为空")
+    private UUID questionId;
+
+    @Schema(description = "练习ID")
+    private UUID practiceId;
+
+    @Schema(description = "课程ID")
+    private UUID courseId;
+
+    @Schema(description = "作答内容")
+    private AnswerPayload answer;
+
+    @Schema(description = "是否正确(0-错误,1-正确,2-半对)")
+    private Integer isCorrect;
+
+    @Schema(description = "得分")
+    private Float score;
+}
+

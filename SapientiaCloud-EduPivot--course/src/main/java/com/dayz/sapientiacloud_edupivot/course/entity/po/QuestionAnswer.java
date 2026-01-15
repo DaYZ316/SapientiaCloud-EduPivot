@@ -34,24 +34,24 @@ public class QuestionAnswer extends BaseEntity implements Serializable {
     @Field("question_id")
     private UUID questionId;
 
-    @Schema(name = "sysUserId", description = "创建用户ID")
-    @Field("sys_user_id")
-    private UUID sysUserId;
+    @Schema(name = "courseId", description = "所属课程ID")
+    @Field("course_id")
+    private UUID courseId;
 
-    @Schema(name = "answerContent", description = "答案内容")
+    @Schema(name = "answerContent", description = "本空答案")
     @Field("answer_content")
     private String answerContent;
 
-    @Schema(name = "answerText", description = "文本答案 (填空题、简答题)")
-    @Field("answer_text")
-    private String answerText;
+    @Schema(name = "explanation", description = "本空解析")
+    @Field("explanation")
+    private String explanation;
 
-    @Schema(name = "isCorrect", description = "是否正确 (0=错误, 1=正确, 2=部分正确)")
-    @Field("is_correct")
-    private Integer isCorrect;
-
-    @Schema(name = "score", description = "得分")
+    @Schema(name = "score", description = "分数")
     @Field("score")
     private BigDecimal score;
+
+    @Schema(name = "sortOrder", description = "本空序号")
+    @Field("sort_order")
+    private Integer sortOrder;
 
 }

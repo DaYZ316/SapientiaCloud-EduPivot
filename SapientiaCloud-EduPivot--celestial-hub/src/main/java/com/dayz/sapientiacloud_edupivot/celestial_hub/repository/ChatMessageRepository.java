@@ -39,5 +39,10 @@ public interface ChatMessageRepository extends MongoRepository<ChatMessage, UUID
      * 删除会话的所有消息
      */
     void deleteBySessionId(UUID sessionId);
+
+    /**
+     * 通过 sessionId + role + requestId 查找（用于幂等插入后查询已存在记录）
+     */
+    ChatMessage findFirstBySessionIdAndRoleAndRequestId(UUID sessionId, Integer role, String requestId);
 }
 

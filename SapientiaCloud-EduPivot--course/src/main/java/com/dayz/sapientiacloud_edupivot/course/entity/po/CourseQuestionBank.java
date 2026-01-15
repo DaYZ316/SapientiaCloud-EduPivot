@@ -57,8 +57,4 @@ public class CourseQuestionBank extends BaseEntity implements Serializable {
     @Schema(name = "difficulty", description = "整体难度等级 (1=简单, 2=中等, 3=困难)")
     @Field("difficulty")
     private Integer difficulty;
-
-    @Schema(name = "isPublic", description = "是否公开 (0=私有, 1=公开)")
-    @Field("is_public")
-    private Integer isPublic;
 }

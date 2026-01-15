@@ -1,7 +1,8 @@
 package com.dayz.sapientiacloud_edupivot.minio.controller;
 
 import com.dayz.sapientiacloud_edupivot.minio.constant.MinIOConstants;
-import com.dayz.sapientiacloud_edupivot.minio.entity.dto.FileInfoDTO;
+import com.dayz.sapientiacloud_edupivot.minio.entity.FileInfo;
+import com.dayz.sapientiacloud_edupivot.minio.enums.BusinessBucketEnum;
 import com.dayz.sapientiacloud_edupivot.minio.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.minio.result.Result;
 import com.dayz.sapientiacloud_edupivot.minio.utils.MinIOUtil;
@@ -64,7 +65,8 @@ public class MinIOController {
     @PostMapping("/upload")
     public Result<Map<String, String>> uploadFile(
             @Parameter(description = "上传的文件", required = true) @RequestParam("file") MultipartFile file,
-            @Parameter(description = "存储目录（可选）") @RequestParam(value = "directory", required = false) String directory
+            @Parameter(description = "存储目录（可选）") @RequestParam(value = "directory", required = false) String directory,
+            @Parameter(description = "业务桶编码", required = false) @RequestParam(value = "bucketCode", required = false) BusinessBucketEnum bucketCode
     ) {
         try {
             if (file == null || file.isEmpty()) {
@@ -79,10 +81,12 @@ public class MinIOController {
             }
 
             // 上传文件并获取对象名
-            String uploadedObjectName = minIOUtil.uploadFile(file, objectName, null);
+            String resolvedBucketCode = resolveBucketCode(bucketCode);
+
+            String uploadedObjectName = minIOUtil.uploadFile(file, resolvedBucketCode, objectName, null);
 
             // 获取访问URL
-            String url = minIOUtil.getPresignedObjectUrl(uploadedObjectName);
+            String url = minIOUtil.getPresignedObjectUrl(uploadedObjectName, null, resolvedBucketCode);
 
             // 构建返回结果
             Map<String, String> fileInfo = new HashMap<>();
@@ -91,6 +95,7 @@ public class MinIOController {
             fileInfo.put("fileSize", String.valueOf(file.getSize()));
             fileInfo.put("contentType", file.getContentType());
             fileInfo.put("url", url);
+            fileInfo.put("bucketCode", resolvedBucketCode);
 
             return Result.success(fileInfo);
         } catch (Exception e) {
@@ -109,10 +114,11 @@ public class MinIOController {
     @GetMapping("/url")
     public Result<String> getFileUrl(
             @Parameter(description = "文件对象名称", required = true) @RequestParam("objectName") String objectName,
-            @Parameter(description = "过期时间（秒）", required = false) @RequestParam(value = "expiry", required = false) Integer expiry
+            @Parameter(description = "过期时间（秒）", required = false) @RequestParam(value = "expiry", required = false) Integer expiry,
+            @Parameter(description = "业务桶编码", required = false) @RequestParam(value = "bucketCode", required = false) BusinessBucketEnum bucketCode
     ) {
         try {
-            String url = minIOUtil.getPresignedObjectUrl(objectName, expiry);
+            String url = minIOUtil.getPresignedObjectUrl(objectName, expiry, resolveBucketCode(bucketCode));
             return Result.success(url);
         } catch (Exception e) {
             throw new BusinessException(MinIOConstants.FILE_URL_GENERATION_FAILED_MESSAGE + ": " + e.getMessage());
@@ -129,6 +135,7 @@ public class MinIOController {
     @GetMapping("/download")
     public void downloadFile(
             @Parameter(description = "文件对象名称", required = true) @RequestParam("objectName") String objectName,
+            @Parameter(description = "业务桶编码", required = false) @RequestParam(value = "bucketCode", required = false) BusinessBucketEnum bucketCode,
             HttpServletResponse response
     ) {
         try {
@@ -144,9 +151,32 @@ public class MinIOController {
                     "attachment; filename=" + URLEncoder.encode(filename, StandardCharsets.UTF_8));
 
             // 获取并写入文件内容
-            try (InputStream inputStream = minIOUtil.downloadFile(objectName)) {
+            try (InputStream inputStream = minIOUtil.downloadFile(objectName, resolveBucketCode(bucketCode))) {
                 IOUtils.copy(inputStream, response.getOutputStream());
                 response.flushBuffer();
+            }
+        } catch (Exception e) {
+            throw new BusinessException(MinIOConstants.FILE_DOWNLOAD_FAILED_MESSAGE + ": " + e.getMessage());
+        }
+    }
+
+    /**
+     * 下载文件（返回字节数组，用于Feign调用）
+     *
+     * @param objectName 对象名称
+     * @param bucketCode 业务桶编码
+     * @return 文件字节数组
+     */
+    @Operation(summary = "downloadFileBytes", description = "下载文件接口（返回字节数组）")
+    @GetMapping("/download/bytes")
+    public Result<byte[]> downloadFileBytes(
+            @Parameter(description = "文件对象名称", required = true) @RequestParam("objectName") String objectName,
+            @Parameter(description = "业务桶编码", required = false) @RequestParam(value = "bucketCode", required = false) BusinessBucketEnum bucketCode
+    ) {
+        try {
+            try (InputStream inputStream = minIOUtil.downloadFile(objectName, resolveBucketCode(bucketCode))) {
+                byte[] bytes = IOUtils.toByteArray(inputStream);
+                return Result.success(bytes);
             }
         } catch (Exception e) {
             throw new BusinessException(MinIOConstants.FILE_DOWNLOAD_FAILED_MESSAGE + ": " + e.getMessage());
@@ -162,9 +192,10 @@ public class MinIOController {
     @Operation(summary = "deleteFile", description = "删除文件接口")
     @DeleteMapping("/delete")
     public Result<Boolean> deleteFile(
-            @Parameter(description = "文件对象名称", required = true) @RequestParam("objectName") String objectName
+            @Parameter(description = "文件对象名称", required = true) @RequestParam("objectName") String objectName,
+            @Parameter(description = "业务桶编码", required = false) @RequestParam(value = "bucketCode", required = false) BusinessBucketEnum bucketCode
     ) {
-        boolean result = minIOUtil.removeObject(objectName);
+        boolean result = minIOUtil.removeObject(objectName, resolveBucketCode(bucketCode));
         if (result) {
             return Result.success(true);
         } else {
@@ -181,9 +212,10 @@ public class MinIOController {
     @Operation(summary = "batchDeleteFiles", description = "批量删除文件接口")
     @DeleteMapping("/batch-delete")
     public Result<Map<String, String>> batchDeleteFiles(
-            @Parameter(name = "objectNames", description = "文件对象名称列表", required = true) @RequestBody List<String> objectNames
+            @Parameter(name = "objectNames", description = "文件对象名称列表", required = true) @RequestBody List<String> objectNames,
+            @Parameter(description = "业务桶编码", required = false) @RequestParam(value = "bucketCode", required = false) BusinessBucketEnum bucketCode
     ) {
-        Map<String, String> result = minIOUtil.removeObjects(objectNames);
+        Map<String, String> result = minIOUtil.removeObjects(objectNames, resolveBucketCode(bucketCode));
         return Result.success(result);
     }
 
@@ -197,10 +229,11 @@ public class MinIOController {
     @GetMapping("/list")
     public Result<List<Map<String, Object>>> listFiles(
             @Parameter(description = "文件前缀", required = false)
-            @RequestParam(value = "prefix", required = false, defaultValue = "") String prefix
+            @RequestParam(value = "prefix", required = false, defaultValue = "") String prefix,
+            @Parameter(description = "业务桶编码", required = false) @RequestParam(value = "bucketCode", required = false) BusinessBucketEnum bucketCode
     ) {
         try {
-            List<Item> items = minIOUtil.listObjects(prefix);
+            List<Item> items = minIOUtil.listObjects(prefix, resolveBucketCode(bucketCode));
             List<Map<String, Object>> fileList = items.stream()
                     .map(item -> {
                         Map<String, Object> fileInfo = new HashMap<>();
@@ -230,11 +263,12 @@ public class MinIOController {
      */
     @Operation(summary = "getFileInfo", description = "获取文件详细信息接口")
     @GetMapping("/info")
-    public Result<FileInfoDTO> getFileInfo(
-            @Parameter(description = "文件对象名称", required = true) @RequestParam("objectName") String objectName
+    public Result<FileInfo> getFileInfo(
+            @Parameter(description = "文件对象名称", required = true) @RequestParam("objectName") String objectName,
+            @Parameter(description = "业务桶编码", required = false) @RequestParam(value = "bucketCode", required = false) BusinessBucketEnum bucketCode
     ) {
         try {
-            FileInfoDTO fileInfo = minIOUtil.getFileInfo(objectName);
+            FileInfo fileInfo = minIOUtil.getFileInfo(objectName, resolveBucketCode(bucketCode));
             return Result.success(fileInfo);
         } catch (Exception e) {
             throw new BusinessException(MinIOConstants.FILE_INFO_FAILED_MESSAGE + ": " + e.getMessage());
@@ -249,11 +283,12 @@ public class MinIOController {
      */
     @Operation(summary = "getFileInfoByPath", description = "通过路径获取文件详细信息接口")
     @GetMapping("/info/path")
-    public Result<FileInfoDTO> getFileInfoByPath(
-            @Parameter(description = "文件路径", required = true) @RequestParam("filePath") String filePath
+    public Result<FileInfo> getFileInfoByPath(
+            @Parameter(description = "文件路径", required = true) @RequestParam("filePath") String filePath,
+            @Parameter(description = "业务桶编码", required = false) @RequestParam(value = "bucketCode", required = false) BusinessBucketEnum bucketCode
     ) {
         try {
-            FileInfoDTO fileInfo = minIOUtil.getFileInfoByPath(filePath);
+            FileInfo fileInfo = minIOUtil.getFileInfoByPath(filePath, resolveBucketCode(bucketCode));
             return Result.success(fileInfo);
         } catch (Exception e) {
             throw new BusinessException(MinIOConstants.FILE_INFO_FAILED_MESSAGE + ": " + e.getMessage());
@@ -268,11 +303,12 @@ public class MinIOController {
      */
     @Operation(summary = "getBatchFileInfo", description = "批量获取文件详细信息接口")
     @PostMapping("/info/batch")
-    public Result<List<FileInfoDTO>> getBatchFileInfo(
-            @Parameter(description = "文件对象名称数组", required = true) @RequestBody String[] objectNames
+    public Result<List<FileInfo>> getBatchFileInfo(
+            @Parameter(description = "文件对象名称数组", required = true) @RequestBody String[] objectNames,
+            @Parameter(description = "业务桶编码", required = false) @RequestParam(value = "bucketCode", required = false) BusinessBucketEnum bucketCode
     ) {
         try {
-            List<FileInfoDTO> fileInfoList = minIOUtil.getBatchFileInfo(objectNames);
+            List<FileInfo> fileInfoList = minIOUtil.getBatchFileInfo(objectNames, resolveBucketCode(bucketCode));
             return Result.success(fileInfoList);
         } catch (Exception e) {
             throw new BusinessException(MinIOConstants.FILE_INFO_FAILED_MESSAGE + ": " + e.getMessage());
@@ -287,11 +323,12 @@ public class MinIOController {
      */
     @Operation(summary = "getBatchFileInfoByPath", description = "通过路径数组批量获取文件详细信息接口")
     @PostMapping("/info/batch/path")
-    public Result<List<FileInfoDTO>> getBatchFileInfoByPath(
-            @Parameter(description = "文件路径数组", required = true) @RequestBody String[] filePaths
+    public Result<List<FileInfo>> getBatchFileInfoByPath(
+            @Parameter(description = "文件路径数组", required = true) @RequestBody String[] filePaths,
+            @Parameter(description = "业务桶编码", required = false) @RequestParam(value = "bucketCode", required = false) BusinessBucketEnum bucketCode
     ) {
         try {
-            List<FileInfoDTO> fileInfoList = minIOUtil.getBatchFileInfoByPath(filePaths);
+            List<FileInfo> fileInfoList = minIOUtil.getBatchFileInfoByPath(filePaths, resolveBucketCode(bucketCode));
             return Result.success(fileInfoList);
         } catch (Exception e) {
             throw new BusinessException(MinIOConstants.FILE_INFO_FAILED_MESSAGE + ": " + e.getMessage());
@@ -307,10 +344,11 @@ public class MinIOController {
     @Operation(summary = "deleteFileByPath", description = "根据文件路径删除文件接口")
     @DeleteMapping("/delete/path")
     public Result<Boolean> deleteFileByPath(
-            @Parameter(description = "文件路径", required = true) @RequestParam("filePath") String filePath
+            @Parameter(description = "文件路径", required = true) @RequestParam("filePath") String filePath,
+            @Parameter(description = "业务桶编码", required = false) @RequestParam(value = "bucketCode", required = false) BusinessBucketEnum bucketCode
     ) {
         try {
-            boolean result = minIOUtil.removeObjectByPath(filePath);
+            boolean result = minIOUtil.removeObjectByPath(filePath, resolveBucketCode(bucketCode));
             if (result) {
                 return Result.success(true);
             } else {
@@ -330,13 +368,18 @@ public class MinIOController {
     @Operation(summary = "batchDeleteFilesByPath", description = "根据文件路径批量删除文件接口")
     @DeleteMapping("/batch-delete/path")
     public Result<Map<String, String>> batchDeleteFilesByPath(
-            @Parameter(name = "filePaths", description = "文件路径列表", required = true) @RequestBody List<String> filePaths
+            @Parameter(name = "filePaths", description = "文件路径列表", required = true) @RequestBody List<String> filePaths,
+            @Parameter(description = "业务桶编码", required = false) @RequestParam(value = "bucketCode", required = false) BusinessBucketEnum bucketCode
     ) {
         try {
-            Map<String, String> result = minIOUtil.removeObjectsByPath(filePaths);
+            Map<String, String> result = minIOUtil.removeObjectsByPath(filePaths, resolveBucketCode(bucketCode));
             return Result.success(result);
         } catch (Exception e) {
             throw new BusinessException(MinIOConstants.FILE_DELETE_BATCH_BY_URL_FAILED_MESSAGE + ": " + e.getMessage());
         }
+    }
+
+    private String resolveBucketCode(BusinessBucketEnum bucketEnum) {
+        return bucketEnum == null ? null : bucketEnum.getBucketCode();
     }
 } 

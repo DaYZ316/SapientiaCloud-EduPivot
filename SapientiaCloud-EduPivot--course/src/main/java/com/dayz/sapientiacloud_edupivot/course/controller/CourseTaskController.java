@@ -71,6 +71,18 @@ public class CourseTaskController extends BaseController {
         return Result.success(taskList);
     }
 
+    @Operation(summary = "listAllCourseTask", description = "获取所有课程任务列表。")
+    @HasPermission(
+            summary = "listAllCourseTask",
+            description = "获取所有课程任务列表。",
+            permission = PermissionConstants.TASK_QUERY
+    )
+    @GetMapping("/all")
+    public Result<List<CourseTaskVO>> listAllCourseTask() {
+        List<CourseTaskVO> taskList = courseTaskService.listAllCourseTask();
+        return Result.success(taskList);
+    }
+
     @Operation(summary = "listCourseTaskByCourseIdAndStatus", description = "根据课程ID和状态获取任务列表。")
     @HasPermission(
             summary = "listCourseTaskByCourseIdAndStatus",

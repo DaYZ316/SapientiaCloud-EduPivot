@@ -21,10 +21,13 @@ import java.util.UUID;
 public class ChatRequestDTO implements Serializable {
 
     @Serial
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = -7000375221223238792L;
 
     @Schema(description = "会话ID（新对话时可为空）")
     private UUID sessionId;
+
+    @Schema(description = "用户ID（Kafka场景下需要）")
+    private UUID userId;
 
     @NotBlank(message = "消息内容不能为空")
     @Schema(description = "用户消息内容", requiredMode = Schema.RequiredMode.REQUIRED)
@@ -53,5 +56,8 @@ public class ChatRequestDTO implements Serializable {
 
     @Schema(description = "附件URL列表")
     private List<String> attachments;
+
+    @Schema(description = "引用文件数组（用于索引文件向量数据）")
+    private List<FileReference> fileReferences;
 }
 

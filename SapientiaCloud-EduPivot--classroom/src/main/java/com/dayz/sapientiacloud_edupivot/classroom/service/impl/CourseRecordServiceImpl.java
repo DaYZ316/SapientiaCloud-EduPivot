@@ -36,13 +36,13 @@ public class CourseRecordServiceImpl extends ServiceImpl<CourseRecordMapper, Cou
     private final CourseRecordStudentMapper courseRecordStudentMapper;
 
     @Override
-    public PageInfo<CourseRecordVO> listCourseRecordPage(CourseRecordQueryDTO dto) {
-        if (dto == null) {
+    public PageInfo<CourseRecordVO> listCourseRecordPage(CourseRecordQueryDTO courseRecordQueryDTO) {
+        if (courseRecordQueryDTO == null) {
             throw new BusinessException(CourseRecordEnum.COURSE_RECORD_REQUIRED);
         }
 
-        return PageHelper.startPage(dto.getPageNum(), dto.getPageSize())
-                .doSelectPageInfo(() -> courseRecordMapper.listCourseRecord(dto));
+        return PageHelper.startPage(courseRecordQueryDTO.getPageNum(), courseRecordQueryDTO.getPageSize())
+                .doSelectPageInfo(() -> courseRecordMapper.listCourseRecord(courseRecordQueryDTO));
     }
 
     @Override
@@ -71,28 +71,25 @@ public class CourseRecordServiceImpl extends ServiceImpl<CourseRecordMapper, Cou
     @Override
     @Transactional(rollbackFor = Exception.class)
     @CacheEvict(value = {"CourseRecord", "CourseRecordStudent"}, allEntries = true)
-    public CourseRecordVO addCourseRecord(CourseRecordDTO dto) {
-        if (dto == null) {
+    public CourseRecordVO addCourseRecord(CourseRecordDTO courseRecordDTO) {
+        if (courseRecordDTO == null) {
             throw new BusinessException(CourseRecordEnum.COURSE_RECORD_INFO_REQUIRED);
         }
 
         // 验证必填字段
-        if (dto.getCourseId() == null) {
+        if (courseRecordDTO.getCourseId() == null) {
             throw new BusinessException(CourseRecordEnum.COURSE_ID_REQUIRED);
         }
-        if (dto.getTeacherId() == null) {
+        if (courseRecordDTO.getTeacherId() == null) {
             throw new BusinessException(CourseRecordEnum.TEACHER_ID_REQUIRED);
         }
-        if (dto.getModelType() == null || dto.getModelType().isBlank()) {
-            throw new BusinessException(CourseRecordEnum.MODEL_TYPE_REQUIRED);
-        }
-        if (dto.getTotalDesks() == null) {
-            throw new BusinessException(CourseRecordEnum.TOTAL_DESKS_REQUIRED);
+        if (courseRecordDTO.getClassroomType() == null) {
+            throw new BusinessException(CourseRecordEnum.CLASSROOM_TYPE_REQUIRED);
         }
 
         // 创建课程记录
         CourseRecord courseRecord = new CourseRecord();
-        BeanUtils.copyProperties(dto, courseRecord);
+        BeanUtils.copyProperties(courseRecordDTO, courseRecord);
 
         courseRecord.setId(UuidCreator.getTimeOrderedEpoch());
         courseRecord.setStatus(0);
@@ -115,13 +112,13 @@ public class CourseRecordServiceImpl extends ServiceImpl<CourseRecordMapper, Cou
             @CacheEvict(value = "CourseRecord", key = "'all'", condition = "true"),
             @CacheEvict(value = "CourseRecordStudent", allEntries = true)
     })
-    public Boolean updateCourseRecord(CourseRecordDTO dto) {
-        if (dto == null || dto.getId() == null) {
+    public Boolean updateCourseRecord(CourseRecordDTO courseRecordDTO) {
+        if (courseRecordDTO == null || courseRecordDTO.getId() == null) {
             throw new BusinessException(CourseRecordEnum.COURSE_RECORD_INFO_OR_ID_REQUIRED);
         }
 
         // 检查记录是否存在
-        CourseRecord existingRecord = this.getById(dto.getId());
+        CourseRecord existingRecord = this.getById(courseRecordDTO.getId());
         if (existingRecord == null) {
             throw new BusinessException(CourseRecordEnum.COURSE_RECORD_NOT_EXISTS);
         }
@@ -133,7 +130,7 @@ public class CourseRecordServiceImpl extends ServiceImpl<CourseRecordMapper, Cou
 
         // 更新记录
         CourseRecord courseRecord = new CourseRecord();
-        BeanUtils.copyProperties(dto, courseRecord);
+        BeanUtils.copyProperties(courseRecordDTO, courseRecord);
         courseRecord.setUpdateTime(LocalDateTime.now());
 
         return this.updateById(courseRecord);
@@ -250,5 +247,14 @@ public class CourseRecordServiceImpl extends ServiceImpl<CourseRecordMapper, Cou
         courseRecord.setUpdateTime(LocalDateTime.now());
 
         return this.updateById(courseRecord);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public LocalDateTime getCourseEndTimeById(UUID id) {
+        if (id == null) {
+            throw new BusinessException(CourseRecordEnum.COURSE_RECORD_ID_REQUIRED);
+        }
+        return courseRecordMapper.getOverTimeById(id);
     }
 }

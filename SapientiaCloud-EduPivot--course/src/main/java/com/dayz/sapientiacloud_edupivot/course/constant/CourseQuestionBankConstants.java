@@ -1,7 +1,6 @@
 package com.dayz.sapientiacloud_edupivot.course.constant;
 
 import com.dayz.sapientiacloud_edupivot.course.enums.DifficultyEnum;
-import com.dayz.sapientiacloud_edupivot.course.enums.PublicStatusEnum;
 
 public class CourseQuestionBankConstants {
 
@@ -14,7 +13,6 @@ public class CourseQuestionBankConstants {
     public static final String FIELD_BANK_TYPE = "bank_type";
     public static final String FIELD_TAGS = "tags";
     public static final String FIELD_DIFFICULTY = "difficulty";
-    public static final String FIELD_IS_PUBLIC = "is_public";
     public static final String FIELD_IS_DELETED = "is_deleted";
     public static final String FIELD_CREATE_TIME = "create_time";
     public static final String FIELD_UPDATE_TIME = "update_time";
@@ -34,14 +32,9 @@ public class CourseQuestionBankConstants {
     public static final int DIFFICULTY_MIN = DifficultyEnum.EASY.getCode();
     public static final int DIFFICULTY_MAX = DifficultyEnum.HARD.getCode();
 
-    // 公开状态范围
-    public static final int IS_PUBLIC_MIN = PublicStatusEnum.COURSE_MEMBERS_ONLY.getCode();
-    public static final int IS_PUBLIC_MAX = PublicStatusEnum.PUBLIC.getCode();
-
     // 默认值
     public static final int DEFAULT_BANK_TYPE = BANK_TYPE_PRACTICE;
     public static final int DEFAULT_DIFFICULTY = DifficultyEnum.EASY.getCode();
-    public static final int DEFAULT_IS_PUBLIC = PublicStatusEnum.COURSE_MEMBERS_ONLY.getCode();
     public static final int INCREMENT_VALUE = 1;
     public static final int DECREMENT_VALUE = -1;
 
@@ -69,8 +62,6 @@ public class CourseQuestionBankConstants {
 
     // 统计相关
     public static final String STATS_TOTAL_COUNT = "totalCount";
-    public static final String STATS_PUBLIC_COUNT = "publicCount";
-    public static final String STATS_PRIVATE_COUNT = "privateCount";
     public static final String STATS_PRACTICE_COUNT = "practiceCount";
     public static final String STATS_EXAM_COUNT = "examCount";
     public static final String STATS_HOMEWORK_COUNT = "homeworkCount";
@@ -89,10 +80,6 @@ public class CourseQuestionBankConstants {
     public static final String DIFFICULTY_NAME_EASY = "简单";
     public static final String DIFFICULTY_NAME_MEDIUM = "中等";
     public static final String DIFFICULTY_NAME_HARD = "困难";
-
-    // 公开状态名称
-    public static final String IS_PUBLIC_NAME_PRIVATE = "私有";
-    public static final String IS_PUBLIC_NAME_PUBLIC = "公开";
 
     private CourseQuestionBankConstants() {
         // 禁止实例化

@@ -26,9 +26,6 @@ public class CourseRecordStudentQueryDTO extends PageEntity implements Serializa
     @Schema(description = "课程ID")
     private UUID courseId;
 
-    @Schema(description = "座位状态 (normal, marked, reserved, occupied)")
-    private String seatStatus;
-
-    @Schema(description = "出勤状态 (0=未签到, 1=已签到, 2=缺席)")
-    private Integer attendanceStatus;
+    @Schema(description = "座位状态 (0=正常, 2=已预留, 3=已占用)")
+    private Integer seatStatus;
 }

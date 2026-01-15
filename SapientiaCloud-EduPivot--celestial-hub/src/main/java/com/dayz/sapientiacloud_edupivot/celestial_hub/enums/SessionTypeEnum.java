@@ -13,7 +13,8 @@ public enum SessionTypeEnum implements BaseEnum {
     GENERAL(0, "普通对话"),
     COURSE_QA(1, "课程问答"),
     QUESTION_TUTOR(2, "题目辅导"),
-    KNOWLEDGE_SEARCH(3, "知识检索");
+    KNOWLEDGE_SEARCH(3, "知识检索"),
+    SMART_QUESTION(4, "智慧出题");
 
     @EnumValue
     private final int code;
@@ -22,7 +23,7 @@ public enum SessionTypeEnum implements BaseEnum {
     private final String message;
 
     public static boolean isValidCode(Integer code) {
-        return code != null && code >= GENERAL.code && code <= KNOWLEDGE_SEARCH.code;
+        return code != null && code >= GENERAL.code && code <= SMART_QUESTION.code;
     }
 }
 

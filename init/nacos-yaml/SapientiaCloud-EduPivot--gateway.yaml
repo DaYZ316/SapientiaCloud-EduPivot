@@ -44,6 +44,18 @@ spring:
             - Path=/api/classroom/**
           filters:
             - StripPrefix=2
+        - id: SapientiaCloud-EduPivot--celestial-hub-live
+          uri: lb://SapientiaCloud-EduPivot--celestial-hub
+          predicates:
+            - Path=/api/live/subscribe,/api/live/unsubscribe
+          filters:
+            - StripPrefix=1
+        - id: SapientiaCloud-EduPivot--live
+          uri: lb://SapientiaCloud-EduPivot--live
+          predicates:
+            - Path=/api/live/**
+          filters:
+            - StripPrefix=2
         - id: SapientiaCloud-EduPivot--celestial-hub
           uri: lb://SapientiaCloud-EduPivot--celestial-hub
           predicates:

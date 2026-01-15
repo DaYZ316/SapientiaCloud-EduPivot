@@ -34,7 +34,6 @@
                     </otherwise>
                 </choose>
             </if>
-            AND is_deleted = 0
         </where>
         <if test="orderByColumn != null and orderByColumn != ''">
             ORDER BY ${orderByColumn} ${isAsc == 'asc' ? 'ASC' : 'DESC'}
@@ -44,25 +43,38 @@
         </if>
     </select>
 
-    <update id="removeChildrenById" parameterType="java.util.UUID">
+    <select id="listPermissionWithChildrenByRootId" parameterType="java.util.UUID" resultType="com.dayz.sapientiacloud_edupivot.system.entity.vo.SysPermissionVO">
+        WITH RECURSIVE permission_children AS (
+            SELECT id, parent_id, permission_name, permission_key, sort, create_time, update_time
+            FROM sys_permission
+            WHERE id = #{id}
+
+            UNION ALL
+
+            SELECT p.id, p.parent_id, p.permission_name, p.permission_key, p.sort, p.create_time, p.update_time
+            FROM sys_permission p
+            INNER JOIN permission_children pc ON p.parent_id = pc.id
+        )
+        SELECT id, parent_id, permission_name, permission_key, sort, create_time, update_time
+        FROM permission_children
+        ORDER BY sort ASC
+    </select>
+
+    <delete id="removeChildrenById" parameterType="java.util.UUID">
         WITH RECURSIVE permission_children AS (SELECT id, parent_id, permission_name, permission_key
                                                FROM sys_permission
                                                WHERE parent_id = #{id}
-                                                 AND is_deleted = 0
 
                                                UNION ALL
 
                                                SELECT p.id, p.parent_id, p.permission_name, p.permission_key
                                                FROM sys_permission p
-                                                        INNER JOIN permission_children pc ON p.parent_id = pc.id
-                                               WHERE p.is_deleted = 0)
-        UPDATE sys_permission
-        SET is_deleted  = 1,
-            update_time = CURRENT_TIMESTAMP
+                                                        INNER JOIN permission_children pc ON p.parent_id = pc.id)
+        DELETE FROM sys_permission
         WHERE id IN (SELECT id FROM permission_children)
-    </update>
+    </delete>
 
-    <update id="removeChildrenByIds" parameterType="java.util.List">
+    <delete id="removeChildrenByIds" parameterType="java.util.List">
         WITH RECURSIVE permission_children AS (
         SELECT id, parent_id, permission_name, permission_key
         FROM sys_permission
@@ -70,19 +82,15 @@
         <foreach collection="list" item="id" open="(" close=")" separator=",">
             #{id}
         </foreach>
-        AND is_deleted = 0
 
         UNION ALL
 
         SELECT p.id, p.parent_id, p.permission_name, p.permission_key
         FROM sys_permission p
         INNER JOIN permission_children pc ON p.parent_id = pc.id
-        WHERE p.is_deleted = 0
         )
-        UPDATE sys_permission
-        SET is_deleted = 1,
-        update_time = CURRENT_TIMESTAMP
+        DELETE FROM sys_permission
         WHERE id IN (SELECT id FROM permission_children)
-    </update>
+    </delete>
 
 </mapper> 

@@ -1,5 +1,6 @@
 package com.dayz.sapientiacloud_edupivot.course.entity.vo;
 
+import com.dayz.sapientiacloud_edupivot.course.common.entity.vo.TeacherVO;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -45,13 +46,16 @@ public class CourseVO implements Serializable {
     private String teacherAvatar;
 
     @Schema(name = "assistantTeacherIds", description = "辅助教学教师ID列表")
-    private List<UUID> assistantTeacherIds;
+    private List<TeacherVO> assistantTeachers;
 
     @Schema(name = "coverImageUrl", description = "课程封面图片URL")
     private String coverImageUrl;
 
     @Schema(name = "status", description = "课程状态 (0=正常, 1=停课)", example = "0")
     private Integer status;
+
+    @Schema(name = "isPublic", description = "是否公开 (0=仅课程成员, 1=公开)")
+    private Integer isPublic;
 
     @Schema(name = "createTime", description = "创建时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")

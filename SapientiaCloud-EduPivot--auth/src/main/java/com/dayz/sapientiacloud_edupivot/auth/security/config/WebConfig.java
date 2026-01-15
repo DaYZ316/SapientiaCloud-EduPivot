@@ -2,6 +2,7 @@ package com.dayz.sapientiacloud_edupivot.auth.security.config;
 
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -24,10 +25,6 @@ import java.util.Arrays;
 @Configuration
 @Slf4j
 public class WebConfig {
-
-    private static final String IP = "localhost";
-    private static final int PORT = 7890;
-
     @Bean
     public CorsFilter corsFilter() {
         CorsConfiguration corsConfig = new CorsConfiguration();
@@ -43,13 +40,26 @@ public class WebConfig {
     }
 
     @Bean
-    public RestTemplate restTemplate() {
+    public RestTemplate restTemplate(@Value("${app.http.proxy.enabled:false}") boolean proxyEnabled,
+                                     @Value("${app.http.proxy.host:}") String proxyHost,
+                                     @Value("${app.http.proxy.port:0}") int proxyPort) {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(30000);
         factory.setReadTimeout(30000);
-
-        Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(IP, PORT));
-        factory.setProxy(proxy);
+        boolean hasValidHost = proxyHost != null && !proxyHost.isBlank() && proxyPort > 0;
+        if (proxyEnabled && hasValidHost) {
+            try {
+                Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyHost, proxyPort));
+                factory.setProxy(proxy);
+                log.info("RestTemplate proxy enabled via config: {}:{}", proxyHost, proxyPort);
+            } catch (Exception e) {
+                log.warn("配置代理失败，已忽略，使用直连: {}:{}", proxyHost, proxyPort, e);
+            }
+        } else if (proxyEnabled) {
+            log.warn("代理开关已启用，但未配置有效的 host/port，使用直连");
+        } else {
+            log.debug("RestTemplate proxy disabled by config, using direct connections");
+        }
 
         RestTemplate restTemplate = new RestTemplate(factory);
 

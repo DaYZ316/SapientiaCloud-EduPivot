@@ -200,9 +200,12 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         }
 
         // 禁止重置 admin 用户的密码
-        if (ADMIN.equals(sysUser.getUsername())) {
-            throw new BusinessException(SysUserEnum.ADMIN_OPERATION_FORBIDDEN);
-        }
+        List<SysRoleVO> roles = sysUserRoleMapper.getUserRoles(userId);
+        roles.forEach(role -> {
+            if (role.isAdmin()) {
+                throw new BusinessException(SysUserEnum.ADMIN_OPERATION_FORBIDDEN);
+            }
+        });
 
         // 重置密码为123456
         if (!StringUtils.hasText(INIT_PASSWORD)) {

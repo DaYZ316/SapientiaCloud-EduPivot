@@ -29,11 +29,8 @@ public enum CourseRecordEnum implements BaseEnum {
     TEACHER_NOT_EXISTS(50014, "教师不存在"),
 
     // 教室配置相关
-    MODEL_TYPE_REQUIRED(50015, "教室模型类型不能为空"),
-    MODEL_TYPE_INVALID(50016, "教室模型类型无效 (classroomSmall, classroomMiddle, classroomLarge)"),
-    TOTAL_DESKS_REQUIRED(50017, "桌椅总数不能为空"),
-    TOTAL_DESKS_INVALID(50018, "桌椅总数必须在1-200之间"),
-    SPACING_INVALID(50019, "桌椅间距系数必须在0.7-1.5之间"),
+    CLASSROOM_TYPE_REQUIRED(50015, "教室类型不能为空"),
+    CLASSROOM_TYPE_INVALID(50016, "教室类型值无效 (0=小型教室, 1=中型教室, 2=大型教室, 3=超大型教室)"),
 
     // 学生相关
     STUDENT_IDS_EMPTY(50020, "学生ID列表为空"),

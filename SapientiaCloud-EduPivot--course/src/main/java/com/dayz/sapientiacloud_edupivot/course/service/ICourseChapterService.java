@@ -15,6 +15,8 @@ public interface ICourseChapterService {
 
     List<CourseChapterVO> listAllCourseChapterByCourseId(UUID courseId);
 
+    List<CourseChapterVO> listAllCourseChapter();
+
     List<CourseChapterVO> listCourseChapterTree(UUID courseId);
 
     CourseChapterVO getCourseChapterById(UUID id);

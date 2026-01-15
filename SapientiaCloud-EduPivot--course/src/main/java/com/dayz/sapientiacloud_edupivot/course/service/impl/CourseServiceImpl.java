@@ -2,18 +2,23 @@ package com.dayz.sapientiacloud_edupivot.course.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.dayz.sapientiacloud_edupivot.course.common.entity.vo.TeacherVO;
 import com.dayz.sapientiacloud_edupivot.course.common.enums.DeletedEnum;
 import com.dayz.sapientiacloud_edupivot.course.common.enums.StatusEnum;
 import com.dayz.sapientiacloud_edupivot.course.common.exception.BusinessException;
+import com.dayz.sapientiacloud_edupivot.course.constant.CourseConstants;
 import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseQueryDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.po.Course;
 import com.dayz.sapientiacloud_edupivot.course.entity.vo.CourseStudentVO;
 import com.dayz.sapientiacloud_edupivot.course.entity.vo.CourseVO;
+import com.dayz.sapientiacloud_edupivot.course.entity.vo.PublicCourseVO;
 import com.dayz.sapientiacloud_edupivot.course.enums.CourseEnum;
+import com.dayz.sapientiacloud_edupivot.course.mapper.CourseAssistantTeacherMapper;
 import com.dayz.sapientiacloud_edupivot.course.mapper.CourseMapper;
 import com.dayz.sapientiacloud_edupivot.course.service.ICourseService;
 import com.dayz.sapientiacloud_edupivot.course.service.ICourseStudentService;
+import com.dayz.sapientiacloud_edupivot.course.service.ICourseTeacherService;
 import com.github.f4b6a3.uuid.UuidCreator;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -22,20 +27,31 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> implements ICourseService {
 
+    private static final String PUBLIC_COURSE_CACHE_KEY = "PublicCourse::random:six";
+    private static final Duration PUBLIC_COURSE_CACHE_TTL = Duration.ofHours(24);
+
     private final CourseMapper courseMapper;
     private final ICourseStudentService courseStudentService;
+    private final ICourseTeacherService courseTeacherService;
+    private final CourseAssistantTeacherMapper courseAssistantTeacherMapper;
+    private final RedisTemplate<String, Object> redisTemplate;
 
     @Override
     public PageInfo<CourseVO> listCoursePage(CourseQueryDTO courseQueryDTO) {
@@ -66,17 +82,30 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
         if (courseVO == null) {
             throw new BusinessException(CourseEnum.COURSE_NOT_EXISTS);
         }
+        // 从关联表中补充助教列表（迁移后助教关系保存在 mg_course_assistant_teacher）
+        try {
+            List<TeacherVO> assistantTeachers =
+                    courseAssistantTeacherMapper.listAssistantByCourseId(courseId);
+            courseVO.setAssistantTeachers(assistantTeachers);
+        } catch (Exception ignored) {
+            // 若 mapper 不可用或查询失败，仍返回基础 courseVO
+        }
 
         return courseVO;
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    @CacheEvict(value = {"Course", "CourseTeacher"}, allEntries = true)
+    @Caching(evict = {
+            @CacheEvict(value = "Course", allEntries = true),
+            @CacheEvict(value = "CourseTeacher", allEntries = true)
+    })
     public CourseVO addCourse(CourseDTO courseDTO) {
         if (courseDTO == null) {
             throw new BusinessException(CourseEnum.COURSE_INFO_REQUIRED);
         }
+
+        validateIsPublic(courseDTO.getIsPublic());
 
         LambdaQueryWrapper<Course> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(Course::getCourseName, courseDTO.getCourseName());
@@ -86,6 +115,9 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
 
         Course course = new Course();
         BeanUtils.copyProperties(courseDTO, course);
+        if (course.getIsPublic() == null) {
+            course.setIsPublic(CourseConstants.DEFAULT_IS_PUBLIC);
+        }
 
         course.setId(UuidCreator.getTimeOrderedEpoch());
         course.setStatus(StatusEnum.NORMAL.getCode());
@@ -94,6 +126,17 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
         course.setUpdateTime(LocalDateTime.now());
 
         this.save(course);
+        // 如果传入了辅助教师列表，确保包含主讲教师（若缺失则加入），再批量插入关联表
+        if (courseDTO.getAssistantTeacherIds() != null && !courseDTO.getAssistantTeacherIds().isEmpty()) {
+            // 去重并保持为可变列表
+            List<UUID> assistantIds = new ArrayList<>(new HashSet<>(courseDTO.getAssistantTeacherIds()));
+            UUID mainTeacherId = course.getTeacherId();
+            if (mainTeacherId != null && !assistantIds.contains(mainTeacherId)) {
+                assistantIds.add(mainTeacherId);
+            }
+            courseTeacherService.batchAddAssistantTeachers(course.getId(), assistantIds);
+        }
+        clearPublicCourseCache();
 
         CourseVO courseVO = new CourseVO();
         BeanUtils.copyProperties(course, courseVO);
@@ -117,6 +160,11 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
             throw new BusinessException(CourseEnum.COURSE_NOT_EXISTS);
         }
 
+        // 检查是否尝试更新公开状态，如果公开字段不一样，则抛出异常
+        if (courseDTO.getIsPublic() != null && !courseDTO.getIsPublic().equals(existingCourse.getIsPublic())) {
+            throw new BusinessException(CourseEnum.COURSE_PUBLIC_STATUS_CANNOT_UPDATE);
+        }
+
         // 检查课程名称是否重复（排除自身）
         if (StringUtils.hasText(courseDTO.getCourseName()) &&
                 !courseDTO.getCourseName().equals(existingCourse.getCourseName())) {
@@ -130,9 +178,43 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
 
         Course course = new Course();
         BeanUtils.copyProperties(courseDTO, course);
+        // 确保公开状态不被更新，保持原值
+        course.setIsPublic(existingCourse.getIsPublic());
         course.setUpdateTime(LocalDateTime.now());
+        boolean updated = this.updateById(course);
+        if (updated) {
+            // 处理助教关联（多删少补）：仅在 DTO 提供 assistantTeacherIds 时才进行变更
+            if (courseDTO.getAssistantTeacherIds() != null) {
+                // 目标集合：去重并确保包含主讲教师
+                List<UUID> targetList = new ArrayList<>(new HashSet<>(courseDTO.getAssistantTeacherIds()));
+                UUID mainTeacherId = course.getTeacherId();
+                if (mainTeacherId != null && !targetList.contains(mainTeacherId)) {
+                    targetList.add(mainTeacherId);
+                }
 
-        return this.updateById(course);
+                // 现有集合
+                // 从关联表中获取当前助教列表
+                List<UUID> existingAssistants = courseAssistantTeacherMapper.listAssistantIdsByCourseId(course.getId());
+
+                // 计算待删除和待新增
+                List<UUID> toRemove = existingAssistants.stream()
+                        .filter(id -> !targetList.contains(id))
+                        .collect(Collectors.toList());
+                List<UUID> toAdd = targetList.stream()
+                        .filter(id -> !existingAssistants.contains(id))
+                        .collect(Collectors.toList());
+
+                if (!toRemove.isEmpty()) {
+                    courseTeacherService.batchDeleteAssistantTeachers(course.getId(), toRemove);
+                }
+                if (!toAdd.isEmpty()) {
+                    courseTeacherService.batchAddAssistantTeachers(course.getId(), toAdd);
+                }
+
+            }
+            clearPublicCourseCache();
+        }
+        return updated;
     }
 
     @Override
@@ -157,13 +239,20 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
             throw new BusinessException(CourseEnum.COURSE_HAS_STUDENTS);
         }
 
-        return this.removeById(courseId);
+        boolean removed = this.removeById(courseId);
+        if (removed) {
+            clearPublicCourseCache();
+        }
+        return removed;
     }
 
     // 弃用
     @Override
     @Transactional(rollbackFor = Exception.class)
-    @CacheEvict(value = {"Course", "CourseTeacher"}, allEntries = true)
+    @Caching(evict = {
+            @CacheEvict(value = "Course", allEntries = true),
+            @CacheEvict(value = "CourseTeacher", allEntries = true)
+    })
     public Integer removeCourseByIds(List<UUID> courseIds) {
         if (courseIds == null || courseIds.isEmpty()) {
             throw new BusinessException(CourseEnum.COURSE_ID_LIST_REQUIRED);
@@ -182,6 +271,50 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
         }
 
         boolean removeResult = this.removeBatchByIds(courseIds);
+        if (removeResult) {
+            clearPublicCourseCache();
+        }
         return Math.toIntExact(removeResult ? courseIds.size() : 0);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<PublicCourseVO> listPublicCourse() {
+        // 尝试从缓存获取
+        Object cached = redisTemplate.opsForValue().get(PUBLIC_COURSE_CACHE_KEY);
+        if (cached != null) {
+            @SuppressWarnings("unchecked")
+            List<PublicCourseVO> result = (List<PublicCourseVO>) cached;
+            return result;
+        }
+
+        // 缓存未命中，从数据库查询
+        PageHelper.clearPage(); // 避免线程复用下遗留分页上下文影响本次固定 LIMIT 查询
+        List<PublicCourseVO> result = courseMapper.listPublicCourse(CourseConstants.IS_PUBLIC_MAX);
+
+        // 存入缓存，设置24小时过期时间
+        if (result != null) {
+            redisTemplate.opsForValue().set(PUBLIC_COURSE_CACHE_KEY, result, PUBLIC_COURSE_CACHE_TTL);
+        }
+
+        return result;
+    }
+
+    private void validateIsPublic(Integer isPublic) {
+        if (isPublic == null) {
+            return;
+        }
+        if (isPublic < CourseConstants.IS_PUBLIC_MIN || isPublic > CourseConstants.IS_PUBLIC_MAX) {
+            throw new BusinessException(CourseEnum.COURSE_PUBLIC_STATUS_INVALID);
+        }
+    }
+
+    private void clearPublicCourseCache() {
+        redisTemplate.delete(PUBLIC_COURSE_CACHE_KEY);
+    }
+
+    @Override
+    public Long getCourseCount() {
+        return courseMapper.selectCount(null);
     }
 }

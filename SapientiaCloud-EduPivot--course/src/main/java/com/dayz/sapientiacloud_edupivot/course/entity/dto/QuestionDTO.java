@@ -1,8 +1,8 @@
 package com.dayz.sapientiacloud_edupivot.course.entity.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,12 +13,6 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * 题目数据传输对象
- *
- * @author SapientiaCloud
- * @since 2024-01-01
- */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -28,15 +22,23 @@ public class QuestionDTO implements Serializable {
     @Serial
     private static final long serialVersionUID = 6552463419472685936L;
 
-    @Schema(name = "id", description = "题目ID")
+    @Schema(name = "id", description = "题目ID（更新时必填，新增时可为空）")
     private UUID id;
 
     @Schema(name = "questionBankId", description = "所属题库ID")
     @NotNull(message = "题库ID不能为空")
     private UUID questionBankId;
 
+    @Schema(name = "courseId", description = "所属课程ID")
+    @NotNull(message = "课程ID不能为空")
+    private UUID courseId;
+
+    @Schema(name = "sysUserId", description = "创建用户ID（新增时必填，更新时不需要）")
+    private UUID sysUserId;
+
     @Schema(name = "questionTitle", description = "题目标题")
     @NotBlank(message = "题目标题不能为空")
+    @Size(max = 200, message = "题目标题不能超过200个字符")
     private String questionTitle;
 
     @Schema(name = "questionContent", description = "题目内容")
@@ -45,17 +47,25 @@ public class QuestionDTO implements Serializable {
 
     @Schema(name = "questionType", description = "题目类型 (0=单选题, 1=多选题, 2=判断题, 3=填空题, 4=简答题)")
     @NotNull(message = "题目类型不能为空")
+    @Min(value = 0, message = "题目类型输入不正确")
+    @Max(value = 4, message = "题目类型输入不正确")
     private Integer questionType;
 
     @Schema(name = "difficulty", description = "难度等级 (1=简单, 2=中等, 3=困难)")
     @NotNull(message = "难度等级不能为空")
+    @Min(value = 1, message = "难度等级输入不正确")
+    @Max(value = 3, message = "难度等级输入不正确")
     private Integer difficulty;
 
     @Schema(name = "score", description = "题目分数")
     @NotNull(message = "题目分数不能为空")
+    @DecimalMin(value = "0.0", message = "题目分数不能小于0")
+    @DecimalMax(value = "100.0", message = "题目分数不能大于100")
     private BigDecimal score;
 
     @Schema(name = "estimatedTime", description = "预计答题时间 (分钟)")
+    @Min(value = 1, message = "预计答题时间不能小于1分钟")
+    @Max(value = 300, message = "预计答题时间不能超过300分钟")
     private Integer estimatedTime;
 
     @Schema(name = "tags", description = "标签列表")
@@ -65,8 +75,22 @@ public class QuestionDTO implements Serializable {
     private List<String> imageUrls;
 
     @Schema(name = "allowPartialCredit", description = "是否允许部分得分 (0=不允许, 1=允许)")
+    @Min(value = 0, message = "部分得分标识输入不正确")
+    @Max(value = 1, message = "部分得分标识输入不正确")
     private Integer allowPartialCredit;
 
     @Schema(name = "status", description = "题目状态 (0=草稿, 1=发布, 2=停用)")
+    @Min(value = 0, message = "题目状态输入不正确")
+    @Max(value = 2, message = "题目状态输入不正确")
     private Integer status;
+
+    @Schema(name = "options", description = "选项列表 (选择题、判断题使用)")
+    @Valid
+    private List<QuestionOptionDTO> options;
+
+    @Schema(name = "answers", description = "答案列表（填空题, 简答题使用）")
+    private List<QuestionAnswerDTO> answers;
+
+    @Schema(name = "celestialQuestionId", description = "AI生成题目的ID（可选）")
+    private UUID celestialQuestionId;
 }
