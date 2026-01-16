@@ -1,15 +1,14 @@
-package com.dayz.sapientiacloud_edupivot.classroom.common.config;
+package com.dayz.sapientiacloud_edupivot.minio.config;
 
-import com.dayz.sapientiacloud_edupivot.classroom.common.security.utils.UserContextUtil;
+import com.dayz.sapientiacloud_edupivot.minio.utils.UserContextUtil;
 import feign.RequestInterceptor;
-import feign.RequestTemplate;
-import io.micrometer.tracing.Tracer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import io.micrometer.tracing.Tracer;
 
 import java.util.List;
 import java.util.Objects;
@@ -101,4 +100,4 @@ public class FeignConfig {
             }
         };
     }
-}
+} 
