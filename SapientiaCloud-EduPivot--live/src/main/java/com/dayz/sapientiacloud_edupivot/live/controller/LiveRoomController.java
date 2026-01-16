@@ -6,10 +6,13 @@ import com.dayz.sapientiacloud_edupivot.live.common.result.Result;
 import com.dayz.sapientiacloud_edupivot.live.common.result.TableDataResult;
 import com.dayz.sapientiacloud_edupivot.live.common.security.annotation.HasPermission;
 import com.dayz.sapientiacloud_edupivot.live.common.security.utils.UserContextUtil;
+import com.dayz.sapientiacloud_edupivot.live.common.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.live.entity.dto.LiveRoomCreateDTO;
 import com.dayz.sapientiacloud_edupivot.live.entity.dto.LiveRoomMessageDTO;
 import com.dayz.sapientiacloud_edupivot.live.entity.dto.LiveRoomTokenRequestDTO;
+import com.dayz.sapientiacloud_edupivot.live.entity.dto.LiveRoomSessionDTO;
 import com.dayz.sapientiacloud_edupivot.live.entity.po.LiveRoomMessage;
+import com.dayz.sapientiacloud_edupivot.live.enums.LiveRoomEnum;
 import com.dayz.sapientiacloud_edupivot.live.service.ILiveRoomMessageService;
 import com.dayz.sapientiacloud_edupivot.live.service.ILiveRoomService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -17,6 +20,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 import com.dayz.sapientiacloud_edupivot.live.constant.LiveRoomConstants;
@@ -39,6 +43,12 @@ public class LiveRoomController extends BaseController {
 
     @Value("${live.sse.token.ttl.seconds:60}")
     private long sseTokenTtlSeconds;
+    @Value("${live.join-lock.redis.prefix:live:join:}")
+    private String joinLockPrefix;
+    @Value("${live.join-lock.ttl.seconds:120}")
+    private long joinLockTtlSeconds;
+    @Value("${live.join-lock.heartbeat.interval-seconds:30}")
+    private long joinLockHeartbeatIntervalSeconds;
 
     @HasPermission(summary = "addLiveRoom", description = "创建直播房间并返回房间信息", permission = "LIVE_ROOM_CREATE")
     @PostMapping("/add")
@@ -60,12 +70,15 @@ public class LiveRoomController extends BaseController {
     public Result<Map<String, Object>> issueToken(@PathVariable("id") UUID id, @Valid @RequestBody LiveRoomTokenRequestDTO dto) {
         UUID userId = UserContextUtil.getCurrentUserId();
         String username = UserContextUtil.getCurrentUsername();
+        String sessionId = resolveSessionId(id, userId, dto.getSessionId());
         String token = liveRoomService.issueToken(id, userId, username, dto.getRole());
         // 返回 token 与后端生成的 LiveKit 房间名（lkRoomName），方便前端使用或校验
         LiveRoom room = liveRoomService.getLiveRoomById(id);
         Map<String, Object> resp = new HashMap<>();
         resp.put("token", token);
         resp.put("roomName", room != null ? room.getLkRoomName() : null);
+        resp.put("sessionId", sessionId);
+        resp.put("heartbeatIntervalSeconds", joinLockHeartbeatIntervalSeconds);
         return Result.success(resp);
     }
 
@@ -141,6 +154,55 @@ public class LiveRoomController extends BaseController {
         LiveRoom room = liveRoomService.endLive(id);
         return Result.success(room);
     }
+
+    @Operation(summary = "heartbeatLiveRoom", description = "???????????????????????????????????????????????????")
+    @PostMapping("/heartbeat")
+    public Result<Boolean> heartbeat(@Valid @RequestBody LiveRoomSessionDTO dto) {
+        UUID userId = UserContextUtil.getCurrentUserId();
+        String key = buildJoinLockKey(dto.getRoomId(), userId);
+        Object existing = redisTemplate.opsForValue().get(key);
+        if (existing == null || !dto.getSessionId().equals(existing.toString())) {
+            throw new BusinessException(LiveRoomEnum.LIVE_ROOM_SESSION_INVALID);
+        }
+        redisTemplate.expire(key, Duration.ofSeconds(joinLockTtlSeconds));
+        return Result.success(true);
+    }
+
+    @Operation(summary = "leaveLiveRoom", description = "???????????????????????????????????????")
+    @PostMapping("/leave")
+    public Result<Boolean> leave(@Valid @RequestBody LiveRoomSessionDTO dto) {
+        UUID userId = UserContextUtil.getCurrentUserId();
+        String key = buildJoinLockKey(dto.getRoomId(), userId);
+        Object existing = redisTemplate.opsForValue().get(key);
+        if (existing == null || !dto.getSessionId().equals(existing.toString())) {
+            return Result.success(false);
+        }
+        redisTemplate.delete(key);
+        return Result.success(true);
+    }
+
+    private String resolveSessionId(UUID roomId, UUID userId, String providedSessionId) {
+        String key = buildJoinLockKey(roomId, userId);
+        String sessionId = StringUtils.hasText(providedSessionId) ? providedSessionId : UUID.randomUUID().toString();
+        Object existing = redisTemplate.opsForValue().get(key);
+        if (existing != null) {
+            if (!sessionId.equals(existing.toString())) {
+                throw new BusinessException(LiveRoomEnum.LIVE_ROOM_ALREADY_JOINED);
+            }
+            redisTemplate.expire(key, Duration.ofSeconds(joinLockTtlSeconds));
+            return sessionId;
+        }
+        Boolean locked = redisTemplate.opsForValue().setIfAbsent(key, sessionId, Duration.ofSeconds(joinLockTtlSeconds));
+        if (!Boolean.TRUE.equals(locked)) {
+            throw new BusinessException(LiveRoomEnum.LIVE_ROOM_ALREADY_JOINED);
+        }
+        return sessionId;
+    }
+
+    private String buildJoinLockKey(UUID roomId, UUID userId) {
+        return joinLockPrefix + roomId + ":" + userId;
+    }
+
 
 
     @Operation(summary = "listLiveRoomMessages", description = "获取直播房间最近的聊天消息")

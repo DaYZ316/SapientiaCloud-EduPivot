@@ -102,6 +102,15 @@ livekit:
     username: livekit
     password: livekit123
 
+live:
+  join-lock:
+    redis:
+      prefix: "live:join:"
+    ttl:
+      seconds: 120
+    heartbeat:
+      interval-seconds: 30
+
 LIVEKIT_HOST: http://117.72.194.197:7880
 LIVEKIT_TURN_HOST: 117.72.194.197
 LIVEKIT_API_KEY: "livekitdevkey001"

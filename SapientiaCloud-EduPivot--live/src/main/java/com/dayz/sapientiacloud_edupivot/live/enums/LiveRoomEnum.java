@@ -28,7 +28,9 @@ public enum LiveRoomEnum implements BaseEnum {
     // 消息相关错误
     LIVE_ROOM_ID_REQUIRED(41012, "直播房间ID不能为空"),
     SENDER_ID_REQUIRED(41013, "发送者ID不能为空"),
-    MESSAGE_CONTENT_REQUIRED(41014, "消息内容不能为空");
+    MESSAGE_CONTENT_REQUIRED(41014, "消息内容不能为空"),
+    LIVE_ROOM_ALREADY_JOINED(41015, "已在其他设备参与，无法加入直播"),
+    LIVE_ROOM_SESSION_INVALID(41016, "直播会话已失效，请重新加入");
 
     private final int code;
 
