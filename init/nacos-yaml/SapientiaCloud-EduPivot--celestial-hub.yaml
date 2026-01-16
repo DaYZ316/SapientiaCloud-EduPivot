@@ -67,7 +67,6 @@ spring:
       file-vectorize: file-vectorize-topic
       question-request: question-request-topic
       question-response: question-response-topic
-      live-events: live-events-topic
   ai:
     dashscope:
       api-key: sk-20c0c396a3f64130ac4c56c1a4b3aa00

@@ -1,4 +1,4 @@
-package com.dayz.sapientiacloud_edupivot.celestial_hub.event;
+package com.dayz.sapientiacloud_edupivot.live.event;
 
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -10,12 +10,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
- * SSE 发布器 - 用于将 Kafka 转发来的直播事件分发给前端订阅者
+ * SSE 发布器 - 用于将 Kafka 直播事件转发给前端订阅者
  */
 @Component
 public class LiveEventPublisher {
 
-    // key: classroomId string, value: list of emitters
     private final Map<String, List<SseEmitter>> emittersByClassroom = new ConcurrentHashMap<>();
     private static final long DEFAULT_TIMEOUT = 0L;
 
@@ -34,7 +33,6 @@ public class LiveEventPublisher {
     public void publishToClassroom(String classroomId, Object payload) {
         String key = classroomId == null ? "global" : classroomId;
         publishToKey(key, payload);
-        // also publish to global subscribers
         publishToKey("global", payload);
     }
 
@@ -62,5 +60,3 @@ public class LiveEventPublisher {
         }
     }
 }
-
-

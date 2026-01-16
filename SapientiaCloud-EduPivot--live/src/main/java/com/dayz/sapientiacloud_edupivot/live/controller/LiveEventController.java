@@ -1,7 +1,7 @@
-package com.dayz.sapientiacloud_edupivot.celestial_hub.controller;
+package com.dayz.sapientiacloud_edupivot.live.controller;
 
-import com.dayz.sapientiacloud_edupivot.celestial_hub.common.result.Result;
-import com.dayz.sapientiacloud_edupivot.celestial_hub.event.LiveEventPublisher;
+import com.dayz.sapientiacloud_edupivot.live.common.result.Result;
+import com.dayz.sapientiacloud_edupivot.live.event.LiveEventPublisher;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
@@ -39,7 +39,6 @@ public class LiveEventController {
     @GetMapping(value = "/subscribe", produces = "text/event-stream")
     public SseEmitter subscribe(@RequestParam(value = "classroomId", required = false) String classroomId,
                                 @RequestParam(value = "token", required = false) String token) {
-        // token is required for authenticated subscribe
         if (token == null || token.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "token required");
         }
@@ -57,35 +56,22 @@ public class LiveEventController {
         } catch (ClassCastException e) {
             // ignore
         }
-        // consume token to prevent reuse
         redisTemplate.delete(sseTokenPrefix + token);
         return liveEventPublisher.subscribe(classroomId);
     }
 
     /**
-     * 生成SSE token，用于直播事件订阅
-     * 支持匿名访问，但会验证用户身份（如果已登录）
+     * 生成 SSE token，用于直播事件订阅
      */
     @PostMapping("/sse-token")
     public Result<String> issueSseToken(@RequestParam(value = "classroomId", required = false) String classroomId) {
-        // 生成随机token
         String token = UUID.randomUUID().toString();
 
         Map<String, Object> info = new HashMap<>();
-        // 如果有用户登录，则记录用户ID；否则为空（匿名用户）
-        try {
-            // 这里可以根据你的认证逻辑获取用户ID
-            // info.put("userId", currentUserId);
-        } catch (Exception e) {
-            // 用户未登录，忽略异常
-        }
         info.put("classroomId", classroomId);
 
-        // 将token信息存储到Redis，有效期60秒
         redisTemplate.opsForValue().set(sseTokenPrefix + token, info, Duration.ofSeconds(sseTokenTtlSeconds));
 
         return Result.success(token);
     }
 }
-
-
