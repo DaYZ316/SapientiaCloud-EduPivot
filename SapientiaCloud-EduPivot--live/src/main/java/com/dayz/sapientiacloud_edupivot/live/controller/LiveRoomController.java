@@ -143,6 +143,14 @@ public class LiveRoomController extends BaseController {
         return Result.success(room);
     }
 
+    @Operation(summary = "getRoomMemberCount", description = "获取房间在线成员数量")
+    @GetMapping("/{id}/members/count")
+    public Result<Integer> getMemberCount(@PathVariable("id") UUID id) {
+        String membersKey = "live:members:" + id;
+        Long count = redisTemplate.opsForSet().size(membersKey);
+        return Result.success(count != null ? count.intValue() : 0);
+    }
+
     @HasPermission(summary = "startLiveRoom", description = "根据房间ID开始直播", permission = "LIVE_ROOM_START")
     @PostMapping("/start/{id}")
     public Result<LiveRoom> startLive(@PathVariable("id") UUID id) {
@@ -157,7 +165,7 @@ public class LiveRoomController extends BaseController {
         return Result.success(room);
     }
 
-    @Operation(summary = "heartbeatLiveRoom", description = "???????????????????????????????????????????????????")
+    @Operation(summary = "heartbeatLiveRoom", description = "直播房间心跳")
     @PostMapping("/heartbeat")
     public Result<Boolean> heartbeat(@Valid @RequestBody LiveRoomSessionDTO dto) {
         UUID userId = UserContextUtil.getCurrentUserId();
@@ -167,10 +175,22 @@ public class LiveRoomController extends BaseController {
             throw new BusinessException(LiveRoomEnum.LIVE_ROOM_SESSION_INVALID);
         }
         redisTemplate.expire(key, Duration.ofSeconds(joinLockTtlSeconds));
-        // refresh member set expiry to keep presence alive
+        // refresh member set expiry and publish current accurate member count
         try {
-            String membersKey = "live:members:" + dto.getRoomId();
+            String membersKey = buildMembersKey(dto.getRoomId());
             redisTemplate.expire(membersKey, Duration.ofSeconds(joinLockTtlSeconds + 30));
+            Long count = redisTemplate.opsForSet().size(membersKey);
+
+            // Always publish current accurate member count for real-time updates
+            Map<String, Object> payload = new HashMap<>();
+            payload.put("event", "members");
+            payload.put("roomId", dto.getRoomId().toString());
+
+            Map<String, Object> data = new HashMap<>();
+            data.put("membersCount", count != null ? count : 0);
+            payload.put("data", data);
+
+            liveEventPublisher.publishToClassroom(dto.getRoomId().toString(), payload);
         } catch (Exception ignored) {
         }
         return Result.success(true);
@@ -186,28 +206,11 @@ public class LiveRoomController extends BaseController {
             return Result.success(false);
         }
         redisTemplate.delete(key);
-        // remove from members set and publish updated members count
+        // remove from members set
+        // Note: SSE push is handled by heartbeat mechanism to avoid duplicate pushes
         try {
-            String membersKey = "live:members:" + dto.getRoomId();
+            String membersKey = buildMembersKey(dto.getRoomId());
             redisTemplate.opsForSet().remove(membersKey, dto.getSessionId());
-            Long count = redisTemplate.opsForSet().size(membersKey);
-            Map<String, Object> payload = new HashMap<>();
-            payload.put("event", "members");
-            payload.put("roomId", dto.getRoomId().toString());
-
-            Map<String, Object> data = new HashMap<>();
-            data.put("membersCount", count != null ? count : 0);
-            // Optionally include list (limit to avoid huge payload)
-            try {
-                java.util.Set<Object> members = redisTemplate.opsForSet().members(membersKey);
-                if (members != null) {
-                    data.put("members", members);
-                }
-            } catch (Exception ignored) {
-            }
-            payload.put("data", data);
-
-            liveEventPublisher.publishToClassroom(dto.getRoomId().toString(), payload);
         } catch (Exception ignored) {
         }
         return Result.success(true);
@@ -222,6 +225,7 @@ public class LiveRoomController extends BaseController {
                 throw new BusinessException(LiveRoomEnum.LIVE_ROOM_ALREADY_JOINED);
             }
             redisTemplate.expire(key, Duration.ofSeconds(joinLockTtlSeconds));
+            // User already exists - no need to broadcast since count hasn't changed
             return sessionId;
         }
         Boolean locked = redisTemplate.opsForValue().setIfAbsent(key, sessionId, Duration.ofSeconds(joinLockTtlSeconds));
@@ -229,28 +233,11 @@ public class LiveRoomController extends BaseController {
             throw new BusinessException(LiveRoomEnum.LIVE_ROOM_ALREADY_JOINED);
         }
         // add to members set for presence tracking
+        // Note: SSE push is handled by heartbeat mechanism to avoid duplicate pushes
         try {
-            String membersKey = "live:members:" + roomId;
+            String membersKey = buildMembersKey(roomId);
             redisTemplate.opsForSet().add(membersKey, sessionId);
             redisTemplate.expire(membersKey, Duration.ofSeconds(joinLockTtlSeconds + 30));
-            Long count = redisTemplate.opsForSet().size(membersKey);
-            Map<String, Object> payload = new HashMap<>();
-            payload.put("event", "members");
-            payload.put("roomId", roomId.toString());
-
-            Map<String, Object> data = new HashMap<>();
-            data.put("membersCount", count != null ? count : 0);
-            // Optionally include list (limit to avoid huge payload)
-            try {
-                java.util.Set<Object> members = redisTemplate.opsForSet().members(membersKey);
-                if (members != null) {
-                    data.put("members", members);
-                }
-            } catch (Exception ignored) {
-            }
-            payload.put("data", data);
-
-            liveEventPublisher.publishToClassroom(roomId.toString(), payload);
         } catch (Exception ignored) {
         }
         return sessionId;
@@ -258,6 +245,10 @@ public class LiveRoomController extends BaseController {
 
     private String buildJoinLockKey(UUID roomId, UUID userId) {
         return joinLockPrefix + roomId + ":" + userId;
+    }
+
+    private String buildMembersKey(UUID roomId) {
+        return "live:members:" + roomId;
     }
 
 
