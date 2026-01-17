@@ -157,7 +157,7 @@ public class LiveRoomController extends BaseController {
         return Result.success(room);
     }
 
-    @Operation(summary = "heartbeatLiveRoom", description = "???????????????????????????????????????????????????")
+    @Operation(summary = "heartbeatLiveRoom", description = "直播房间心跳")
     @PostMapping("/heartbeat")
     public Result<Boolean> heartbeat(@Valid @RequestBody LiveRoomSessionDTO dto) {
         UUID userId = UserContextUtil.getCurrentUserId();
@@ -167,10 +167,28 @@ public class LiveRoomController extends BaseController {
             throw new BusinessException(LiveRoomEnum.LIVE_ROOM_SESSION_INVALID);
         }
         redisTemplate.expire(key, Duration.ofSeconds(joinLockTtlSeconds));
-        // refresh member set expiry to keep presence alive
+        // refresh member set expiry and publish updated members count
         try {
             String membersKey = "live:members:" + dto.getRoomId();
             redisTemplate.expire(membersKey, Duration.ofSeconds(joinLockTtlSeconds + 30));
+            Long count = redisTemplate.opsForSet().size(membersKey);
+            Map<String, Object> payload = new HashMap<>();
+            payload.put("event", "members");
+            payload.put("roomId", dto.getRoomId().toString());
+
+            Map<String, Object> data = new HashMap<>();
+            data.put("membersCount", count != null ? count : 0);
+            // Optionally include list (limit to avoid huge payload)
+            try {
+                java.util.Set<Object> members = redisTemplate.opsForSet().members(membersKey);
+                if (members != null) {
+                    data.put("members", members);
+                }
+            } catch (Exception ignored) {
+            }
+            payload.put("data", data);
+
+            liveEventPublisher.publishToClassroom(dto.getRoomId().toString(), payload);
         } catch (Exception ignored) {
         }
         return Result.success(true);
@@ -222,6 +240,30 @@ public class LiveRoomController extends BaseController {
                 throw new BusinessException(LiveRoomEnum.LIVE_ROOM_ALREADY_JOINED);
             }
             redisTemplate.expire(key, Duration.ofSeconds(joinLockTtlSeconds));
+            // User already exists, but send members event to ensure client gets current count
+            try {
+                String membersKey = "live:members:" + roomId;
+                redisTemplate.expire(membersKey, Duration.ofSeconds(joinLockTtlSeconds + 30));
+                Long count = redisTemplate.opsForSet().size(membersKey);
+                Map<String, Object> payload = new HashMap<>();
+                payload.put("event", "members");
+                payload.put("roomId", roomId.toString());
+
+                Map<String, Object> data = new HashMap<>();
+                data.put("membersCount", count != null ? count : 0);
+                // Optionally include list (limit to avoid huge payload)
+                try {
+                    java.util.Set<Object> members = redisTemplate.opsForSet().members(membersKey);
+                    if (members != null) {
+                        data.put("members", members);
+                    }
+                } catch (Exception ignored) {
+                }
+                payload.put("data", data);
+
+                liveEventPublisher.publishToClassroom(roomId.toString(), payload);
+            } catch (Exception ignored) {
+            }
             return sessionId;
         }
         Boolean locked = redisTemplate.opsForValue().setIfAbsent(key, sessionId, Duration.ofSeconds(joinLockTtlSeconds));
