@@ -16,4 +16,7 @@ public class LiveRoomTokenRequestDTO implements Serializable {
     @Schema(description = "用户角色(0=学生,1=老师,2=助教)")
     @NotNull(message = "用户角色不能为空")
     private Integer role;
+
+    @Schema(description = "直播会话ID(用于单设备参与校验)")
+    private String sessionId;
 }

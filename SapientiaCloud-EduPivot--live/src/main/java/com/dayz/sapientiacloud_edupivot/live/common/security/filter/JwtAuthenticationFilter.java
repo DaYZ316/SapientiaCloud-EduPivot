@@ -29,7 +29,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "/doc.html",
             "/webjars/**",
             "/public/list",
-            "/live-room/sse-token"
+            "/live-room/sse-token",
+            "/live/sse-token",
+            "/live/subscribe"
     };
     private static final String USERID_CLAIM = "userId";
     private static final String USERNAME_CLAIM = "username";
