@@ -1,10 +1,12 @@
 package com.dayz.sapientiacloud_edupivot.student.service.impl;
 
+import com.dayz.sapientiacloud_edupivot.student.client.CourseClient;
 import com.dayz.sapientiacloud_edupivot.student.common.clients.QuestionClient;
 import com.dayz.sapientiacloud_edupivot.student.common.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.student.common.result.Result;
 import com.dayz.sapientiacloud_edupivot.student.common.security.utils.UserContextUtil;
 import com.dayz.sapientiacloud_edupivot.student.constant.QuestionStudentConstants;
+import com.dayz.sapientiacloud_edupivot.student.entity.dto.CourseStudentDTO;
 import com.dayz.sapientiacloud_edupivot.student.entity.dto.QuestionStudentAddDTO;
 import com.dayz.sapientiacloud_edupivot.student.entity.dto.QuestionStudentDTO;
 import com.dayz.sapientiacloud_edupivot.student.entity.dto.QuestionStudentQueryDTO;
@@ -21,15 +23,15 @@ import com.github.f4b6a3.uuid.UuidCreator;
 import com.github.pagehelper.PageInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.beans.BeanUtils;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,6 +48,7 @@ public class QuestionStudentServiceImpl implements IQuestionStudentService {
     private final QuestionStudentRepository questionStudentRepository;
     private final IStudentService studentService;
     private final QuestionClient questionClient;
+    private final CourseClient courseClient;
     private final MongoTemplate mongoTemplate;
 
     @Override
@@ -276,14 +279,14 @@ public class QuestionStudentServiceImpl implements IQuestionStudentService {
                         if (reviewResult != null) {
                             entity.setIsCorrect(reviewResult.isCorrect);
                             entity.setScore(reviewResult.score);
-                            log.debug("自动批阅成功: questionId={}, questionType={}, score={}, isCorrect={}",
+                            log.info("自动批阅成功: questionId={}, questionType={}, score={}, isCorrect={}",
                                     dto.getQuestionId(), questionType, reviewResult.score, reviewResult.isCorrect);
                         }
                     } else if (questionType.equals(QuestionStudentConstants.QUESTION_TYPE_ESSAY)) {
                         // 简答题设置为待批阅状态
                         entity.setIsCorrect(QuestionStudentConstants.ANSWER_PENDING_REVIEW);
                         entity.setScore(null);
-                        log.debug("简答题设置为待批阅: questionId={}, questionType={}", dto.getQuestionId(), questionType);
+                        log.info("简答题设置为待批阅: questionId={}, questionType={}", dto.getQuestionId(), questionType);
                     }
                 }
             }
@@ -300,6 +303,9 @@ public class QuestionStudentServiceImpl implements IQuestionStudentService {
         }
 
         questionStudentRepository.save(entity);
+
+        // 添加后重新计算该学生在该课程的总分数
+        calculateTotalScoreByStudentAndCourse(dto.getStudentId(), dto.getCourseId());
 
         return true;
     }
@@ -321,9 +327,23 @@ public class QuestionStudentServiceImpl implements IQuestionStudentService {
         existing.setCourseId(dto.getCourseId());
         existing.setAnswer(dto.getAnswer());
         existing.setIsCorrect(dto.getIsCorrect());
+        // 保存更新前的分数，用于判断是否需要重新计算总分数
+        Float oldScore = existing.getScore();
+
         existing.setScore(dto.getScore());
         existing.setUpdateTime(LocalDateTime.now());
         questionStudentRepository.save(existing);
+
+        // 检查分数是否有变化，如果有变化则重新计算该学生在该课程的总分数
+        boolean scoreChanged = (oldScore == null && dto.getScore() != null) ||
+                              (oldScore != null && dto.getScore() == null) ||
+                              (oldScore != null && dto.getScore() != null &&
+                               Math.abs(oldScore - dto.getScore()) > 0.001f); // 使用容差值比较浮点数
+
+        if (scoreChanged) {
+            calculateTotalScoreByStudentAndCourse(dto.getStudentId(), dto.getCourseId());
+        }
+
         return true;
     }
 
@@ -334,9 +354,18 @@ public class QuestionStudentServiceImpl implements IQuestionStudentService {
         QuestionStudent existing = questionStudentRepository.findById(id)
                 .filter(q -> q.getIsDeleted() != null && q.getIsDeleted().equals(QuestionStudentConstants.STATUS_NOT_DELETED))
                 .orElseThrow(() -> new BusinessException(StudentPracticeEnum.SUBMISSION_NOT_FOUND));
+
+        // 保存删除前的学生和课程信息，用于重新计算总分数
+        UUID studentId = existing.getStudentId();
+        UUID courseId = existing.getCourseId();
+
         existing.setIsDeleted(QuestionStudentConstants.STATUS_DELETED);
         existing.setUpdateTime(LocalDateTime.now());
         questionStudentRepository.save(existing);
+
+        // 删除后重新计算该学生在该课程的总分数
+        calculateTotalScoreByStudentAndCourse(studentId, courseId);
+
         return true;
     }
 
@@ -350,12 +379,30 @@ public class QuestionStudentServiceImpl implements IQuestionStudentService {
         List<QuestionStudent> list = questionStudentRepository.findAllById(ids).stream()
                 .filter(q -> q.getIsDeleted() != null && q.getIsDeleted().equals(QuestionStudentConstants.STATUS_NOT_DELETED))
                 .collect(Collectors.toList());
+
+        // 收集受影响的学生-课程组合，用于重新计算总分数
+        Set<String> affectedStudentCoursePairs = list.stream()
+                .filter(q -> q.getStudentId() != null && q.getCourseId() != null)
+                .map(q -> q.getStudentId() + ":" + q.getCourseId())
+                .collect(Collectors.toSet());
+
         LocalDateTime now = LocalDateTime.now();
         list.forEach(q -> {
             q.setIsDeleted(QuestionStudentConstants.STATUS_DELETED);
             q.setUpdateTime(now);
         });
         questionStudentRepository.saveAll(list);
+
+        // 批量删除后重新计算受影响的学生-课程总分数
+        for (String pair : affectedStudentCoursePairs) {
+            String[] parts = pair.split(":");
+            if (parts.length == 2) {
+                UUID studentId = UUID.fromString(parts[0]);
+                UUID courseId = UUID.fromString(parts[1]);
+                calculateTotalScoreByStudentAndCourse(studentId, courseId);
+            }
+        }
+
         return list.size();
     }
 
@@ -660,8 +707,7 @@ public class QuestionStudentServiceImpl implements IQuestionStudentService {
 
     /**
      * 根据得分判断答案状态
-     *
-     * @param score     实际得分
+     * @param score 实际得分
      * @param fullScore 满分
      * @return 答案状态码
      */
@@ -701,6 +747,19 @@ public class QuestionStudentServiceImpl implements IQuestionStudentService {
             return (List<Map<String, Object>>) answersObj;
         }
         return new ArrayList<>();
+    }
+
+    /**
+     * 自动批阅结果
+     */
+    private static class AutoReviewResult {
+        int isCorrect;
+        Float score;
+
+        AutoReviewResult(int isCorrect, Float score) {
+            this.isCorrect = isCorrect;
+            this.score = score;
+        }
     }
 
     @Override
@@ -743,16 +802,36 @@ public class QuestionStudentServiceImpl implements IQuestionStudentService {
         return statistics;
     }
 
-    /**
-     * 自动批阅结果
-     */
-    private static class AutoReviewResult {
-        int isCorrect;
-        Float score;
-
-        AutoReviewResult(int isCorrect, Float score) {
-            this.isCorrect = isCorrect;
-            this.score = score;
+    @Override
+    public Double calculateTotalScoreByStudentAndCourse(UUID studentId, UUID courseId) {
+        if (studentId == null) {
+            throw new BusinessException(StudentPracticeEnum.STUDENT_ID_REQUIRED);
         }
+        if (courseId == null) {
+            throw new BusinessException(StudentPracticeEnum.COURSE_ID_REQUIRED);
+        }
+
+        // 查询指定学生和课程的所有作答记录
+        Query query = new Query();
+        query.addCriteria(Criteria.where(QuestionStudentConstants.FIELD_STUDENT_ID).is(studentId));
+        query.addCriteria(Criteria.where(QuestionStudentConstants.FIELD_COURSE_ID).is(courseId));
+        query.addCriteria(Criteria.where(QuestionStudentConstants.FIELD_IS_DELETED).is(QuestionStudentConstants.STATUS_NOT_DELETED));
+
+        List<QuestionStudent> questionStudents = mongoTemplate.find(query, QuestionStudent.class);
+
+        // 累加所有分数
+        double totalScore = questionStudents.stream()
+                .filter(qs -> qs.getScore() != null)
+                .mapToDouble(qs -> qs.getScore().doubleValue())
+                .sum();
+
+        // 更新学生在课程中的总成绩
+        CourseStudentDTO courseStudentDTO = new CourseStudentDTO();
+        courseStudentDTO.setStudentId(studentId);
+        courseStudentDTO.setCourseId(courseId);
+        courseStudentDTO.setGrade(BigDecimal.valueOf(totalScore));
+        courseClient.updateCourseStudent(courseStudentDTO);
+
+        return totalScore;
     }
 }

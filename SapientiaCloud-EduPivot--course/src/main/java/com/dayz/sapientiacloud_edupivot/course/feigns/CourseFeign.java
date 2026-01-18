@@ -2,15 +2,13 @@ package com.dayz.sapientiacloud_edupivot.course.feigns;
 
 import com.dayz.sapientiacloud_edupivot.course.common.entity.vo.TeacherVO;
 import com.dayz.sapientiacloud_edupivot.course.common.result.Result;
+import com.dayz.sapientiacloud_edupivot.course.entity.dto.CourseStudentDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.vo.*;
 import com.dayz.sapientiacloud_edupivot.course.service.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -169,6 +167,12 @@ public class CourseFeign {
     @GetMapping("/internal/count")
     public Result<Long> getCourseCount() {
         return Result.success(courseService.getCourseCount());
+    }
+
+    @Operation(summary = "更新选课信息")
+    @PutMapping("/internal/course-student")
+    public Result<Boolean> updateCourseStudent(@RequestBody CourseStudentDTO courseStudentDTO) {
+        return Result.success(courseStudentService.updateCourseStudent(courseStudentDTO));
     }
 }
 

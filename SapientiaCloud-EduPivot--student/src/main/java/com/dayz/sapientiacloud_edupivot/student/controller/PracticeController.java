@@ -3,6 +3,7 @@ package com.dayz.sapientiacloud_edupivot.student.controller;
 import com.dayz.sapientiacloud_edupivot.student.common.controller.BaseController;
 import com.dayz.sapientiacloud_edupivot.student.common.result.Result;
 import com.dayz.sapientiacloud_edupivot.student.common.result.TableDataResult;
+import com.github.pagehelper.PageInfo;
 import com.dayz.sapientiacloud_edupivot.student.common.security.annotation.HasPermission;
 import com.dayz.sapientiacloud_edupivot.student.constant.PermissionConstants;
 import com.dayz.sapientiacloud_edupivot.student.entity.dto.QuestionStudentAddDTO;
@@ -11,7 +12,6 @@ import com.dayz.sapientiacloud_edupivot.student.entity.dto.QuestionStudentQueryD
 import com.dayz.sapientiacloud_edupivot.student.entity.vo.PracticeStatisticsVO;
 import com.dayz.sapientiacloud_edupivot.student.entity.vo.QuestionStudentVO;
 import com.dayz.sapientiacloud_edupivot.student.service.IQuestionStudentService;
-import com.github.pagehelper.PageInfo;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -134,6 +134,20 @@ public class PracticeController extends BaseController {
     }
 
     @HasPermission(
+            summary = "calculateScoreByStudentAndCourse",
+            description = "计算指定学生和课程的总分数并更新对应学生的分数",
+            permission = PermissionConstants.STUDENT_PRACTICE_QUERY
+    )
+    @GetMapping("/score/{studentId}/{courseId}")
+    public Result<Double> calculateScoreByStudentAndCourse(
+            @Parameter(name = "studentId", description = "学生ID", required = true) @PathVariable("studentId") UUID studentId,
+            @Parameter(name = "courseId", description = "课程ID", required = true) @PathVariable("courseId") UUID courseId
+    ) {
+        Double score = questionStudentService.calculateTotalScoreByStudentAndCourse(studentId, courseId);
+        return Result.success(score);
+    }
+
+        @HasPermission(
             summary = "getPracticeById",
             description = "根据ID获取课堂练习作答记录",
             permission = PermissionConstants.STUDENT_PRACTICE_QUERY
@@ -146,7 +160,7 @@ public class PracticeController extends BaseController {
         return Result.success(data);
     }
 
-    @HasPermission(
+        @HasPermission(
             summary = "addPractice",
             description = "新增课堂练习作答记录",
             permission = PermissionConstants.STUDENT_PRACTICE_ADD
@@ -159,7 +173,7 @@ public class PracticeController extends BaseController {
         return Result.success(result);
     }
 
-    @HasPermission(
+        @HasPermission(
             summary = "updatePractice",
             description = "更新课堂练习作答记录",
             permission = PermissionConstants.STUDENT_PRACTICE_EDIT
@@ -172,7 +186,7 @@ public class PracticeController extends BaseController {
         return Result.success(result);
     }
 
-    @HasPermission(
+        @HasPermission(
             summary = "removePracticeById",
             description = "根据ID删除课堂练习作答记录",
             permission = PermissionConstants.STUDENT_PRACTICE_DELETE
@@ -185,7 +199,7 @@ public class PracticeController extends BaseController {
         return Result.success(result);
     }
 
-    @HasPermission(
+        @HasPermission(
             summary = "removePracticeByIds",
             description = "批量删除课堂练习作答记录",
             permission = PermissionConstants.STUDENT_PRACTICE_DELETE

@@ -97,7 +97,6 @@
         </dependency>
 
         <!-- ==================== Spring Cloud ==================== -->
-
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-openfeign</artifactId>
@@ -167,30 +166,6 @@
             <groupId>org.mapstruct</groupId>
             <artifactId>mapstruct</artifactId>
             <version>${mapstruct.version}</version>
-        </dependency>
-
-        <!-- ==================== ELK ==================== -->
-
-        <dependency>
-            <groupId>io.micrometer</groupId>
-            <artifactId>micrometer-tracing-bridge-brave</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>io.zipkin.reporter2</groupId>
-            <artifactId>zipkin-reporter-brave</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>net.logstash.logback</groupId>
-            <artifactId>logstash-logback-encoder</artifactId>
-            <version>${logstash.logback.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.github.danielwegener</groupId>
-            <artifactId>logback-kafka-appender</artifactId>
-            <version>${kafka.logback.version}</version>
         </dependency>
 
         <!-- ==================== Testing ==================== -->

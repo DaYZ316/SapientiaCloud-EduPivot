@@ -41,4 +41,6 @@ public interface IQuestionStudentService {
     Boolean existsByQuestionIdAndStudentId(UUID questionId, UUID studentId);
 
     PracticeStatisticsVO getPracticeStatistics(UUID practiceId);
+
+    Double calculateTotalScoreByStudentAndCourse(UUID studentId, UUID courseId);
 }
