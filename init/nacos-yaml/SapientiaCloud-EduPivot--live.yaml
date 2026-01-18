@@ -35,6 +35,19 @@ spring:
     hibernate:
       ddl-auto: update
   data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:zhaosheng123}
+      database: 0
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: -1ms
+        shutdown-timeout: 100ms
     mongodb:
       host: ${MONGODB_HOST}
       port: ${MONGODB_PORT}
@@ -115,5 +128,9 @@ LIVEKIT_HOST: http://117.72.194.197:7880
 LIVEKIT_TURN_HOST: 117.72.194.197
 LIVEKIT_API_KEY: "livekitdevkey001"
 LIVEKIT_API_SECRET: "livekitdevsecret001abcdef1234567890abcd"
+
+REDIS_HOST: localhost
+REDIS_PORT: 6379
+REDIS_PASSWORD: zhaosheng123
 
 KAFKA_BOOTSTRAP_SERVERS: localhost:9092

@@ -60,12 +60,6 @@ public class LiveRoomController extends BaseController {
         return Result.success(room);
     }
 
-    @HasPermission(summary = "closeLiveRoom", description = "根据房间ID关闭直播房间", permission = "LIVE_ROOM_CLOSE")
-    @PostMapping("/close/{id}")
-    public Result<Boolean> closeRoom(@PathVariable("id") UUID id) {
-        liveRoomService.closeRoom(id);
-        return Result.success(true);
-    }
 
     @Operation(summary = "issueRoomToken", description = "根据房间ID与用户角色签发访问令牌")
     @PostMapping("/token/{id}")
@@ -116,25 +110,6 @@ public class LiveRoomController extends BaseController {
         return getDataTable(list);
     }
 
-    @Operation(summary = "issueSseToken", description = "签发短期 SSE token 用于直播事件订阅")
-    @PostMapping("/sse-token")
-    public Result<String> issueSseToken(@RequestParam(value = "classroomId", required = false) UUID classroomId) {
-        // SSE token 不需要用户登录，可以匿名访问
-        String token = UUID.randomUUID().toString();
-        Map<String, Object> info = new HashMap<>();
-        // 如果有用户登录，则记录用户ID；否则为空（匿名用户）
-        try {
-            UUID userId = UserContextUtil.getCurrentUserId();
-            if (userId != null) {
-                info.put("userId", userId.toString());
-            }
-        } catch (Exception e) {
-            // 用户未登录，忽略异常
-        }
-        info.put("classroomId", classroomId != null ? classroomId.toString() : null);
-        redisTemplate.opsForValue().set("sse:token:" + token, info, Duration.ofSeconds(sseTokenTtlSeconds));
-        return Result.success(token);
-    }
 
     @Operation(summary = "getLiveRoomDetail", description = "获取直播房间详情")
     @GetMapping("/{id}")
