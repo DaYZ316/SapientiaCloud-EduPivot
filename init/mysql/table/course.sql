@@ -22,7 +22,7 @@ CREATE TABLE `mg_course_student`
 (
     `student_id`  binary(16) NOT NULL COMMENT '学生ID',
     `course_id`   binary(16) NOT NULL COMMENT '课程ID',
-    `grade`       decimal(5, 2) DEFAULT NULL COMMENT '成绩',
+    `grade`       decimal(7, 2) DEFAULT NULL COMMENT '成绩',
     `status`      tinyint(1)    DEFAULT 0 COMMENT '选课状态 (0=在读, 1=已退课, 2=已完成)',
     `create_time` datetime      DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `update_time` datetime      DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',

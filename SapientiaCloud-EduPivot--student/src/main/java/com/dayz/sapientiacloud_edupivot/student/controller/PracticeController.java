@@ -133,6 +133,20 @@ public class PracticeController extends BaseController {
         return Result.success(list);
     }
 
+    @HasPermission(
+            summary = "calculateScoreByStudentAndCourse",
+            description = "计算指定学生和课程的总分数并更新对应学生的分数",
+            permission = PermissionConstants.STUDENT_PRACTICE_QUERY
+    )
+    @GetMapping("/score/{studentId}/{courseId}")
+    public Result<Double> calculateScoreByStudentAndCourse(
+            @Parameter(name = "studentId", description = "学生ID", required = true) @PathVariable("studentId") UUID studentId,
+            @Parameter(name = "courseId", description = "课程ID", required = true) @PathVariable("courseId") UUID courseId
+    ) {
+        Double score = questionStudentService.calculateTotalScoreByStudentAndCourse(studentId, courseId);
+        return Result.success(score);
+    }
+
         @HasPermission(
             summary = "getPracticeById",
             description = "根据ID获取课堂练习作答记录",
