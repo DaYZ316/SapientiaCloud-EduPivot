@@ -19,6 +19,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class FeignConfig {
 
+    private final Tracer tracer;
 
     // Feign请求头标识
     private static final String FEIGN_REQUEST_HEADER = "X-Feign-Client";
@@ -29,7 +30,6 @@ public class FeignConfig {
     // 链路追踪请求头
     private static final String X_B3_TRACE_ID = "X-B3-TraceId";
     private static final String X_B3_SPAN_ID = "X-B3-SpanId";
-    private final Tracer tracer;
 
     @Bean
     public RequestInterceptor feignRequestInterceptor() {

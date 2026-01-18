@@ -23,15 +23,15 @@ import com.github.f4b6a3.uuid.UuidCreator;
 import com.github.pagehelper.PageInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.beans.BeanUtils;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -335,10 +335,7 @@ public class QuestionStudentServiceImpl implements IQuestionStudentService {
         questionStudentRepository.save(existing);
 
         // 检查分数是否有变化，如果有变化则重新计算该学生在该课程的总分数
-        boolean scoreChanged = (oldScore == null && dto.getScore() != null) ||
-                              (oldScore != null && dto.getScore() == null) ||
-                              (oldScore != null && dto.getScore() != null &&
-                               Math.abs(oldScore - dto.getScore()) > 0.001f); // 使用容差值比较浮点数
+        boolean scoreChanged = oldScore == null && dto.getScore() != null || oldScore != null && dto.getScore() == null || oldScore != null && Math.abs(oldScore - dto.getScore()) > 0.001f;
 
         if (scoreChanged) {
             calculateTotalScoreByStudentAndCourse(dto.getStudentId(), dto.getCourseId());
@@ -707,7 +704,8 @@ public class QuestionStudentServiceImpl implements IQuestionStudentService {
 
     /**
      * 根据得分判断答案状态
-     * @param score 实际得分
+     *
+     * @param score     实际得分
      * @param fullScore 满分
      * @return 答案状态码
      */
@@ -747,19 +745,6 @@ public class QuestionStudentServiceImpl implements IQuestionStudentService {
             return (List<Map<String, Object>>) answersObj;
         }
         return new ArrayList<>();
-    }
-
-    /**
-     * 自动批阅结果
-     */
-    private static class AutoReviewResult {
-        int isCorrect;
-        Float score;
-
-        AutoReviewResult(int isCorrect, Float score) {
-            this.isCorrect = isCorrect;
-            this.score = score;
-        }
     }
 
     @Override
@@ -833,5 +818,18 @@ public class QuestionStudentServiceImpl implements IQuestionStudentService {
         courseClient.updateCourseStudent(courseStudentDTO);
 
         return totalScore;
+    }
+
+    /**
+     * 自动批阅结果
+     */
+    private static class AutoReviewResult {
+        int isCorrect;
+        Float score;
+
+        AutoReviewResult(int isCorrect, Float score) {
+            this.isCorrect = isCorrect;
+            this.score = score;
+        }
     }
 }

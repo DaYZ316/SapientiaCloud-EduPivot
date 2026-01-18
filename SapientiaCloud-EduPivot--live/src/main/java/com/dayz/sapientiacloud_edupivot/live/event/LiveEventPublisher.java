@@ -15,8 +15,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @Component
 public class LiveEventPublisher {
 
-    private final Map<String, List<SseEmitter>> emittersByClassroom = new ConcurrentHashMap<>();
     private static final long DEFAULT_TIMEOUT = 0L;
+    private final Map<String, List<SseEmitter>> emittersByClassroom = new ConcurrentHashMap<>();
 
     public SseEmitter subscribe(String classroomId) {
         String key = classroomId == null ? "global" : classroomId;

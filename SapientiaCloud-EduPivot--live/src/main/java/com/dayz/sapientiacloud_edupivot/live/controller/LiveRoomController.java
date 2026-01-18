@@ -2,35 +2,35 @@ package com.dayz.sapientiacloud_edupivot.live.controller;
 
 import com.dayz.sapientiacloud_edupivot.live.common.controller.BaseController;
 import com.dayz.sapientiacloud_edupivot.live.common.entity.po.LiveRoom;
+import com.dayz.sapientiacloud_edupivot.live.common.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.live.common.result.Result;
 import com.dayz.sapientiacloud_edupivot.live.common.result.TableDataResult;
 import com.dayz.sapientiacloud_edupivot.live.common.security.annotation.HasPermission;
 import com.dayz.sapientiacloud_edupivot.live.common.security.utils.UserContextUtil;
-import com.dayz.sapientiacloud_edupivot.live.common.exception.BusinessException;
+import com.dayz.sapientiacloud_edupivot.live.constant.LiveRoomConstants;
 import com.dayz.sapientiacloud_edupivot.live.entity.dto.LiveRoomCreateDTO;
 import com.dayz.sapientiacloud_edupivot.live.entity.dto.LiveRoomMessageDTO;
-import com.dayz.sapientiacloud_edupivot.live.entity.dto.LiveRoomTokenRequestDTO;
 import com.dayz.sapientiacloud_edupivot.live.entity.dto.LiveRoomSessionDTO;
+import com.dayz.sapientiacloud_edupivot.live.entity.dto.LiveRoomTokenRequestDTO;
 import com.dayz.sapientiacloud_edupivot.live.entity.po.LiveRoomMessage;
 import com.dayz.sapientiacloud_edupivot.live.enums.LiveRoomEnum;
-import com.dayz.sapientiacloud_edupivot.live.service.ILiveRoomMessageService;
 import com.dayz.sapientiacloud_edupivot.live.event.LiveEventPublisher;
+import com.dayz.sapientiacloud_edupivot.live.service.ILiveRoomMessageService;
 import com.dayz.sapientiacloud_edupivot.live.service.ILiveRoomService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.util.StringUtils;
-
-import java.util.List;
-import com.dayz.sapientiacloud_edupivot.live.constant.LiveRoomConstants;
-import java.util.UUID;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.*;
+
 import java.time.Duration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Tag(name = "直播房间管理", description = "直播房间与令牌相关API")
 @RestController
@@ -250,7 +250,6 @@ public class LiveRoomController extends BaseController {
     private String buildMembersKey(UUID roomId) {
         return "live:members:" + roomId;
     }
-
 
 
     @Operation(summary = "listLiveRoomMessages", description = "获取直播房间最近的聊天消息")
