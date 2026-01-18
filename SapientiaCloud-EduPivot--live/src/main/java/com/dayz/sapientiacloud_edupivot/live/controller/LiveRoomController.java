@@ -60,13 +60,6 @@ public class LiveRoomController extends BaseController {
         return Result.success(room);
     }
 
-    @HasPermission(summary = "closeLiveRoom", description = "根据房间ID关闭直播房间", permission = "LIVE_ROOM_CLOSE")
-    @PostMapping("/close/{id}")
-    public Result<Boolean> closeRoom(@PathVariable("id") UUID id) {
-        liveRoomService.closeRoom(id);
-        return Result.success(true);
-    }
-
     @Operation(summary = "issueRoomToken", description = "根据房间ID与用户角色签发访问令牌")
     @PostMapping("/token/{id}")
     public Result<Map<String, Object>> issueToken(@PathVariable("id") UUID id, @Valid @RequestBody LiveRoomTokenRequestDTO dto) {
