@@ -35,21 +35,69 @@ public class CourseRecordServiceImpl extends ServiceImpl<CourseRecordMapper, Cou
     private final CourseRecordMapper courseRecordMapper;
     private final CourseRecordStudentMapper courseRecordStudentMapper;
 
+    /**
+     * 根据开始时间和结束时间实时计算课程状态
+     * 0=课前准备, 1=上课中, 2=下课
+     */
+    private Integer calculateStatus(LocalDateTime startTime, LocalDateTime overTime) {
+        LocalDateTime now = LocalDateTime.now();
+
+        // 没有开始时间，默认为课前准备
+        if (startTime == null) {
+            return 0;
+        }
+
+        // 当前时间 < 开始时间 → 课前准备
+        if (now.isBefore(startTime)) {
+            return 0;
+        }
+
+        // 没有结束时间，且当前时间 >= 开始时间 → 上课中
+        if (overTime == null) {
+            return 1;
+        }
+
+        // 开始时间 <= 当前时间 <= 结束时间 → 上课中
+        if (!now.isBefore(startTime) && !now.isAfter(overTime)) {
+            return 1;
+        }
+
+        // 当前时间 > 结束时间 → 下课
+        return 2;
+    }
+
+    /**
+     * 为VO列表中的每条记录实时计算状态
+     */
+    private void calculateStatusForList(List<CourseRecordVO> list) {
+        if (list != null) {
+            list.forEach(record -> record.setStatus(calculateStatus(record.getStartTime(), record.getOverTime())));
+        }
+    }
+
     @Override
     public PageInfo<CourseRecordVO> listCourseRecordPage(CourseRecordQueryDTO courseRecordQueryDTO) {
         if (courseRecordQueryDTO == null) {
             throw new BusinessException(CourseRecordEnum.COURSE_RECORD_REQUIRED);
         }
 
-        return PageHelper.startPage(courseRecordQueryDTO.getPageNum(), courseRecordQueryDTO.getPageSize())
+        PageInfo<CourseRecordVO> pageInfo = PageHelper.startPage(courseRecordQueryDTO.getPageNum(), courseRecordQueryDTO.getPageSize())
                 .doSelectPageInfo(() -> courseRecordMapper.listCourseRecord(courseRecordQueryDTO));
+
+        // 实时计算每条记录的状态
+        calculateStatusForList(pageInfo.getList());
+
+        return pageInfo;
     }
 
     @Override
     @Transactional(readOnly = true)
     @Cacheable(value = "CourseRecord", key = "'all'", condition = "true")
     public List<CourseRecordVO> listAllCourseRecord() {
-        return courseRecordMapper.listAllCourseRecord();
+        List<CourseRecordVO> list = courseRecordMapper.listAllCourseRecord();
+        // 实时计算每条记录的状态
+        calculateStatusForList(list);
+        return list;
     }
 
     @Override
@@ -64,6 +112,9 @@ public class CourseRecordServiceImpl extends ServiceImpl<CourseRecordMapper, Cou
         if (courseRecordVO == null) {
             throw new BusinessException(CourseRecordEnum.COURSE_RECORD_NOT_EXISTS);
         }
+
+        // 实时计算状态
+        courseRecordVO.setStatus(calculateStatus(courseRecordVO.getStartTime(), courseRecordVO.getOverTime()));
 
         return courseRecordVO;
     }
@@ -92,7 +143,6 @@ public class CourseRecordServiceImpl extends ServiceImpl<CourseRecordMapper, Cou
         BeanUtils.copyProperties(courseRecordDTO, courseRecord);
 
         courseRecord.setId(UuidCreator.getTimeOrderedEpoch());
-        courseRecord.setStatus(0);
         courseRecord.setDeleted(DeletedEnum.NOT_DELETED.getCode());
         courseRecord.setCreateTime(LocalDateTime.now());
         courseRecord.setUpdateTime(LocalDateTime.now());
@@ -102,6 +152,8 @@ public class CourseRecordServiceImpl extends ServiceImpl<CourseRecordMapper, Cou
         // 返回结果
         CourseRecordVO courseRecordVO = new CourseRecordVO();
         BeanUtils.copyProperties(courseRecord, courseRecordVO);
+        // 实时计算状态
+        courseRecordVO.setStatus(calculateStatus(courseRecordVO.getStartTime(), courseRecordVO.getOverTime()));
         return courseRecordVO;
     }
 
@@ -121,11 +173,6 @@ public class CourseRecordServiceImpl extends ServiceImpl<CourseRecordMapper, Cou
         CourseRecord existingRecord = this.getById(courseRecordDTO.getId());
         if (existingRecord == null) {
             throw new BusinessException(CourseRecordEnum.COURSE_RECORD_NOT_EXISTS);
-        }
-
-        // 检查状态：已结束的课程不允许修改
-        if (existingRecord.getStatus() != null && existingRecord.getStatus() == 2) {
-            throw new BusinessException(CourseRecordEnum.COURSE_RECORD_ALREADY_ENDED);
         }
 
         // 更新记录
@@ -160,8 +207,8 @@ public class CourseRecordServiceImpl extends ServiceImpl<CourseRecordMapper, Cou
             throw new BusinessException(CourseRecordEnum.COURSE_RECORD_HAS_STUDENTS);
         }
 
-        // 检查状态：进行中的课程不允许删除
-        if (courseRecord.getStatus() != null && courseRecord.getStatus() == 1) {
+        // 检查状态：上课中的课程不允许删除
+        if (calculateStatus(courseRecord.getStartTime(), courseRecord.getOverTime()) == 1) {
             throw new BusinessException(CourseRecordEnum.COURSE_RECORD_IN_PROGRESS);
         }
 
@@ -206,7 +253,10 @@ public class CourseRecordServiceImpl extends ServiceImpl<CourseRecordMapper, Cou
             throw new BusinessException(CourseRecordEnum.COURSE_ID_REQUIRED);
         }
 
-        return courseRecordMapper.listCourseRecordByCourseId(courseId);
+        List<CourseRecordVO> list = courseRecordMapper.listCourseRecordByCourseId(courseId);
+        // 实时计算每条记录的状态
+        calculateStatusForList(list);
+        return list;
     }
 
     @Override
@@ -216,7 +266,10 @@ public class CourseRecordServiceImpl extends ServiceImpl<CourseRecordMapper, Cou
             throw new BusinessException(CourseRecordEnum.TEACHER_ID_REQUIRED);
         }
 
-        return courseRecordMapper.listCourseRecordByTeacherId(teacherId);
+        List<CourseRecordVO> list = courseRecordMapper.listCourseRecordByTeacherId(teacherId);
+        // 实时计算每条记录的状态
+        calculateStatusForList(list);
+        return list;
     }
 
     @Override
@@ -236,13 +289,12 @@ public class CourseRecordServiceImpl extends ServiceImpl<CourseRecordMapper, Cou
             throw new BusinessException(CourseRecordEnum.COURSE_RECORD_NOT_EXISTS);
         }
 
-        // 检查状态：只有进行中的课程才能结束
-        if (courseRecord.getStatus() == null || courseRecord.getStatus() != 1) {
+        // 检查状态：只有上课中的课程才能提前结束
+        if (calculateStatus(courseRecord.getStartTime(), courseRecord.getOverTime()) != 1) {
             throw new BusinessException(CourseRecordEnum.COURSE_RECORD_NOT_STARTED);
         }
 
-        // 更新状态为已结束
-        courseRecord.setStatus(2);
+        // 更新结束时间为当前时间
         courseRecord.setOverTime(LocalDateTime.now());
         courseRecord.setUpdateTime(LocalDateTime.now());
 

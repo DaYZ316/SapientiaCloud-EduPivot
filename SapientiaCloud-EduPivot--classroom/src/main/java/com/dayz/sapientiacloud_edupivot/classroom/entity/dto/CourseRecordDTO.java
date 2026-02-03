@@ -55,8 +55,6 @@ public class CourseRecordDTO implements Serializable {
     @Schema(description = "课程结束时间")
     private LocalDateTime overTime;
 
-    @Schema(description = "课程状态 (0=未开始, 1=进行中, 2=已结束, 3=已取消)")
-    @Min(value = 0, message = "课程状态值无效")
-    @Max(value = 3, message = "课程状态值无效")
+    @Schema(description = "课程状态 (此字段已废弃，由系统根据时间自动计算，前端传入无效)")
     private Integer status;
 }

@@ -54,7 +54,27 @@
             AND cr.classroom_type = #{classroomType}
         </if>
         <if test="status != null">
-            AND cr.status = #{status}
+            <choose>
+                <when test="status == 0">
+                    <!-- 课前准备：当前时间 < 开始时间 或 开始时间为空 -->
+                    AND (cr.start_time IS NULL OR cr.start_time > NOW())
+                </when>
+                <when test="status == 1">
+                    <!-- 上课中：开始时间 <= 当前时间 <= 结束时间 或 没有结束时间 -->
+                    AND cr.start_time IS NOT NULL
+                    AND cr.start_time &lt;= NOW()
+                    AND (cr.over_time IS NULL OR cr.over_time &gt;= NOW())
+                </when>
+                <when test="status == 2">
+                    <!-- 下课：当前时间 > 结束时间 且 结束时间不为空 -->
+                    AND cr.over_time IS NOT NULL
+                    AND cr.over_time &lt; NOW()
+                </when>
+                <when test="status == 3">
+                    <!-- 已取消：根据数据库中的 status 字段筛选 -->
+                    AND cr.status = #{status}
+                </when>
+            </choose>
         </if>
         <if test="startTimeBegin != null">
             AND cr.start_time &gt;= #{startTimeBegin}
