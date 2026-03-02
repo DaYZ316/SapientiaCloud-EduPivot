@@ -120,9 +120,9 @@ live:
     redis:
       prefix: "live:join:"
     ttl:
-      seconds: 120
+      seconds: 30
     heartbeat:
-      interval-seconds: 30
+      interval-seconds: 10
 
 LIVEKIT_HOST: http://117.72.194.197:7880
 LIVEKIT_TURN_HOST: 117.72.194.197
