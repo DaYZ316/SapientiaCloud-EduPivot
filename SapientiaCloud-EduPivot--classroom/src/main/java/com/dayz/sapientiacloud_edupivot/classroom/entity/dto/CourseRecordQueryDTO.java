@@ -29,7 +29,7 @@ public class CourseRecordQueryDTO extends PageEntity {
     @Schema(description = "教室类型 (0=小型教室, 1=中型教室, 2=大型教室, 3=超大型教室)")
     private Integer classroomType;
 
-    @Schema(description = "课程状态 (0=未开始, 1=进行中, 2=已结束, 3=已取消)")
+    @Schema(description = "课程状态 (0=课前准备, 1=上课中, 2=下课，此字段由系统根据时间自动计算)")
     private Integer status;
 
     @Schema(description = "开始时间范围 - 起始")

@@ -120,13 +120,17 @@ live:
     redis:
       prefix: "live:join:"
     ttl:
-      seconds: 120
+      seconds: 30
     heartbeat:
-      interval-seconds: 30
+      interval-seconds: 10
 
 LIVEKIT_HOST: http://117.72.194.197:7880
 LIVEKIT_TURN_HOST: 117.72.194.197
 LIVEKIT_API_KEY: "livekitdevkey001"
 LIVEKIT_API_SECRET: "livekitdevsecret001abcdef1234567890abcd"
+
+REDIS_HOST: localhost
+REDIS_PORT: 6379
+REDIS_PASSWORD: zhaosheng123
 
 KAFKA_BOOTSTRAP_SERVERS: localhost:9092

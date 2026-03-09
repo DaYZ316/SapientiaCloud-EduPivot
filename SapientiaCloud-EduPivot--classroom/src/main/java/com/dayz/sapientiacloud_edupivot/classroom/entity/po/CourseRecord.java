@@ -66,7 +66,7 @@ public class CourseRecord extends BaseEntity {
     @TableField("over_time")
     private LocalDateTime overTime;
 
-    @Schema(description = "课程状态 (0=未开始, 1=进行中, 2=已结束, 3=已取消)")
+    @Schema(description = "课程状态 (此字段已废弃，状态由 startTime 和 overTime 实时计算)")
     @TableField("status")
     private Integer status;
 }
