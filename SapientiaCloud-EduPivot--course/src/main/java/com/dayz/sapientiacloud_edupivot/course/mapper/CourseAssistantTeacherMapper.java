@@ -1,5 +1,6 @@
 package com.dayz.sapientiacloud_edupivot.course.mapper;
 
+import com.dayz.sapientiacloud_edupivot.course.entity.dto.MyCourseForTeacherQueryDTO;
 import com.dayz.sapientiacloud_edupivot.course.entity.po.CourseAssistantTeacher;
 import com.dayz.sapientiacloud_edupivot.course.entity.vo.CourseVO;
 import org.apache.ibatis.annotations.Mapper;
@@ -12,7 +13,7 @@ import com.dayz.sapientiacloud_edupivot.course.common.entity.vo.TeacherVO;
 @Mapper
 public interface CourseAssistantTeacherMapper {
 
-    List<CourseVO> listCourseByAssistantId(@Param("assistantTeacherId") UUID assistantTeacherId);
+    List<CourseVO> listCourseByAssistant(MyCourseForTeacherQueryDTO myCourseForTeacherQueryDTO);
 
     int batchInsertAssistantTeachers(@Param("list") List<CourseAssistantTeacher> list);
 

@@ -129,7 +129,7 @@ public class CourseTeacherServiceImpl extends ServiceImpl<CourseMapper, Course> 
         }
 
         return PageHelper.startPage(myCourseForTeacherQueryDTO.getPageNum(), myCourseForTeacherQueryDTO.getPageSize())
-                .doSelectPageInfo(() -> courseAssistantTeacherMapper.listCourseByAssistantId(myCourseForTeacherQueryDTO.getTeacherId()));
+                .doSelectPageInfo(() -> courseAssistantTeacherMapper.listCourseByAssistant(myCourseForTeacherQueryDTO));
     }
 
     @Override
