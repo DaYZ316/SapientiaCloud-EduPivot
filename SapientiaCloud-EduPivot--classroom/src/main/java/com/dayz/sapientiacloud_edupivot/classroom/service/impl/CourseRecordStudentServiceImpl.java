@@ -121,14 +121,8 @@ public class CourseRecordStudentServiceImpl extends ServiceImpl<CourseRecordStud
         }
 
         // 检查课程状态
-        if (courseRecordVO.getStatus() == null || courseRecordVO.getStatus() == 0) {
+        if (courseRecordVO.getOverTime().isBefore(LocalDateTime.now())) {
             throw new BusinessException(CourseRecordStudentEnum.COURSE_RECORD_NOT_STARTED);
-        }
-        if (courseRecordVO.getStatus() == 2) {
-            throw new BusinessException(CourseRecordStudentEnum.COURSE_RECORD_ENDED);
-        }
-        if (courseRecordVO.getStatus() == 3) {
-            throw new BusinessException(CourseRecordStudentEnum.COURSE_RECORD_CANCELLED);
         }
 
         // 检查学生是否已经选座
