@@ -24,6 +24,7 @@ public interface CourseMapper extends BaseMapper<Course> {
     List<TeacherVO> listAllTeacherByCourseId(List<UUID> teacherIds);
 
     List<CourseVO> listAllCourseByTeacherId(@Param("teacherId") UUID teacherId);
+
     List<CourseVO> listCourseByTeacherId(CourseTeacherQueryDTO courseTeacherQueryDTO);
 
     CourseVO getCourseById(@Param("courseId") UUID courseId);
