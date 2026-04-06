@@ -70,6 +70,17 @@ public class AIChatConstants {
     public static final int MESSAGE_TYPE_TEXT = 0;
     public static final int MESSAGE_TYPE_IMAGE = 1;
 
+    // ==================== 音频状态 ====================
+
+    public static final int AUDIO_STATUS_NONE = 0;
+    public static final int AUDIO_STATUS_PENDING = 1;
+    public static final int AUDIO_STATUS_PROCESSING = 2;
+    public static final int AUDIO_STATUS_READY = 3;
+    public static final int AUDIO_STATUS_FAILED = 4;
+    public static final int AUDIO_STATUS_CANCELED = 5;
+
+    public static final String AUDIO_FORMAT_WAV = "wav";
+
     // ==================== 默认限制 ====================
 
     public static final int DEFAULT_HISTORY_LIMIT = 10;
