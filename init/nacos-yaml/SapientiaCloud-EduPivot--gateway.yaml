@@ -38,6 +38,12 @@ spring:
             - Path=/api/course/**
           filters:
             - StripPrefix=2
+        - id: SapientiaCloud-EduPivot--classroom-ws
+          uri: lb:ws://SapientiaCloud-EduPivot--classroom
+          predicates:
+            - Path=/api/classroom/ws/**
+          filters:
+            - StripPrefix=2
         - id: SapientiaCloud-EduPivot--classroom
           uri: lb://SapientiaCloud-EduPivot--classroom
           predicates:

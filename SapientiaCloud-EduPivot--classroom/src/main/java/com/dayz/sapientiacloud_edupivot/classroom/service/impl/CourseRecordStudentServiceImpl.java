@@ -16,6 +16,7 @@ import com.dayz.sapientiacloud_edupivot.classroom.enums.CourseRecordStudentEnum;
 import com.dayz.sapientiacloud_edupivot.classroom.mapper.CourseRecordStudentMapper;
 import com.dayz.sapientiacloud_edupivot.classroom.service.ICourseRecordService;
 import com.dayz.sapientiacloud_edupivot.classroom.service.ICourseRecordStudentService;
+import com.dayz.sapientiacloud_edupivot.classroom.websocket.SeatSyncWebSocketHub;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,8 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -39,6 +42,7 @@ public class CourseRecordStudentServiceImpl extends ServiceImpl<CourseRecordStud
     private final CourseRecordStudentMapper courseRecordStudentMapper;
     private final ICourseRecordService courseRecordService;
     private final StudentClient studentClient;
+    private final SeatSyncWebSocketHub seatSyncWebSocketHub;
 
     @Override
     public PageInfo<CourseRecordStudentVO> listCourseRecordStudentPage(CourseRecordStudentQueryDTO courseRecordStudentQueryDTO) {
@@ -156,7 +160,10 @@ public class CourseRecordStudentServiceImpl extends ServiceImpl<CourseRecordStud
         // 返回结果
         CourseRecordStudentVO studentVO = new CourseRecordStudentVO();
         BeanUtils.copyProperties(student, studentVO);
-        return studentVO;
+        CourseRecordStudentVO latestStudentVO = courseRecordStudentMapper.getStudentSeat(studentVO.getRecordId(), studentVO.getStudentId());
+        CourseRecordStudentVO response = latestStudentVO == null ? studentVO : latestStudentVO;
+        runAfterCommit(() -> seatSyncWebSocketHub.publishSeatUpsert(response.getRecordId(), response));
+        return response;
     }
 
     @Override
@@ -192,7 +199,18 @@ public class CourseRecordStudentServiceImpl extends ServiceImpl<CourseRecordStud
         BeanUtils.copyProperties(courseRecordStudentDTO, student);
         student.setUpdateTime(LocalDateTime.now());
 
-        return this.update(student, queryWrapper);
+        boolean updated = this.update(student, queryWrapper);
+        if (updated) {
+            CourseRecordStudentVO latestStudentVO = courseRecordStudentMapper.getStudentSeat(
+                    courseRecordStudentDTO.getRecordId(),
+                    courseRecordStudentDTO.getStudentId()
+            );
+            if (latestStudentVO != null) {
+                runAfterCommit(() -> seatSyncWebSocketHub.publishSeatUpsert(latestStudentVO.getRecordId(), latestStudentVO));
+            }
+        }
+
+        return updated;
     }
 
     @Override
@@ -215,7 +233,12 @@ public class CourseRecordStudentServiceImpl extends ServiceImpl<CourseRecordStud
         }
 
         // 直接使用baseMapper删除，避免自动添加is_deleted条件
-        return this.baseMapper.delete(queryWrapper) > 0;
+        boolean removed = this.baseMapper.delete(queryWrapper) > 0;
+        if (removed) {
+            Integer seatIndex = student.getSeatIndex();
+            runAfterCommit(() -> seatSyncWebSocketHub.publishSeatRemove(recordId, studentId, seatIndex));
+        }
+        return removed;
     }
 
     @Override
@@ -272,5 +295,19 @@ public class CourseRecordStudentServiceImpl extends ServiceImpl<CourseRecordStud
 
         Integer count = courseRecordStudentMapper.countStudentsByRecordId(recordId);
         return count != null ? count : 0;
+    }
+
+    private void runAfterCommit(Runnable callback) {
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            callback.run();
+            return;
+        }
+
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                callback.run();
+            }
+        });
     }
 }
