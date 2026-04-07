@@ -16,6 +16,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.io.Serial;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -93,6 +94,38 @@ public class ChatMessage extends BaseEntity {
     @Field("question_response")
     @Schema(description = "AI出题生成结果（JSON），当角色为出题者时使用")
     private String questionResponse;
+
+    @Field("audio_status")
+    @Schema(description = "音频状态: 0-无音频, 1-待生成, 2-生成中, 3-可播放, 4-生成失败, 5-已取消")
+    private Integer audioStatus;
+
+    @Field("audio_url")
+    @Schema(description = "音频访问地址")
+    private String audioUrl;
+
+    @Field("audio_format")
+    @Schema(description = "音频格式")
+    private String audioFormat;
+
+    @Field("audio_duration_ms")
+    @Schema(description = "音频时长（毫秒）")
+    private Integer audioDurationMs;
+
+    @Field("audio_task_id")
+    @Schema(description = "音频任务ID")
+    private String audioTaskId;
+
+    @Field("audio_error_message")
+    @Schema(description = "音频生成失败信息")
+    private String audioErrorMessage;
+
+    @Field("audio_generate_time")
+    @Schema(description = "音频生成完成时间")
+    private LocalDateTime audioGenerateTime;
+
+    @Field("audio_voice_code")
+    @Schema(description = "音色编码")
+    private String audioVoiceCode;
 
     @BsonIgnore
     @TableField(exist = false)

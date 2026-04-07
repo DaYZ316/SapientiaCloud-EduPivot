@@ -90,6 +90,18 @@ kafka:
       expire-after-write-minutes: 10
       maximum-size: 1000
 
+avatar:
+  tts:
+    enabled: false
+    auto-generate: true
+    worker-base-url: ${AVATAR_TTS_WORKER_BASE_URL:http://tts-worker:32111}
+    worker-synthesize-path: ${AVATAR_TTS_WORKER_SYNTHESIZE_PATH:/tts/synthesize}
+    default-voice-code: ${AVATAR_TTS_DEFAULT_VOICE_CODE:teacher-default}
+    default-audio-format: ${AVATAR_TTS_DEFAULT_AUDIO_FORMAT:wav}
+    max-text-length: ${AVATAR_TTS_MAX_TEXT_LENGTH:2000}
+    upload-directory: ${AVATAR_TTS_UPLOAD_DIRECTORY:avatar-audio/}
+    bucket-code: ${AVATAR_TTS_BUCKET_CODE:AI_QA_ASSET}
+
 MONGODB_HOST: localhost
 MONGODB_PORT: 27017
 MONGODB_DATABASE: sapientiacloud_edupivot
@@ -98,3 +110,4 @@ MONGODB_PASSWORD: zhaosheng123
 MONGODB_AUTH_DATABASE: admin
 
 KAFKA_BOOTSTRAP_SERVERS: localhost:9092
+TONGYI_API_KEY: sk-902c46c942864ac39a992eebcd5bf19c

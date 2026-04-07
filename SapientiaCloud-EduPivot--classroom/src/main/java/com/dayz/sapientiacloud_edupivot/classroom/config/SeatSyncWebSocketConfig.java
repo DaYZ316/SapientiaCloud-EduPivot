@@ -1,4 +1,4 @@
-package com.dayz.sapientiacloud_edupivot.classroom.common.config;
+package com.dayz.sapientiacloud_edupivot.classroom.config;
 
 import com.dayz.sapientiacloud_edupivot.classroom.websocket.SeatSyncHandshakeInterceptor;
 import com.dayz.sapientiacloud_edupivot.classroom.websocket.SeatSyncWebSocketHandler;
