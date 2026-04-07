@@ -35,6 +35,7 @@ public class SecurityConfig {
             "/api/course/public/list",
             "/api/live/subscribe",
             "/api/live/live-room/sse-token",
+            "/api/classroom/ws/**",
             "/api/*/v3/api-docs/**",
             "/v3/api-docs/**",
             "/doc.html",
