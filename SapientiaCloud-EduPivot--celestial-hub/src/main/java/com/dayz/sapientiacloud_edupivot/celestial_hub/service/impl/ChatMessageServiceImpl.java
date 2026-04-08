@@ -13,7 +13,6 @@ import com.dayz.sapientiacloud_edupivot.celestial_hub.service.IChatMessageServic
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.IChatSessionService;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.KafkaChatService;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.KnowledgeService;
-import com.dayz.sapientiacloud_edupivot.celestial_hub.service.TtsAudioService;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.utils.ChatMessageUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,7 +41,6 @@ public class ChatMessageServiceImpl implements IChatMessageService {
     private final KnowledgeService knowledgeService;
     private final ChatClient chatClient;
     private final KafkaChatService kafkaChatService;
-    private final TtsAudioService ttsAudioService;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -67,7 +65,6 @@ public class ChatMessageServiceImpl implements IChatMessageService {
                 request.getFileReferences(), chatContext.lastMessage(), null, chatMessageRepository);
 
         ChatMessage assistantMessage = ChatMessageUtil.saveAssistantMessage(sessionId, aiResponse, chatMessageRepository);
-        assistantMessage = ttsAudioService.initializeAudioGeneration(assistantMessage);
 
         chatSessionService.updateSessionLastMessage(sessionId, aiResponse);
 
@@ -242,7 +239,6 @@ public class ChatMessageServiceImpl implements IChatMessageService {
             return;
         }
         ChatMessage assistantMessage = ChatMessageUtil.saveAssistantMessage(sessionId, response, chatMessageRepository);
-        assistantMessage = ttsAudioService.initializeAudioGeneration(assistantMessage);
         chatSessionService.updateSessionLastMessage(sessionId, response);
 
         if (!vectorize) {

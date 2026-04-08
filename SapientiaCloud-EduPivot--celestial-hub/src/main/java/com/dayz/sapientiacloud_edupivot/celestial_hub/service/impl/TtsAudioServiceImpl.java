@@ -2,11 +2,13 @@ package com.dayz.sapientiacloud_edupivot.celestial_hub.service.impl;
 
 import com.dayz.sapientiacloud_edupivot.celestial_hub.clients.LocalTtsClient;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.clients.MinIOClient;
+import com.dayz.sapientiacloud_edupivot.celestial_hub.common.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.common.result.Result;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.constant.AIChatConstants;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.LocalTtsRequestDTO;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.po.ChatMessage;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.vo.LocalTtsAudioVO;
+import com.dayz.sapientiacloud_edupivot.celestial_hub.enums.AIChatEnum;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.repository.ChatMessageRepository;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.TtsAudioService;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.utils.ByteArrayMultipartFile;
@@ -56,11 +58,15 @@ public class TtsAudioServiceImpl implements TtsAudioService {
 
     @Override
     public ChatMessage initializeAudioGeneration(ChatMessage message) {
+        return initializeAudioGeneration(message, true);
+    }
+
+    private ChatMessage initializeAudioGeneration(ChatMessage message, boolean respectAutoGenerate) {
         if (message == null || !AIChatConstants.ROLE_ASSISTANT.equals(message.getRole())) {
             return message;
         }
 
-        if (!ttsEnabled || !autoGenerate || !StringUtils.hasText(message.getContent())) {
+        if (!ttsEnabled || (respectAutoGenerate && !autoGenerate) || !StringUtils.hasText(message.getContent())) {
             message.setAudioStatus(AIChatConstants.AUDIO_STATUS_NONE);
             return chatMessageRepository.save(message);
         }
@@ -85,6 +91,43 @@ public class TtsAudioServiceImpl implements TtsAudioService {
         ChatMessage savedMessage = chatMessageRepository.save(message);
         applicationContext.getBean(TtsAudioService.class).generateAudioAsync(savedMessage.getId().toString());
         return savedMessage;
+    }
+
+    @Override
+    public ChatMessage generateAudioForMessage(UUID messageId) {
+        if (messageId == null) {
+            throw new BusinessException(AIChatEnum.MESSAGE_ID_REQUIRED);
+        }
+
+        ChatMessage message = chatMessageRepository.findById(messageId)
+                .orElseThrow(() -> new BusinessException(AIChatEnum.MESSAGE_NOT_EXISTS));
+
+        if (!AIChatConstants.ROLE_ASSISTANT.equals(message.getRole())) {
+            throw new BusinessException(AIChatEnum.MESSAGE_ROLE_INVALID);
+        }
+
+        if (!StringUtils.hasText(message.getContent())) {
+            throw new BusinessException(AIChatEnum.MESSAGE_CONTENT_REQUIRED);
+        }
+
+        if (Integer.valueOf(AIChatConstants.AUDIO_STATUS_READY).equals(message.getAudioStatus())
+                && StringUtils.hasText(message.getAudioUrl())) {
+            return message;
+        }
+
+        if (Integer.valueOf(AIChatConstants.AUDIO_STATUS_PENDING).equals(message.getAudioStatus())
+                || Integer.valueOf(AIChatConstants.AUDIO_STATUS_PROCESSING).equals(message.getAudioStatus())) {
+            return message;
+        }
+
+        if (!ttsEnabled) {
+            message.setAudioStatus(AIChatConstants.AUDIO_STATUS_NONE);
+            message.setAudioErrorMessage("语音生成未开启");
+            message.setUpdateTime(LocalDateTime.now());
+            return chatMessageRepository.save(message);
+        }
+
+        return initializeAudioGeneration(message, false);
     }
 
     @Override

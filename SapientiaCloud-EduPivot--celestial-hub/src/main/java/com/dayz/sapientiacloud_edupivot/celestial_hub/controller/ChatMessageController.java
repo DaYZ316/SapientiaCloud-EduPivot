@@ -9,6 +9,7 @@ import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.KafkaChatReques
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.po.ChatMessage;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.vo.ChatResponseVO;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.IChatMessageService;
+import com.dayz.sapientiacloud_edupivot.celestial_hub.service.TtsAudioService;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -27,6 +28,7 @@ import java.util.UUID;
 public class ChatMessageController extends BaseController {
 
     private final IChatMessageService chatMessageService;
+    private final TtsAudioService ttsAudioService;
 
     @HasPermission(
             summary = "chat",
@@ -114,6 +116,19 @@ public class ChatMessageController extends BaseController {
     ) {
         Boolean result = chatMessageService.feedbackMessage(id, feedback);
         return Result.success(result);
+    }
+
+    @HasPermission(
+            summary = "generateMessageAudio",
+            description = "为指定AI回复手动生成虚拟教师语音",
+            permission = PermissionConstants.CELESTIAL_EDIT
+    )
+    @PostMapping("/{id}/audio/generate")
+    public Result<ChatMessage> generateMessageAudio(
+            @Parameter(name = "id", description = "消息ID", required = true) @PathVariable("id") UUID id
+    ) {
+        ChatMessage chatMessage = ttsAudioService.generateAudioForMessage(id);
+        return Result.success(chatMessage);
     }
 }
 
