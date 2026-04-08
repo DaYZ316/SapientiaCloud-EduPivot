@@ -92,7 +92,7 @@ kafka:
 
 avatar:
   tts:
-    enabled: false
+    enabled: true
     auto-generate: true
     worker-base-url: ${AVATAR_TTS_WORKER_BASE_URL:http://tts-worker:32111}
     worker-synthesize-path: ${AVATAR_TTS_WORKER_SYNTHESIZE_PATH:/tts/synthesize}

@@ -50,6 +50,7 @@ public class KafkaChatConsumer {
     private final IChatSessionService chatSessionService;
     private final KnowledgeService knowledgeService;
     private final KafkaChatService kafkaChatService;
+    private final TtsAudioService ttsAudioService;
     /**
      * 已处理/正在处理的请求ID集合，防止Kafka重连时重复处理
      */
@@ -255,6 +256,7 @@ public class KafkaChatConsumer {
         ChatMessage assistantMessage = null;
         if (!response.isEmpty()) {
             assistantMessage = ChatMessageUtil.saveAssistantMessage(sessionId, response, requestId, chatMessageRepository);
+            assistantMessage = initializeAudioGenerationSafely(assistantMessage, requestId);
             chatSessionService.updateSessionLastMessage(sessionId, response);
         }
 
@@ -299,7 +301,8 @@ public class KafkaChatConsumer {
         if (interrupted) {
             // 保存已生成但未完成的回复，仍更新会话，便于追踪
             if (StringUtils.hasText(response)) {
-                ChatMessageUtil.saveAssistantMessage(sessionId, response, requestId, chatMessageRepository);
+                ChatMessage assistantMessage = ChatMessageUtil.saveAssistantMessage(sessionId, response, requestId, chatMessageRepository);
+                initializeAudioGenerationSafely(assistantMessage, requestId);
                 chatSessionService.updateSessionLastMessage(sessionId, response);
                 // 取消场景下不进行向量化
             }
@@ -337,13 +340,26 @@ public class KafkaChatConsumer {
                                  UUID courseId, String response, long startTime, Acknowledgment acknowledgment) {
         clearActiveRequest(requestId);
         if (StringUtils.hasText(response)) {
-            ChatMessageUtil.saveAssistantMessage(sessionId, response, requestId, chatMessageRepository);
+            ChatMessage assistantMessage = ChatMessageUtil.saveAssistantMessage(sessionId, response, requestId, chatMessageRepository);
+            initializeAudioGenerationSafely(assistantMessage, requestId);
             chatSessionService.updateSessionLastMessage(sessionId, response);
         }
         kafkaChatService.completeResponse(requestId);
         markProcessingComplete(requestId);
         acknowledge(acknowledgment);
         clearCancellationFlag(requestId);
+    }
+
+    private ChatMessage initializeAudioGenerationSafely(ChatMessage assistantMessage, String requestId) {
+        try {
+            return ttsAudioService.initializeAudioGeneration(assistantMessage);
+        } catch (Exception ex) {
+            log.warn("初始化TTS音频生成失败，不影响聊天主流程: requestId={}, messageId={}, error={}",
+                    requestId,
+                    assistantMessage != null ? assistantMessage.getId() : null,
+                    ex.getMessage());
+            return assistantMessage;
+        }
     }
 
     private void handleChunk(String requestId, String chunk, StringBuffer accumulator) {

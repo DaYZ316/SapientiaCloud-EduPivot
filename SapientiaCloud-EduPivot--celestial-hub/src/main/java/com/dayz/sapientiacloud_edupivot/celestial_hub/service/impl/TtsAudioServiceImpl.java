@@ -13,6 +13,7 @@ import com.dayz.sapientiacloud_edupivot.celestial_hub.utils.ByteArrayMultipartFi
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -30,6 +31,7 @@ public class TtsAudioServiceImpl implements TtsAudioService {
     private final ChatMessageRepository chatMessageRepository;
     private final LocalTtsClient localTtsClient;
     private final MinIOClient minIOClient;
+    private final ApplicationContext applicationContext;
 
     @Value("${avatar.tts.enabled:false}")
     private boolean ttsEnabled;
@@ -81,7 +83,7 @@ public class TtsAudioServiceImpl implements TtsAudioService {
         message.setUpdateTime(LocalDateTime.now());
 
         ChatMessage savedMessage = chatMessageRepository.save(message);
-        generateAudioAsync(savedMessage.getId().toString());
+        applicationContext.getBean(TtsAudioService.class).generateAudioAsync(savedMessage.getId().toString());
         return savedMessage;
     }
 
