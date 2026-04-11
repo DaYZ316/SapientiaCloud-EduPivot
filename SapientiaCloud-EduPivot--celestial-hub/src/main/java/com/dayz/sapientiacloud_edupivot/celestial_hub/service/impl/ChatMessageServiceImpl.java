@@ -96,6 +96,10 @@ public class ChatMessageServiceImpl implements IChatMessageService {
         responseVO.setFileReferences(request.getFileReferences());
         responseVO.setResponseTime(LocalDateTime.now());
         responseVO.setFinished(true);
+        responseVO.setAudioStatus(assistantMessage.getAudioStatus());
+        responseVO.setAudioUrl(assistantMessage.getAudioUrl());
+        responseVO.setAudioFormat(assistantMessage.getAudioFormat());
+        responseVO.setAudioTaskId(assistantMessage.getAudioTaskId());
 
         return responseVO;
     }

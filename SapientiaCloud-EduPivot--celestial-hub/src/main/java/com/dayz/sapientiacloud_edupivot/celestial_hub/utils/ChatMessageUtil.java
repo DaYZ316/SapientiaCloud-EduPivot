@@ -384,6 +384,7 @@ public class ChatMessageUtil {
         message.setFileReferences(fileReferences);
         message.setRequestId(requestId);
         message.setIsFeedback(AIChatConstants.FEEDBACK_NONE);
+        message.setAudioStatus(AIChatConstants.AUDIO_STATUS_NONE);
         message.setCreateTime(LocalDateTime.now());
         message.setUpdateTime(LocalDateTime.now());
 

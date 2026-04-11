@@ -1,4 +1,10 @@
 spring:
+  cloud:
+    sentinel:
+      eager: true
+      transport:
+        dashboard: ${SENTINEL_DASHBOARD_HOST}:${SENTINEL_DASHBOARD_PORT}
+        port: ${SENTINEL_TRANSPORT_PORT}
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DATABASE}?rewriteBatchedStatements=true&characterEncoding=UTF-8&autoReconnect=true&failOverReadOnly=false&serverTimezone=Asia/Shanghai&allowMultiQueries=true
@@ -29,6 +35,10 @@ spring:
     caffeine:
       spec: maximumSize=500,expireAfterWrite=10m
 
+feign:
+  sentinel:
+    enabled: true
+
 knife4j:
   enable: true
   basic:
@@ -37,6 +47,10 @@ knife4j:
     password: ${KNIFE4J_PASSWORD}
 
 management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,sentinel
   tracing:
     enabled: true
     sampling:
@@ -62,3 +76,6 @@ REDIS_USERNAME:
 REDIS_PASSWORD: zhaosheng123
 KNIFE4J_USERNAME: admin
 KNIFE4J_PASSWORD: zhaosheng123
+SENTINEL_DASHBOARD_HOST: 127.0.0.1
+SENTINEL_DASHBOARD_PORT: 8858
+SENTINEL_TRANSPORT_PORT: 8719
