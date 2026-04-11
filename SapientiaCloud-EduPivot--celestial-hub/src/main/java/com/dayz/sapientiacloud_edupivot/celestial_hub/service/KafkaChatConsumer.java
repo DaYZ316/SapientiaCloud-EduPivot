@@ -299,7 +299,7 @@ public class KafkaChatConsumer {
         if (interrupted) {
             // 保存已生成但未完成的回复，仍更新会话，便于追踪
             if (StringUtils.hasText(response)) {
-                ChatMessageUtil.saveAssistantMessage(sessionId, response, requestId, chatMessageRepository);
+                ChatMessage assistantMessage = ChatMessageUtil.saveAssistantMessage(sessionId, response, requestId, chatMessageRepository);
                 chatSessionService.updateSessionLastMessage(sessionId, response);
                 // 取消场景下不进行向量化
             }
@@ -337,7 +337,7 @@ public class KafkaChatConsumer {
                                  UUID courseId, String response, long startTime, Acknowledgment acknowledgment) {
         clearActiveRequest(requestId);
         if (StringUtils.hasText(response)) {
-            ChatMessageUtil.saveAssistantMessage(sessionId, response, requestId, chatMessageRepository);
+            ChatMessage assistantMessage = ChatMessageUtil.saveAssistantMessage(sessionId, response, requestId, chatMessageRepository);
             chatSessionService.updateSessionLastMessage(sessionId, response);
         }
         kafkaChatService.completeResponse(requestId);

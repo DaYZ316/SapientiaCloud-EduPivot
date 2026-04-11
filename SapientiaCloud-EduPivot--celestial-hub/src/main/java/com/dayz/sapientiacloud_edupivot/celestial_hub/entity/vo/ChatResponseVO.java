@@ -48,6 +48,18 @@ public class ChatResponseVO implements Serializable {
     @Schema(description = "元数据")
     private Map<String, Object> metadata;
 
+    @Schema(description = "音频状态: 0-无音频, 1-待生成, 2-生成中, 3-可播放, 4-生成失败, 5-已取消")
+    private Integer audioStatus;
+
+    @Schema(description = "音频访问地址")
+    private String audioUrl;
+
+    @Schema(description = "音频格式")
+    private String audioFormat;
+
+    @Schema(description = "音频任务ID")
+    private String audioTaskId;
+
     @Data
     @Schema(description = "引用内容")
     public static class ReferenceVO implements Serializable {
