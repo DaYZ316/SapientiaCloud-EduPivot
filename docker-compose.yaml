@@ -228,6 +228,27 @@ services:
           force_path_style: true
         health_port: 8081
 
+  tts-worker:
+    build:
+      context: ./tts-worker
+    container_name: tts-worker
+    ports:
+      - "32111:32111"
+    environment:
+      TTS_WORKER_HOST: 0.0.0.0
+      TTS_WORKER_PORT: 32111
+      PIPER_BIN: /opt/piper/piper/piper
+      PIPER_DEFAULT_VOICE_CODE: teacher-default
+      PIPER_MODEL_PATH: /models/teacher-default.onnx
+      PIPER_CONFIG_PATH: /models/teacher-default.onnx.json
+      TTS_MAX_TEXT_LENGTH: 2000
+      TTS_SYNTHESIZE_TIMEOUT_SECONDS: 60
+      TTS_OUTPUT_DIR: /tmp/tts-worker
+    volumes:
+      - ./tts-worker/models:/models
+      - ./tts-worker/piper:/opt/piper
+    restart: unless-stopped
+
 volumes:
   mysql_data:
   redis_data:
