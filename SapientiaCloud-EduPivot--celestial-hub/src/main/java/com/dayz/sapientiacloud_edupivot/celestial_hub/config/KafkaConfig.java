@@ -40,6 +40,12 @@ public class KafkaConfig {
     @Value("${spring.kafka.producer.buffer-memory:33554432}")
     private Long bufferMemory;
 
+    @Value("${spring.kafka.consumer.max-poll-interval-ms:1800000}")
+    private Integer maxPollIntervalMs;
+
+    @Value("${spring.kafka.consumer.max-poll-records:1}")
+    private Integer maxPollRecords;
+
     /**
      * 生产者配置
      */
@@ -83,6 +89,8 @@ public class KafkaConfig {
         props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
         // 从最早的消息开始消费
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        props.put(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, maxPollIntervalMs);
+        props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, maxPollRecords);
         return new DefaultKafkaConsumerFactory<>(props);
     }
 

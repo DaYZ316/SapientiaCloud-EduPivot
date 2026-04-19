@@ -1,11 +1,14 @@
 package com.dayz.sapientiacloud_edupivot.celestial_hub.common.clients;
 
 import com.dayz.sapientiacloud_edupivot.celestial_hub.common.config.FeignConfig;
+import com.dayz.sapientiacloud_edupivot.celestial_hub.common.entity.dto.QuestionDTO;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.common.entity.vo.*;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.common.result.Result;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
 import java.util.UUID;
@@ -78,6 +81,9 @@ public interface CourseClient {
 
     @GetMapping("/internal/question/bank/{bankId}")
     Result<List<QuestionVO>> listQuestionsByBankId(@PathVariable("bankId") UUID bankId);
+
+    @PostMapping("/question/add")
+    Result<QuestionVO> addQuestion(@RequestBody QuestionDTO questionDTO);
 }
 
 
