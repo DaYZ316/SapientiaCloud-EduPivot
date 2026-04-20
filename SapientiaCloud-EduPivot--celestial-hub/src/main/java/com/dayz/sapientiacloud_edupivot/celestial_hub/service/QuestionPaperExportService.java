@@ -13,16 +13,28 @@ import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
-import org.apache.pdfbox.pdmodel.font.PDType1Font;
-import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
+import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
+import org.apache.pdfbox.pdmodel.graphics.state.RenderingMode;
+import org.apache.poi.xwpf.usermodel.Document;
 import org.apache.poi.xwpf.usermodel.ParagraphAlignment;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 import org.apache.poi.xwpf.usermodel.XWPFRun;
+import org.scilab.forge.jlatexmath.TeXConstants;
+import org.scilab.forge.jlatexmath.TeXFormula;
+import org.scilab.forge.jlatexmath.TeXIcon;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import javax.imageio.ImageIO;
+import javax.swing.JLabel;
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.Insets;
+import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.IOException;
@@ -32,10 +44,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Slf4j
 @Service
@@ -47,11 +63,14 @@ public class QuestionPaperExportService {
     private static final String DEFAULT_WORD_FONT = "Microsoft YaHei";
     private static final String ANSWER_SECTION_TITLE = "参考答案与解析";
     private static final List<Integer> QUESTION_TYPE_EXPORT_ORDER = List.of(0, 1, 2, 3, 4);
-    private static final List<String> FONT_CANDIDATES = List.of(
-            "src/main/resources/fonts/NotoSansCJKsc-Regular.otf",
-            "src/main/resources/fonts/SourceHanSansSC-Regular.otf",
+    private static final List<String> CLASSPATH_FONT_CANDIDATES = List.of(
+            "fonts/NotoSansSC-VF.ttf"
+    );
+    private static final List<String> FILE_SYSTEM_FONT_CANDIDATES = List.of(
             "C:/Windows/Fonts/simhei.ttf",
             "C:/Windows/Fonts/simkai.ttf",
+            "C:/Windows/Fonts/NotoSansSC-VF.ttf",
+            "C:/Windows/Fonts/NotoSerifSC-VF.ttf",
             "C:/Windows/Fonts/msyh.ttc",
             "C:/Windows/Fonts/simsun.ttc",
             "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
@@ -59,6 +78,16 @@ public class QuestionPaperExportService {
             "/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc",
             "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
     );
+    private static final String PDF_FONT_VALIDATION_TEXT = "高试卷答案";
+    private static final String FORMULA_PLACEHOLDER_PREFIX = "@@FORMULA_";
+    private static final String FORMULA_PLACEHOLDER_SUFFIX = "@@";
+    private static final Pattern FORMULA_PLACEHOLDER_PATTERN = Pattern.compile("@@FORMULA_\\d+@@");
+    private static final float FORMULA_RENDER_SCALE = 2F;
+    private static final float PDF_TEXT_ASCENT_RATIO = 0.82F;
+    private static final float PDF_TEXT_DESCENT_RATIO = 0.22F;
+    private static final float WORD_MAX_CONTENT_WIDTH_PT = 480F;
+
+    private final Map<FormulaRenderKey, RenderedFormula> renderedFormulaCache = new ConcurrentHashMap<>();
 
     public ExportedPaperFile exportPdf(QuestionPaperExportRequestDTO request) {
         ExportContext context = normalizeRequest(request);
@@ -67,14 +96,14 @@ public class QuestionPaperExportService {
              ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             PDFont font = loadPdfFont(document);
             try (PdfPaperWriter writer = new PdfPaperWriter(document, font)) {
-                writer.writeCentered(context.paperName(), 18F);
+                writer.writeCentered(context.paperName(), 18F, true);
                 writer.addSpacer(12F);
                 writer.writeParagraph(buildSummaryLine(context), 11F);
                 writer.addSpacer(10F);
 
                 for (int sectionIndex = 0; sectionIndex < context.sections().size(); sectionIndex++) {
                     ExportSection section = context.sections().get(sectionIndex);
-                    writer.writeParagraph(section.title(), 14F);
+                    writer.writeParagraph(section.title(), 14F, true);
                     writer.addSpacer(6F);
 
                     for (int questionIndex = 0; questionIndex < section.questions().size(); questionIndex++) {
@@ -97,9 +126,9 @@ public class QuestionPaperExportService {
                     "application/pdf",
                     outputStream.toByteArray()
             );
-        } catch (IOException e) {
+        } catch (Exception e) {
             log.error("Failed to export paper as PDF. paperName={}", context.paperName(), e);
-            throw new BusinessException(ResultEnum.FAIL.getCode(), "导出PDF失败");
+            throw new BusinessException(ResultEnum.FAIL.getCode(), "PDF export failed");
         }
     }
 
@@ -115,9 +144,9 @@ public class QuestionPaperExportService {
                     WORD_MIME_TYPE,
                     outputStream.toByteArray()
             );
-        } catch (IOException e) {
+        } catch (Exception e) {
             log.error("Failed to export paper as Word. paperName={}", context.paperName(), e);
-            throw new BusinessException(ResultEnum.FAIL.getCode(), "导出Word失败");
+            throw new BusinessException(ResultEnum.FAIL.getCode(), "Word export failed");
         }
     }
 
@@ -184,36 +213,26 @@ public class QuestionPaperExportService {
                 + formatScore(sumScore(questions)) + "分）";
     }
 
-    private void writePaperToWord(XWPFDocument document, ExportContext context) {
-        XWPFParagraph titleParagraph = document.createParagraph();
-        titleParagraph.setAlignment(ParagraphAlignment.CENTER);
-        XWPFRun titleRun = titleParagraph.createRun();
-        titleRun.setBold(true);
-        titleRun.setFontFamily(DEFAULT_WORD_FONT);
-        titleRun.setFontSize(18);
-        titleRun.setText(context.paperName());
-
-        XWPFParagraph summaryParagraph = document.createParagraph();
-        XWPFRun summaryRun = summaryParagraph.createRun();
-        summaryRun.setFontFamily(DEFAULT_WORD_FONT);
-        summaryRun.setFontSize(11);
-        summaryRun.setText(buildSummaryLine(context));
+    private void writePaperToWord(XWPFDocument document, ExportContext context)
+            throws IOException {
+        writeWordContent(document, context.paperName(), 18, true, ParagraphAlignment.CENTER);
+        writeWordContent(document, buildSummaryLine(context), 11, false, ParagraphAlignment.LEFT);
 
         for (int sectionIndex = 0; sectionIndex < context.sections().size(); sectionIndex++) {
             ExportSection section = context.sections().get(sectionIndex);
-            addWordSectionTitle(document, section.title());
+            writeWordContent(document, section.title(), 15, true, ParagraphAlignment.LEFT);
 
             for (int questionIndex = 0; questionIndex < section.questions().size(); questionIndex++) {
                 QuestionResponseDTO question = section.questions().get(questionIndex);
+                writeWordContent(
+                        document,
+                        formatQuestionHeading(questionIndex + 1, question),
+                        13,
+                        true,
+                        ParagraphAlignment.LEFT
+                );
 
-                XWPFParagraph headingParagraph = document.createParagraph();
-                XWPFRun headingRun = headingParagraph.createRun();
-                headingRun.setBold(true);
-                headingRun.setFontFamily(DEFAULT_WORD_FONT);
-                headingRun.setFontSize(13);
-                headingRun.setText(formatQuestionHeading(questionIndex + 1, question));
-
-                addPlainTextParagraph(document, question.getQuestionContent(), 12);
+                writeWordContent(document, question.getQuestionContent(), 12, false, ParagraphAlignment.LEFT);
 
                 if (!CollectionUtils.isEmpty(question.getOptions())) {
                     for (int optionIndex = 0; optionIndex < question.getOptions().size(); optionIndex++) {
@@ -222,8 +241,8 @@ public class QuestionPaperExportService {
                             continue;
                         }
                         String optionLine = getOptionLabel(option, optionIndex) + ". "
-                                + toPlainText(option.getOptionContent());
-                        addPlainTextParagraph(document, optionLine, 12);
+                                + defaultString(option.getOptionContent());
+                        writeWordContent(document, optionLine, 12, false, ParagraphAlignment.LEFT);
                     }
                 }
 
@@ -238,30 +257,77 @@ public class QuestionPaperExportService {
         }
     }
 
-    private void addWordSectionTitle(XWPFDocument document, String title) {
-        XWPFParagraph sectionParagraph = document.createParagraph();
-        XWPFRun sectionRun = sectionParagraph.createRun();
-        sectionRun.setBold(true);
-        sectionRun.setFontFamily(DEFAULT_WORD_FONT);
-        sectionRun.setFontSize(15);
-        sectionRun.setText(title);
-    }
-
-    private void writeAnswerSectionToWord(XWPFDocument document, QuestionResponseDTO question) {
+    private void writeAnswerSectionToWord(XWPFDocument document, QuestionResponseDTO question)
+            throws IOException {
         List<String> answers = buildAnswerSections(question);
         if (answers.isEmpty()) {
             return;
         }
 
-        XWPFParagraph answerTitleParagraph = document.createParagraph();
-        XWPFRun answerTitleRun = answerTitleParagraph.createRun();
-        answerTitleRun.setBold(true);
-        answerTitleRun.setFontFamily(DEFAULT_WORD_FONT);
-        answerTitleRun.setFontSize(12);
-        answerTitleRun.setText(ANSWER_SECTION_TITLE);
-
+        writeWordContent(document, ANSWER_SECTION_TITLE, 12, true, ParagraphAlignment.LEFT);
         for (String line : answers) {
-            addPlainTextParagraph(document, line, 11);
+            writeWordContent(document, line, 11, false, ParagraphAlignment.LEFT);
+        }
+    }
+
+    private void writeWordContent(XWPFDocument document,
+                                  String content,
+                                  int fontSize,
+                                  boolean bold,
+                                  ParagraphAlignment alignment) throws IOException {
+        List<RenderBlock> blocks = parseRenderBlocks(content);
+        if (blocks.isEmpty()) {
+            return;
+        }
+
+        for (RenderBlock block : blocks) {
+            if (block.type() == RenderBlockType.BLANK_LINE) {
+                document.createParagraph();
+                continue;
+            }
+
+            if (block.type() == RenderBlockType.DISPLAY_FORMULA) {
+                XWPFParagraph paragraph = document.createParagraph();
+                paragraph.setAlignment(ParagraphAlignment.CENTER);
+                if (!WordOmmlFormulaConverter.appendFormula(paragraph, block.formula().latex(), true)) {
+                    XWPFRun run = paragraph.createRun();
+                    run.setFontFamily(DEFAULT_WORD_FONT);
+                    run.setFontSize(fontSize);
+                    run.setText(block.formula().originalText());
+                }
+                continue;
+            }
+
+            XWPFParagraph paragraph = document.createParagraph();
+            paragraph.setAlignment(alignment);
+            appendWordInlineNodes(paragraph, block.inlineNodes(), fontSize, bold);
+        }
+    }
+
+    private void appendWordInlineNodes(XWPFParagraph paragraph,
+                                       List<InlineNode> inlineNodes,
+                                       int fontSize,
+                                       boolean bold) {
+        for (InlineNode inlineNode : inlineNodes) {
+            if (inlineNode.isText()) {
+                if (inlineNode.text() == null || inlineNode.text().isEmpty()) {
+                    continue;
+                }
+                XWPFRun run = paragraph.createRun();
+                run.setFontFamily(DEFAULT_WORD_FONT);
+                run.setFontSize(fontSize);
+                run.setBold(bold);
+                run.setText(inlineNode.text());
+                continue;
+            }
+
+            if (!WordOmmlFormulaConverter.appendFormula(paragraph, inlineNode.formula().latex(), false)) {
+                XWPFRun run = paragraph.createRun();
+                run.setFontFamily(DEFAULT_WORD_FONT);
+                run.setFontSize(fontSize);
+                run.setBold(bold);
+                run.setText(inlineNode.formula().originalText());
+            }
         }
     }
 
@@ -269,9 +335,9 @@ public class QuestionPaperExportService {
                                     int order,
                                     QuestionResponseDTO question,
                                     boolean includeAnswers) throws IOException {
-        writer.writeParagraph(formatQuestionHeading(order, question), 13F);
+        writer.writeParagraph(formatQuestionHeading(order, question), 13F, true);
         writer.addSpacer(4F);
-        writer.writeParagraph(toPlainText(question.getQuestionContent()), 12F);
+        writer.writeParagraph(question.getQuestionContent(), 12F);
 
         if (!CollectionUtils.isEmpty(question.getOptions())) {
             writer.addSpacer(6F);
@@ -281,7 +347,7 @@ public class QuestionPaperExportService {
                     continue;
                 }
                 String optionLine = getOptionLabel(option, optionIndex) + ". "
-                        + toPlainText(option.getOptionContent());
+                        + defaultString(option.getOptionContent());
                 writer.writeParagraph(optionLine, 12F);
             }
         }
@@ -296,52 +362,60 @@ public class QuestionPaperExportService {
         }
 
         writer.addSpacer(6F);
-        writer.writeParagraph(ANSWER_SECTION_TITLE, 12F);
+        writer.writeParagraph(ANSWER_SECTION_TITLE, 12F, true);
         for (String line : answers) {
             writer.writeParagraph(line, 11F);
         }
     }
 
-    private void addPlainTextParagraph(XWPFDocument document, String content, int fontSize) {
-        if (!StringUtils.hasText(content)) {
-            return;
-        }
-        XWPFParagraph paragraph = document.createParagraph();
-        XWPFRun run = paragraph.createRun();
-        run.setFontFamily(DEFAULT_WORD_FONT);
-        run.setFontSize(fontSize);
-        String[] lines = toPlainText(content).split("\\R");
-        for (int i = 0; i < lines.length; i++) {
-            run.setText(lines[i]);
-            if (i < lines.length - 1) {
-                run.addBreak();
+    private PDFont loadPdfFont(PDDocument document) throws IOException {
+        for (String candidate : CLASSPATH_FONT_CANDIDATES) {
+            ClassPathResource resource = new ClassPathResource(candidate);
+            if (!resource.exists()) {
+                continue;
+            }
+            try (InputStream inputStream = resource.getInputStream()) {
+                PDFont font = PDType0Font.load(document, inputStream);
+                validatePdfFont(font, "classpath:" + candidate);
+                log.debug("Loading PDF export font from classpath:{}", candidate);
+                return font;
+            } catch (Exception e) {
+                log.debug("Failed to load PDF export font from classpath:{}", candidate, e);
             }
         }
-    }
 
-    private PDFont loadPdfFont(PDDocument document) throws IOException {
-        for (String candidate : FONT_CANDIDATES) {
+        for (String candidate : FILE_SYSTEM_FONT_CANDIDATES) {
             Path path = Path.of(candidate);
             if (!Files.isRegularFile(path)) {
                 continue;
             }
             try (InputStream inputStream = Files.newInputStream(path)) {
+                PDFont font = PDType0Font.load(document, inputStream);
+                validatePdfFont(font, candidate);
                 log.debug("Loading PDF export font from {}", candidate);
-                return PDType0Font.load(document, inputStream);
+                return font;
             } catch (Exception e) {
                 log.debug("Failed to load PDF export font from {}", candidate, e);
             }
         }
 
-        log.warn("No CJK font found for PDF export. Falling back to Helvetica, which may not render Chinese correctly.");
-        return new PDType1Font(Standard14Fonts.FontName.HELVETICA);
+        throw new IOException("No usable CJK font available for PDF export");
+    }
+
+    private void validatePdfFont(PDFont font, String fontSource) throws IOException {
+        try {
+            font.getStringWidth(PDF_FONT_VALIDATION_TEXT);
+        } catch (IllegalArgumentException e) {
+            throw new IOException("Font does not support required CJK glyphs: " + fontSource, e);
+        }
     }
 
     private String buildSummaryLine(ExportContext context) {
         return "题目数：" + context.questions().size()
                 + "    总分：" + formatScore(sumScore(context.questions()))
                 + "    预计时长：" + sumEstimatedTime(context.questions()) + "分钟"
-                + "    导出版本：" + (context.includeAnswers() ? "答案版" : "试题版");
+                + "    导出版本："
+                + (context.includeAnswers() ? "答案版" : "试题版");
     }
 
     private BigDecimal sumScore(List<QuestionResponseDTO> questions) {
@@ -375,7 +449,7 @@ public class QuestionPaperExportService {
 
     private String resolveQuestionTitle(QuestionResponseDTO question) {
         if (StringUtils.hasText(question.getQuestionTitle())) {
-            return toPlainText(question.getQuestionTitle());
+            return question.getQuestionTitle().trim();
         }
         if (StringUtils.hasText(question.getQuestionContent())) {
             String plainContent = toPlainText(question.getQuestionContent());
@@ -400,7 +474,7 @@ public class QuestionPaperExportService {
                 String label = getOptionLabel(option, i);
                 correctLabels.add(label);
                 if (StringUtils.hasText(option.getExplanation())) {
-                    lines.add(label + " 解析：" + toPlainText(option.getExplanation()));
+                    lines.add(label + " 解析：" + option.getExplanation());
                 }
             }
             if (!correctLabels.isEmpty()) {
@@ -420,9 +494,9 @@ public class QuestionPaperExportService {
             for (int i = 0; i < answers.size(); i++) {
                 QuestionAnswerSimpleDTO answer = answers.get(i);
                 String prefix = answers.size() > 1 ? "答案" + (i + 1) + "：" : "答案：";
-                lines.add(prefix + toPlainText(answer.getAnswerContent()));
+                lines.add(prefix + defaultString(answer.getAnswerContent()));
                 if (StringUtils.hasText(answer.getExplanation())) {
-                    lines.add("解析：" + toPlainText(answer.getExplanation()));
+                    lines.add("解析：" + answer.getExplanation());
                 }
             }
         }
@@ -489,6 +563,297 @@ public class QuestionPaperExportService {
         return fileName.trim().replaceAll("[\\\\/:*?\"<>|]", "_");
     }
 
+    private List<RenderBlock> parseRenderBlocks(String content) {
+        if (!StringUtils.hasText(content)) {
+            return List.of();
+        }
+
+        ExtractedContent extractedContent = extractMathPlaceholders(content);
+        String plainText = toPlainText(extractedContent.contentWithPlaceholders());
+        if (!StringUtils.hasText(plainText)) {
+            return List.of();
+        }
+
+        String normalized = plainText
+                .replace("\r\n", "\n")
+                .replace('\r', '\n')
+                .replaceAll("\\n{3,}", "\n\n");
+
+        List<RenderBlock> blocks = new ArrayList<>();
+        String[] lines = normalized.split("\n", -1);
+        for (String line : lines) {
+            if (!StringUtils.hasText(line.trim())) {
+                blocks.add(RenderBlock.blankLine());
+                continue;
+            }
+
+            List<InlineNode> inlineNodes = tokenizeInline(line, extractedContent.placeholders());
+            appendLineBlocks(blocks, inlineNodes);
+        }
+
+        return trimBlankBlocks(blocks);
+    }
+
+    private void appendLineBlocks(List<RenderBlock> blocks, List<InlineNode> inlineNodes) {
+        List<InlineNode> paragraphNodes = new ArrayList<>();
+        for (InlineNode inlineNode : inlineNodes) {
+            if (inlineNode.isFormula() && inlineNode.formula().display()) {
+                addParagraphBlock(blocks, paragraphNodes);
+                blocks.add(RenderBlock.displayFormula(inlineNode.formula()));
+                continue;
+            }
+            paragraphNodes.add(inlineNode);
+        }
+        addParagraphBlock(blocks, paragraphNodes);
+    }
+
+    private void addParagraphBlock(List<RenderBlock> blocks, List<InlineNode> paragraphNodes) {
+        if (!hasVisibleContent(paragraphNodes)) {
+            paragraphNodes.clear();
+            return;
+        }
+        blocks.add(RenderBlock.paragraph(mergeAdjacentTextNodes(paragraphNodes)));
+        paragraphNodes.clear();
+    }
+
+    private boolean hasVisibleContent(List<InlineNode> inlineNodes) {
+        for (InlineNode inlineNode : inlineNodes) {
+            if (inlineNode.isFormula()) {
+                return true;
+            }
+            if (StringUtils.hasText(inlineNode.text())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private List<InlineNode> mergeAdjacentTextNodes(List<InlineNode> inlineNodes) {
+        List<InlineNode> merged = new ArrayList<>();
+        StringBuilder currentText = new StringBuilder();
+
+        for (InlineNode inlineNode : inlineNodes) {
+            if (inlineNode.isText()) {
+                currentText.append(inlineNode.text());
+                continue;
+            }
+
+            if (currentText.length() > 0) {
+                merged.add(InlineNode.text(currentText.toString()));
+                currentText.setLength(0);
+            }
+            merged.add(inlineNode);
+        }
+
+        if (currentText.length() > 0) {
+            merged.add(InlineNode.text(currentText.toString()));
+        }
+        return merged;
+    }
+
+    private List<RenderBlock> trimBlankBlocks(List<RenderBlock> blocks) {
+        if (blocks.isEmpty()) {
+            return blocks;
+        }
+
+        List<RenderBlock> trimmed = new ArrayList<>();
+        boolean previousBlank = true;
+        for (RenderBlock block : blocks) {
+            if (block.type() == RenderBlockType.BLANK_LINE) {
+                if (!previousBlank) {
+                    trimmed.add(block);
+                }
+                previousBlank = true;
+                continue;
+            }
+
+            trimmed.add(block);
+            previousBlank = false;
+        }
+
+        while (!trimmed.isEmpty() && trimmed.get(trimmed.size() - 1).type() == RenderBlockType.BLANK_LINE) {
+            trimmed.remove(trimmed.size() - 1);
+        }
+        return trimmed;
+    }
+
+    private List<InlineNode> tokenizeInline(String line, Map<String, FormulaPlaceholder> placeholders) {
+        List<InlineNode> inlineNodes = new ArrayList<>();
+        Matcher matcher = FORMULA_PLACEHOLDER_PATTERN.matcher(line);
+        int currentIndex = 0;
+
+        while (matcher.find()) {
+            if (matcher.start() > currentIndex) {
+                inlineNodes.add(InlineNode.text(line.substring(currentIndex, matcher.start())));
+            }
+
+            String marker = matcher.group();
+            FormulaPlaceholder placeholder = placeholders.get(marker);
+            if (placeholder == null) {
+                inlineNodes.add(InlineNode.text(marker));
+            } else {
+                inlineNodes.add(InlineNode.formula(placeholder));
+            }
+            currentIndex = matcher.end();
+        }
+
+        if (currentIndex < line.length()) {
+            inlineNodes.add(InlineNode.text(line.substring(currentIndex)));
+        }
+        return inlineNodes;
+    }
+
+    private ExtractedContent extractMathPlaceholders(String content) {
+        String normalized = content
+                .replace("\r\n", "\n")
+                .replace('\r', '\n');
+
+        StringBuilder builder = new StringBuilder();
+        Map<String, FormulaPlaceholder> placeholders = new LinkedHashMap<>();
+        int currentIndex = 0;
+        int formulaIndex = 0;
+
+        while (currentIndex < normalized.length()) {
+            FormulaMatch formulaMatch = matchFormulaAt(normalized, currentIndex);
+            if (formulaMatch == null) {
+                builder.append(normalized.charAt(currentIndex));
+                currentIndex++;
+                continue;
+            }
+
+            String marker = FORMULA_PLACEHOLDER_PREFIX + formulaIndex++ + FORMULA_PLACEHOLDER_SUFFIX;
+            FormulaPlaceholder placeholder = new FormulaPlaceholder(
+                    marker,
+                    decodeHtmlEntities(formulaMatch.latex().trim()),
+                    formulaMatch.display(),
+                    formulaMatch.originalText()
+            );
+            placeholders.put(marker, placeholder);
+
+            if (formulaMatch.display()) {
+                appendDisplayPlaceholder(builder, marker);
+            } else {
+                builder.append(marker);
+            }
+            currentIndex = formulaMatch.nextIndex();
+        }
+
+        return new ExtractedContent(builder.toString(), placeholders);
+    }
+
+    private void appendDisplayPlaceholder(StringBuilder builder, String marker) {
+        if (builder.length() > 0 && builder.charAt(builder.length() - 1) != '\n') {
+            builder.append('\n');
+        }
+        builder.append(marker).append('\n');
+    }
+
+    private FormulaMatch matchFormulaAt(String content, int index) {
+        if (content.startsWith("$$", index) && !isEscapedDollar(content, index)) {
+            int endIndex = findClosingDoubleDollar(content, index + 2);
+            if (endIndex >= 0) {
+                return new FormulaMatch(
+                        content.substring(index + 2, endIndex),
+                        true,
+                        content.substring(index, endIndex + 2),
+                        endIndex + 2
+                );
+            }
+        }
+
+        if (content.startsWith("\\[", index)) {
+            int endIndex = content.indexOf("\\]", index + 2);
+            if (endIndex >= 0) {
+                return new FormulaMatch(
+                        content.substring(index + 2, endIndex),
+                        true,
+                        content.substring(index, endIndex + 2),
+                        endIndex + 2
+                );
+            }
+        }
+
+        if (content.startsWith("\\(", index)) {
+            int endIndex = content.indexOf("\\)", index + 2);
+            if (endIndex >= 0) {
+                return new FormulaMatch(
+                        content.substring(index + 2, endIndex),
+                        false,
+                        content.substring(index, endIndex + 2),
+                        endIndex + 2
+                );
+            }
+        }
+
+        if (content.charAt(index) == '$'
+                && !isEscapedDollar(content, index)
+                && (index + 1 >= content.length() || content.charAt(index + 1) != '$')) {
+            int endIndex = findClosingInlineDollar(content, index + 1);
+            if (endIndex >= 0) {
+                return new FormulaMatch(
+                        content.substring(index + 1, endIndex),
+                        false,
+                        content.substring(index, endIndex + 1),
+                        endIndex + 1
+                );
+            }
+        }
+
+        return null;
+    }
+
+    private int findClosingDoubleDollar(String content, int startIndex) {
+        int currentIndex = startIndex;
+        while (currentIndex < content.length()) {
+            int closingIndex = content.indexOf("$$", currentIndex);
+            if (closingIndex < 0) {
+                return -1;
+            }
+            if (!isEscapedDollar(content, closingIndex)) {
+                return closingIndex;
+            }
+            currentIndex = closingIndex + 2;
+        }
+        return -1;
+    }
+
+    private int findClosingInlineDollar(String content, int startIndex) {
+        int currentIndex = startIndex;
+        while (currentIndex < content.length()) {
+            int closingIndex = content.indexOf('$', currentIndex);
+            if (closingIndex < 0) {
+                return -1;
+            }
+            boolean singleDollar = closingIndex + 1 >= content.length() || content.charAt(closingIndex + 1) != '$';
+            if (!isEscapedDollar(content, closingIndex) && singleDollar) {
+                return closingIndex;
+            }
+            currentIndex = closingIndex + 1;
+        }
+        return -1;
+    }
+
+    private boolean isEscapedDollar(String content, int dollarIndex) {
+        int backslashCount = 0;
+        for (int i = dollarIndex - 1; i >= 0 && content.charAt(i) == '\\'; i--) {
+            backslashCount++;
+        }
+        return backslashCount % 2 == 1;
+    }
+
+    private String decodeHtmlEntities(String content) {
+        if (!StringUtils.hasText(content)) {
+            return "";
+        }
+        return content
+                .replace("&nbsp;", " ")
+                .replace("&lt;", "<")
+                .replace("&gt;", ">")
+                .replace("&amp;", "&")
+                .replace("&quot;", "\"")
+                .replace("&#39;", "'");
+    }
+
     private String toPlainText(String content) {
         if (!StringUtils.hasText(content)) {
             return "";
@@ -520,6 +885,70 @@ public class QuestionPaperExportService {
                 .trim();
     }
 
+    private RenderedFormula renderFormula(FormulaPlaceholder placeholder, float fontSize) {
+        if (placeholder == null || !StringUtils.hasText(placeholder.latex())) {
+            return null;
+        }
+
+        FormulaRenderKey key = new FormulaRenderKey(
+                placeholder.latex(),
+                placeholder.display(),
+                Math.max(10, Math.round(fontSize))
+        );
+        RenderedFormula cachedFormula = renderedFormulaCache.get(key);
+        if (cachedFormula != null) {
+            return cachedFormula;
+        }
+
+        RenderedFormula renderedFormula = createRenderedFormula(key);
+        if (renderedFormula != null) {
+            renderedFormulaCache.putIfAbsent(key, renderedFormula);
+        }
+        return renderedFormula;
+    }
+
+    private RenderedFormula createRenderedFormula(FormulaRenderKey key) {
+        try {
+            TeXFormula texFormula = new TeXFormula(key.latex());
+            int style = key.display() ? TeXConstants.STYLE_DISPLAY : TeXConstants.STYLE_TEXT;
+            TeXIcon icon = texFormula.createTeXIcon(style, key.fontSize());
+            icon.setInsets(new Insets(0, 0, 0, 0));
+
+            int imageWidth = Math.max(1, Math.round(icon.getIconWidth() * FORMULA_RENDER_SCALE));
+            int imageHeight = Math.max(1, Math.round(icon.getIconHeight() * FORMULA_RENDER_SCALE));
+
+            BufferedImage image = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_ARGB);
+            Graphics2D graphics = image.createGraphics();
+            graphics.setColor(Color.BLACK);
+            graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            graphics.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+            graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+            graphics.scale(FORMULA_RENDER_SCALE, FORMULA_RENDER_SCALE);
+            JLabel label = new JLabel();
+            label.setForeground(Color.BLACK);
+            icon.paintIcon(label, graphics, 0, 0);
+            graphics.dispose();
+
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            ImageIO.write(image, "png", outputStream);
+
+            return new RenderedFormula(
+                    key,
+                    outputStream.toByteArray(),
+                    icon.getIconWidth(),
+                    icon.getIconHeight(),
+                    Math.max(0F, icon.getIconDepth())
+            );
+        } catch (Exception e) {
+            log.warn("Failed to render latex formula. latex={}", key.latex(), e);
+            return null;
+        }
+    }
+
+    private String defaultString(String content) {
+        return content == null ? "" : content;
+    }
+
     public record ExportedPaperFile(String fileName, String contentType, byte[] content) {
     }
 
@@ -534,7 +963,123 @@ public class QuestionPaperExportService {
                                  List<QuestionResponseDTO> questions) {
     }
 
-    private static final class PdfPaperWriter implements Closeable {
+    private record ExtractedContent(String contentWithPlaceholders,
+                                    Map<String, FormulaPlaceholder> placeholders) {
+    }
+
+    private record FormulaMatch(String latex,
+                                boolean display,
+                                String originalText,
+                                int nextIndex) {
+    }
+
+    private record FormulaPlaceholder(String marker,
+                                      String latex,
+                                      boolean display,
+                                      String originalText) {
+    }
+
+    private enum RenderBlockType {
+        PARAGRAPH,
+        DISPLAY_FORMULA,
+        BLANK_LINE
+    }
+
+    private record RenderBlock(RenderBlockType type,
+                               List<InlineNode> inlineNodes,
+                               FormulaPlaceholder formula) {
+
+        private static RenderBlock paragraph(List<InlineNode> inlineNodes) {
+            return new RenderBlock(RenderBlockType.PARAGRAPH, List.copyOf(inlineNodes), null);
+        }
+
+        private static RenderBlock displayFormula(FormulaPlaceholder formula) {
+            return new RenderBlock(RenderBlockType.DISPLAY_FORMULA, List.of(), formula);
+        }
+
+        private static RenderBlock blankLine() {
+            return new RenderBlock(RenderBlockType.BLANK_LINE, List.of(), null);
+        }
+    }
+
+    private record InlineNode(String text, FormulaPlaceholder formula) {
+
+        private static InlineNode text(String text) {
+            return new InlineNode(text, null);
+        }
+
+        private static InlineNode formula(FormulaPlaceholder formula) {
+            return new InlineNode(null, formula);
+        }
+
+        private boolean isText() {
+            return formula == null;
+        }
+
+        private boolean isFormula() {
+            return formula != null;
+        }
+    }
+
+    private record FormulaRenderKey(String latex, boolean display, int fontSize) {
+    }
+
+    private record RenderedFormula(FormulaRenderKey key,
+                                   byte[] imageBytes,
+                                   float widthPt,
+                                   float heightPt,
+                                   float depthPt) {
+
+        private float aboveBaseline() {
+            return Math.max(0F, heightPt - depthPt);
+        }
+
+        private RenderedFormula fitToWidth(float maxWidth) {
+            if (maxWidth <= 0F || widthPt <= maxWidth) {
+                return this;
+            }
+            float scale = maxWidth / widthPt;
+            return new RenderedFormula(key, imageBytes, widthPt * scale, heightPt * scale, depthPt * scale);
+        }
+    }
+
+    private record PdfInlineFragment(String text,
+                                     float fontSize,
+                                     boolean bold,
+                                     RenderedFormula formula,
+                                     FormulaPlaceholder placeholder,
+                                     float width,
+                                     float aboveBaseline,
+                                     float belowBaseline) {
+
+        private static PdfInlineFragment text(String text,
+                                              float fontSize,
+                                              boolean bold,
+                                              float width,
+                                              float aboveBaseline,
+                                              float belowBaseline) {
+            return new PdfInlineFragment(text, fontSize, bold, null, null, width, aboveBaseline, belowBaseline);
+        }
+
+        private static PdfInlineFragment formula(RenderedFormula formula, FormulaPlaceholder placeholder) {
+            return new PdfInlineFragment(
+                    null,
+                    0F,
+                    false,
+                    formula,
+                    placeholder,
+                    formula.widthPt(),
+                    formula.aboveBaseline(),
+                    formula.depthPt()
+            );
+        }
+
+        private boolean isText() {
+            return formula == null;
+        }
+    }
+
+    private final class PdfPaperWriter implements Closeable {
 
         private static final float MARGIN_LEFT = 56F;
         private static final float MARGIN_RIGHT = 56F;
@@ -544,6 +1089,7 @@ public class QuestionPaperExportService {
 
         private final PDDocument document;
         private final PDFont font;
+        private final Map<FormulaRenderKey, PDImageXObject> imageCache = new HashMap<>();
 
         private PDPage currentPage;
         private PDPageContentStream contentStream;
@@ -555,30 +1101,202 @@ public class QuestionPaperExportService {
             startNewPage();
         }
 
-        private void writeCentered(String text, float fontSize) throws IOException {
-            for (String line : wrapText(text, fontSize)) {
-                ensureSpace(fontSize + LINE_GAP);
-                float width = textWidth(line, fontSize);
-                float pageWidth = currentPage.getMediaBox().getWidth();
-                float x = Math.max(MARGIN_LEFT, (pageWidth - width) / 2);
-                writeLine(x, line, fontSize);
-            }
+        private void writeCentered(String content, float fontSize) throws IOException {
+            writeCentered(content, fontSize, false);
         }
 
-        private void writeParagraph(String text, float fontSize) throws IOException {
-            if (!StringUtils.hasText(text)) {
-                return;
-            }
-            String[] paragraphs = text.split("\\R", -1);
-            for (String paragraph : paragraphs) {
-                if (!StringUtils.hasText(paragraph)) {
+        private void writeCentered(String content, float fontSize, boolean bold) throws IOException {
+            writeBlocks(parseRenderBlocks(content), fontSize, bold, true);
+        }
+
+        private void writeParagraph(String content, float fontSize) throws IOException {
+            writeParagraph(content, fontSize, false);
+        }
+
+        private void writeParagraph(String content, float fontSize, boolean bold) throws IOException {
+            writeBlocks(parseRenderBlocks(content), fontSize, bold, false);
+        }
+
+        private void writeBlocks(List<RenderBlock> blocks,
+                                 float fontSize,
+                                 boolean bold,
+                                 boolean centeredParagraph) throws IOException {
+            for (RenderBlock block : blocks) {
+                if (block.type() == RenderBlockType.BLANK_LINE) {
                     addSpacer(fontSize * 0.5F);
                     continue;
                 }
-                for (String line : wrapText(paragraph, fontSize)) {
-                    writeLine(MARGIN_LEFT, line, fontSize);
+
+                if (block.type() == RenderBlockType.DISPLAY_FORMULA) {
+                    writeDisplayFormula(block.formula(), fontSize);
+                    continue;
                 }
+
+                writeInlineParagraph(block.inlineNodes(), fontSize, bold, centeredParagraph);
             }
+        }
+
+        private void writeInlineParagraph(List<InlineNode> inlineNodes,
+                                          float fontSize,
+                                          boolean bold,
+                                          boolean centered) throws IOException {
+            List<PdfInlineFragment> fragments = buildInlineFragments(inlineNodes, fontSize, bold);
+            List<List<PdfInlineFragment>> wrappedLines = wrapFragments(fragments, usableWidth());
+            for (List<PdfInlineFragment> line : wrappedLines) {
+                writeWrappedLine(line, centered);
+            }
+        }
+
+        private List<PdfInlineFragment> buildInlineFragments(List<InlineNode> inlineNodes,
+                                                             float fontSize,
+                                                             boolean bold) throws IOException {
+            List<PdfInlineFragment> fragments = new ArrayList<>();
+            for (InlineNode inlineNode : inlineNodes) {
+                if (inlineNode.isText()) {
+                    if (inlineNode.text() == null) {
+                        continue;
+                    }
+                    for (int i = 0; i < inlineNode.text().length(); i++) {
+                        String character = String.valueOf(inlineNode.text().charAt(i));
+                        float width = textWidth(character, fontSize);
+                        fragments.add(PdfInlineFragment.text(
+                                character,
+                                fontSize,
+                                bold,
+                                width,
+                                textAscent(fontSize),
+                                textDescent(fontSize)
+                        ));
+                    }
+                    continue;
+                }
+
+                RenderedFormula renderedFormula = renderFormula(inlineNode.formula(), fontSize);
+                if (renderedFormula == null) {
+                    String fallback = inlineNode.formula().originalText();
+                    for (int i = 0; i < fallback.length(); i++) {
+                        String character = String.valueOf(fallback.charAt(i));
+                        fragments.add(PdfInlineFragment.text(
+                                character,
+                                fontSize,
+                                bold,
+                                textWidth(character, fontSize),
+                                textAscent(fontSize),
+                                textDescent(fontSize)
+                        ));
+                    }
+                    continue;
+                }
+
+                fragments.add(PdfInlineFragment.formula(
+                        renderedFormula.fitToWidth(usableWidth()),
+                        inlineNode.formula()
+                ));
+            }
+            return fragments;
+        }
+
+        private List<List<PdfInlineFragment>> wrapFragments(List<PdfInlineFragment> fragments, float maxWidth) {
+            List<List<PdfInlineFragment>> lines = new ArrayList<>();
+            List<PdfInlineFragment> currentLine = new ArrayList<>();
+            float currentWidth = 0F;
+
+            for (PdfInlineFragment fragment : fragments) {
+                if (currentLine.isEmpty() && fragment.isText() && " ".equals(fragment.text())) {
+                    continue;
+                }
+
+                boolean overflow = !currentLine.isEmpty() && currentWidth + fragment.width() > maxWidth;
+                if (overflow) {
+                    lines.add(new ArrayList<>(currentLine));
+                    currentLine.clear();
+                    currentWidth = 0F;
+                    if (fragment.isText() && " ".equals(fragment.text())) {
+                        continue;
+                    }
+                }
+
+                currentLine.add(fragment);
+                currentWidth += fragment.width();
+            }
+
+            if (!currentLine.isEmpty()) {
+                lines.add(currentLine);
+            }
+            if (lines.isEmpty()) {
+                lines.add(List.of());
+            }
+            return lines;
+        }
+
+        private void writeWrappedLine(List<PdfInlineFragment> line, boolean centered) throws IOException {
+            if (line.isEmpty()) {
+                addSpacer(10F);
+                return;
+            }
+
+            float lineAbove = 0F;
+            float lineBelow = 0F;
+            float lineWidth = 0F;
+            for (PdfInlineFragment fragment : line) {
+                lineAbove = Math.max(lineAbove, fragment.aboveBaseline());
+                lineBelow = Math.max(lineBelow, fragment.belowBaseline());
+                lineWidth += fragment.width();
+            }
+
+            float requiredHeight = lineAbove + lineBelow + LINE_GAP;
+            ensureSpace(requiredHeight);
+
+            float baselineY = cursorY - lineAbove;
+            float x = centered
+                    ? MARGIN_LEFT + Math.max(0F, (usableWidth() - lineWidth) / 2F)
+                    : MARGIN_LEFT;
+
+            for (PdfInlineFragment fragment : line) {
+                if (fragment.isText()) {
+                    writeText(x, baselineY, fragment.text(), fragment.fontSize(), fragment.bold());
+                } else {
+                    drawFormula(fragment.formula(), x, baselineY - fragment.formula().depthPt());
+                }
+                x += fragment.width();
+            }
+
+            cursorY -= requiredHeight;
+        }
+
+        private void writeDisplayFormula(FormulaPlaceholder placeholder, float fontSize) throws IOException {
+            RenderedFormula renderedFormula = renderFormula(placeholder, fontSize);
+            if (renderedFormula == null) {
+                writeParagraph(placeholder.originalText(), fontSize, false);
+                return;
+            }
+
+            RenderedFormula fittedFormula = renderedFormula.fitToWidth(usableWidth());
+            float requiredHeight = fittedFormula.heightPt() + LINE_GAP;
+            ensureSpace(requiredHeight);
+
+            float x = MARGIN_LEFT + Math.max(0F, (usableWidth() - fittedFormula.widthPt()) / 2F);
+            float y = cursorY - fittedFormula.heightPt();
+            drawFormula(fittedFormula, x, y);
+            cursorY -= requiredHeight;
+        }
+
+        private void drawFormula(RenderedFormula renderedFormula, float x, float y) throws IOException {
+            PDImageXObject image = imageCache.computeIfAbsent(
+                    renderedFormula.key(),
+                    ignored -> {
+                        try {
+                            return PDImageXObject.createFromByteArray(
+                                    document,
+                                    renderedFormula.imageBytes(),
+                                    "formula"
+                            );
+                        } catch (IOException e) {
+                            throw new IllegalStateException(e);
+                        }
+                    }
+            );
+            contentStream.drawImage(image, x, y, renderedFormula.widthPt(), renderedFormula.heightPt());
         }
 
         private void addSpacer(float space) throws IOException {
@@ -586,14 +1304,17 @@ public class QuestionPaperExportService {
             cursorY -= space;
         }
 
-        private void writeLine(float x, String text, float fontSize) throws IOException {
-            ensureSpace(fontSize + LINE_GAP);
+        private void writeText(float x, float y, String text, float fontSize, boolean bold) throws IOException {
             contentStream.beginText();
             contentStream.setFont(font, fontSize);
-            contentStream.newLineAtOffset(x, cursorY);
+            contentStream.setRenderingMode(bold ? RenderingMode.FILL_STROKE : RenderingMode.FILL);
+            if (bold) {
+                contentStream.setLineWidth(Math.max(0.18F, fontSize * 0.03F));
+            }
+            contentStream.newLineAtOffset(x, y);
             contentStream.showText(text == null ? "" : text);
             contentStream.endText();
-            cursorY -= (fontSize + LINE_GAP);
+            contentStream.setRenderingMode(RenderingMode.FILL);
         }
 
         private void ensureSpace(float requiredHeight) throws IOException {
@@ -615,36 +1336,18 @@ public class QuestionPaperExportService {
         }
 
         private float textWidth(String text, float fontSize) throws IOException {
-            if (!StringUtils.hasText(text)) {
+            if (text == null || text.isEmpty()) {
                 return 0F;
             }
             return font.getStringWidth(text) / 1000F * fontSize;
         }
 
-        private List<String> wrapText(String text, float fontSize) throws IOException {
-            List<String> lines = new ArrayList<>();
-            if (!StringUtils.hasText(text)) {
-                lines.add("");
-                return lines;
-            }
+        private float textAscent(float fontSize) {
+            return fontSize * PDF_TEXT_ASCENT_RATIO;
+        }
 
-            float maxWidth = usableWidth();
-            StringBuilder currentLine = new StringBuilder();
-            for (int i = 0; i < text.length(); i++) {
-                char currentChar = text.charAt(i);
-                String candidate = currentLine + String.valueOf(currentChar);
-                if (currentLine.length() == 0 || textWidth(candidate, fontSize) <= maxWidth) {
-                    currentLine.append(currentChar);
-                    continue;
-                }
-                lines.add(currentLine.toString());
-                currentLine.setLength(0);
-                currentLine.append(currentChar);
-            }
-            if (currentLine.length() > 0) {
-                lines.add(currentLine.toString());
-            }
-            return lines;
+        private float textDescent(float fontSize) {
+            return fontSize * PDF_TEXT_DESCENT_RATIO;
         }
 
         private void closeCurrentStream() throws IOException {

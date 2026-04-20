@@ -2,6 +2,8 @@ package com.dayz.sapientiacloud_edupivot.celestial_hub.controller;
 
 import com.alibaba.fastjson2.JSON;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.common.controller.BaseController;
+import com.dayz.sapientiacloud_edupivot.celestial_hub.common.enums.ResultEnum;
+import com.dayz.sapientiacloud_edupivot.celestial_hub.common.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.common.result.Result;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.common.security.annotation.HasPermission;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.common.security.utils.UserContextUtil;
@@ -26,6 +28,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -40,6 +43,7 @@ import reactor.core.scheduler.Schedulers;
 
 import java.util.List;
 import java.util.UUID;
+import java.nio.charset.StandardCharsets;
 
 @Slf4j
 @Tag(name = "AI Question Generation")
@@ -49,7 +53,7 @@ import java.util.UUID;
 public class QuestionGenerateController extends BaseController {
 
     private static final String GENERATION_FAILED_MESSAGE =
-            "Question generation failed after 3 retries. Please try again later.";
+            "Question generation failed. Please try again later.";
 
     private final KafkaQuestionService kafkaQuestionService;
     private final QuestionPaperExportService questionPaperExportService;
@@ -176,8 +180,16 @@ public class QuestionGenerateController extends BaseController {
     )
     @PostMapping(value = "/paper/export/pdf", produces = MediaType.APPLICATION_PDF_VALUE)
     public ResponseEntity<byte[]> exportPaperPdf(@Valid @RequestBody QuestionPaperExportRequestDTO request) {
-        QuestionPaperExportService.ExportedPaperFile exportedFile = questionPaperExportService.exportPdf(request);
-        return buildFileResponse(exportedFile);
+        try {
+            QuestionPaperExportService.ExportedPaperFile exportedFile = questionPaperExportService.exportPdf(request);
+            return buildFileResponse(exportedFile);
+        } catch (BusinessException e) {
+            log.warn("Paper PDF export failed. message={}", e.getMessage(), e);
+            return buildFileErrorResponse(resolveExportErrorStatus(e), e.getMessage());
+        } catch (Exception e) {
+            log.error("Paper PDF export failed unexpectedly.", e);
+            return buildFileErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, ResultEnum.FAIL.getMessage());
+        }
     }
 
     @Operation(summary = "exportPaperWord", description = "Export AI generated full paper as Word.")
@@ -196,8 +208,16 @@ public class QuestionGenerateController extends BaseController {
             produces = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     )
     public ResponseEntity<byte[]> exportPaperWord(@Valid @RequestBody QuestionPaperExportRequestDTO request) {
-        QuestionPaperExportService.ExportedPaperFile exportedFile = questionPaperExportService.exportWord(request);
-        return buildFileResponse(exportedFile);
+        try {
+            QuestionPaperExportService.ExportedPaperFile exportedFile = questionPaperExportService.exportWord(request);
+            return buildFileResponse(exportedFile);
+        } catch (BusinessException e) {
+            log.warn("Paper Word export failed. message={}", e.getMessage(), e);
+            return buildFileErrorResponse(resolveExportErrorStatus(e), e.getMessage());
+        } catch (Exception e) {
+            log.error("Paper Word export failed unexpectedly.", e);
+            return buildFileErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, ResultEnum.FAIL.getMessage());
+        }
     }
 
     private QuestionGenerationExecutionContext prepareExecutionContext(QuestionGenerateRequestDTO request) {
@@ -210,38 +230,25 @@ public class QuestionGenerateController extends BaseController {
 
     private List<QuestionResponseDTO> executeQuestionGeneration(QuestionGenerateRequestDTO request,
                                                                QuestionGenerationExecutionContext context) {
-        List<QuestionResponseDTO> questions = null;
-        int maxRetry = 3;
-        RuntimeException lastError = null;
-        for (int i = 0; i < maxRetry; i++) {
-            int attemptNo = i + 1;
-            try {
-                questions = kafkaQuestionService.generateQuestions(request, context.requestId(), context.userId());
-                lastError = null;
-            } catch (RuntimeException e) {
-                lastError = e;
-                log.warn("Question generation attempt failed. requestId={}, sessionId={}, attemptNo={}, error={}",
-                        context.requestId(), context.sessionId(), attemptNo, e.getMessage());
-                continue;
-            }
-
-            if (questions != null && !questions.isEmpty()) {
-                break;
-            }
-
-            log.warn("Question generation attempt returned empty result. requestId={}, sessionId={}, attemptNo={}",
-                    context.requestId(), context.sessionId(), attemptNo);
+        List<QuestionResponseDTO> questions;
+        try {
+            questions = kafkaQuestionService.generateQuestions(request, context.requestId(), context.userId());
+        } catch (RuntimeException e) {
+            saveGenerationFailureMessage(context.sessionId(), context.requestId());
+            log.warn("Question generation request failed. requestId={}, sessionId={}, error={}",
+                    context.requestId(), context.sessionId(), e.getMessage());
+            throw e;
         }
 
         if (questions == null || questions.isEmpty()) {
+            log.warn("Question generation request returned empty result. requestId={}, sessionId={}",
+                    context.requestId(), context.sessionId());
             saveGenerationFailureMessage(context.sessionId(), context.requestId());
-            if (lastError != null) {
-                throw lastError;
-            }
+            return List.of();
         }
 
         triggerSessionTitleIfNecessary(context.sessionId(), context.needGenerateTitle());
-        return questions == null ? List.of() : questions;
+        return questions;
     }
 
     private boolean shouldGenerateSessionTitle(UUID sessionId) {
@@ -290,6 +297,30 @@ public class QuestionGenerateController extends BaseController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, buildContentDisposition(exportedFile.fileName()))
                 .contentLength(exportedFile.content().length)
                 .body(exportedFile.content());
+    }
+
+    private ResponseEntity<byte[]> buildFileErrorResponse(HttpStatus status, String message) {
+        byte[] content = (message == null ? ResultEnum.FAIL.getMessage() : message).getBytes(StandardCharsets.UTF_8);
+        return ResponseEntity.status(status)
+                .contentType(new MediaType("text", "plain", StandardCharsets.UTF_8))
+                .contentLength(content.length)
+                .body(content);
+    }
+
+    private HttpStatus resolveExportErrorStatus(BusinessException e) {
+        if (e == null) {
+            return HttpStatus.INTERNAL_SERVER_ERROR;
+        }
+        if (e.getCode() == ResultEnum.PARAM_ERROR.getCode()) {
+            return HttpStatus.BAD_REQUEST;
+        }
+        if (e.getCode() == ResultEnum.FORBIDDEN.getCode()) {
+            return HttpStatus.FORBIDDEN;
+        }
+        if (e.getCode() == ResultEnum.UNAUTHORIZED.getCode()) {
+            return HttpStatus.UNAUTHORIZED;
+        }
+        return HttpStatus.INTERNAL_SERVER_ERROR;
     }
 
     private String buildContentDisposition(String fileName) {

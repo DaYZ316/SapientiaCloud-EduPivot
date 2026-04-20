@@ -233,6 +233,11 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml-full</artifactId>
+            <version>${poi.version}</version>
+        </dependency>
         <!-- Apache Commons Compress: 显式指定安全版本，覆盖传递依赖中的易受攻击版本 -->
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -243,6 +248,11 @@
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
             <version>${commons.io.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.scilab.forge</groupId>
+            <artifactId>jlatexmath</artifactId>
+            <version>1.0.7</version>
         </dependency>
 
         <!-- ==================== Utilities ==================== -->
@@ -382,6 +392,16 @@
             <resource>
                 <directory>src/main/resources</directory>
                 <filtering>true</filtering>
+                <excludes>
+                    <exclude>fonts/**</exclude>
+                </excludes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+                <includes>
+                    <include>fonts/**</include>
+                </includes>
             </resource>
         </resources>
     </build>
