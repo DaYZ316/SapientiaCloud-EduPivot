@@ -41,6 +41,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
 import java.nio.charset.StandardCharsets;
@@ -97,11 +98,54 @@ public class QuestionGenerateController extends BaseController {
             permission = PermissionConstants.CELESTIAL_ADD
     )
     @PostMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<String> generateQuestionsStream(
+    public ResponseEntity<Flux<String>> generateQuestionsStream(
             @Valid @RequestBody QuestionGenerateRequestDTO request) {
         QuestionGenerationExecutionContext context = prepareExecutionContext(request);
 
-        return Flux.concat(
+        Mono<String> terminalEvent = Mono.fromCallable(() -> executeQuestionGeneration(request, context))
+                .subscribeOn(Schedulers.boundedElastic())
+                .map(questions -> {
+                    if (questions == null || questions.isEmpty()) {
+                        return buildStreamEvent(new QuestionGenerateStreamEvent(
+                                context.requestId(),
+                                context.sessionId(),
+                                "error",
+                                0,
+                                GENERATION_FAILED_MESSAGE
+                        ));
+                    }
+                    return buildStreamEvent(new QuestionGenerateStreamEvent(
+                            context.requestId(),
+                            context.sessionId(),
+                            "completed",
+                            questions.size(),
+                            null
+                    ));
+                })
+                .onErrorResume(error -> {
+                    log.error("Question generation stream failed. requestId={}, sessionId={}",
+                            context.requestId(), context.sessionId(), error);
+                    return Mono.just(buildStreamEvent(new QuestionGenerateStreamEvent(
+                            context.requestId(),
+                            context.sessionId(),
+                            "error",
+                            null,
+                            error.getMessage()
+                    )));
+                })
+                .cache();
+
+        Flux<String> heartbeats = Flux.interval(Duration.ofSeconds(15))
+                .map(sequence -> buildStreamEvent(new QuestionGenerateStreamEvent(
+                        context.requestId(),
+                        context.sessionId(),
+                        "processing",
+                        null,
+                        null
+                )))
+                .takeUntilOther(terminalEvent);
+
+        Flux<String> streamBody = Flux.concat(
                 Flux.just(buildStreamEvent(new QuestionGenerateStreamEvent(
                         context.requestId(),
                         context.sessionId(),
@@ -109,38 +153,10 @@ public class QuestionGenerateController extends BaseController {
                         null,
                         null
                 ))),
-                Mono.fromCallable(() -> executeQuestionGeneration(request, context))
-                        .subscribeOn(Schedulers.boundedElastic())
-                        .map(questions -> {
-                            if (questions == null || questions.isEmpty()) {
-                                return buildStreamEvent(new QuestionGenerateStreamEvent(
-                                        context.requestId(),
-                                        context.sessionId(),
-                                        "error",
-                                        0,
-                                        GENERATION_FAILED_MESSAGE
-                                ));
-                            }
-                            return buildStreamEvent(new QuestionGenerateStreamEvent(
-                                    context.requestId(),
-                                    context.sessionId(),
-                                    "completed",
-                                    questions.size(),
-                                    null
-                            ));
-                        })
-                        .onErrorResume(error -> {
-                            log.error("Question generation stream failed. requestId={}, sessionId={}",
-                                    context.requestId(), context.sessionId(), error);
-                            return Mono.just(buildStreamEvent(new QuestionGenerateStreamEvent(
-                                    context.requestId(),
-                                    context.sessionId(),
-                                    "error",
-                                    null,
-                                    error.getMessage()
-                            )));
-                        })
+                Flux.merge(heartbeats, terminalEvent)
         );
+
+        return buildSseResponse(streamBody);
     }
 
     @Deprecated(forRemoval = true)
@@ -289,6 +305,16 @@ public class QuestionGenerateController extends BaseController {
 
     private String buildStreamEvent(QuestionGenerateStreamEvent event) {
         return JSON.toJSONString(event);
+    }
+
+    private ResponseEntity<Flux<String>> buildSseResponse(Flux<String> body) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.TEXT_EVENT_STREAM);
+        headers.setCacheControl("no-cache, no-transform");
+        headers.set("X-Accel-Buffering", "no");
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(body);
     }
 
     private ResponseEntity<byte[]> buildFileResponse(QuestionPaperExportService.ExportedPaperFile exportedFile) {

@@ -14,7 +14,9 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 
@@ -47,8 +49,8 @@ public class ChatMessageController extends BaseController {
             permission = PermissionConstants.CELESTIAL_ADD
     )
     @PostMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<String> chatStream(@Valid @RequestBody ChatRequestDTO request) {
-        return chatMessageService.chatStream(request);
+    public ResponseEntity<Flux<String>> chatStream(@Valid @RequestBody ChatRequestDTO request) {
+        return buildSseResponse(chatMessageService.chatStream(request));
     }
 
     @HasPermission(
@@ -57,8 +59,18 @@ public class ChatMessageController extends BaseController {
             permission = PermissionConstants.CELESTIAL_ADD
     )
     @PostMapping(value = "/stream/kafka", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<String> chatStreamKafka(@Valid @RequestBody KafkaChatRequestDTO request) {
-        return chatMessageService.chatStreamKafka(request);
+    public ResponseEntity<Flux<String>> chatStreamKafka(@Valid @RequestBody KafkaChatRequestDTO request) {
+        return buildSseResponse(chatMessageService.chatStreamKafka(request));
+    }
+
+    private ResponseEntity<Flux<String>> buildSseResponse(Flux<String> body) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.TEXT_EVENT_STREAM);
+        headers.setCacheControl("no-cache, no-transform");
+        headers.set("X-Accel-Buffering", "no");
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(body);
     }
 
     // TODO 逻辑优化

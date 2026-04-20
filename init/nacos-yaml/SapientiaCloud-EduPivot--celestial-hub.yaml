@@ -29,6 +29,9 @@ feign:
     enabled: true
 
 spring:
+  mvc:
+    async:
+      request-timeout: -1
   jpa:
     open-in-view: false
     show-sql: true
