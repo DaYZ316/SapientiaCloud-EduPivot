@@ -1,5 +1,6 @@
 package com.dayz.sapientiacloud_edupivot.celestial_hub.utils;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
@@ -20,6 +21,7 @@ public class ByteArrayMultipartFile implements MultipartFile {
         this.content = content.clone();
     }
 
+    @NotNull
     @Override
     public String getName() {
         return name;
@@ -45,11 +47,13 @@ public class ByteArrayMultipartFile implements MultipartFile {
         return content.length;
     }
 
+    @NotNull
     @Override
     public byte[] getBytes() {
         return content.clone();
     }
 
+    @NotNull
     @Override
     public InputStream getInputStream() {
         return new ByteArrayInputStream(content);

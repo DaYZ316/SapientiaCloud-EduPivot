@@ -8,6 +8,7 @@ import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.KnowledgeSearch
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.po.ChatMessage;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.po.KnowledgeVector;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.vo.KnowledgeSearchResultVO;
+import com.dayz.sapientiacloud_edupivot.celestial_hub.enums.ChatRoleEnum;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.repository.ChatMessageRepository;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.KnowledgeService;
 import com.github.f4b6a3.uuid.UuidCreator;
@@ -37,19 +38,12 @@ public class ChatMessageUtil {
     public static ChatContext buildContext(UUID sessionId, ChatRequestDTO request, ChatMessageRepository chatMessageRepository) {
         List<Message> messages = new ArrayList<>();
         messages.add(new SystemMessage(AIChatConstants.SYSTEM_PROMPT));
+        messages.add(new SystemMessage(AIChatConstants.MATH_LATEX_STYLE_PROMPT));
 
         // 获取历史消息
         List<ChatMessage> history = chatMessageRepository.findBySessionIdOrderByCreateTimeAsc(sessionId);
         ChatMessage last = history.isEmpty() ? null : history.get(history.size() - 1);
-        for (ChatMessage msg : history) {
-            if (AIChatConstants.ROLE_USER.equals(msg.getRole())) {
-                messages.add(new UserMessage(msg.getContent()));
-            } else if (AIChatConstants.ROLE_ASSISTANT.equals(msg.getRole())) {
-                messages.add(new AssistantMessage(msg.getContent()));
-            } else if (AIChatConstants.ROLE_SYSTEM.equals(msg.getRole())) {
-                messages.add(new SystemMessage(msg.getContent()));
-            }
-        }
+        appendHistoryMessages(messages, history);
 
         // 只有当最后一条历史消息不是同一条用户消息时才追加当前请求
         if (!isSameAsLastUserMessage(last, request.getMessage(), request.getAttachments(), request.getFileReferences())) {
@@ -58,25 +52,108 @@ public class ChatMessageUtil {
         return new ChatContext(messages, last);
     }
 
+    private static void appendHistoryMessages(List<Message> messages, List<ChatMessage> history) {
+        if (history == null || history.isEmpty()) {
+            return;
+        }
+        for (ChatMessage msg : history) {
+            Message historyMessage = toContextMessage(msg);
+            if (historyMessage != null) {
+                messages.add(historyMessage);
+            }
+        }
+    }
+
+    private static Message toContextMessage(ChatMessage msg) {
+        if (msg == null || msg.getRole() == null) {
+            return null;
+        }
+
+        String content = buildContextContent(msg);
+        if (!StringUtils.hasText(content)) {
+            return null;
+        }
+
+        Integer role = msg.getRole();
+        if (AIChatConstants.ROLE_USER.equals(role)
+                || Integer.valueOf(ChatRoleEnum.QUESTION_REQUESTER.getCode()).equals(role)) {
+            return new UserMessage(content);
+        }
+        if (AIChatConstants.ROLE_ASSISTANT.equals(role)
+                || Integer.valueOf(ChatRoleEnum.QUESTION_GENERATOR.getCode()).equals(role)) {
+            return new AssistantMessage(content);
+        }
+        if (AIChatConstants.ROLE_SYSTEM.equals(role)) {
+            return new SystemMessage(content);
+        }
+        return null;
+    }
+
+    private static String buildContextContent(ChatMessage msg) {
+        if (msg == null || msg.getRole() == null) {
+            return null;
+        }
+
+        Integer role = msg.getRole();
+        if (Integer.valueOf(ChatRoleEnum.QUESTION_REQUESTER.getCode()).equals(role)) {
+            return buildQuestionRequestHistory(msg);
+        }
+        if (Integer.valueOf(ChatRoleEnum.QUESTION_GENERATOR.getCode()).equals(role)) {
+            return buildQuestionResponseHistory(msg);
+        }
+        return StringUtils.hasText(msg.getContent()) ? msg.getContent() : null;
+    }
+
+    private static String buildQuestionRequestHistory(ChatMessage msg) {
+        return mergeStructuredQuestionHistory(
+                "Previous question-generation request in this session:",
+                msg.getContent(),
+                "Structured request payload:",
+                msg.getQuestionRequest()
+        );
+    }
+
+    private static String buildQuestionResponseHistory(ChatMessage msg) {
+        return mergeStructuredQuestionHistory(
+                "Previous question-generation result in this session:",
+                msg.getContent(),
+                "Structured generated questions:",
+                msg.getQuestionResponse()
+        );
+    }
+
+    private static String mergeStructuredQuestionHistory(String header,
+                                                         String summary,
+                                                         String payloadLabel,
+                                                         String payload) {
+        boolean hasSummary = StringUtils.hasText(summary);
+        boolean hasPayload = StringUtils.hasText(payload);
+        if (!hasSummary && !hasPayload) {
+            return null;
+        }
+
+        StringBuilder builder = new StringBuilder(header);
+        if (hasSummary) {
+            builder.append('\n').append(summary.trim());
+        }
+        if (hasPayload) {
+            builder.append('\n').append(payloadLabel).append('\n').append(payload.trim());
+        }
+        return builder.toString();
+    }
+
     /**
      * 构建消息上下文（Kafka版本，返回上下文消息与最后一条历史消息）
      */
     public static ChatContext buildContext(UUID sessionId, KafkaChatRequestDTO request, ChatMessageRepository chatMessageRepository) {
         List<Message> messages = new ArrayList<>();
         messages.add(new SystemMessage(AIChatConstants.SYSTEM_PROMPT));
+        messages.add(new SystemMessage(AIChatConstants.MATH_LATEX_STYLE_PROMPT));
 
         // 获取历史消息
         List<ChatMessage> history = chatMessageRepository.findBySessionIdOrderByCreateTimeAsc(sessionId);
         ChatMessage last = history.isEmpty() ? null : history.get(history.size() - 1);
-        for (ChatMessage msg : history) {
-            if (AIChatConstants.ROLE_USER.equals(msg.getRole())) {
-                messages.add(new UserMessage(msg.getContent()));
-            } else if (AIChatConstants.ROLE_ASSISTANT.equals(msg.getRole())) {
-                messages.add(new AssistantMessage(msg.getContent()));
-            } else if (AIChatConstants.ROLE_SYSTEM.equals(msg.getRole())) {
-                messages.add(new SystemMessage(msg.getContent()));
-            }
-        }
+        appendHistoryMessages(messages, history);
 
         // 只有当最后一条历史消息不是同一条用户消息时才追加当前请求
         if (!isSameAsLastUserMessage(last, request.getMessage(), request.getAttachments(), request.getFileReferences())) {

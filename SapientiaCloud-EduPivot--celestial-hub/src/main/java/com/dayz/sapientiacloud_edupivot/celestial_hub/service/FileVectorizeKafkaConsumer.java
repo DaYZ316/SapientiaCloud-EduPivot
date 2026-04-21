@@ -199,7 +199,7 @@ public class FileVectorizeKafkaConsumer {
 
             // 将文件向量元数据写入知识向量表，便于检索时补全信息
             List<KnowledgeVector> vectors = new ArrayList<>();
-            for (org.springframework.ai.document.Document doc : documents) {
+            for (Document doc : documents) {
                 KnowledgeVector vector = buildFileKnowledgeVector(doc, fileDocument);
                 if (vector != null) {
                     vectors.add(vector);
@@ -252,7 +252,7 @@ public class FileVectorizeKafkaConsumer {
     /**
      * 构建文件向量的 KnowledgeVector 记录
      */
-    private KnowledgeVector buildFileKnowledgeVector(org.springframework.ai.document.Document doc, FileDocument fileDocument) {
+    private KnowledgeVector buildFileKnowledgeVector(Document doc, FileDocument fileDocument) {
         if (doc == null) {
             return null;
         } else {

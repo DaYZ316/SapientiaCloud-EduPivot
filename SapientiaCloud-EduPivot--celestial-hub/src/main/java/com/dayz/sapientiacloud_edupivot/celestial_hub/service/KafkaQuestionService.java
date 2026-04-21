@@ -28,10 +28,10 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
- * AI出题 Kafka 服务
- * 通过 Kafka 转发出题请求并等待结果
+ * Kafka bridge for AI question generation requests and responses.
  */
 @Slf4j
 @Service
@@ -42,81 +42,72 @@ public class KafkaQuestionService {
 
     @Value("${spring.kafka.topic.question-request:question-request-topic}")
     private String questionRequestTopic;
+
     @Value("${spring.kafka.topic.question-response:question-response-topic}")
     private String questionResponseTopic;
-    @Value("${kafka.question.timeout-seconds:300}")
+
+    @Value("${kafka.question.timeout-seconds:1800}")
     private long questionTimeoutSeconds;
 
-    public KafkaQuestionService(KafkaTemplate<String, String> kafkaTemplate) {
+    public KafkaQuestionService(KafkaTemplate<String, String> kafkaTemplate,
+                                @Value("${kafka.question.response-cache-minutes:40}")
+                                long questionResponseCacheMinutes) {
         this.kafkaTemplate = kafkaTemplate;
         this.responseSinks = Caffeine.newBuilder()
                 .maximumSize(500)
-                .expireAfterWrite(10, TimeUnit.MINUTES)
+                .expireAfterWrite(questionResponseCacheMinutes, TimeUnit.MINUTES)
                 .build();
     }
 
-    /**
-     * 发送出题请求，并同步等待完整结果（内部使用 Reactor 实现超时控制）
-     *
-     * @param request   出题请求
-     * @param requestId 请求ID；允许外部传入以便多次重试时复用同一个 requestId，若为 null 则自动生成
-     */
     public List<QuestionResponseDTO> generateQuestions(QuestionGenerateRequestDTO request, String requestId) {
-        String finalRequestId = (requestId != null ? requestId : UUID.randomUUID().toString());
+        return generateQuestions(request, requestId, null);
+    }
 
-        UUID currentUserId = UserContextUtil.getCurrentUserId();
-        if (currentUserId == null) {
+    public List<QuestionResponseDTO> generateQuestions(QuestionGenerateRequestDTO request,
+                                                       String requestId,
+                                                       UUID currentUserId) {
+        String finalRequestId = requestId != null ? requestId : UUID.randomUUID().toString();
+
+        UUID finalUserId = currentUserId != null ? currentUserId : UserContextUtil.getCurrentUserId();
+        if (finalUserId == null) {
             throw new BusinessException(ResultEnum.UNAUTHORIZED.getMessage());
         }
 
         QuestionRequestMessage requestMessage = new QuestionRequestMessage();
         requestMessage.setRequestId(finalRequestId);
         requestMessage.setRequest(request);
-        requestMessage.setUserId(currentUserId);
+        requestMessage.setUserId(finalUserId);
 
-        Sinks.One<String> sink = Sinks.one();
-        responseSinks.put(finalRequestId, sink);
+        Sinks.One<String> sink = responseSinks.getIfPresent(finalRequestId);
+        boolean needDispatch = sink == null;
+        if (needDispatch) {
+            sink = Sinks.one();
+            responseSinks.put(finalRequestId, sink);
+        }
 
         try {
-            String payload = JSON.toJSONString(requestMessage);
-            CompletableFuture<SendResult<String, String>> future =
-                    kafkaTemplate.send(questionRequestTopic, finalRequestId, payload);
+            if (needDispatch) {
+                dispatchQuestionRequest(finalRequestId, requestMessage, sink);
+            } else {
+                log.debug("Reusing pending question request sink. requestId={}", finalRequestId);
+            }
 
-            future.whenComplete((result, ex) -> {
-                if (ex != null) {
-                    log.debug("发送出题Kafka消息失败, requestId={}", finalRequestId, ex);
-                    sink.tryEmitError(ex);
-                    responseSinks.invalidate(finalRequestId);
-                }
-            });
-
-            // 等待响应
-            String json = Mono.fromCallable(() -> sink.asMono().block(Duration.ofSeconds(questionTimeoutSeconds)))
-                    .timeout(Duration.ofSeconds(questionTimeoutSeconds))
-                    .block();
-
+            String json = awaitQuestionResponse(finalRequestId, sink);
             if (!StringUtils.hasText(json)) {
                 return List.of();
             }
             return JSON.parseArray(json, QuestionResponseDTO.class);
         } catch (Exception e) {
-            log.debug("处理出题Kafka请求失败, requestId={}", finalRequestId, e);
-            throw new RuntimeException("AI出题请求失败", e);
-        } finally {
+            log.debug("Failed to handle Kafka question request. requestId={}", finalRequestId, e);
             responseSinks.invalidate(finalRequestId);
+            throw new RuntimeException("AI出题请求失败", e);
         }
     }
 
-    /**
-     * 兼容旧接口：不显式传入 requestId 时，每次调用都会生成新的 requestId
-     */
     public List<QuestionResponseDTO> generateQuestions(QuestionGenerateRequestDTO request) {
         return generateQuestions(request, null);
     }
 
-    /**
-     * 网关侧消费出题结果
-     */
     @KafkaListener(topics = "${spring.kafka.topic.question-response:question-response-topic}",
             groupId = "${spring.kafka.consumer.group-id:chat-group}-question-response")
     public void consumeQuestionResponse(@Payload String message,
@@ -129,13 +120,11 @@ public class KafkaQuestionService {
         if (sink == null) {
             return;
         }
+
         sink.tryEmitValue(responseMessage.getContent());
         responseSinks.invalidate(finalRequestId);
     }
 
-    /**
-     * Worker 侧调用：发送出题结果
-     */
     public void sendQuestionResponse(String requestId, String jsonContent) {
         QuestionResponseMessage response = new QuestionResponseMessage();
         response.setRequestId(requestId);
@@ -145,24 +134,43 @@ public class KafkaQuestionService {
             kafkaTemplate.send(questionResponseTopic, requestId, payload)
                     .whenComplete((result, ex) -> {
                         if (ex != null) {
-                            log.debug("发送出题响应Kafka消息失败, requestId={}", requestId, ex);
+                            log.debug("Failed to send question response Kafka message. requestId={}", requestId, ex);
                         }
                     });
         } catch (Exception ex) {
-            log.debug("序列化出题响应Kafka消息失败, requestId={}", requestId, ex);
+            log.debug("Failed to serialize question response Kafka message. requestId={}", requestId, ex);
         }
     }
 
-    /**
-     * 检查 Kafka 请求状态
-     *
-     * @param requestId 请求ID
-     * @return true：已完成（或未找到），false：进行中
-     */
     public boolean checkRequestStatus(String requestId) {
-        // 如果 responseSinks 中还存在该 requestId，说明请求还在进行中
-        // 如果不存在，说明已完成（或未找到）
         return responseSinks.getIfPresent(requestId) == null;
+    }
+
+    private void dispatchQuestionRequest(String requestId,
+                                         QuestionRequestMessage requestMessage,
+                                         Sinks.One<String> sink) {
+        String payload = JSON.toJSONString(requestMessage);
+        CompletableFuture<SendResult<String, String>> future =
+                kafkaTemplate.send(questionRequestTopic, requestId, payload);
+
+        future.whenComplete((result, ex) -> {
+            if (ex != null) {
+                log.debug("Failed to send question request Kafka message. requestId={}", requestId, ex);
+                sink.tryEmitError(ex);
+                responseSinks.invalidate(requestId);
+            }
+        });
+    }
+
+    private String awaitQuestionResponse(String requestId, Sinks.One<String> sink) {
+        return sink.asMono()
+                .timeout(Duration.ofSeconds(questionTimeoutSeconds))
+                .onErrorResume(TimeoutException.class, ex -> {
+                    log.warn("Question Kafka response wait timed out. requestId={}, timeoutSeconds={}",
+                            requestId, questionTimeoutSeconds);
+                    return Mono.empty();
+                })
+                .block();
     }
 
     @Getter
@@ -177,12 +185,6 @@ public class KafkaQuestionService {
     @Setter
     public static class QuestionResponseMessage {
         private String requestId;
-        /**
-         * 出题结果 JSON 数组字符串（List<QuestionResponseDTO>）
-         */
         private String content;
     }
 }
-
-
-

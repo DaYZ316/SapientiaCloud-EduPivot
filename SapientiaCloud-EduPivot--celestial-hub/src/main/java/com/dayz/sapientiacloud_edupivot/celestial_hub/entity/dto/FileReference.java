@@ -6,44 +6,42 @@ import lombok.Data;
 import java.util.UUID;
 
 /**
- * 文件引用信息（对应 mg_file_document 中的属性）
+ * Referenced file metadata used by AI generation requests.
  */
 @Data
-@Schema(description = "文件引用信息")
+@Schema(description = "引用文件信息")
 public class FileReference {
 
-    @Schema(description = "文件ID", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "文件ID", requiredMode = Schema.RequiredMode.REQUIRED, example = "66666666-6666-6666-6666-666666666666")
     private UUID id;
 
-    @Schema(description = "文件名")
+    @Schema(description = "文件名", example = "java-basics-review.pdf")
     private String fileName;
 
-    @Schema(description = "文件类型: 0-PDF, 1-DOC, 2-DOCX, 3-XLS, 4-XLSX, 5-TXT, 6-MD, 7-RTF")
+    @Schema(description = "文件类型：0-PDF，1-DOC，2-DOCX，3-XLS，4-XLSX，5-TXT，6-MD，7-RTF", example = "0")
     private Integer fileType;
 
-    @Schema(description = "文件大小（字节）")
+    @Schema(description = "文件大小，单位字节", example = "524288")
     private Long fileSize;
 
-    @Schema(description = "MIME类型")
+    @Schema(description = "MIME类型", example = "application/pdf")
     private String mimeType;
 
-    @Schema(description = "存储路径（MinIO对象名）")
+    @Schema(description = "存储路径", example = "course/2026/04/java-basics-review.pdf")
     private String storagePath;
 
-    @Schema(description = "存储桶代码")
+    @Schema(description = "存储桶编码", example = "COURSE_PUBLIC")
     private String bucketCode;
 
-    @Schema(description = "上传用户ID")
+    @Schema(description = "上传用户ID", example = "88888888-8888-8888-8888-888888888888")
     private UUID sysUserId;
 
-    @Schema(description = "会话ID（可选，关联会话）")
+    @Schema(description = "关联会话ID", example = "11111111-1111-1111-1111-111111111111")
     private UUID sessionId;
 
-    @Schema(description = "是否已向量化")
+    @Schema(description = "是否已完成向量化", example = "true")
     private Boolean isVectorized;
 
-    @Schema(description = "向量块数量")
+    @Schema(description = "向量切片数量", example = "16")
     private Integer vectorCount;
 }
-
-
