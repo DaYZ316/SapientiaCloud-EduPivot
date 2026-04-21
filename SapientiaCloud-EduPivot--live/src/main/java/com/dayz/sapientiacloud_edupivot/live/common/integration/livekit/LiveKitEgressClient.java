@@ -7,6 +7,7 @@ import com.dayz.sapientiacloud_edupivot.live.common.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.live.common.integration.livekit.dto.LiveKitEgressStartRequest;
 import com.dayz.sapientiacloud_edupivot.live.common.integration.livekit.dto.LiveKitEgressStartResponse;
 import com.dayz.sapientiacloud_edupivot.live.common.integration.livekit.dto.LiveKitEgressStopRequest;
+import com.dayz.sapientiacloud_edupivot.live.enums.LiveRoomEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
@@ -14,6 +15,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -26,7 +28,6 @@ import java.util.UUID;
 @Component
 public class LiveKitEgressClient {
 
-    // LiveKit Egress HTTP/Twirp endpoints
     private static final String START_PATH = "/twirp/livekit.Egress/StartRoomCompositeEgress";
     private static final String STOP_PATH = "/twirp/livekit.Egress/StopEgress";
 
@@ -43,9 +44,15 @@ public class LiveKitEgressClient {
 
     public LiveKitEgressStartResponse startCompositeEgress(LiveKitEgressStartRequest request) {
         String endpoint = buildEndpoint(START_PATH);
-        LiveKitEgressStartResponse response = restTemplate.postForObject(endpoint, buildEntity(request), LiveKitEgressStartResponse.class);
+        LiveKitEgressStartResponse response;
+        try {
+            response = restTemplate.postForObject(endpoint, buildEntity(request), LiveKitEgressStartResponse.class);
+        } catch (RestClientException e) {
+            log.warn("Start LiveKit egress failed", e);
+            throw new BusinessException(LiveRoomEnum.RECORDING_START_FAILED);
+        }
         if (response == null || !StringUtils.hasText(response.getEgressId())) {
-            throw new BusinessException("LiveKit 返回为空，启动录制失败");
+            throw new BusinessException(LiveRoomEnum.RECORDING_START_FAILED);
         }
         return response;
     }
@@ -58,16 +65,13 @@ public class LiveKitEgressClient {
     private String buildEndpoint(String path) {
         String host = liveKitProperties.getHost();
         if (!StringUtils.hasText(host)) {
-            throw new BusinessException("LiveKit host 未配置");
+            throw new BusinessException(LiveRoomEnum.RECORDING_START_FAILED);
         }
-
-        // Egress API 使用 HTTP(S)，若配置为 ws/wss，需转换
         if (host.startsWith("ws://")) {
             host = host.replaceFirst("ws://", "http://");
         } else if (host.startsWith("wss://")) {
             host = host.replaceFirst("wss://", "https://");
         }
-
         return UriComponentsBuilder.fromHttpUrl(host)
                 .path(path)
                 .toUriString();
@@ -80,14 +84,11 @@ public class LiveKitEgressClient {
         return new HttpEntity<>(body, headers);
     }
 
-    /**
-     * 构造 Egress API 所需的 JWT（包含 roomRecord 权限）
-     */
     private String buildEgressJwt() {
         String apiKey = liveKitProperties.getApiKey();
         String apiSecret = liveKitProperties.getApiSecret();
         if (!StringUtils.hasText(apiKey) || !StringUtils.hasText(apiSecret)) {
-            throw new BusinessException("LiveKit API Key/Secret 未配置");
+            throw new BusinessException(LiveRoomEnum.RECORDING_START_FAILED);
         }
 
         Instant now = Instant.now();
@@ -102,4 +103,3 @@ public class LiveKitEgressClient {
                 .sign(Algorithm.HMAC256(apiSecret));
     }
 }
-
