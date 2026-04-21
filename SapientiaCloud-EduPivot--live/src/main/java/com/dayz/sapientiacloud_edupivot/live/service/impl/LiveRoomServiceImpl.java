@@ -3,11 +3,14 @@ package com.dayz.sapientiacloud_edupivot.live.service.impl;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.dayz.sapientiacloud_edupivot.live.common.clients.CourseRecordClient;
+import com.dayz.sapientiacloud_edupivot.live.common.clients.MinIOFileClient;
 import com.dayz.sapientiacloud_edupivot.live.common.clients.StudentClient;
 import com.dayz.sapientiacloud_edupivot.live.common.clients.TeacherClient;
 import com.dayz.sapientiacloud_edupivot.live.common.config.LiveKitProperties;
 import com.dayz.sapientiacloud_edupivot.live.common.entity.po.LiveRoom;
 import com.dayz.sapientiacloud_edupivot.live.common.entity.po.LiveRoomUser;
+import com.dayz.sapientiacloud_edupivot.live.common.entity.vo.CourseRecordVO;
 import com.dayz.sapientiacloud_edupivot.live.common.entity.vo.StudentVO;
 import com.dayz.sapientiacloud_edupivot.live.common.entity.vo.TeacherVO;
 import com.dayz.sapientiacloud_edupivot.live.common.exception.BusinessException;
@@ -24,6 +27,7 @@ import com.dayz.sapientiacloud_edupivot.live.mapper.LiveRoomMapper;
 import com.dayz.sapientiacloud_edupivot.live.mapper.LiveRoomUserMapper;
 import com.dayz.sapientiacloud_edupivot.live.service.ILiveRoomService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -33,18 +37,24 @@ import org.springframework.beans.factory.annotation.Value;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class LiveRoomServiceImpl implements ILiveRoomService {
 
     private static final DateTimeFormatter FILE_NAME_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+    private static final long LIVE_START_ADVANCE_MINUTES = 10L;
+    private static final long LIVE_END_GRACE_MINUTES = 10L;
 
     private final LiveRoomMapper liveRoomMapper;
     private final LiveRoomUserMapper liveRoomUserMapper;
     private final LiveKitProperties liveKitProperties;
+    private final CourseRecordClient courseRecordClient;
+    private final MinIOFileClient minIOFileClient;
     private final TeacherClient teacherClient;
     private final StudentClient studentClient;
     private final LiveKitEgressClient liveKitEgressClient;
@@ -117,7 +127,6 @@ public class LiveRoomServiceImpl implements ILiveRoomService {
                 liveKitEgressClient.stopEgress(stopRequest);
                 room.setEgressStatus(LiveEgressStatusEnum.STOPPED.getCode());
                 room.setEgressTaskId(null);
-                room.setRecordingAssetUrl(null);
             }
         } catch (Exception e) {
             // 记录警告但不阻止关闭（可根据业务选择是否回滚）
@@ -155,11 +164,18 @@ public class LiveRoomServiceImpl implements ILiveRoomService {
             throw new BusinessException(LiveRoomEnum.ROOM_NOT_LIVE_FOR_STUDENT);
         }
 
+        if (Objects.equals(room.getStatus(), LiveRoomConstants.STATUS_LIVING) && shouldAutoEnd(room.getId())) {
+            endLive(room.getId());
+            throw new BusinessException(LiveRoomEnum.LIVE_WINDOW_EXPIRED);
+        }
+
         // ====== 如果是首次进入直播，切换为 LIVE ======
         if (room.getStatus() == LiveRoomConstants.STATUS_NOT_STARTED) {
+            ensureLiveCanStart(room);
             room.setStatus(LiveRoomConstants.STATUS_LIVING);
             room.setStartTime(LocalDateTime.now());
             liveRoomMapper.updateById(room);
+            autoStartRecordingIfEnabled(room);
 
             try {
                 Map<String, Object> payload = new HashMap<>();
@@ -310,9 +326,11 @@ public class LiveRoomServiceImpl implements ILiveRoomService {
         if (Objects.equals(room.getStatus(), LiveRoomConstants.STATUS_LIVING)) {
             return room;
         }
+        ensureLiveCanStart(room);
         room.setStatus(LiveRoomConstants.STATUS_LIVING);
         room.setStartTime(LocalDateTime.now());
         liveRoomMapper.updateById(room);
+        autoStartRecordingIfEnabled(room);
         // publish to kafka for hub forwarding
         try {
             var payload = new HashMap<String, Object>();
@@ -340,7 +358,6 @@ public class LiveRoomServiceImpl implements ILiveRoomService {
                 liveKitEgressClient.stopEgress(stopRequest);
                 room.setEgressStatus(LiveEgressStatusEnum.STOPPED.getCode());
                 room.setEgressTaskId(null);
-                room.setRecordingAssetUrl(null);
             }
         } catch (Exception e) {
             // ignore egress stop errors
@@ -361,6 +378,30 @@ public class LiveRoomServiceImpl implements ILiveRoomService {
         } catch (Exception ignored) {
         }
         return room;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public LiveRoom discardRecording(UUID roomId) {
+        LiveRoom room = requireRoom(roomId);
+        if (!StringUtils.hasText(room.getRecordingAssetUrl())) {
+            return room;
+        }
+        Result<Boolean> result = minIOFileClient.deleteFileByPath(room.getRecordingAssetUrl());
+        if (result == null || !result.isSuccess() || !Boolean.TRUE.equals(result.getData())) {
+            throw new BusinessException(LiveRoomEnum.RECORDING_DELETE_FAILED);
+        }
+        room.setRecordingAssetUrl(null);
+        room.setEgressTaskId(null);
+        room.setEgressStatus(LiveEgressStatusEnum.STOPPED.getCode());
+        liveRoomMapper.updateById(room);
+        return room;
+    }
+
+    @Override
+    public boolean shouldAutoEnd(UUID roomId) {
+        LiveRoom room = requireRoom(roomId);
+        return LocalDateTime.now().isAfter(resolveLatestEndTime(room));
     }
 
     private String buildLkRoomName(String roomName, UUID classroomId) {
@@ -392,7 +433,7 @@ public class LiveRoomServiceImpl implements ILiveRoomService {
         if (requested != null) {
             return requested;
         }
-        return Objects.requireNonNullElse(existing, LiveRoomConstants.RECORDING_DISABLED);
+        return Objects.requireNonNullElse(existing, LiveRoomConstants.RECORDING_ENABLED);
     }
 
     private TeacherVO fetchTeacherByUserId(UUID userId) {
@@ -455,12 +496,73 @@ public class LiveRoomServiceImpl implements ILiveRoomService {
         return room;
     }
 
+    private CourseRecordVO requireCourseRecord(UUID courseRecordId) {
+        Result<CourseRecordVO> result;
+        try {
+            result = courseRecordClient.getCourseRecordById(courseRecordId);
+        } catch (Exception e) {
+            log.warn("Fetch course record failed, courseRecordId={}", courseRecordId, e);
+            throw new BusinessException(LiveRoomEnum.COURSE_RECORD_SERVICE_ERROR);
+        }
+        if (result == null || !result.isSuccess() || result.getData() == null) {
+            throw new BusinessException(LiveRoomEnum.COURSE_RECORD_SERVICE_ERROR);
+        }
+        CourseRecordVO courseRecord = result.getData();
+        if (courseRecord.getStartTime() == null || courseRecord.getOverTime() == null) {
+            throw new BusinessException(LiveRoomEnum.COURSE_RECORD_SERVICE_ERROR);
+        }
+        return courseRecord;
+    }
+
+    private void ensureLiveCanStart(LiveRoom room) {
+        LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+        if (now.isBefore(resolveEarliestStartTime(room))) {
+            throw new BusinessException(LiveRoomEnum.LIVE_START_TOO_EARLY);
+        }
+        if (now.isAfter(resolveLatestEndTime(room))) {
+            throw new BusinessException(LiveRoomEnum.LIVE_WINDOW_EXPIRED);
+        }
+    }
+
+    private LocalDateTime resolveEarliestStartTime(LiveRoom room) {
+        return requireCourseRecord(room.getId()).getStartTime().minusMinutes(LIVE_START_ADVANCE_MINUTES);
+    }
+
+    private LocalDateTime resolveLatestEndTime(LiveRoom room) {
+        return requireCourseRecord(room.getId()).getOverTime().plusMinutes(LIVE_END_GRACE_MINUTES);
+    }
+
     private void ensureRecordingCapability(LiveRoom room) {
         if (!Objects.equals(room.getRecordingEnabled(), LiveRoomConstants.RECORDING_ENABLED)) {
             throw new BusinessException(LiveRoomEnum.RECORDING_NOT_ENABLED);
         }
         if (!Objects.equals(room.getStatus(), LiveRoomConstants.STATUS_LIVING)) {
             throw new BusinessException(LiveRoomEnum.ROOM_NOT_LIVE);
+        }
+    }
+
+    private void autoStartRecordingIfEnabled(LiveRoom room) {
+        if (!Objects.equals(room.getRecordingEnabled(), LiveRoomConstants.RECORDING_ENABLED)) {
+            return;
+        }
+        if (StringUtils.hasText(room.getEgressTaskId())) {
+            return;
+        }
+        if (!isEgressEnabled()) {
+            room.setEgressStatus(LiveEgressStatusEnum.FAILED.getCode());
+            liveRoomMapper.updateById(room);
+            log.warn("Auto recording skipped because egress is disabled, roomId={}", room.getId());
+            return;
+        }
+        String previousRecordingAssetUrl = room.getRecordingAssetUrl();
+        try {
+            startRecording(room.getId());
+        } catch (Exception e) {
+            room.setEgressTaskId(null);
+            room.setEgressStatus(LiveEgressStatusEnum.FAILED.getCode());
+            room.setRecordingAssetUrl(previousRecordingAssetUrl);
+            liveRoomMapper.updateById(room);
+            log.warn("Auto recording failed, live room remains started, roomId={}", room.getId(), e);
         }
     }
 

@@ -266,4 +266,11 @@ public class LiveRoomController extends BaseController {
         LiveRoom room = liveRoomService.stopRecording(id);
         return Result.success(room);
     }
+
+    @HasPermission(summary = "discardRecording", description = "废弃最后一次直播录制", permission = "LIVE_ROOM_RECORD")
+    @PostMapping("/{id}/record/discard")
+    public Result<LiveRoom> discardRecording(@PathVariable("id") UUID id) {
+        LiveRoom room = liveRoomService.discardRecording(id);
+        return Result.success(room);
+    }
 }
