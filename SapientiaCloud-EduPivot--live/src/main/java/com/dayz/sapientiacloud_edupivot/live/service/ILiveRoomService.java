@@ -22,4 +22,8 @@ public interface ILiveRoomService {
     LiveRoom startLive(UUID roomId);
 
     LiveRoom endLive(UUID roomId);
+
+    LiveRoom discardRecording(UUID roomId);
+
+    boolean shouldAutoEnd(UUID roomId);
 }

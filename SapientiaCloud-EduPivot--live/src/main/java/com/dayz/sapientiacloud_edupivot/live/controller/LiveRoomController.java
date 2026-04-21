@@ -60,6 +60,7 @@ public class LiveRoomController extends BaseController {
         return Result.success(room);
     }
 
+
     @Operation(summary = "issueRoomToken", description = "根据房间ID与用户角色签发访问令牌")
     @PostMapping("/token/{id}")
     public Result<Map<String, Object>> issueToken(@PathVariable("id") UUID id, @Valid @RequestBody LiveRoomTokenRequestDTO dto) {
@@ -81,7 +82,7 @@ public class LiveRoomController extends BaseController {
     @GetMapping("/active")
     public Result<LiveRoom> getActive(@RequestParam(value = "courseId", required = false) UUID courseId,
                                       @RequestParam(value = "classroomId", required = false) UUID classroomId) {
-        java.util.List<LiveRoom> list = liveRoomService.listRooms(LiveRoomConstants.STATUS_LIVING, courseId, classroomId);
+        List<LiveRoom> list = liveRoomService.listRooms(LiveRoomConstants.STATUS_LIVING, courseId, classroomId);
         if (list != null && !list.isEmpty()) {
             return Result.success(list.get(0));
         }
@@ -92,7 +93,7 @@ public class LiveRoomController extends BaseController {
     @GetMapping("/latest")
     public Result<LiveRoom> getLatest(@RequestParam(value = "courseId", required = false) UUID courseId,
                                       @RequestParam(value = "classroomId", required = false) UUID classroomId) {
-        java.util.List<LiveRoom> list = liveRoomService.listRooms(null, courseId, classroomId);
+        List<LiveRoom> list = liveRoomService.listRooms(null, courseId, classroomId);
         if (list != null && !list.isEmpty()) {
             return Result.success(list.get(0));
         }
@@ -109,25 +110,6 @@ public class LiveRoomController extends BaseController {
         return getDataTable(list);
     }
 
-    @Operation(summary = "issueSseToken", description = "签发短期 SSE token 用于直播事件订阅")
-    @PostMapping("/sse-token")
-    public Result<String> issueSseToken(@RequestParam(value = "classroomId", required = false) UUID classroomId) {
-        // SSE token 不需要用户登录，可以匿名访问
-        String token = UUID.randomUUID().toString();
-        Map<String, Object> info = new HashMap<>();
-        // 如果有用户登录，则记录用户ID；否则为空（匿名用户）
-        try {
-            UUID userId = UserContextUtil.getCurrentUserId();
-            if (userId != null) {
-                info.put("userId", userId.toString());
-            }
-        } catch (Exception e) {
-            // 用户未登录，忽略异常
-        }
-        info.put("classroomId", classroomId != null ? classroomId.toString() : null);
-        redisTemplate.opsForValue().set("sse:token:" + token, info, Duration.ofSeconds(sseTokenTtlSeconds));
-        return Result.success(token);
-    }
 
     @Operation(summary = "getLiveRoomDetail", description = "获取直播房间详情")
     @GetMapping("/{id}")
@@ -245,6 +227,7 @@ public class LiveRoomController extends BaseController {
     }
 
 
+
     @Operation(summary = "listLiveRoomMessages", description = "获取直播房间最近的聊天消息")
     @GetMapping("/{id}/messages")
     public Result<List<LiveRoomMessage>> listMessages(@PathVariable("id") UUID id,
@@ -281,6 +264,13 @@ public class LiveRoomController extends BaseController {
     @PostMapping("/{id}/record/stop")
     public Result<LiveRoom> stopRecording(@PathVariable("id") UUID id) {
         LiveRoom room = liveRoomService.stopRecording(id);
+        return Result.success(room);
+    }
+
+    @HasPermission(summary = "discardRecording", description = "废弃最后一次直播录制", permission = "LIVE_ROOM_RECORD")
+    @PostMapping("/{id}/record/discard")
+    public Result<LiveRoom> discardRecording(@PathVariable("id") UUID id) {
+        LiveRoom room = liveRoomService.discardRecording(id);
         return Result.success(room);
     }
 }

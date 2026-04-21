@@ -61,13 +61,13 @@ public class LiveEventController {
      */
     @PostMapping("/sse-token")
     public Result<String> issueSseToken(@RequestParam(value = "classroomId", required = false) String classroomId) {
-        String token = UUID.randomUUID().toString();
+            String token = UUID.randomUUID().toString();
 
-        Map<String, Object> info = new HashMap<>();
-        info.put("classroomId", classroomId);
+            Map<String, Object> info = new HashMap<>();
+            info.put("classroomId", classroomId);
 
-        redisTemplate.opsForValue().set(sseTokenPrefix + token, info, Duration.ofSeconds(sseTokenTtlSeconds));
+            redisTemplate.opsForValue().set(sseTokenPrefix + token, info, Duration.ofSeconds(sseTokenTtlSeconds));
 
-        return Result.success(token);
+            return Result.success(token);
     }
 }
