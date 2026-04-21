@@ -35,6 +35,7 @@ import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.IOException;
@@ -49,9 +50,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.apache.poi.util.Units;
 
 @Slf4j
 @Service
@@ -82,6 +86,16 @@ public class QuestionPaperExportService {
     private static final String FORMULA_PLACEHOLDER_PREFIX = "@@FORMULA_";
     private static final String FORMULA_PLACEHOLDER_SUFFIX = "@@";
     private static final Pattern FORMULA_PLACEHOLDER_PATTERN = Pattern.compile("@@FORMULA_\\d+@@");
+    private static final List<String> EXPORT_NOISE_MARKERS = List.of(
+            "现更正", "更正：", "更正:", "修正：", "修正:", "应重新计算", "最终采用", "最终确定",
+            "调整问题", "回到三变量", "为避免与已有题重复", "为符合高难度设计", "为确保难度和新颖性",
+            "经审慎考虑", "为创新", "为简化", "为匹配难度", "采用经典题", "采用标准题型", "节省时间",
+            "标准答案应为", "原题要求", "但已有题", "为节省时间"
+    );
+    private static final Set<String> BARE_LATEX_ENVIRONMENTS = Set.of(
+            "matrix", "pmatrix", "bmatrix", "Bmatrix", "vmatrix", "Vmatrix",
+            "smallmatrix", "cases", "array", "aligned", "align", "align*", "gather", "gather*"
+    );
     private static final float FORMULA_RENDER_SCALE = 2F;
     private static final float PDF_TEXT_ASCENT_RATIO = 0.82F;
     private static final float PDF_TEXT_DESCENT_RATIO = 0.22F;
@@ -157,6 +171,7 @@ public class QuestionPaperExportService {
 
         List<QuestionResponseDTO> questions = request.getQuestions().stream()
                 .filter(Objects::nonNull)
+                .map(this::sanitizeQuestionForExport)
                 .toList();
         if (questions.isEmpty()) {
             throw new BusinessException(ResultEnum.PARAM_ERROR.getCode(), "试卷题目不能为空");
@@ -169,6 +184,131 @@ public class QuestionPaperExportService {
         List<ExportSection> sections = buildSections(questions);
 
         return new ExportContext(paperName, questions, sections, includeAnswers);
+    }
+
+    private QuestionResponseDTO sanitizeQuestionForExport(QuestionResponseDTO source) {
+        QuestionResponseDTO sanitized = new QuestionResponseDTO();
+        sanitized.setId(source.getId());
+        sanitized.setSysUserId(source.getSysUserId());
+        sanitized.setRequestId(source.getRequestId());
+        sanitized.setQuestionTitle(sanitizeExportContent(source.getQuestionTitle()));
+        sanitized.setQuestionContent(sanitizeExportContent(source.getQuestionContent()));
+        sanitized.setQuestionType(source.getQuestionType());
+        sanitized.setDifficulty(source.getDifficulty());
+        sanitized.setScore(source.getScore());
+        sanitized.setEstimatedTime(source.getEstimatedTime());
+        sanitized.setTags(source.getTags() == null ? null : List.copyOf(source.getTags()));
+        sanitized.setOptions(sanitizeOptionsForExport(source.getOptions()));
+        sanitized.setAnswers(sanitizeAnswersForExport(source.getAnswers()));
+        return sanitized;
+    }
+
+    private List<QuestionOptionSimpleDTO> sanitizeOptionsForExport(List<QuestionOptionSimpleDTO> options) {
+        if (CollectionUtils.isEmpty(options)) {
+            return options;
+        }
+
+        return options.stream()
+                .filter(Objects::nonNull)
+                .map(this::sanitizeOptionForExport)
+                .toList();
+    }
+
+    private QuestionOptionSimpleDTO sanitizeOptionForExport(QuestionOptionSimpleDTO source) {
+        QuestionOptionSimpleDTO sanitized = new QuestionOptionSimpleDTO();
+        sanitized.setId(source.getId());
+        sanitized.setQuestionId(source.getQuestionId());
+        sanitized.setOptionContent(sanitizeExportContent(source.getOptionContent()));
+        sanitized.setOptionLabel(source.getOptionLabel());
+        sanitized.setIsCorrect(source.getIsCorrect());
+        sanitized.setScore(source.getScore());
+        sanitized.setImageUrls(source.getImageUrls() == null ? null : List.copyOf(source.getImageUrls()));
+        sanitized.setExplanation(sanitizeExportContent(source.getExplanation()));
+        return sanitized;
+    }
+
+    private List<QuestionAnswerSimpleDTO> sanitizeAnswersForExport(List<QuestionAnswerSimpleDTO> answers) {
+        if (CollectionUtils.isEmpty(answers)) {
+            return answers;
+        }
+
+        return answers.stream()
+                .filter(Objects::nonNull)
+                .map(this::sanitizeAnswerForExport)
+                .toList();
+    }
+
+    private QuestionAnswerSimpleDTO sanitizeAnswerForExport(QuestionAnswerSimpleDTO source) {
+        QuestionAnswerSimpleDTO sanitized = new QuestionAnswerSimpleDTO();
+        sanitized.setId(source.getId());
+        sanitized.setQuestionId(source.getQuestionId());
+        sanitized.setAnswerContent(sanitizeExportContent(source.getAnswerContent()));
+        sanitized.setExplanation(sanitizeExportContent(source.getExplanation()));
+        sanitized.setScore(source.getScore());
+        sanitized.setSortOrder(source.getSortOrder());
+        return sanitized;
+    }
+
+    private String sanitizeExportContent(String content) {
+        if (!StringUtils.hasText(content)) {
+            return content;
+        }
+
+        String normalized = content
+                .replace("\r\n", "\n")
+                .replace('\r', '\n');
+        String[] lines = normalized.split("\n", -1);
+        List<String> sanitizedLines = new ArrayList<>();
+        boolean previousBlank = true;
+
+        for (String line : lines) {
+            String trimmed = line.trim();
+            if (shouldDropExportLine(trimmed)) {
+                continue;
+            }
+
+            if (trimmed.isEmpty()) {
+                if (!previousBlank) {
+                    sanitizedLines.add("");
+                }
+                previousBlank = true;
+                continue;
+            }
+
+            sanitizedLines.add(line.stripTrailing());
+            previousBlank = false;
+        }
+
+        while (!sanitizedLines.isEmpty() && sanitizedLines.get(0).isBlank()) {
+            sanitizedLines.remove(0);
+        }
+        while (!sanitizedLines.isEmpty() && sanitizedLines.get(sanitizedLines.size() - 1).isBlank()) {
+            sanitizedLines.remove(sanitizedLines.size() - 1);
+        }
+
+        return String.join("\n", sanitizedLines);
+    }
+
+    private boolean shouldDropExportLine(String line) {
+        if (!StringUtils.hasText(line)) {
+            return false;
+        }
+
+        for (String marker : EXPORT_NOISE_MARKERS) {
+            if (line.contains(marker)) {
+                return true;
+            }
+        }
+
+        String compact = line.replace(" ", "");
+        return containsConflictingJudgement(compact, "非单射", "是单射")
+                || containsConflictingJudgement(compact, "不是单射", "是单射")
+                || containsConflictingJudgement(compact, "非满射", "是满射")
+                || containsConflictingJudgement(compact, "不是满射", "是满射");
+    }
+
+    private boolean containsConflictingJudgement(String line, String negative, String positive) {
+        return line.contains(negative) && line.contains(positive);
     }
 
     private List<ExportSection> buildSections(List<QuestionResponseDTO> questions) {
@@ -289,7 +429,7 @@ public class QuestionPaperExportService {
             if (block.type() == RenderBlockType.DISPLAY_FORMULA) {
                 XWPFParagraph paragraph = document.createParagraph();
                 paragraph.setAlignment(ParagraphAlignment.CENTER);
-                if (!WordOmmlFormulaConverter.appendFormula(paragraph, block.formula().latex(), true)) {
+                if (!appendWordFormula(paragraph, block.formula(), fontSize)) {
                     XWPFRun run = paragraph.createRun();
                     run.setFontFamily(DEFAULT_WORD_FONT);
                     run.setFontSize(fontSize);
@@ -307,7 +447,7 @@ public class QuestionPaperExportService {
     private void appendWordInlineNodes(XWPFParagraph paragraph,
                                        List<InlineNode> inlineNodes,
                                        int fontSize,
-                                       boolean bold) {
+                                       boolean bold) throws IOException {
         for (InlineNode inlineNode : inlineNodes) {
             if (inlineNode.isText()) {
                 if (inlineNode.text() == null || inlineNode.text().isEmpty()) {
@@ -321,13 +461,58 @@ public class QuestionPaperExportService {
                 continue;
             }
 
-            if (!WordOmmlFormulaConverter.appendFormula(paragraph, inlineNode.formula().latex(), false)) {
+            if (!appendWordFormula(paragraph, inlineNode.formula(), fontSize)) {
                 XWPFRun run = paragraph.createRun();
                 run.setFontFamily(DEFAULT_WORD_FONT);
                 run.setFontSize(fontSize);
                 run.setBold(bold);
                 run.setText(inlineNode.formula().originalText());
             }
+        }
+    }
+
+    private boolean appendWordFormula(XWPFParagraph paragraph,
+                                      FormulaPlaceholder placeholder,
+                                      int fontSize) throws IOException {
+        if (paragraph == null || placeholder == null || !StringUtils.hasText(placeholder.latex())) {
+            return false;
+        }
+
+        if (WordOmmlFormulaConverter.appendFormula(paragraph, placeholder.latex(), placeholder.display())) {
+            return true;
+        }
+
+        RenderedFormula renderedFormula = renderFormula(placeholder, fontSize);
+        if (renderedFormula == null) {
+            return false;
+        }
+
+        RenderedFormula fittedFormula = placeholder.display()
+                ? renderedFormula.fitToWidth(WORD_MAX_CONTENT_WIDTH_PT)
+                : renderedFormula;
+        return appendWordFormulaImage(paragraph, fittedFormula);
+    }
+
+    private boolean appendWordFormulaImage(XWPFParagraph paragraph,
+                                           RenderedFormula renderedFormula) throws IOException {
+        if (paragraph == null || renderedFormula == null || renderedFormula.imageBytes() == null
+                || renderedFormula.imageBytes().length == 0) {
+            return false;
+        }
+
+        XWPFRun run = paragraph.createRun();
+        try (ByteArrayInputStream inputStream = new ByteArrayInputStream(renderedFormula.imageBytes())) {
+            run.addPicture(
+                    inputStream,
+                    Document.PICTURE_TYPE_PNG,
+                    "formula.png",
+                    Units.toEMU(renderedFormula.widthPt()),
+                    Units.toEMU(renderedFormula.heightPt())
+            );
+            return true;
+        } catch (Exception e) {
+            log.warn("Failed to append rendered formula image to Word document.", e);
+            return false;
         }
     }
 
@@ -799,7 +984,66 @@ public class QuestionPaperExportService {
             }
         }
 
+        FormulaMatch bareEnvironmentMatch = matchBareLatexEnvironment(content, index);
+        if (bareEnvironmentMatch != null) {
+            return bareEnvironmentMatch;
+        }
+
         return null;
+    }
+
+    private FormulaMatch matchBareLatexEnvironment(String content, int index) {
+        if (!content.startsWith("\\begin{", index)) {
+            return null;
+        }
+
+        int envNameStart = index + "\\begin{".length();
+        int envNameEnd = content.indexOf('}', envNameStart);
+        if (envNameEnd < 0) {
+            return null;
+        }
+
+        String environment = content.substring(envNameStart, envNameEnd).trim();
+        if (!StringUtils.hasText(environment) || !BARE_LATEX_ENVIRONMENTS.contains(environment)) {
+            return null;
+        }
+
+        String closingToken = "\\end{" + environment + "}";
+        int closingIndex = content.indexOf(closingToken, envNameEnd + 1);
+        if (closingIndex < 0) {
+            return null;
+        }
+
+        int nextIndex = closingIndex + closingToken.length();
+        return new FormulaMatch(
+                content.substring(index, nextIndex),
+                isStandaloneFormula(content, index, nextIndex),
+                content.substring(index, nextIndex),
+                nextIndex
+        );
+    }
+
+    private boolean isStandaloneFormula(String content, int startIndex, int endIndex) {
+        for (int i = startIndex - 1; i >= 0; i--) {
+            char current = content.charAt(i);
+            if (current == '\n') {
+                break;
+            }
+            if (!Character.isWhitespace(current)) {
+                return false;
+            }
+        }
+
+        for (int i = endIndex; i < content.length(); i++) {
+            char current = content.charAt(i);
+            if (current == '\n') {
+                break;
+            }
+            if (!Character.isWhitespace(current)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private int findClosingDoubleDollar(String content, int startIndex) {

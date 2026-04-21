@@ -1,6 +1,7 @@
 package com.dayz.sapientiacloud_edupivot.celestial_hub.service.agent.skill;
 
 import com.alibaba.fastjson2.JSON;
+import com.dayz.sapientiacloud_edupivot.celestial_hub.constant.AIChatConstants;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.constant.QuestionConstants;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.QuestionGeneratePayload;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.QuestionGenerateRequestDTO;
@@ -152,6 +153,11 @@ public class QuestionGenerationSkill implements AgentSkill<List<QuestionDraftDTO
         prompt.append("\nEvery question must include a positive numeric score.");
         prompt.append("\nDo not add markdown fences or explanations.");
         prompt.append("\nEvery question must include estimatedTime as a positive integer number of minutes.");
+        prompt.append("\nFormula formatting is strict: never output bare TeX or symbolic math outside $...$ or $$...$$.");
+        prompt.append("\nIf any field contains only a formula, set notation, matrix, superscript/subscript, or symbolic expression, it still must be wrapped in math delimiters.");
+        prompt.append("\nUse \\text{...} for Chinese words inside formulas, and keep that \\text{...} inside the same math delimiters.");
+        prompt.append("\nBefore returning JSON, self-check questionContent, options.optionContent, options.explanation, answers.answerContent, and answers.explanation for naked TeX such as \\frac, \\sqrt, \\mathbb, \\in, \\mid, \\{...\\}, or x^2.");
+        prompt.append("\n").append(AIChatConstants.MATH_LATEX_STYLE_PROMPT);
         prompt.append("\nAttempt ").append(attemptNo).append(" of ").append(MAX_SECTION_ATTEMPTS).append('.');
         prompt.append("\n\nGlobal request JSON:\n").append(JSON.toJSONString(context.getRequest()));
         prompt.append("\n\nCurrent section JSON:\n").append(JSON.toJSONString(section));

@@ -29,8 +29,12 @@ final class WordOmmlFormulaConverter {
     private static final Map<String, String> COMMAND_SYMBOLS = createCommandSymbols();
     private static final Map<String, String> DELIMITER_SYMBOLS = createDelimiterSymbols();
     private static final Set<String> RAW_TEXT_COMMANDS = Set.of(
-            "text", "textrm", "textbf", "textit", "mathrm", "mathbf",
-            "mathit", "mathsf", "mathtt", "operatorname", "mbox"
+            "text", "textrm", "textbf", "textit", "operatorname", "mbox"
+    );
+    private static final Set<String> STYLE_PASSTHROUGH_COMMANDS = Set.of(
+            "mathrm", "mathbf", "mathit", "mathsf", "mathtt",
+            "mathbb", "mathcal", "mathfrak",
+            "boldsymbol", "bm"
     );
     private static final Set<String> SPACE_COMMANDS = Set.of(
             ",", ";", ":", "quad", "qquad", "enspace", "thinspace", "medspace"
@@ -65,6 +69,9 @@ final class WordOmmlFormulaConverter {
 
             appendNode(asContainer(paragraph.getCTP().addNewOMath()), root);
             return true;
+        } catch (UnsupportedLatexException e) {
+            log.debug("Unsupported latex for Word OMML conversion. latex={}", latex);
+            return false;
         } catch (Exception e) {
             log.warn("Failed to convert latex to Word OMML. latex={}", latex, e);
             return false;
@@ -268,6 +275,13 @@ final class WordOmmlFormulaConverter {
     private record DelimitedNode(String leftDelimiter, Node content, String rightDelimiter) implements Node {
     }
 
+    private static final class UnsupportedLatexException extends RuntimeException {
+
+        private UnsupportedLatexException(String message) {
+            super(message);
+        }
+    }
+
     private static final class Parser {
 
         private final String input;
@@ -294,7 +308,7 @@ final class WordOmmlFormulaConverter {
                 Node node = parseAtomWithScripts();
                 if (!(node instanceof EmptyNode)) {
                     nodes.add(node);
-                } else if (!isEnd() && stopChar == null && !stopAtRight) {
+                } else if (!isEnd()) {
                     break;
                 }
             }
@@ -402,6 +416,9 @@ final class WordOmmlFormulaConverter {
             if (RAW_TEXT_COMMANDS.contains(command)) {
                 return new TextNode(parseRawTextArgument());
             }
+            if (STYLE_PASSTHROUGH_COMMANDS.contains(command)) {
+                return parseRequiredArgument();
+            }
 
             return switch (command) {
                 case "frac", "dfrac", "tfrac" -> new FractionNode(parseRequiredArgument(), parseRequiredArgument());
@@ -419,7 +436,7 @@ final class WordOmmlFormulaConverter {
                     if (mapped != null) {
                         yield new TextNode(mapped);
                     }
-                    yield new TextNode("\\" + command);
+                    throw unsupported(command);
                 }
             };
         }
@@ -467,7 +484,15 @@ final class WordOmmlFormulaConverter {
                     return DELIMITER_SYMBOLS.getOrDefault(String.valueOf(escaped), String.valueOf(escaped));
                 }
                 String command = readCommandName();
-                return DELIMITER_SYMBOLS.getOrDefault(command, COMMAND_SYMBOLS.getOrDefault(command, "\\" + command));
+                String mappedDelimiter = DELIMITER_SYMBOLS.get(command);
+                if (mappedDelimiter != null) {
+                    return mappedDelimiter;
+                }
+                String mappedSymbol = COMMAND_SYMBOLS.get(command);
+                if (mappedSymbol != null) {
+                    return mappedSymbol;
+                }
+                throw unsupported(command);
             }
 
             return String.valueOf(input.charAt(index++));
@@ -588,6 +613,10 @@ final class WordOmmlFormulaConverter {
 
         private char peek() {
             return input.charAt(index);
+        }
+
+        private UnsupportedLatexException unsupported(String command) {
+            return new UnsupportedLatexException("Unsupported latex command: \\" + command);
         }
     }
 
@@ -716,12 +745,20 @@ final class WordOmmlFormulaConverter {
         symbols.put("notin", "∉");
         symbols.put("subset", "⊂");
         symbols.put("subseteq", "⊆");
+        symbols.put("subsetneq", "⊊");
         symbols.put("supset", "⊃");
         symbols.put("supseteq", "⊇");
+        symbols.put("supsetneq", "⊋");
         symbols.put("cup", "∪");
         symbols.put("cap", "∩");
         symbols.put("setminus", "∖");
         symbols.put("emptyset", "∅");
+        symbols.put("land", "∧");
+        symbols.put("wedge", "∧");
+        symbols.put("lor", "∨");
+        symbols.put("vee", "∨");
+        symbols.put("neg", "¬");
+        symbols.put("lnot", "¬");
         symbols.put("to", "→");
         symbols.put("rightarrow", "→");
         symbols.put("leftarrow", "←");
@@ -735,6 +772,10 @@ final class WordOmmlFormulaConverter {
         symbols.put("sum", "∑");
         symbols.put("prod", "∏");
         symbols.put("coprod", "∐");
+        symbols.put("bigvee", "⋁");
+        symbols.put("bigwedge", "⋀");
+        symbols.put("oplus", "⊕");
+        symbols.put("otimes", "⊗");
         symbols.put("int", "∫");
         symbols.put("iint", "∬");
         symbols.put("iiint", "∭");
@@ -758,6 +799,7 @@ final class WordOmmlFormulaConverter {
         symbols.put("sup", "sup");
         symbols.put("inf", "inf");
         symbols.put("det", "det");
+        symbols.put("deg", "deg");
         symbols.put("Pr", "Pr");
         symbols.put("because", "∵");
         symbols.put("therefore", "∴");
@@ -784,6 +826,7 @@ final class WordOmmlFormulaConverter {
         delimiters.put("rbrace", "}");
         delimiters.put("langle", "⟨");
         delimiters.put("rangle", "⟩");
+        delimiters.put("mid", "|");
         delimiters.put("lvert", "|");
         delimiters.put("rvert", "|");
         delimiters.put("lVert", "‖");
