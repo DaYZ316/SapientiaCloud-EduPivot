@@ -50,10 +50,11 @@ public class AIChatConstants {
 
     public static final String MATH_LATEX_STYLE_PROMPT = """
             数学与 LaTeX 书写补充规则：
-            1. 同一份输出中的向量记号必须统一，优先使用 \\boldsymbol{x}、\\boldsymbol{y}、\\boldsymbol{v} 这类写法，不要在同一题或同一答案里混用 \\mathbf{x} 与 \\boldsymbol{x}。
+            1. 同一套题或同一份输出中的向量、矩阵、单位矩阵记号必须统一，默认优先使用 \\boldsymbol{x}、\\boldsymbol{A}、\\boldsymbol{I} 这类写法；如果改用 \\mathbf{x}、\\mathbf{A}、\\mathbf{I} 风格，则整套内容都保持一致，不要混用 \\mathbf{I} 与 \\boldsymbol{A}、\\boldsymbol{x}。
             2. 当括号、方括号或花括号包裹分式、矩阵、分段函数、求和、积分或其他较高公式时，必须使用可伸缩定界符，例如 \\left( ... \\right)、\\left[ ... \\right]、\\left\\{ ... \\right\\}。
             3. 例如需要包裹分式时，优先写成 \\left( \\frac{a}{b} \\right)，不要写成普通高度不匹配的 (\\frac{a}{b})。
-            4. 以上一致性检查同样适用于题干、选项、答案、解析以及一般数学问答内容。
+            4. 公式内部如果存在逗号分隔、条件并列、推导转折或说明性短语，为提升可读性，可适度使用 \\, 或 \\quad 调整视觉间距；例如 a_i \\ge 0, \\, \\sum_i a_i = 1 这类结构应保证疏密自然，但不要机械堆砌间距命令。
+            5. 以上一致性检查同样适用于题干、选项、答案、解析以及一般数学问答内容。
             """;
 
     public static final Integer ROLE_USER = 0;

@@ -156,6 +156,8 @@ public class QuestionGenerationSkill implements AgentSkill<List<QuestionDraftDTO
         prompt.append("\nFormula formatting is strict: never output bare TeX or symbolic math outside $...$ or $$...$$.");
         prompt.append("\nIf any field contains only a formula, set notation, matrix, superscript/subscript, or symbolic expression, it still must be wrapped in math delimiters.");
         prompt.append("\nUse \\text{...} for Chinese words inside formulas, and keep that \\text{...} inside the same math delimiters.");
+        prompt.append("\nKeep vector, matrix, and identity-matrix bold styles consistent across the whole section. Default to \\boldsymbol{...}; if you choose \\mathbf{...}, use it consistently everywhere in that section.");
+        prompt.append("\nWhen formulas contain comma-separated conditions or parallel clauses, use spacing commands such as \\, or \\quad where they genuinely improve readability.");
         prompt.append("\nBefore returning JSON, self-check questionContent, options.optionContent, options.explanation, answers.answerContent, and answers.explanation for naked TeX such as \\frac, \\sqrt, \\mathbb, \\in, \\mid, \\{...\\}, or x^2.");
         prompt.append("\n").append(AIChatConstants.MATH_LATEX_STYLE_PROMPT);
         prompt.append("\nAttempt ").append(attemptNo).append(" of ").append(MAX_SECTION_ATTEMPTS).append('.');
