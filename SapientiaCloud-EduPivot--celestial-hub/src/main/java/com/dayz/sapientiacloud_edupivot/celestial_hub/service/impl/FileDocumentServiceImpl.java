@@ -18,12 +18,10 @@ import com.dayz.sapientiacloud_edupivot.celestial_hub.enums.FileTypeEnum;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.repository.FileDocumentRepository;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.FileVectorizeKafkaService;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.IFileDocumentService;
-import com.dayz.sapientiacloud_edupivot.celestial_hub.service.KnowledgeService;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.utils.FileUtil;
 import com.github.f4b6a3.uuid.UuidCreator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -55,8 +53,6 @@ public class FileDocumentServiceImpl implements IFileDocumentService {
 
     private final FileDocumentRepository fileDocumentRepository;
     private final MinIOClient minIOClient;
-    @Lazy  // 使用 @Lazy 解决循环依赖问题
-    private final KnowledgeService knowledgeService;
     private final MongoTemplate mongoTemplate;
     private final FileVectorizeKafkaService fileVectorizeKafkaService;
 
@@ -464,4 +460,3 @@ public class FileDocumentServiceImpl implements IFileDocumentService {
         return storagePath.substring(0, lastSeparator + 1);
     }
 }
-

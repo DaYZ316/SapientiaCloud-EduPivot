@@ -14,7 +14,6 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -61,16 +60,6 @@ public class ChatMessageController extends BaseController {
     @PostMapping(value = "/stream/kafka", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public ResponseEntity<Flux<String>> chatStreamKafka(@Valid @RequestBody KafkaChatRequestDTO request) {
         return buildSseResponse(chatMessageService.chatStreamKafka(request));
-    }
-
-    private ResponseEntity<Flux<String>> buildSseResponse(Flux<String> body) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.TEXT_EVENT_STREAM);
-        headers.setCacheControl("no-cache, no-transform");
-        headers.set("X-Accel-Buffering", "no");
-        return ResponseEntity.ok()
-                .headers(headers)
-                .body(body);
     }
 
     // TODO 逻辑优化

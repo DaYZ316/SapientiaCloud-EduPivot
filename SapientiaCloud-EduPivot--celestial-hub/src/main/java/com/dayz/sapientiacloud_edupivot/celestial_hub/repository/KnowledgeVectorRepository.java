@@ -18,7 +18,6 @@ public interface KnowledgeVectorRepository extends MongoRepository<KnowledgeVect
     /**
      * 根据章节ID查询向量
      */
-    List<KnowledgeVector> findByChapterId(UUID chapterId);
 
     /**
      * 根据章节ID删除向量
@@ -48,7 +47,6 @@ public interface KnowledgeVectorRepository extends MongoRepository<KnowledgeVect
     /**
      * 根据内容ID查询向量（用于文件向量索引）
      */
-    List<KnowledgeVector> findByContentId(UUID contentId);
 
     /**
      * 批量根据内容ID查询向量（用于文件向量索引）
@@ -56,4 +54,3 @@ public interface KnowledgeVectorRepository extends MongoRepository<KnowledgeVect
     List<KnowledgeVector> findByContentIdIn(Collection<UUID> contentIds);
 
 }
-

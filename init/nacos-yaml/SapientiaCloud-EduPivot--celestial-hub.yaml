@@ -70,6 +70,7 @@ spring:
       file-vectorize: file-vectorize-topic
       question-request: question-request-topic
       question-response: question-response-topic
+      question-progress: question-progress-topic
   ai:
     dashscope:
       api-key: sk-20c0c396a3f64130ac4c56c1a4b3aa00
@@ -92,6 +93,9 @@ kafka:
     sink-cache:
       expire-after-write-minutes: 10
       maximum-size: 1000
+  question:
+    stage-min-duration-ms: ${QUESTION_STAGE_MIN_DURATION_MS:2000}
+    sse-heartbeat-seconds: ${QUESTION_SSE_HEARTBEAT_SECONDS:8}
 
 avatar:
   tts:
@@ -113,4 +117,6 @@ MONGODB_PASSWORD: zhaosheng123
 MONGODB_AUTH_DATABASE: admin
 
 KAFKA_BOOTSTRAP_SERVERS: localhost:9092
+QUESTION_STAGE_MIN_DURATION_MS: 2000
+QUESTION_SSE_HEARTBEAT_SECONDS: 8
 TONGYI_API_KEY:

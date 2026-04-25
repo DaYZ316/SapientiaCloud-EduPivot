@@ -4,6 +4,7 @@ import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.QuestionAnswerS
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.QuestionGenerateRequestDTO;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.QuestionOptionSimpleDTO;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.QuestionResponseDTO;
+import com.dayz.sapientiacloud_edupivot.celestial_hub.service.agent.dto.AgentEvidenceDTO;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.agent.dto.PaperSectionPlanDTO;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.agent.dto.ValidationIssueDTO;
 import com.github.f4b6a3.uuid.UuidCreator;
@@ -16,6 +17,7 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Locale;
@@ -227,6 +229,40 @@ public class ExamConstraintTool implements AgentTool {
                 .replaceAll("\\|+$", "")
                 .trim();
         return signature;
+    }
+
+    public Set<String> collectQuestionSampleSignatures(List<AgentEvidenceDTO> evidences) {
+        Set<String> signatures = new LinkedHashSet<>();
+        if (CollectionUtils.isEmpty(evidences)) {
+            return signatures;
+        }
+        for (AgentEvidenceDTO evidence : evidences) {
+            if (evidence == null || !"question_sample".equalsIgnoreCase(evidence.getSourceType())) {
+                continue;
+            }
+            String signature = buildSignature(evidence.getTitle(), evidence.getExcerpt());
+            if (StringUtils.hasText(signature)) {
+                signatures.add(signature);
+            }
+        }
+        return signatures;
+    }
+
+    public boolean hasBlockingIssues(List<ValidationIssueDTO> issues) {
+        if (CollectionUtils.isEmpty(issues)) {
+            return false;
+        }
+        for (ValidationIssueDTO issue : issues) {
+            if (issue == null) {
+                continue;
+            }
+            if ("error".equalsIgnoreCase(issue.getLevel())
+                    || "DUPLICATE_QUESTION".equalsIgnoreCase(issue.getCode())
+                    || "REFERENCE_DUPLICATE".equalsIgnoreCase(issue.getCode())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private List<ValidationIssueDTO> validateInternal(List<QuestionResponseDTO> questions,

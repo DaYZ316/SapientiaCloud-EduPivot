@@ -255,8 +255,6 @@ public class FileVectorizeKafkaConsumer {
     private KnowledgeVector buildFileKnowledgeVector(org.springframework.ai.document.Document doc, FileDocument fileDocument) {
         if (doc == null) {
             return null;
-        } else {
-            doc.getId();
         }
 
         Map<String, Object> metadata = doc.getMetadata();
@@ -300,4 +298,3 @@ public class FileVectorizeKafkaConsumer {
         metadata.put(key, value instanceof UUID ? value.toString() : value);
     }
 }
-

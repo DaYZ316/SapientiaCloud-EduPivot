@@ -135,10 +135,7 @@ public class ChatSessionServiceImpl implements IChatSessionService {
             throw new BusinessException(AIChatEnum.SESSION_ID_REQUIRED);
         }
 
-        ChatSession session = chatSessionRepository.findById(id)
-                .orElseThrow(() -> new BusinessException(AIChatEnum.SESSION_NOT_EXISTS));
-
-        return convertToVO(session);
+        return convertToVO(getRequiredSession(id));
     }
 
     @Override
@@ -178,8 +175,7 @@ public class ChatSessionServiceImpl implements IChatSessionService {
             throw new BusinessException(AIChatEnum.MESSAGE_CONTENT_REQUIRED);
         }
 
-        ChatSession session = chatSessionRepository.findById(id)
-                .orElseThrow(() -> new BusinessException(AIChatEnum.SESSION_NOT_EXISTS));
+        ChatSession session = getRequiredSession(id);
 
         session.setSessionTitle(title);
         session.setUpdateTime(LocalDateTime.now());
@@ -195,8 +191,7 @@ public class ChatSessionServiceImpl implements IChatSessionService {
             throw new BusinessException(AIChatEnum.SESSION_ID_REQUIRED);
         }
 
-        ChatSession session = chatSessionRepository.findById(id)
-                .orElseThrow(() -> new BusinessException(AIChatEnum.SESSION_NOT_EXISTS));
+        ChatSession session = getRequiredSession(id);
 
         chatSessionRepository.delete(session);
         chatMessageRepository.deleteBySessionId(id);
@@ -239,11 +234,11 @@ public class ChatSessionServiceImpl implements IChatSessionService {
             throw new BusinessException(AIChatEnum.SESSION_ID_REQUIRED);
         }
 
-        ChatSession session = chatSessionRepository.findById(id)
-                .orElseThrow(() -> new BusinessException(AIChatEnum.SESSION_NOT_EXISTS));
+        ChatSession session = getRequiredSession(id);
 
         session.setIsPinned(Boolean.TRUE.equals(isPinned) ?
                 AIChatConstants.PINNED_TRUE : AIChatConstants.PINNED_FALSE);
+        session.setUpdateTime(LocalDateTime.now());
         chatSessionRepository.save(session);
 
         return true;
@@ -256,11 +251,11 @@ public class ChatSessionServiceImpl implements IChatSessionService {
             throw new BusinessException(AIChatEnum.SESSION_ID_REQUIRED);
         }
 
-        ChatSession session = chatSessionRepository.findById(id)
-                .orElseThrow(() -> new BusinessException(AIChatEnum.SESSION_NOT_EXISTS));
+        ChatSession session = getRequiredSession(id);
 
         session.setIsFavorite(Boolean.TRUE.equals(isFavorite) ?
                 AIChatConstants.FAVORITE_TRUE : AIChatConstants.FAVORITE_FALSE);
+        session.setUpdateTime(LocalDateTime.now());
         chatSessionRepository.save(session);
 
         return true;
@@ -273,8 +268,7 @@ public class ChatSessionServiceImpl implements IChatSessionService {
             throw new BusinessException(AIChatEnum.SESSION_ID_REQUIRED);
         }
 
-        ChatSession session = chatSessionRepository.findById(id)
-                .orElseThrow(() -> new BusinessException(AIChatEnum.SESSION_NOT_EXISTS));
+        ChatSession session = getRequiredSession(id);
 
         session.setUpdateTime(LocalDateTime.now());
         chatSessionRepository.save(session);
@@ -289,8 +283,7 @@ public class ChatSessionServiceImpl implements IChatSessionService {
             throw new BusinessException(AIChatEnum.SESSION_ID_REQUIRED);
         }
 
-        ChatSession session = chatSessionRepository.findById(sessionId)
-                .orElseThrow(() -> new BusinessException(AIChatEnum.SESSION_NOT_EXISTS));
+        ChatSession session = getRequiredSession(sessionId);
 
         if (AIChatConstants.DEFAULT_SESSION_TITLE.equals(session.getSessionTitle()) &&
                 StringUtils.hasText(lastMessage)) {
@@ -439,8 +432,7 @@ public class ChatSessionServiceImpl implements IChatSessionService {
             throw new BusinessException(AIChatEnum.SESSION_ID_REQUIRED);
         }
 
-        ChatSession session = chatSessionRepository.findById(id)
-                .orElseThrow(() -> new BusinessException(AIChatEnum.SESSION_NOT_EXISTS));
+        ChatSession session = getRequiredSession(id);
 
         // 获取会话的前几条消息用于生成标题
         List<ChatMessage> messages = chatMessageRepository.findBySessionIdOrderByCreateTimeAsc(id);
@@ -517,8 +509,13 @@ public class ChatSessionServiceImpl implements IChatSessionService {
         try {
             generateSessionTitle(id);
         } catch (Exception e) {
-            // 异步方法中不抛出异常，只记录日志
+            log.debug("Async session title generation failed: sessionId={}, error={}", id, e.getMessage());
         }
+    }
+
+    private ChatSession getRequiredSession(UUID id) {
+        return chatSessionRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(AIChatEnum.SESSION_NOT_EXISTS));
     }
 }
 

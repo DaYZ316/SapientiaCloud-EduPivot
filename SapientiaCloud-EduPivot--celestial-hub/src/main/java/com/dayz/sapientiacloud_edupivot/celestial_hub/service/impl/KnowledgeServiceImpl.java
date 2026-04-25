@@ -236,9 +236,10 @@ public class KnowledgeServiceImpl implements KnowledgeService {
         return null;
     }
 
-    private static boolean hasMetadataFilter() {
+    private static boolean hasMetadataFilter(KnowledgeSearchRequestDTO request) {
         // 无论是否传入 sessionId，都会对文件向量进行额外处理，因此始终视为存在过滤逻辑
-        return true;
+        return request != null && (request.getSessionId() != null
+                || (request.getFileReferences() != null && !request.getFileReferences().isEmpty()));
     }
 
     @Override
@@ -672,8 +673,6 @@ public class KnowledgeServiceImpl implements KnowledgeService {
     private KnowledgeVector buildKnowledgeVector(Document doc) {
         if (doc == null) {
             return null;
-        } else {
-            doc.getId();
         }
 
         Map<String, Object> metadata = doc.getMetadata();
@@ -752,7 +751,7 @@ public class KnowledgeServiceImpl implements KnowledgeService {
             log.debug("知识检索：规范化后的参数 - topK: {}, 相似度阈值: {}", topK, threshold);
 
             int fetchTopK = topK;
-            boolean hasFilter = hasMetadataFilter();
+            boolean hasFilter = hasMetadataFilter(request);
             if (hasFilter) {
                 fetchTopK = Math.min(topK * 3, 500);
                 fetchTopK = Math.max(fetchTopK, topK);
@@ -810,7 +809,7 @@ public class KnowledgeServiceImpl implements KnowledgeService {
                         if (vector == null) {
                             continue;
                         }
-                        if (shouldIncludeVector(vector, request, currentUserId)) {
+                        if (shouldSkipVector(vector, request, currentUserId)) {
                             continue;
                         }
                         KnowledgeSearchResultVO vo = buildSearchResult(document, vector);
@@ -1077,7 +1076,7 @@ public class KnowledgeServiceImpl implements KnowledgeService {
         return StringUtils.hasText(candidate) ? candidate : null;
     }
 
-    private boolean shouldIncludeVector(KnowledgeVector vector, KnowledgeSearchRequestDTO request, UUID currentUserId) {
+    private boolean shouldSkipVector(KnowledgeVector vector, KnowledgeSearchRequestDTO request, UUID currentUserId) {
         if (vector == null) {
             log.debug("知识检索：向量包含检查失败，原因：向量为空");
             return true;
@@ -1158,7 +1157,7 @@ public class KnowledgeServiceImpl implements KnowledgeService {
             // 过滤掉状态为已失效的向量
             List<KnowledgeVector> validVectors = vectors.stream()
                     .filter(vector -> vector != null &&
-                            (vector.getStatus() == null || vector.getStatus() == 0))
+                            (vector.getStatus() == null || vector.getStatus() == StatusEnum.NORMAL.getCode()))
                     .toList();
 
             log.debug("查询文件向量数据：过滤后有效向量数量: {}, 原始数量: {}", validVectors.size(), vectors.size());
@@ -1241,5 +1240,3 @@ public class KnowledgeServiceImpl implements KnowledgeService {
     }
 
 }
-
-

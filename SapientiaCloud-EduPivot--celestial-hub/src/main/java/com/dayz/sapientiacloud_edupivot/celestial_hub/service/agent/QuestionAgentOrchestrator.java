@@ -13,16 +13,14 @@ import com.dayz.sapientiacloud_edupivot.celestial_hub.service.agent.tool.ExamCon
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.agent.tool.ToolRegistry;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 /**
  * Runs the multi-step local agent workflow for AI question generation.
@@ -36,40 +34,52 @@ public class QuestionAgentOrchestrator {
     private final QuestionPersistenceFacade questionPersistenceFacade;
 
     public QuestionGenerationAggregate run(QuestionGenerateRequestDTO request, UUID userId, String requestId) {
+        return run(request, userId, requestId, null);
+    }
+
+    public QuestionGenerationAggregate run(QuestionGenerateRequestDTO request,
+                                           UUID userId,
+                                           String requestId,
+                                           Consumer<QuestionAgentStage> stageListener) {
         QuestionAgentContext context = new QuestionAgentContext();
         context.setRequest(request);
         context.setUserId(userId);
         context.setSessionId(request != null ? request.getSessionId() : null);
         context.setRequestId(requestId);
-        context.setStage(QuestionAgentStage.RECEIVED);
+        advanceStage(context, QuestionAgentStage.RECEIVED, stageListener);
 
+        advanceStage(context, QuestionAgentStage.CONTEXT_READY, stageListener);
         collectContext(context);
-        context.setStage(QuestionAgentStage.CONTEXT_READY);
 
+        advanceStage(context, QuestionAgentStage.PLANNED, stageListener);
         context.setBlueprint(skillRegistry.getPaperPlanningSkill().execute(context));
-        context.setStage(QuestionAgentStage.PLANNED);
 
-        List<QuestionDraftDTO> drafts = skillRegistry.getQuestionGenerationSkill().execute(context);
+        advanceStage(context, QuestionAgentStage.GENERATED, stageListener);
+        List<QuestionDraftDTO> drafts = mutableList(skillRegistry.getQuestionGenerationSkill().execute(context));
         context.setDrafts(drafts);
-        context.setStage(QuestionAgentStage.GENERATED);
 
+        advanceStage(context, QuestionAgentStage.VALIDATED, stageListener);
         ExamConstraintTool examConstraintTool = toolRegistry.getExamConstraintTool();
-        Set<String> referenceSignatures = collectReferenceSignatures(context, examConstraintTool);
-        List<QuestionResponseDTO> normalizedDrafts = examConstraintTool.normalizeQuestions(
+        Set<String> referenceSignatures = examConstraintTool.collectQuestionSampleSignatures(context.getEvidences());
+        if (referenceSignatures == null) {
+            referenceSignatures = Set.of();
+        }
+        List<QuestionResponseDTO> normalizedDrafts = mutableList(examConstraintTool.normalizeQuestions(
                 context.getDraftQuestions(),
                 context.getRequest(),
                 context.getUserId(),
                 context.getRequestId()
-        );
+        ));
         examConstraintTool.rebalanceQuestionScores(normalizedDrafts, context.getRequest());
-        context.setIssues(examConstraintTool.validate(normalizedDrafts, context.getRequest(), referenceSignatures));
-        context.setStage(QuestionAgentStage.VALIDATED);
+        context.setIssues(mutableList(examConstraintTool.validate(normalizedDrafts, context.getRequest(), referenceSignatures)));
 
-        List<QuestionResponseDTO> finalQuestions = skillRegistry.getPaperReviewSkill().execute(context);
+        advanceStage(context, QuestionAgentStage.REPAIRED, stageListener);
+        List<QuestionResponseDTO> finalQuestions = mutableList(skillRegistry.getPaperReviewSkill().execute(context));
+
+        advanceStage(context, QuestionAgentStage.ASSEMBLED, stageListener);
         examConstraintTool.rebalanceQuestionScores(finalQuestions, context.getRequest());
         context.setFinalQuestions(finalQuestions);
-        context.setIssues(examConstraintTool.validate(finalQuestions, context.getRequest(), referenceSignatures));
-        context.setStage(QuestionAgentStage.ASSEMBLED);
+        context.setIssues(mutableList(examConstraintTool.validate(finalQuestions, context.getRequest(), referenceSignatures)));
 
         questionPersistenceFacade.saveToQuestionBank(context);
 
@@ -77,19 +87,35 @@ public class QuestionAgentOrchestrator {
         aggregate.setRequestId(context.getRequestId());
         aggregate.setSessionId(context.getSessionId());
         aggregate.setBlueprint(context.getBlueprint());
-        aggregate.setDrafts(context.getDrafts());
-        aggregate.setFinalQuestions(context.getFinalQuestions());
-        aggregate.setIssues(context.getIssues());
+        aggregate.setDrafts(mutableList(context.getDrafts()));
+        aggregate.setFinalQuestions(mutableList(context.getFinalQuestions()));
+        aggregate.setIssues(mutableList(context.getIssues()));
         aggregate.setStage(context.getStage());
         return aggregate;
     }
 
+    private void advanceStage(QuestionAgentContext context,
+                              QuestionAgentStage stage,
+                              Consumer<QuestionAgentStage> stageListener) {
+        context.setStage(stage);
+        if (stageListener != null) {
+            stageListener.accept(stage);
+        }
+    }
+
     private void collectContext(QuestionAgentContext context) {
         List<AgentEvidenceDTO> merged = new ArrayList<>();
-        merged.addAll(toolRegistry.getKnowledgeSearchTool().search(context));
-        merged.addAll(toolRegistry.getQuestionBankTool().loadEvidence(context));
-        merged.addAll(toolRegistry.getFileContextTool().loadEvidence(context));
+        addAllIfPresent(merged, toolRegistry.getKnowledgeSearchTool().search(context));
+        addAllIfPresent(merged, toolRegistry.getQuestionBankTool().loadEvidence(context));
+        addAllIfPresent(merged, toolRegistry.getFileContextTool().loadEvidence(context));
         context.setEvidences(deduplicateEvidence(merged));
+    }
+
+    private void addAllIfPresent(List<AgentEvidenceDTO> target, List<AgentEvidenceDTO> source) {
+        if (target == null || source == null || source.isEmpty()) {
+            return;
+        }
+        target.addAll(source);
     }
 
     private List<AgentEvidenceDTO> deduplicateEvidence(List<AgentEvidenceDTO> evidences) {
@@ -108,21 +134,10 @@ public class QuestionAgentOrchestrator {
         return new ArrayList<>(deduped.values());
     }
 
-    private Set<String> collectReferenceSignatures(QuestionAgentContext context, ExamConstraintTool examConstraintTool) {
-        Set<String> signatures = new LinkedHashSet<>();
-        if (context == null || CollectionUtils.isEmpty(context.getEvidences())) {
-            return signatures;
+    private <T> List<T> mutableList(List<T> source) {
+        if (source == null || source.isEmpty()) {
+            return new ArrayList<>();
         }
-
-        for (AgentEvidenceDTO evidence : context.getEvidences()) {
-            if (evidence == null || !"question_sample".equalsIgnoreCase(evidence.getSourceType())) {
-                continue;
-            }
-            String signature = examConstraintTool.buildSignature(evidence.getTitle(), evidence.getExcerpt());
-            if (StringUtils.hasText(signature)) {
-                signatures.add(signature);
-            }
-        }
-        return signatures;
+        return new ArrayList<>(source);
     }
 }
