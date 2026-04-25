@@ -8,7 +8,6 @@ import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.QuestionGenerat
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.QuestionResponseDTO;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.agent.assembler.QuestionResponseAssembler;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.agent.context.QuestionAgentContext;
-import com.dayz.sapientiacloud_edupivot.celestial_hub.service.agent.dto.AgentEvidenceDTO;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.agent.dto.ValidationIssueDTO;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.agent.tool.ExamConstraintTool;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +18,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -44,7 +42,7 @@ public class PaperReviewSkill implements AgentSkill<List<QuestionResponseDTO>> {
 
     @Override
     public List<QuestionResponseDTO> execute(QuestionAgentContext context) {
-        Set<String> blockedSignatures = collectReferenceSignatures(context);
+        Set<String> blockedSignatures = examConstraintTool.collectQuestionSampleSignatures(context.getEvidences());
         List<QuestionResponseDTO> normalized = examConstraintTool.normalizeQuestions(
                 context.getDraftQuestions(),
                 context.getRequest(),
@@ -57,7 +55,7 @@ public class PaperReviewSkill implements AgentSkill<List<QuestionResponseDTO>> {
         List<ValidationIssueDTO> issues = examConstraintTool.validate(normalized, context.getRequest(), blockedSignatures);
         context.setIssues(issues);
 
-        if (!hasBlockingIssues(issues)) {
+        if (!examConstraintTool.hasBlockingIssues(issues)) {
             return normalized;
         }
 
@@ -66,7 +64,7 @@ public class PaperReviewSkill implements AgentSkill<List<QuestionResponseDTO>> {
         List<QuestionResponseDTO> bestQuestions = normalized;
         List<ValidationIssueDTO> bestIssues = issues;
 
-        for (int attemptNo = 1; attemptNo <= MAX_REPAIR_ATTEMPTS && hasBlockingIssues(currentIssues); attemptNo++) {
+        for (int attemptNo = 1; attemptNo <= MAX_REPAIR_ATTEMPTS && examConstraintTool.hasBlockingIssues(currentIssues); attemptNo++) {
             try {
                 String prompt = buildRepairPrompt(context, currentQuestions, currentIssues, attemptNo);
                 QuestionGeneratePayload payload = chatClient
@@ -157,42 +155,6 @@ public class PaperReviewSkill implements AgentSkill<List<QuestionResponseDTO>> {
         prompt.append("\n\nCurrent questions JSON:\n").append(JSON.toJSONString(currentQuestions));
         prompt.append("\n\nValidation issues JSON:\n").append(JSON.toJSONString(issues));
         return prompt.toString();
-    }
-
-    private Set<String> collectReferenceSignatures(QuestionAgentContext context) {
-        Set<String> blockedSignatures = new LinkedHashSet<>();
-        if (context == null || CollectionUtils.isEmpty(context.getEvidences())) {
-            return blockedSignatures;
-        }
-
-        for (AgentEvidenceDTO evidence : context.getEvidences()) {
-            if (evidence == null || !"question_sample".equalsIgnoreCase(evidence.getSourceType())) {
-                continue;
-            }
-            String signature = examConstraintTool.buildSignature(evidence.getTitle(), evidence.getExcerpt());
-            if (StringUtils.hasText(signature)) {
-                blockedSignatures.add(signature);
-            }
-        }
-        return blockedSignatures;
-    }
-
-    private boolean hasBlockingIssues(List<ValidationIssueDTO> issues) {
-        if (CollectionUtils.isEmpty(issues)) {
-            return false;
-        }
-
-        for (ValidationIssueDTO issue : issues) {
-            if (issue == null) {
-                continue;
-            }
-            if ("error".equalsIgnoreCase(issue.getLevel())
-                    || "DUPLICATE_QUESTION".equalsIgnoreCase(issue.getCode())
-                    || "REFERENCE_DUPLICATE".equalsIgnoreCase(issue.getCode())) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private boolean isBetterCandidate(List<QuestionResponseDTO> candidateQuestions,

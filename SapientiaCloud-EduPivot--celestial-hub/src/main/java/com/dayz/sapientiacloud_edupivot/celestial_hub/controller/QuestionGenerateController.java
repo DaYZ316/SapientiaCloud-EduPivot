@@ -18,6 +18,7 @@ import com.dayz.sapientiacloud_edupivot.celestial_hub.repository.ChatMessageRepo
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.IChatSessionService;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.KafkaQuestionService;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.QuestionPaperExportService;
+import com.dayz.sapientiacloud_edupivot.celestial_hub.service.agent.context.QuestionAgentStage;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.utils.ChatMessageUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -27,10 +28,12 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -54,12 +57,14 @@ import java.nio.charset.StandardCharsets;
 public class QuestionGenerateController extends BaseController {
 
     private static final String GENERATION_FAILED_MESSAGE =
-            "Question generation failed. Please try again later.";
+            "题目生成失败，请稍后重试。";
 
     private final KafkaQuestionService kafkaQuestionService;
     private final QuestionPaperExportService questionPaperExportService;
     private final ChatMessageRepository chatMessageRepository;
     private final IChatSessionService chatSessionService;
+    @Value("${kafka.question.sse-heartbeat-seconds:8}")
+    private long sseHeartbeatSeconds;
 
     @Deprecated(forRemoval = true)
     @Operation(
@@ -102,6 +107,22 @@ public class QuestionGenerateController extends BaseController {
             @Valid @RequestBody QuestionGenerateRequestDTO request) {
         QuestionGenerationExecutionContext context = prepareExecutionContext(request);
 
+        Flux<String> progressEvents = kafkaQuestionService.subscribeQuestionProgress(context.requestId())
+                .map(progress -> buildStreamEvent(new QuestionGenerateStreamEvent(
+                        context.requestId(),
+                        progress.getSessionId() != null ? progress.getSessionId() : context.sessionId(),
+                        progress.getStatus() == null ? "processing" : progress.getStatus(),
+                        progress.getStage(),
+                        progress.getQuestionCount(),
+                        progress.getMessage(),
+                        progress.getTimestamp()
+                )))
+                .onErrorResume(error -> {
+                    log.debug("Question progress stream interrupted. requestId={}, sessionId={}",
+                            context.requestId(), context.sessionId(), error);
+                    return Flux.empty();
+                });
+
         Mono<String> terminalEvent = Mono.fromCallable(() -> executeQuestionGeneration(request, context))
                 .subscribeOn(Schedulers.boundedElastic())
                 .map(questions -> {
@@ -110,51 +131,64 @@ public class QuestionGenerateController extends BaseController {
                                 context.requestId(),
                                 context.sessionId(),
                                 "error",
+                                QuestionAgentStage.FAILED.name(),
                                 0,
-                                GENERATION_FAILED_MESSAGE
+                                GENERATION_FAILED_MESSAGE,
+                                System.currentTimeMillis()
                         ));
                     }
                     return buildStreamEvent(new QuestionGenerateStreamEvent(
                             context.requestId(),
                             context.sessionId(),
                             "completed",
+                            QuestionAgentStage.RESPONDED.name(),
                             questions.size(),
-                            null
+                            "题目生成成功",
+                            System.currentTimeMillis()
                     ));
                 })
                 .onErrorResume(error -> {
                     log.error("Question generation stream failed. requestId={}, sessionId={}",
                             context.requestId(), context.sessionId(), error);
+                    String safeErrorMessage = resolveStreamErrorMessage(error);
                     return Mono.just(buildStreamEvent(new QuestionGenerateStreamEvent(
                             context.requestId(),
                             context.sessionId(),
                             "error",
+                            QuestionAgentStage.FAILED.name(),
                             null,
-                            error.getMessage()
+                            safeErrorMessage,
+                            System.currentTimeMillis()
                     )));
                 })
                 .cache();
 
-        Flux<String> heartbeats = Flux.interval(Duration.ofSeconds(15))
-                .map(sequence -> buildStreamEvent(new QuestionGenerateStreamEvent(
+        long heartbeatSeconds = Math.max(2L, sseHeartbeatSeconds);
+        Flux<String> heartbeatEvents = Flux.interval(Duration.ofSeconds(heartbeatSeconds))
+                .map(tick -> buildStreamEvent(new QuestionGenerateStreamEvent(
                         context.requestId(),
                         context.sessionId(),
                         "processing",
                         null,
-                        null
+                        null,
+                        null,
+                        System.currentTimeMillis()
                 )))
-                .takeUntilOther(terminalEvent);
+                .takeUntilOther(terminalEvent)
+                .onErrorResume(error -> Flux.empty());
 
         Flux<String> streamBody = Flux.concat(
                 Flux.just(buildStreamEvent(new QuestionGenerateStreamEvent(
                         context.requestId(),
                         context.sessionId(),
                         "submitted",
+                        QuestionAgentStage.RECEIVED.name(),
                         null,
-                        null
+                        "请求已提交，正在生成题目",
+                        System.currentTimeMillis()
                 ))),
-                Flux.merge(heartbeats, terminalEvent)
-        );
+                Flux.merge(progressEvents.takeUntilOther(terminalEvent), heartbeatEvents, terminalEvent)
+        ).doFinally(signal -> kafkaQuestionService.clearQuestionProgress(context.requestId()));
 
         return buildSseResponse(streamBody);
     }
@@ -307,14 +341,14 @@ public class QuestionGenerateController extends BaseController {
         return JSON.toJSONString(event);
     }
 
-    private ResponseEntity<Flux<String>> buildSseResponse(Flux<String> body) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.TEXT_EVENT_STREAM);
-        headers.setCacheControl("no-cache, no-transform");
-        headers.set("X-Accel-Buffering", "no");
-        return ResponseEntity.ok()
-                .headers(headers)
-                .body(body);
+    private String resolveStreamErrorMessage(Throwable error) {
+        if (error == null || !StringUtils.hasText(error.getMessage())) {
+            return GENERATION_FAILED_MESSAGE;
+        }
+        if (error instanceof BusinessException) {
+            return error.getMessage();
+        }
+        return GENERATION_FAILED_MESSAGE;
     }
 
     private ResponseEntity<byte[]> buildFileResponse(QuestionPaperExportService.ExportedPaperFile exportedFile) {
@@ -385,7 +419,9 @@ public class QuestionGenerateController extends BaseController {
     private record QuestionGenerateStreamEvent(String requestId,
                                                UUID sessionId,
                                                String status,
+                                               String stage,
                                                Integer questionCount,
-                                               String message) {
+                                               String message,
+                                               Long timestamp) {
     }
 }

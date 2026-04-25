@@ -36,11 +36,10 @@ public class FileDocumentController extends BaseController {
             @Parameter(description = "会话ID（可选）") @RequestParam(value = "sessionId", required = false) UUID sessionId,
             @Parameter(description = "是否自动向量化") @RequestParam(value = "autoVectorize", required = false, defaultValue = "false") Boolean autoVectorize
     ) {
-        FileUploadDTO request = new FileUploadDTO();
-        request.setCourseId(courseId);
-        request.setSessionId(sessionId);
-        request.setAutoVectorize(autoVectorize);
-        FileDocumentVO vo = fileDocumentService.uploadFile(file, request);
+        FileDocumentVO vo = fileDocumentService.uploadFile(
+                file,
+                buildFileUploadRequest(courseId, sessionId, autoVectorize)
+        );
         return Result.success(vo);
     }
 
@@ -52,11 +51,10 @@ public class FileDocumentController extends BaseController {
             @Parameter(description = "会话ID（可选）") @RequestParam(value = "sessionId", required = false) UUID sessionId,
             @Parameter(description = "是否自动向量化") @RequestParam(value = "autoVectorize", required = false, defaultValue = "false") Boolean autoVectorize
     ) {
-        FileUploadDTO request = new FileUploadDTO();
-        request.setCourseId(courseId);
-        request.setSessionId(sessionId);
-        request.setAutoVectorize(autoVectorize);
-        List<FileDocumentVO> vos = fileDocumentService.uploadFiles(files, request);
+        List<FileDocumentVO> vos = fileDocumentService.uploadFiles(
+                files,
+                buildFileUploadRequest(courseId, sessionId, autoVectorize)
+        );
         return Result.success(vos);
     }
 
@@ -117,6 +115,14 @@ public class FileDocumentController extends BaseController {
     ) {
         List<FileInfo> files = fileDocumentService.getFileInfosBySessionId(sessionId);
         return Result.success(files);
+    }
+
+    private FileUploadDTO buildFileUploadRequest(UUID courseId, UUID sessionId, Boolean autoVectorize) {
+        FileUploadDTO request = new FileUploadDTO();
+        request.setCourseId(courseId);
+        request.setSessionId(sessionId);
+        request.setAutoVectorize(autoVectorize);
+        return request;
     }
 }
 

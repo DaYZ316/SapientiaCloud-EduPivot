@@ -5,8 +5,12 @@ import com.dayz.sapientiacloud_edupivot.celestial_hub.common.utils.PageUtil;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
+import reactor.core.publisher.Flux;
 
 import java.beans.PropertyEditorSupport;
 import java.time.LocalDateTime;
@@ -50,5 +54,15 @@ public class BaseController {
 
     protected TableDataResult getDataTable(PageInfo pageInfo) {
         return PageUtil.getDataTable(pageInfo);
+    }
+
+    protected ResponseEntity<Flux<String>> buildSseResponse(Flux<String> body) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.TEXT_EVENT_STREAM);
+        headers.setCacheControl("no-cache, no-transform");
+        headers.set("X-Accel-Buffering", "no");
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(body);
     }
 } 

@@ -55,7 +55,7 @@ public class QuestionGenerationSkill implements AgentSkill<List<QuestionDraftDTO
         }
 
         List<QuestionDraftDTO> drafts = new ArrayList<>();
-        Set<String> blockedSignatures = collectReferenceSignatures(context);
+        Set<String> blockedSignatures = examConstraintTool.collectQuestionSampleSignatures(context.getEvidences());
         for (PaperSectionPlanDTO section : context.getBlueprint().getSections()) {
             List<QuestionDraftDTO> sectionDrafts = generateSectionWithRetry(context, section, blockedSignatures);
             drafts.addAll(sectionDrafts);
@@ -75,7 +75,7 @@ public class QuestionGenerationSkill implements AgentSkill<List<QuestionDraftDTO
             if (isBetterAttempt(attempt, bestAttempt, section)) {
                 bestAttempt = attempt;
             }
-            if (!hasBlockingIssues(attempt.getIssues())) {
+            if (!examConstraintTool.hasBlockingIssues(attempt.getIssues())) {
                 return toDrafts(section, attempt.getQuestions(), attempt.getIssues(), "generated");
             }
             retryHints = summarizeIssues(attempt.getIssues());
@@ -269,24 +269,6 @@ public class QuestionGenerationSkill implements AgentSkill<List<QuestionDraftDTO
         return draftIssues;
     }
 
-    private Set<String> collectReferenceSignatures(QuestionAgentContext context) {
-        Set<String> blockedSignatures = new LinkedHashSet<>();
-        if (context == null || CollectionUtils.isEmpty(context.getEvidences())) {
-            return blockedSignatures;
-        }
-
-        for (AgentEvidenceDTO evidence : context.getEvidences()) {
-            if (evidence == null || !"question_sample".equalsIgnoreCase(evidence.getSourceType())) {
-                continue;
-            }
-            String signature = examConstraintTool.buildSignature(evidence.getTitle(), evidence.getExcerpt());
-            if (StringUtils.hasText(signature)) {
-                blockedSignatures.add(signature);
-            }
-        }
-        return blockedSignatures;
-    }
-
     private Set<String> extractDraftSignatures(List<QuestionDraftDTO> drafts) {
         Set<String> signatures = new LinkedHashSet<>();
         if (CollectionUtils.isEmpty(drafts)) {
@@ -346,23 +328,6 @@ public class QuestionGenerationSkill implements AgentSkill<List<QuestionDraftDTO
         List<String> signatureList = new ArrayList<>(blockedSignatures);
         int fromIndex = Math.max(0, signatureList.size() - BLOCKED_SIGNATURE_LIMIT);
         return new ArrayList<>(signatureList.subList(fromIndex, signatureList.size()));
-    }
-
-    private boolean hasBlockingIssues(List<ValidationIssueDTO> issues) {
-        if (CollectionUtils.isEmpty(issues)) {
-            return false;
-        }
-        for (ValidationIssueDTO issue : issues) {
-            if (issue == null) {
-                continue;
-            }
-            if ("error".equalsIgnoreCase(issue.getLevel())
-                    || "DUPLICATE_QUESTION".equalsIgnoreCase(issue.getCode())
-                    || "REFERENCE_DUPLICATE".equalsIgnoreCase(issue.getCode())) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private boolean isBetterAttempt(SectionAttempt candidate,

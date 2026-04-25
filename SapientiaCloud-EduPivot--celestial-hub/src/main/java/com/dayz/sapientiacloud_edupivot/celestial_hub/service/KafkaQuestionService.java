@@ -20,6 +20,7 @@ import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 
@@ -39,6 +40,7 @@ public class KafkaQuestionService {
 
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final Cache<String, Sinks.One<String>> responseSinks;
+    private final Cache<String, Sinks.Many<QuestionProgressMessage>> progressSinks;
 
     @Value("${spring.kafka.topic.question-request:question-request-topic}")
     private String questionRequestTopic;
@@ -46,16 +48,23 @@ public class KafkaQuestionService {
     @Value("${spring.kafka.topic.question-response:question-response-topic}")
     private String questionResponseTopic;
 
+    @Value("${spring.kafka.topic.question-progress:question-progress-topic}")
+    private String questionProgressTopic;
+
     @Value("${kafka.question.timeout-seconds:1800}")
     private long questionTimeoutSeconds;
 
     public KafkaQuestionService(KafkaTemplate<String, String> kafkaTemplate,
-                                @Value("${kafka.question.response-cache-minutes:40}")
-                                long questionResponseCacheMinutes) {
+                                @Value("${kafka.question.response-cache-minutes:40}") long questionResponseCacheMinutes,
+                                @Value("${kafka.question.progress-cache-minutes:20}") long questionProgressCacheMinutes) {
         this.kafkaTemplate = kafkaTemplate;
         this.responseSinks = Caffeine.newBuilder()
                 .maximumSize(500)
                 .expireAfterWrite(questionResponseCacheMinutes, TimeUnit.MINUTES)
+                .build();
+        this.progressSinks = Caffeine.newBuilder()
+                .maximumSize(500)
+                .expireAfterWrite(questionProgressCacheMinutes, TimeUnit.MINUTES)
                 .build();
     }
 
@@ -66,11 +75,14 @@ public class KafkaQuestionService {
     public List<QuestionResponseDTO> generateQuestions(QuestionGenerateRequestDTO request,
                                                        String requestId,
                                                        UUID currentUserId) {
-        String finalRequestId = requestId != null ? requestId : UUID.randomUUID().toString();
+        if (request == null) {
+            throw new BusinessException(ResultEnum.PARAM_ERROR);
+        }
+        String finalRequestId = StringUtils.hasText(requestId) ? requestId : UUID.randomUUID().toString();
 
         UUID finalUserId = currentUserId != null ? currentUserId : UserContextUtil.getCurrentUserId();
         if (finalUserId == null) {
-            throw new BusinessException(ResultEnum.UNAUTHORIZED.getMessage());
+            throw new BusinessException(ResultEnum.UNAUTHORIZED);
         }
 
         QuestionRequestMessage requestMessage = new QuestionRequestMessage();
@@ -112,9 +124,21 @@ public class KafkaQuestionService {
             groupId = "${spring.kafka.consumer.group-id:chat-group}-question-response")
     public void consumeQuestionResponse(@Payload String message,
                                         @Header(KafkaHeaders.RECEIVED_KEY) String requestId) {
-        QuestionResponseMessage responseMessage = JSON.parseObject(message, QuestionResponseMessage.class);
+        QuestionResponseMessage responseMessage;
+        try {
+            responseMessage = JSON.parseObject(message, QuestionResponseMessage.class);
+        } catch (Exception e) {
+            log.debug("Failed to parse question response Kafka message. requestId={}", requestId, e);
+            return;
+        }
+        if (responseMessage == null) {
+            return;
+        }
         String finalRequestId = StringUtils.hasText(responseMessage.getRequestId())
                 ? responseMessage.getRequestId() : requestId;
+        if (!StringUtils.hasText(finalRequestId)) {
+            return;
+        }
 
         Sinks.One<String> sink = responseSinks.getIfPresent(finalRequestId);
         if (sink == null) {
@@ -123,9 +147,13 @@ public class KafkaQuestionService {
 
         sink.tryEmitValue(responseMessage.getContent());
         responseSinks.invalidate(finalRequestId);
+        completeQuestionProgress(finalRequestId);
     }
 
     public void sendQuestionResponse(String requestId, String jsonContent) {
+        if (!StringUtils.hasText(requestId)) {
+            return;
+        }
         QuestionResponseMessage response = new QuestionResponseMessage();
         response.setRequestId(requestId);
         response.setContent(jsonContent);
@@ -140,6 +168,76 @@ public class KafkaQuestionService {
         } catch (Exception ex) {
             log.debug("Failed to serialize question response Kafka message. requestId={}", requestId, ex);
         }
+    }
+
+    @KafkaListener(topics = "${spring.kafka.topic.question-progress:question-progress-topic}",
+            groupId = "${spring.kafka.consumer.group-id:chat-group}-question-progress")
+    public void consumeQuestionProgress(@Payload String message,
+                                        @Header(KafkaHeaders.RECEIVED_KEY) String requestId) {
+        QuestionProgressMessage progressMessage;
+        try {
+            progressMessage = JSON.parseObject(message, QuestionProgressMessage.class);
+        } catch (Exception e) {
+            log.debug("Failed to parse question progress Kafka message. requestId={}", requestId, e);
+            return;
+        }
+        if (progressMessage == null) {
+            return;
+        }
+
+        String finalRequestId = StringUtils.hasText(progressMessage.getRequestId())
+                ? progressMessage.getRequestId() : requestId;
+        if (!StringUtils.hasText(finalRequestId)) {
+            return;
+        }
+
+        emitQuestionProgress(finalRequestId, progressMessage);
+    }
+
+    public void sendQuestionProgress(String requestId,
+                                     UUID sessionId,
+                                     String status,
+                                     String stage,
+                                     String message,
+                                     Integer questionCount) {
+        if (!StringUtils.hasText(requestId)) {
+            return;
+        }
+
+        QuestionProgressMessage progressMessage = new QuestionProgressMessage();
+        progressMessage.setRequestId(requestId);
+        progressMessage.setSessionId(sessionId);
+        progressMessage.setStatus(status);
+        progressMessage.setStage(stage);
+        progressMessage.setMessage(message);
+        progressMessage.setQuestionCount(questionCount);
+        progressMessage.setTimestamp(System.currentTimeMillis());
+
+        try {
+            String payload = JSON.toJSONString(progressMessage);
+            kafkaTemplate.send(questionProgressTopic, requestId, payload)
+                    .whenComplete((result, ex) -> {
+                        if (ex != null) {
+                            log.debug("Failed to send question progress Kafka message. requestId={}", requestId, ex);
+                        }
+                    });
+        } catch (Exception ex) {
+            log.debug("Failed to serialize question progress Kafka message. requestId={}", requestId, ex);
+        }
+    }
+
+    public Flux<QuestionProgressMessage> subscribeQuestionProgress(String requestId) {
+        if (!StringUtils.hasText(requestId)) {
+            return Flux.empty();
+        }
+        return getOrCreateQuestionProgressSink(requestId).asFlux();
+    }
+
+    public void clearQuestionProgress(String requestId) {
+        if (!StringUtils.hasText(requestId)) {
+            return;
+        }
+        completeQuestionProgress(requestId);
     }
 
     public boolean checkRequestStatus(String requestId) {
@@ -173,6 +271,52 @@ public class KafkaQuestionService {
                 .block();
     }
 
+    private Sinks.Many<QuestionProgressMessage> getOrCreateQuestionProgressSink(String requestId) {
+        Sinks.Many<QuestionProgressMessage> sink = progressSinks.getIfPresent(requestId);
+        if (sink != null) {
+            return sink;
+        }
+
+        Sinks.Many<QuestionProgressMessage> created = Sinks.many().replay().limit(32);
+        progressSinks.put(requestId, created);
+        return created;
+    }
+
+    private void emitQuestionProgress(String requestId, QuestionProgressMessage progressMessage) {
+        Sinks.Many<QuestionProgressMessage> sink = progressSinks.getIfPresent(requestId);
+        if (sink == null) {
+            return;
+        }
+
+        QuestionProgressMessage normalized = normalizeQuestionProgressMessage(requestId, progressMessage);
+        sink.tryEmitNext(normalized);
+    }
+
+    private QuestionProgressMessage normalizeQuestionProgressMessage(String requestId,
+                                                                    QuestionProgressMessage progressMessage) {
+        if (progressMessage == null) {
+            QuestionProgressMessage empty = new QuestionProgressMessage();
+            empty.setRequestId(requestId);
+            empty.setTimestamp(System.currentTimeMillis());
+            return empty;
+        }
+        if (!StringUtils.hasText(progressMessage.getRequestId())) {
+            progressMessage.setRequestId(requestId);
+        }
+        if (progressMessage.getTimestamp() == null) {
+            progressMessage.setTimestamp(System.currentTimeMillis());
+        }
+        return progressMessage;
+    }
+
+    private void completeQuestionProgress(String requestId) {
+        Sinks.Many<QuestionProgressMessage> sink = progressSinks.getIfPresent(requestId);
+        if (sink != null) {
+            sink.tryEmitComplete();
+        }
+        progressSinks.invalidate(requestId);
+    }
+
     @Getter
     @Setter
     public static class QuestionRequestMessage {
@@ -186,5 +330,17 @@ public class KafkaQuestionService {
     public static class QuestionResponseMessage {
         private String requestId;
         private String content;
+    }
+
+    @Getter
+    @Setter
+    public static class QuestionProgressMessage {
+        private String requestId;
+        private UUID sessionId;
+        private String status;
+        private String stage;
+        private String message;
+        private Integer questionCount;
+        private Long timestamp;
     }
 }

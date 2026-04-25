@@ -36,18 +36,25 @@ public class ChatMessageUtil {
      * 构建消息上下文（返回上下文消息与最后一条历史消息）
      */
     public static ChatContext buildContext(UUID sessionId, ChatRequestDTO request, ChatMessageRepository chatMessageRepository) {
+        return buildContext(sessionId, request.getMessage(), request.getAttachments(), request.getFileReferences(), chatMessageRepository);
+    }
+
+    private static ChatContext buildContext(UUID sessionId,
+                                            String message,
+                                            List<String> attachments,
+                                            List<FileReference> fileReferences,
+                                            ChatMessageRepository chatMessageRepository) {
         List<Message> messages = new ArrayList<>();
         messages.add(new SystemMessage(AIChatConstants.SYSTEM_PROMPT));
         messages.add(new SystemMessage(AIChatConstants.MATH_LATEX_STYLE_PROMPT));
 
         // 获取历史消息
+        // 只有当最后一条历史消息不是同一条用户消息时才追加当前请求
         List<ChatMessage> history = chatMessageRepository.findBySessionIdOrderByCreateTimeAsc(sessionId);
         ChatMessage last = history.isEmpty() ? null : history.get(history.size() - 1);
         appendHistoryMessages(messages, history);
-
-        // 只有当最后一条历史消息不是同一条用户消息时才追加当前请求
-        if (!isSameAsLastUserMessage(last, request.getMessage(), request.getAttachments(), request.getFileReferences())) {
-            messages.add(new UserMessage(request.getMessage()));
+        if (!isSameAsLastUserMessage(last, message, attachments, fileReferences)) {
+            messages.add(new UserMessage(message));
         }
         return new ChatContext(messages, last);
     }
@@ -146,22 +153,8 @@ public class ChatMessageUtil {
      * 构建消息上下文（Kafka版本，返回上下文消息与最后一条历史消息）
      */
     public static ChatContext buildContext(UUID sessionId, KafkaChatRequestDTO request, ChatMessageRepository chatMessageRepository) {
-        List<Message> messages = new ArrayList<>();
-        messages.add(new SystemMessage(AIChatConstants.SYSTEM_PROMPT));
-        messages.add(new SystemMessage(AIChatConstants.MATH_LATEX_STYLE_PROMPT));
-
-        // 获取历史消息
-        List<ChatMessage> history = chatMessageRepository.findBySessionIdOrderByCreateTimeAsc(sessionId);
-        ChatMessage last = history.isEmpty() ? null : history.get(history.size() - 1);
-        appendHistoryMessages(messages, history);
-
-        // 只有当最后一条历史消息不是同一条用户消息时才追加当前请求
-        if (!isSameAsLastUserMessage(last, request.getMessage(), request.getAttachments(), request.getFileReferences())) {
-            messages.add(new UserMessage(request.getMessage()));
-        }
-        return new ChatContext(messages, last);
+        return buildContext(sessionId, request.getMessage(), request.getAttachments(), request.getFileReferences(), chatMessageRepository);
     }
-
     /**
      * 检索知识（ChatRequestDTO版本：知识库 + 文件内容）
      */
@@ -340,6 +333,9 @@ public class ChatMessageUtil {
      * 估算token数量
      */
     public static Integer estimateTokens(String text) {
+        if (!StringUtils.hasText(text)) {
+            return 0;
+        }
         return (int) (text.length() * AIChatConstants.TOKEN_ESTIMATE_RATIO);
     }
 
