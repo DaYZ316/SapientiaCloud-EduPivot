@@ -22,6 +22,8 @@ import java.util.List;
 public class PaperPlanningSkill implements AgentSkill<PaperBlueprintDTO> {
 
     private static final int MAX_SECTION_BATCH_SIZE = 5;
+    private static final int SECTION_EVIDENCE_LIMIT = 5;
+    private static final int SECTION_OPENTDB_EVIDENCE_LIMIT = 2;
     private static final List<Integer> MIXED_TYPES = List.of(0, 1, 2, 3, 4);
 
     private final ExamConstraintTool examConstraintTool;
@@ -115,10 +117,72 @@ public class PaperPlanningSkill implements AgentSkill<PaperBlueprintDTO> {
             section.setKnowledgePoints(new ArrayList<>(request.getKnowledgePoints()));
         }
         if (!CollectionUtils.isEmpty(evidences)) {
-            int evidenceLimit = Math.min(5, evidences.size());
-            section.setEvidences(new ArrayList<>(evidences.subList(0, evidenceLimit)));
+            section.setEvidences(selectSectionEvidences(evidences));
         }
         return section;
+    }
+
+    private List<AgentEvidenceDTO> selectSectionEvidences(List<AgentEvidenceDTO> evidences) {
+        if (CollectionUtils.isEmpty(evidences)) {
+            return List.of();
+        }
+
+        List<AgentEvidenceDTO> selected = new ArrayList<>(SECTION_EVIDENCE_LIMIT);
+        addEvidenceBySource(selected, evidences, true, SECTION_OPENTDB_EVIDENCE_LIMIT);
+        addEvidenceBySource(selected, evidences, false, SECTION_EVIDENCE_LIMIT);
+        addEvidenceBySource(selected, evidences, true, SECTION_EVIDENCE_LIMIT);
+        return selected;
+    }
+
+    private void addEvidenceBySource(List<AgentEvidenceDTO> selected,
+                                     List<AgentEvidenceDTO> evidences,
+                                     boolean openTdbOnly,
+                                     int limit) {
+        if (selected == null || evidences == null || selected.size() >= limit) {
+            return;
+        }
+
+        for (AgentEvidenceDTO evidence : evidences) {
+            if (evidence == null) {
+                continue;
+            }
+            boolean isOpenTdb = "opentdb".equalsIgnoreCase(evidence.getSourceType());
+            if (openTdbOnly != isOpenTdb) {
+                continue;
+            }
+            if (containsEvidence(selected, evidence)) {
+                continue;
+            }
+            selected.add(evidence);
+            if (selected.size() >= limit) {
+                return;
+            }
+        }
+    }
+
+    private boolean containsEvidence(List<AgentEvidenceDTO> selected, AgentEvidenceDTO candidate) {
+        if (selected == null || candidate == null) {
+            return false;
+        }
+        for (AgentEvidenceDTO existing : selected) {
+            if (existing == null) {
+                continue;
+            }
+            String existingKey = (existing.getSourceType() == null ? "" : existing.getSourceType())
+                    + '|'
+                    + (existing.getSourceId() == null ? "" : existing.getSourceId())
+                    + '|'
+                    + (existing.getTitle() == null ? "" : existing.getTitle());
+            String candidateKey = (candidate.getSourceType() == null ? "" : candidate.getSourceType())
+                    + '|'
+                    + (candidate.getSourceId() == null ? "" : candidate.getSourceId())
+                    + '|'
+                    + (candidate.getTitle() == null ? "" : candidate.getTitle());
+            if (existingKey.equals(candidateKey)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void assignSectionEstimatedTimes(QuestionGenerateRequestDTO request, List<PaperSectionPlanDTO> sections) {

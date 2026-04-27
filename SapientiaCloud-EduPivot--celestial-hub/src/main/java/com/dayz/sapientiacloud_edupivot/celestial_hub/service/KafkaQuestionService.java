@@ -199,7 +199,8 @@ public class KafkaQuestionService {
                                      String status,
                                      String stage,
                                      String message,
-                                     Integer questionCount) {
+                                     Integer questionCount,
+                                     String generationMode) {
         if (!StringUtils.hasText(requestId)) {
             return;
         }
@@ -211,6 +212,7 @@ public class KafkaQuestionService {
         progressMessage.setStage(stage);
         progressMessage.setMessage(message);
         progressMessage.setQuestionCount(questionCount);
+        progressMessage.setGenerationMode(generationMode);
         progressMessage.setTimestamp(System.currentTimeMillis());
 
         try {
@@ -341,6 +343,7 @@ public class KafkaQuestionService {
         private String stage;
         private String message;
         private Integer questionCount;
+        private String generationMode;
         private Long timestamp;
     }
 }
