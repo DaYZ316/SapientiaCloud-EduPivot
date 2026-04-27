@@ -34,6 +34,13 @@ public class QuestionGenerateRequestDTO implements Serializable {
     @Schema(description = "会话ID。新建出题会话时可为空", example = "11111111-1111-1111-1111-111111111111")
     private UUID sessionId;
 
+    @Schema(
+            description = "鐢熸垚妯″紡锛歵uestion=鍑洪锛宲aper=鍑洪+鏁村嵎",
+            allowableValues = {"question", "paper"},
+            example = "question"
+    )
+    private String generationMode;
+
     @Schema(description = "课程ID。需要结合课程章节、题库或生成会话时建议传入", example = "22222222-2222-2222-2222-222222222222")
     private UUID courseId;
 

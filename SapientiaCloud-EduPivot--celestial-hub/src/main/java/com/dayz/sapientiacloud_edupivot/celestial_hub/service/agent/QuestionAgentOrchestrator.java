@@ -108,6 +108,7 @@ public class QuestionAgentOrchestrator {
         addAllIfPresent(merged, toolRegistry.getKnowledgeSearchTool().search(context));
         addAllIfPresent(merged, toolRegistry.getQuestionBankTool().loadEvidence(context));
         addAllIfPresent(merged, toolRegistry.getFileContextTool().loadEvidence(context));
+        addAllIfPresent(merged, skillRegistry.getOpenTdbQuestionSkill().execute(context));
         context.setEvidences(deduplicateEvidence(merged));
     }
 
