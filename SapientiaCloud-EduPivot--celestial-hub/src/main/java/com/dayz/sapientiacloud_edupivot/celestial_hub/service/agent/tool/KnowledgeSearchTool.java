@@ -7,6 +7,7 @@ import com.dayz.sapientiacloud_edupivot.celestial_hub.enums.ContentTypeEnum;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.KnowledgeService;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.agent.context.QuestionAgentContext;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.agent.dto.AgentEvidenceDTO;
+import com.dayz.sapientiacloud_edupivot.celestial_hub.service.agent.trace.QuestionGenerationTracePayloads;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -48,6 +49,13 @@ public class KnowledgeSearchTool implements AgentTool {
 
         List<KnowledgeSearchResultVO> results = knowledgeService.searchKnowledge(searchRequest);
         if (results == null || results.isEmpty()) {
+            context.appendTraceEntry(
+                    "knowledgeSearch",
+                    "evidence_batch",
+                    context.localize("知识检索", "Knowledge retrieval"),
+                    context.localize("知识检索已完成，但未找到匹配片段。", "Knowledge retrieval finished, but no matching snippets were found."),
+                    QuestionGenerationTracePayloads.evidenceBatch(query, List.of())
+            );
             return List.of();
         }
 
@@ -60,7 +68,7 @@ public class KnowledgeSearchTool implements AgentTool {
             ContentTypeEnum type = ContentTypeEnum.fromCode(result.getContentType());
             evidence.setSourceType(type != null ? type.getVectorNamespace() : "knowledge");
             evidence.setSourceId(StringUtils.hasText(result.getVectorId()) ? result.getVectorId() : result.getDocumentId());
-            evidence.setTitle(StringUtils.hasText(result.getTitle()) ? result.getTitle() : "Knowledge Snippet");
+            evidence.setTitle(StringUtils.hasText(result.getTitle()) ? result.getTitle() : context.localize("知识片段", "Knowledge snippet"));
             evidence.setExcerpt(result.getContent());
             evidence.setScore(result.getScore());
             HashMap<String, Object> metadata = new HashMap<>();
@@ -73,6 +81,16 @@ public class KnowledgeSearchTool implements AgentTool {
             evidence.setMetadata(metadata);
             evidences.add(evidence);
         }
+        context.appendTraceEntry(
+                "knowledgeSearch",
+                "evidence_batch",
+                context.localize("知识检索", "Knowledge retrieval"),
+                context.localize(
+                        "已为当前请求检索到 " + evidences.size() + " 条知识片段。",
+                        "Retrieved " + evidences.size() + " knowledge snippets for the current request."
+                ),
+                QuestionGenerationTracePayloads.evidenceBatch(query, evidences)
+        );
         return evidences;
     }
 
@@ -91,12 +109,23 @@ public class KnowledgeSearchTool implements AgentTool {
             sb.append(request.getRequirement());
         }
         if (!StringUtils.hasText(sb.toString())) {
-            sb.append("Generate ")
-                    .append(request.getQuestionCount())
-                    .append(" questions of type ")
-                    .append(request.getQuestionType())
-                    .append(" with difficulty ")
-                    .append(request.getDifficulty());
+            String locale = request != null ? request.getLocale() : null;
+            if (com.dayz.sapientiacloud_edupivot.celestial_hub.utils.QuestionGenerationLocaleUtils.isEnglish(locale)) {
+                sb.append("Generate ")
+                        .append(request.getQuestionCount())
+                        .append(" questions with type ")
+                        .append(request.getQuestionType())
+                        .append(" and difficulty ")
+                        .append(request.getDifficulty());
+            } else {
+                sb.append("生成 ")
+                        .append(request.getQuestionCount())
+                        .append(" 道题型为 ")
+                        .append(request.getQuestionType())
+                        .append("、难度为 ")
+                        .append(request.getDifficulty())
+                        .append(" 的题目");
+            }
         }
         return sb.toString().trim();
     }

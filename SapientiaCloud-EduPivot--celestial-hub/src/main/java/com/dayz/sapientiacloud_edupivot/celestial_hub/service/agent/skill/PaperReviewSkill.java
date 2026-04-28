@@ -9,7 +9,9 @@ import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.QuestionRespons
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.agent.assembler.QuestionResponseAssembler;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.agent.context.QuestionAgentContext;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.agent.dto.ValidationIssueDTO;
+import com.dayz.sapientiacloud_edupivot.celestial_hub.service.agent.trace.QuestionGenerationTracePayloads;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.agent.tool.ExamConstraintTool;
+import com.dayz.sapientiacloud_edupivot.celestial_hub.utils.QuestionGenerationLocaleUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
@@ -56,6 +58,13 @@ public class PaperReviewSkill implements AgentSkill<List<QuestionResponseDTO>> {
         context.setIssues(issues);
 
         if (!examConstraintTool.hasBlockingIssues(issues)) {
+            context.appendTraceEntry(
+                    "paperReview",
+                    "repair_summary",
+                    context.localize("修复前复核", "Pre-repair review"),
+                    context.localize("草稿题目已通过校验，无需额外修复。", "Draft questions passed validation. No extra repair is needed."),
+                    QuestionGenerationTracePayloads.finalQuestions(normalized, issues)
+            );
             return normalized;
         }
 
@@ -92,6 +101,19 @@ public class PaperReviewSkill implements AgentSkill<List<QuestionResponseDTO>> {
                         blockedSignatures
                 );
 
+                context.appendTraceEntry(
+                        "paperReview",
+                        "repair_attempt",
+                        context.localize("第 " + attemptNo + " 轮修复", "Repair attempt " + attemptNo),
+                        context.localize(
+                                "本轮产出 " + normalizedRepaired.size() + " 道题目，仍有 "
+                                        + repairedIssues.size() + " 个问题待处理。",
+                                "This attempt produced " + normalizedRepaired.size() + " questions with "
+                                        + repairedIssues.size() + " issues still pending."
+                        ),
+                        QuestionGenerationTracePayloads.repairAttempt(attemptNo, normalizedRepaired, repairedIssues)
+                );
+
                 if (isBetterCandidate(normalizedRepaired, repairedIssues, bestQuestions, bestIssues, context)) {
                     bestQuestions = normalizedRepaired;
                     bestIssues = repairedIssues;
@@ -102,11 +124,30 @@ public class PaperReviewSkill implements AgentSkill<List<QuestionResponseDTO>> {
             } catch (Exception e) {
                 log.warn("Question repair pass failed, falling back to best effort result. requestId={}, attemptNo={}, error={}",
                         context.getRequestId(), attemptNo, e.getMessage());
+                context.appendTraceEntry(
+                        "paperReview",
+                        "repair_attempt",
+                        context.localize("第 " + attemptNo + " 轮修复", "Repair attempt " + attemptNo),
+                        context.localize("本轮修复未产出可用结果，已保留当前最优版本。", "This repair attempt produced no usable result. Kept the current best version."),
+                        QuestionGenerationTracePayloads.repairAttempt(attemptNo, List.of(), currentIssues)
+                );
                 break;
             }
         }
 
         context.setIssues(bestIssues);
+        context.appendTraceEntry(
+                "paperReview",
+                "repair_summary",
+                context.localize("修复完成", "Repair completed"),
+                context.localize(
+                        "已选择当前最佳修复结果，共 " + bestQuestions.size()
+                                + " 道题目，剩余 " + bestIssues.size() + " 个问题。",
+                        "Selected the current best repaired result with " + bestQuestions.size()
+                                + " questions and " + bestIssues.size() + " remaining issues."
+                ),
+                QuestionGenerationTracePayloads.finalQuestions(bestQuestions, bestIssues)
+        );
         return CollectionUtils.isEmpty(bestQuestions) ? normalized : bestQuestions;
     }
 
@@ -116,6 +157,7 @@ public class PaperReviewSkill implements AgentSkill<List<QuestionResponseDTO>> {
                                      int attemptNo) {
         StringBuilder prompt = new StringBuilder(QuestionConstants.QUESTION_SYSTEM_PROMPT);
         prompt.append("\n\nCurrent task: repair a generated question set.");
+        prompt.append("\n").append(QuestionGenerationLocaleUtils.buildOutputLanguageInstruction(context.resolveLocale()));
         prompt.append("\nReturn a JSON object matching QuestionGeneratePayload and nothing else.");
         prompt.append("\nUse this exact top-level shape: {\"questions\":[...]}.");
         prompt.append("\nThe questions array inside that object must contain exactly ")
@@ -126,7 +168,7 @@ public class PaperReviewSkill implements AgentSkill<List<QuestionResponseDTO>> {
         prompt.append("\nEvery question must include estimatedTime as a positive integer number of minutes.");
         prompt.append("\nFormula formatting is strict: never output bare TeX or symbolic math outside $...$ or $$...$$.");
         prompt.append("\nIf any field contains only a formula, set notation, matrix, superscript/subscript, or symbolic expression, it still must be wrapped in math delimiters.");
-        prompt.append("\nUse \\text{...} for Chinese words inside formulas, and keep that \\text{...} inside the same math delimiters.");
+        prompt.append("\n").append(QuestionGenerationLocaleUtils.buildFormulaTextInstruction(context.resolveLocale()));
         prompt.append("\nKeep vector, matrix, and identity-matrix bold styles consistent across the whole repaired set. Default to \\boldsymbol{...}; if you choose \\mathbf{...}, use it consistently everywhere in that set.");
         prompt.append("\nWhen formulas contain comma-separated conditions or parallel clauses, use spacing commands such as \\, or \\quad where they genuinely improve readability.");
         prompt.append("\nBefore returning JSON, self-check questionContent, options.optionContent, options.explanation, answers.answerContent, and answers.explanation for naked TeX such as \\frac, \\sqrt, \\mathbb, \\in, \\mid, \\{...\\}, or x^2.");

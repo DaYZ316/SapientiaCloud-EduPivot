@@ -6,6 +6,7 @@ import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.po.KnowledgeVector;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.KnowledgeService;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.agent.context.QuestionAgentContext;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.agent.dto.AgentEvidenceDTO;
+import com.dayz.sapientiacloud_edupivot.celestial_hub.service.agent.trace.QuestionGenerationTracePayloads;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -42,38 +43,46 @@ public class FileContextTool implements AgentTool {
                 context.getUserId(),
                 context.getSessionId()
         );
-        if (CollectionUtils.isEmpty(vectors)) {
-            return List.of();
-        }
-
         List<AgentEvidenceDTO> evidences = new ArrayList<>();
-        int limit = Math.min(5, vectors.size());
-        for (int i = 0; i < limit; i++) {
-            KnowledgeVector vector = vectors.get(i);
-            if (vector == null || !StringUtils.hasText(vector.getContent())) {
-                continue;
+        if (!CollectionUtils.isEmpty(vectors)) {
+            int limit = Math.min(5, vectors.size());
+            for (int i = 0; i < limit; i++) {
+                KnowledgeVector vector = vectors.get(i);
+                if (vector == null || !StringUtils.hasText(vector.getContent())) {
+                    continue;
+                }
+                AgentEvidenceDTO evidence = new AgentEvidenceDTO();
+                evidence.setSourceType("file");
+                evidence.setSourceId(vector.getContentId() != null ? vector.getContentId().toString() : vector.getVectorId());
+                evidence.setTitle(StringUtils.hasText(vector.getTitle()) ? vector.getTitle() : context.localize("上传文件", "Uploaded file"));
+                evidence.setExcerpt(vector.getContent());
+                HashMap<String, Object> metadata = new HashMap<>();
+                metadata.put("fileId", vector.getContentId());
+                metadata.put("sessionId", vector.getSessionId());
+                metadata.put("userId", vector.getUserId());
+                metadata.put("courseId", vector.getCourseId());
+                evidence.setMetadata(metadata);
+                evidences.add(evidence);
             }
-            AgentEvidenceDTO evidence = new AgentEvidenceDTO();
-            evidence.setSourceType("file");
-            evidence.setSourceId(vector.getContentId() != null ? vector.getContentId().toString() : vector.getVectorId());
-            evidence.setTitle(StringUtils.hasText(vector.getTitle()) ? vector.getTitle() : "Uploaded File");
-            evidence.setExcerpt(vector.getContent());
-            HashMap<String, Object> metadata = new HashMap<>();
-            metadata.put("fileId", vector.getContentId());
-            metadata.put("sessionId", vector.getSessionId());
-            metadata.put("userId", vector.getUserId());
-            metadata.put("courseId", vector.getCourseId());
-            evidence.setMetadata(metadata);
-            evidences.add(evidence);
         }
 
         if (!evidences.isEmpty()) {
+            context.appendTraceEntry(
+                    "fileContext",
+                    "evidence_batch",
+                    context.localize("上传文件上下文", "Uploaded file context"),
+                    context.localize(
+                            "已从上传文件向量中读取 " + evidences.size() + " 条片段。",
+                            "Read " + evidences.size() + " snippets from uploaded file vectors."
+                    ),
+                    QuestionGenerationTracePayloads.evidenceBatch(null, evidences)
+            );
             return evidences;
         }
 
         String query = StringUtils.hasText(request.getRequirement())
                 ? request.getRequirement()
-                : "Generate questions from uploaded files";
+                : context.localize("根据上传文件生成题目", "Generate questions from uploaded files");
         List<UUID> fileIds = new ArrayList<>();
         for (FileReference fileReference : fileReferences) {
             if (fileReference != null && fileReference.getId() != null) {
@@ -88,8 +97,16 @@ public class FileContextTool implements AgentTool {
         AgentEvidenceDTO fallback = new AgentEvidenceDTO();
         fallback.setSourceType("file");
         fallback.setSourceId("session-files");
-        fallback.setTitle("Uploaded File Context");
+        fallback.setTitle(context.localize("上传文件上下文", "Uploaded file context"));
         fallback.setExcerpt(fileContext);
-        return List.of(fallback);
+        List<AgentEvidenceDTO> fallbackEvidences = List.of(fallback);
+        context.appendTraceEntry(
+                "fileContext",
+                "evidence_batch",
+                context.localize("上传文件上下文", "Uploaded file context"),
+                context.localize("已从上传文件中补充回退上下文内容。", "Added fallback context from uploaded files."),
+                QuestionGenerationTracePayloads.evidenceBatch(query, fallbackEvidences)
+        );
+        return fallbackEvidences;
     }
 }

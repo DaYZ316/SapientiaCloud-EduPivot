@@ -8,7 +8,6 @@ import com.dayz.sapientiacloud_edupivot.celestial_hub.common.result.Result;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.common.security.annotation.HasPermission;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.common.security.utils.UserContextUtil;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.constant.PermissionConstants;
-import com.dayz.sapientiacloud_edupivot.celestial_hub.constant.QuestionConstants;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.QuestionGenerateRequestDTO;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.QuestionPaperExportRequestDTO;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.QuestionResponseDTO;
@@ -20,7 +19,9 @@ import com.dayz.sapientiacloud_edupivot.celestial_hub.service.IChatSessionServic
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.KafkaQuestionService;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.QuestionPaperExportService;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.agent.context.QuestionAgentStage;
+import com.dayz.sapientiacloud_edupivot.celestial_hub.service.agent.dto.QuestionGenerationTraceEntryDTO;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.utils.ChatMessageUtil;
+import com.dayz.sapientiacloud_edupivot.celestial_hub.utils.QuestionGenerationLocaleUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -56,6 +57,9 @@ import java.util.UUID;
 @RequestMapping("/question")
 @RequiredArgsConstructor
 public class QuestionGenerateController extends BaseController {
+
+    private static final int QUESTION_GENERATION_MAX_COUNT = 10;
+    private static final int PAPER_GENERATION_MAX_COUNT = 50;
 
     private static final String QUESTION_GENERATION_FAILED_MESSAGE = "题目生成失败，请稍后重试。";
     private static final String PAPER_GENERATION_FAILED_MESSAGE = "试卷生成失败，请稍后重试。";
@@ -121,6 +125,7 @@ public class QuestionGenerateController extends BaseController {
                                 ? progress.getGenerationMode()
                                 : context.generationMode().getCode(),
                         shouldShowStageDetails(resolveStreamGenerationMode(progress.getGenerationMode(), context.generationMode())),
+                        progress.getTraceEntry(),
                         progress.getTimestamp()
                 )))
                 .onErrorResume(error -> {
@@ -138,12 +143,13 @@ public class QuestionGenerateController extends BaseController {
                                 context.sessionId(),
                                 "error",
                                 QuestionAgentStage.FAILED.name(),
-                                0,
-                                resolveGenerationFailureMessage(context.generationMode()),
-                                context.generationMode().getCode(),
-                                shouldShowStageDetails(context.generationMode()),
-                                System.currentTimeMillis()
-                        ));
+                                 0,
+                                 resolveGenerationFailureMessage(context.generationMode(), context.locale()),
+                                 context.generationMode().getCode(),
+                                 shouldShowStageDetails(context.generationMode()),
+                                 null,
+                                 System.currentTimeMillis()
+                         ));
                     }
                     return buildStreamEvent(new QuestionGenerateStreamEvent(
                             context.requestId(),
@@ -151,27 +157,29 @@ public class QuestionGenerateController extends BaseController {
                             "completed",
                             QuestionAgentStage.RESPONDED.name(),
                             questions.size(),
-                            resolveGenerationCompletedMessage(context.generationMode()),
+                            resolveGenerationCompletedMessage(context.generationMode(), context.locale()),
                             context.generationMode().getCode(),
                             shouldShowStageDetails(context.generationMode()),
+                            null,
                             System.currentTimeMillis()
                     ));
                 })
                 .onErrorResume(error -> {
                     log.error("Question generation stream failed. requestId={}, sessionId={}",
                             context.requestId(), context.sessionId(), error);
-                    String safeErrorMessage = resolveStreamErrorMessage(error, context.generationMode());
+                    String safeErrorMessage = resolveStreamErrorMessage(error, context.generationMode(), context.locale());
                     return Mono.just(buildStreamEvent(new QuestionGenerateStreamEvent(
                             context.requestId(),
                             context.sessionId(),
                             "error",
                             QuestionAgentStage.FAILED.name(),
                             null,
-                            safeErrorMessage,
-                            context.generationMode().getCode(),
-                            shouldShowStageDetails(context.generationMode()),
-                            System.currentTimeMillis()
-                    )));
+                             safeErrorMessage,
+                             context.generationMode().getCode(),
+                             shouldShowStageDetails(context.generationMode()),
+                             null,
+                             System.currentTimeMillis()
+                     )));
                 })
                 .cache();
 
@@ -186,6 +194,7 @@ public class QuestionGenerateController extends BaseController {
                         null,
                         context.generationMode().getCode(),
                         shouldShowStageDetails(context.generationMode()),
+                        null,
                         System.currentTimeMillis()
                 )))
                 .takeUntilOther(terminalEvent)
@@ -198,9 +207,10 @@ public class QuestionGenerateController extends BaseController {
                         "submitted",
                         QuestionAgentStage.RECEIVED.name(),
                         null,
-                        resolveGenerationSubmittedMessage(context.generationMode()),
+                        resolveGenerationSubmittedMessage(context.generationMode(), context.locale()),
                         context.generationMode().getCode(),
                         shouldShowStageDetails(context.generationMode()),
+                        null,
                         System.currentTimeMillis()
                 ))),
                 Flux.merge(progressEvents.takeUntilOther(terminalEvent), heartbeatEvents, terminalEvent)
@@ -287,13 +297,43 @@ public class QuestionGenerateController extends BaseController {
     }
 
     private QuestionGenerationExecutionContext prepareExecutionContext(QuestionGenerateRequestDTO request) {
+        String locale = QuestionGenerationLocaleUtils.resolveLocale(request);
         UUID currentUserId = UserContextUtil.getCurrentUserId();
         UUID sessionId = getOrCreateSessionId(request, currentUserId);
         boolean needGenerateTitle = shouldGenerateSessionTitle(sessionId);
         QuestionGenerationMode generationMode = QuestionGenerationMode.resolve(request);
+        validateQuestionCount(request, generationMode, locale);
         request.setGenerationMode(generationMode.getCode());
         String requestId = UUID.randomUUID().toString();
-        return new QuestionGenerationExecutionContext(requestId, sessionId, needGenerateTitle, currentUserId, generationMode);
+        return new QuestionGenerationExecutionContext(requestId, sessionId, needGenerateTitle, currentUserId, generationMode, locale);
+    }
+
+    private void validateQuestionCount(QuestionGenerateRequestDTO request,
+                                       QuestionGenerationMode generationMode,
+                                       String locale) {
+        if (request == null || request.getQuestionCount() == null) {
+            return;
+        }
+
+        int maxCount = generationMode != null && generationMode.isPaper()
+                ? PAPER_GENERATION_MAX_COUNT
+                : QUESTION_GENERATION_MAX_COUNT;
+        if (request.getQuestionCount() <= maxCount) {
+            return;
+        }
+
+        String message = generationMode != null && generationMode.isPaper()
+                ? QuestionGenerationLocaleUtils.text(
+                locale,
+                "AI 出卷单次最多生成 50 题",
+                "AI paper generation supports up to 50 questions per request."
+        )
+                : QuestionGenerationLocaleUtils.text(
+                locale,
+                "AI 出题单次最多生成 10 题",
+                "AI question generation supports up to 10 questions per request."
+        );
+        throw new BusinessException(ResultEnum.PARAM_ERROR.getCode(), message);
     }
 
     private List<QuestionResponseDTO> executeQuestionGeneration(QuestionGenerateRequestDTO request,
@@ -302,7 +342,7 @@ public class QuestionGenerateController extends BaseController {
         try {
             questions = kafkaQuestionService.generateQuestions(request, context.requestId(), context.userId());
         } catch (RuntimeException e) {
-            saveGenerationFailureMessage(context.sessionId(), context.requestId(), context.generationMode());
+            saveGenerationFailureMessage(context.sessionId(), context.requestId(), context.generationMode(), context.locale());
             log.warn("Question generation request failed. requestId={}, sessionId={}, error={}",
                     context.requestId(), context.sessionId(), e.getMessage());
             throw e;
@@ -311,7 +351,7 @@ public class QuestionGenerateController extends BaseController {
         if (questions == null || questions.isEmpty()) {
             log.warn("Question generation request returned empty result. requestId={}, sessionId={}",
                     context.requestId(), context.sessionId());
-            saveGenerationFailureMessage(context.sessionId(), context.requestId(), context.generationMode());
+            saveGenerationFailureMessage(context.sessionId(), context.requestId(), context.generationMode(), context.locale());
             return List.of();
         }
 
@@ -334,11 +374,12 @@ public class QuestionGenerateController extends BaseController {
 
     private void saveGenerationFailureMessage(UUID sessionId,
                                               String requestId,
-                                              QuestionGenerationMode generationMode) {
+                                              QuestionGenerationMode generationMode,
+                                              String locale) {
         try {
             ChatMessageUtil.saveSystemMessage(
                     sessionId,
-                    resolveGenerationFailureMessage(generationMode),
+                    resolveGenerationFailureMessage(generationMode, locale),
                     requestId,
                     chatMessageRepository
             );
@@ -366,32 +407,34 @@ public class QuestionGenerateController extends BaseController {
         return JSON.toJSONString(event);
     }
 
-    private String resolveStreamErrorMessage(Throwable error, QuestionGenerationMode generationMode) {
+    private String resolveStreamErrorMessage(Throwable error,
+                                             QuestionGenerationMode generationMode,
+                                             String locale) {
         if (error == null || !StringUtils.hasText(error.getMessage())) {
-            return resolveGenerationFailureMessage(generationMode);
+            return resolveGenerationFailureMessage(generationMode, locale);
         }
         if (error instanceof BusinessException) {
             return error.getMessage();
         }
-        return resolveGenerationFailureMessage(generationMode);
+        return resolveGenerationFailureMessage(generationMode, locale);
     }
 
-    private String resolveGenerationSubmittedMessage(QuestionGenerationMode generationMode) {
+    private String resolveGenerationSubmittedMessage(QuestionGenerationMode generationMode, String locale) {
         return generationMode != null && generationMode.isPaper()
-                ? "请求已提交，正在生成试卷"
-                : "正在出题中...";
+                ? QuestionGenerationLocaleUtils.text(locale, "请求已提交，正在生成试卷", "Request submitted. Generating paper...")
+                : QuestionGenerationLocaleUtils.text(locale, "正在出题中...", "Generating questions...");
     }
 
-    private String resolveGenerationCompletedMessage(QuestionGenerationMode generationMode) {
+    private String resolveGenerationCompletedMessage(QuestionGenerationMode generationMode, String locale) {
         return generationMode != null && generationMode.isPaper()
-                ? "试卷生成成功"
-                : "题目生成成功";
+                ? QuestionGenerationLocaleUtils.text(locale, "试卷生成成功", "Paper generated successfully")
+                : QuestionGenerationLocaleUtils.text(locale, "题目生成成功", "Questions generated successfully");
     }
 
-    private String resolveGenerationFailureMessage(QuestionGenerationMode generationMode) {
+    private String resolveGenerationFailureMessage(QuestionGenerationMode generationMode, String locale) {
         return generationMode != null && generationMode.isPaper()
-                ? PAPER_GENERATION_FAILED_MESSAGE
-                : QUESTION_GENERATION_FAILED_MESSAGE;
+                ? QuestionGenerationLocaleUtils.text(locale, PAPER_GENERATION_FAILED_MESSAGE, "Paper generation failed. Please try again later.")
+                : QuestionGenerationLocaleUtils.text(locale, QUESTION_GENERATION_FAILED_MESSAGE, "Question generation failed. Please try again later.");
     }
 
     private QuestionGenerationMode resolveStreamGenerationMode(String generationModeCode,
@@ -456,7 +499,10 @@ public class QuestionGenerateController extends BaseController {
                 userId,
                 null,
                 SessionTypeEnum.SMART_QUESTION.getCode(),
-                QuestionConstants.SMART_QUESTION_SESSION_TITLE
+                QuestionGenerationLocaleUtils.resolveSessionTitle(
+                        QuestionGenerationLocaleUtils.resolveLocale(request),
+                        QuestionGenerationMode.resolve(request)
+                )
         );
         UUID sessionId = sessionVO.getId();
         request.setSessionId(sessionId);
@@ -467,7 +513,8 @@ public class QuestionGenerateController extends BaseController {
                                                       UUID sessionId,
                                                       boolean needGenerateTitle,
                                                       UUID userId,
-                                                      QuestionGenerationMode generationMode) {
+                                                      QuestionGenerationMode generationMode,
+                                                      String locale) {
     }
 
     private record QuestionGenerateStreamEvent(String requestId,
@@ -478,6 +525,7 @@ public class QuestionGenerateController extends BaseController {
                                                String message,
                                                String generationMode,
                                                Boolean showStageDetails,
+                                               QuestionGenerationTraceEntryDTO traceEntry,
                                                Long timestamp) {
     }
 }

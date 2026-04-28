@@ -5,6 +5,7 @@ import com.dayz.sapientiacloud_edupivot.celestial_hub.service.agent.context.Ques
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.agent.dto.AgentEvidenceDTO;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.agent.dto.PaperBlueprintDTO;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.agent.dto.PaperSectionPlanDTO;
+import com.dayz.sapientiacloud_edupivot.celestial_hub.service.agent.trace.QuestionGenerationTracePayloads;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.agent.tool.ExamConstraintTool;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -52,6 +53,16 @@ public class PaperPlanningSkill implements AgentSkill<PaperBlueprintDTO> {
         blueprint.setSections(sections);
         blueprint.setTotalScore(resolveTotalScore(request, sections));
         blueprint.setTotalEstimatedTime(resolveTotalEstimatedTime(request, sections));
+        context.appendTraceEntry(
+                "paperPlanning",
+                "blueprint",
+                context.localize("试卷结构规划", "Paper blueprint"),
+                context.localize(
+                        "已规划 " + sections.size() + " 个部分，共覆盖 " + normalizedCount + " 道题目。",
+                        "Planned " + sections.size() + " sections covering " + normalizedCount + " questions."
+                ),
+                QuestionGenerationTracePayloads.blueprint(blueprint)
+        );
         return blueprint;
     }
 
@@ -107,7 +118,7 @@ public class PaperPlanningSkill implements AgentSkill<PaperBlueprintDTO> {
                                              List<AgentEvidenceDTO> evidences) {
         PaperSectionPlanDTO section = new PaperSectionPlanDTO();
         section.setSectionNo(sectionNo);
-        section.setSectionTitle("Section " + sectionNo);
+        section.setSectionTitle(contextTitle(sectionNo, request));
         section.setQuestionType(questionType);
         section.setDifficulty(difficulty);
         section.setTargetCount(targetCount);
@@ -120,6 +131,15 @@ public class PaperPlanningSkill implements AgentSkill<PaperBlueprintDTO> {
             section.setEvidences(selectSectionEvidences(evidences));
         }
         return section;
+    }
+
+    private String contextTitle(int sectionNo, QuestionGenerateRequestDTO request) {
+        String locale = request != null ? request.getLocale() : null;
+        return com.dayz.sapientiacloud_edupivot.celestial_hub.utils.QuestionGenerationLocaleUtils.text(
+                locale,
+                "第" + sectionNo + "部分",
+                "Section " + sectionNo
+        );
     }
 
     private List<AgentEvidenceDTO> selectSectionEvidences(List<AgentEvidenceDTO> evidences) {
