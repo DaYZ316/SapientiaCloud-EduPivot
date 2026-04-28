@@ -1,8 +1,8 @@
 package com.dayz.sapientiacloud_edupivot.celestial_hub.clients;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.dayz.sapientiacloud_edupivot.celestial_hub.service.agent.config.AgentSkillProperties;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -36,18 +36,20 @@ public class OpenTdbClient {
     private final String apiPath;
     private final Duration requestTimeout;
 
-    public OpenTdbClient(@Value("${agent.skills.opentdb.base-url:https://opentdb.com}") String baseUrl,
-                         @Value("${agent.skills.opentdb.api-path:/api.php}") String apiPath,
-                         @Value("${agent.skills.opentdb.connect-timeout-seconds:5}") long connectTimeoutSeconds,
-                         @Value("${agent.skills.opentdb.request-timeout-seconds:12}") long requestTimeoutSeconds,
+    public OpenTdbClient(AgentSkillProperties agentSkillProperties,
                          ObjectMapper objectMapper) {
+        AgentSkillProperties.OpenTdb openTdb = agentSkillProperties != null
+                ? agentSkillProperties.getOpenTdb()
+                : new AgentSkillProperties.OpenTdb();
+        long connectTimeoutSeconds = openTdb != null ? openTdb.getConnectTimeoutSeconds() : 5L;
+        long requestTimeoutSeconds = openTdb != null ? openTdb.getRequestTimeoutSeconds() : 12L;
         this.httpClient = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(Math.max(1L, connectTimeoutSeconds)))
                 .version(HttpClient.Version.HTTP_1_1)
                 .build();
         this.objectMapper = objectMapper;
-        this.baseUrl = removeTrailingSlash(baseUrl);
-        this.apiPath = normalizePath(apiPath);
+        this.baseUrl = removeTrailingSlash(openTdb != null ? openTdb.getBaseUrl() : null);
+        this.apiPath = normalizePath(openTdb != null ? openTdb.getApiPath() : null);
         this.requestTimeout = Duration.ofSeconds(Math.max(1L, requestTimeoutSeconds));
     }
 

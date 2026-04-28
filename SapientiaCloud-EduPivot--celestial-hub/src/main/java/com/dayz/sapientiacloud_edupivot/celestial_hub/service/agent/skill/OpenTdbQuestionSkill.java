@@ -3,11 +3,13 @@ package com.dayz.sapientiacloud_edupivot.celestial_hub.service.agent.skill;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.clients.OpenTdbClient;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.QuestionGenerateRequestDTO;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.enums.QuestionGenerationMode;
+import com.dayz.sapientiacloud_edupivot.celestial_hub.service.agent.config.AgentSkillProperties;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.agent.context.QuestionAgentContext;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.agent.dto.AgentEvidenceDTO;
+import com.dayz.sapientiacloud_edupivot.celestial_hub.service.agent.trace.QuestionGenerationTracePayloads;
+import com.dayz.sapientiacloud_edupivot.celestial_hub.utils.QuestionGenerationLocaleUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -40,9 +42,7 @@ public class OpenTdbQuestionSkill implements AgentSkill<List<AgentEvidenceDTO>> 
     private static final int CATEGORY_HISTORY = 23;
 
     private final OpenTdbClient openTdbClient;
-
-    @Value("${agent.skills.opentdb.enabled:true}")
-    private boolean enabled;
+    private final AgentSkillProperties agentSkillProperties;
 
     @Override
     public String name() {
@@ -51,7 +51,7 @@ public class OpenTdbQuestionSkill implements AgentSkill<List<AgentEvidenceDTO>> 
 
     @Override
     public List<AgentEvidenceDTO> execute(QuestionAgentContext context) {
-        if (!enabled || context == null || context.getRequest() == null) {
+        if (!isEnabled() || context == null || context.getRequest() == null) {
             return List.of();
         }
 
@@ -74,14 +74,53 @@ public class OpenTdbQuestionSkill implements AgentSkill<List<AgentEvidenceDTO>> 
         try {
             List<OpenTdbClient.TriviaQuestion> questions = openTdbClient.fetchQuestions(query);
             if (CollectionUtils.isEmpty(questions)) {
+                context.appendTraceEntry(
+                        "openTdbQuestion",
+                        "external_resource",
+                        context.localize("OpenTDB 外部样题", "OpenTDB external samples"),
+                        context.localize("OpenTDB 未返回与本次请求匹配的样题。", "OpenTDB did not return samples matching this request."),
+                        QuestionGenerationTracePayloads.evidenceBatch(buildQuerySummary(query, request.getLocale()), List.of())
+                );
                 return List.of();
             }
-            return toEvidenceList(questions, query);
+            List<AgentEvidenceDTO> evidences = toEvidenceList(questions, query, request.getLocale());
+            context.appendTraceEntry(
+                    "openTdbQuestion",
+                    "external_resource",
+                    context.localize("OpenTDB 外部样题", "OpenTDB external samples"),
+                    context.localize(
+                            "已从 OpenTDB 获取 " + evidences.size() + " 道外部样题。",
+                            "Fetched " + evidences.size() + " external samples from OpenTDB."
+                    ),
+                    QuestionGenerationTracePayloads.evidenceBatch(buildQuerySummary(query, request.getLocale()), evidences)
+            );
+            return evidences;
         } catch (RuntimeException ex) {
             log.warn("OpenTDB skill failed, continuing without external trivia. requestId={}, error={}",
                     context.getRequestId(), ex.getMessage());
+            Map<String, Object> payload = new LinkedHashMap<>();
+            payload.put("error", QuestionGenerationTracePayloads.abbreviate(ex.getMessage()));
+            payload.put("query", buildQuerySummary(query, request.getLocale()));
+            context.appendTraceEntry(
+                    "openTdbQuestion",
+                    "tool_error",
+                    context.localize("OpenTDB 外部样题", "OpenTDB external samples"),
+                    context.localize("OpenTDB 请求失败，已跳过本轮外部样题补充。", "OpenTDB request failed, so this external sample step was skipped."),
+                    payload
+            );
             return List.of();
         }
+    }
+
+    private boolean isEnabled() {
+        if (agentSkillProperties == null) {
+            return true;
+        }
+        AgentSkillProperties.ExternalSearch externalSearch = agentSkillProperties.getExternalSearch();
+        AgentSkillProperties.OpenTdb openTdb = agentSkillProperties.getOpenTdb();
+        boolean externalSearchEnabled = externalSearch == null || externalSearch.isEnabled();
+        boolean openTdbEnabled = openTdb == null || openTdb.isEnabled();
+        return externalSearchEnabled && openTdbEnabled;
     }
 
     private boolean supportsQuestionType(Integer questionType) {
@@ -199,7 +238,8 @@ public class OpenTdbQuestionSkill implements AgentSkill<List<AgentEvidenceDTO>> 
     }
 
     private List<AgentEvidenceDTO> toEvidenceList(List<OpenTdbClient.TriviaQuestion> questions,
-                                                  OpenTdbClient.OpenTdbQuery query) {
+                                                  OpenTdbClient.OpenTdbQuery query,
+                                                  String locale) {
         List<AgentEvidenceDTO> evidences = new ArrayList<>();
         int limit = Math.min(MAX_EVIDENCE_COUNT, questions.size());
         for (int i = 0; i < limit; i++) {
@@ -207,8 +247,10 @@ public class OpenTdbQuestionSkill implements AgentSkill<List<AgentEvidenceDTO>> 
             AgentEvidenceDTO evidence = new AgentEvidenceDTO();
             evidence.setSourceType("opentdb");
             evidence.setSourceId(buildSourceId(question));
-            evidence.setTitle(StringUtils.hasText(question.category()) ? "OpenTDB - " + question.category() : "OpenTDB Sample");
-            evidence.setExcerpt(buildExcerpt(question));
+            evidence.setTitle(StringUtils.hasText(question.category())
+                    ? "OpenTDB · " + question.category()
+                    : QuestionGenerationLocaleUtils.text(locale, "OpenTDB 样题", "OpenTDB sample"));
+            evidence.setExcerpt(buildExcerpt(question, locale));
             evidence.setScore(0.45D);
             evidence.setMetadata(buildMetadata(question, query));
             evidences.add(evidence);
@@ -223,10 +265,10 @@ public class OpenTdbQuestionSkill implements AgentSkill<List<AgentEvidenceDTO>> 
         return UUID.nameUUIDFromBytes(raw.getBytes(StandardCharsets.UTF_8)).toString();
     }
 
-    private String buildExcerpt(OpenTdbClient.TriviaQuestion question) {
+    private String buildExcerpt(OpenTdbClient.TriviaQuestion question, String locale) {
         StringBuilder builder = new StringBuilder();
         if (StringUtils.hasText(question.question())) {
-            builder.append("Question: ").append(question.question().trim());
+            builder.append(QuestionGenerationLocaleUtils.text(locale, "题目：", "Question: ")).append(question.question().trim());
         }
 
         List<String> options = new ArrayList<>();
@@ -237,18 +279,18 @@ public class OpenTdbQuestionSkill implements AgentSkill<List<AgentEvidenceDTO>> 
             options.add(question.correctAnswer().trim());
         }
         if (!options.isEmpty()) {
-            builder.append("\nOptions: ").append(String.join(" | ", options));
+            builder.append(QuestionGenerationLocaleUtils.text(locale, "\n选项：", "\nOptions: ")).append(String.join(" | ", options));
         }
 
         if (StringUtils.hasText(question.correctAnswer())) {
-            builder.append("\nAnswer: ").append(question.correctAnswer().trim());
+            builder.append(QuestionGenerationLocaleUtils.text(locale, "\n答案：", "\nAnswer: ")).append(question.correctAnswer().trim());
         }
 
         if (StringUtils.hasText(question.difficulty()) || StringUtils.hasText(question.type())) {
-            builder.append("\nDifficulty/Type: ")
-                    .append(StringUtils.hasText(question.difficulty()) ? question.difficulty().trim() : "unknown")
+            builder.append(QuestionGenerationLocaleUtils.text(locale, "\n难度/题型：", "\nDifficulty/Type: "))
+                    .append(StringUtils.hasText(question.difficulty()) ? question.difficulty().trim() : QuestionGenerationLocaleUtils.text(locale, "未知", "Unknown"))
                     .append(" / ")
-                    .append(StringUtils.hasText(question.type()) ? question.type().trim() : "unknown");
+                    .append(StringUtils.hasText(question.type()) ? question.type().trim() : QuestionGenerationLocaleUtils.text(locale, "未知", "Unknown"));
         }
         return builder.toString();
     }
@@ -267,5 +309,15 @@ public class OpenTdbQuestionSkill implements AgentSkill<List<AgentEvidenceDTO>> 
         metadata.put("apiDifficulty", query.difficulty());
         metadata.put("apiType", query.type());
         return metadata;
+    }
+
+    private String buildQuerySummary(OpenTdbClient.OpenTdbQuery query, String locale) {
+        if (query == null) {
+            return null;
+        }
+        return QuestionGenerationLocaleUtils.text(locale, "请求数量=", "amount=") + query.amount()
+                + QuestionGenerationLocaleUtils.text(locale, "，分类=", ", category=") + query.category()
+                + QuestionGenerationLocaleUtils.text(locale, "，难度=", ", difficulty=") + query.difficulty()
+                + QuestionGenerationLocaleUtils.text(locale, "，题型=", ", type=") + query.type();
     }
 }

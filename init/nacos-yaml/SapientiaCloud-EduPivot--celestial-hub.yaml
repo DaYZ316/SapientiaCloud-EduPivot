@@ -97,6 +97,17 @@ kafka:
     stage-min-duration-ms: ${QUESTION_STAGE_MIN_DURATION_MS:2000}
     sse-heartbeat-seconds: ${QUESTION_SSE_HEARTBEAT_SECONDS:8}
 
+agent:
+  skills:
+    external-search:
+      enabled: false
+    opentdb:
+      enabled: true
+      base-url: https://opentdb.com
+      api-path: /api.php
+      connect-timeout-seconds: 5
+      request-timeout-seconds: 12
+
 avatar:
   tts:
     enabled: true

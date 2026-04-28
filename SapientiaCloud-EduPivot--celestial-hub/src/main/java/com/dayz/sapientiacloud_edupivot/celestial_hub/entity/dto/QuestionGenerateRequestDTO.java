@@ -41,6 +41,9 @@ public class QuestionGenerateRequestDTO implements Serializable {
     )
     private String generationMode;
 
+    @Schema(description = "前端当前语种，例如 zh-CN 或 en-US", example = "zh-CN")
+    private String locale;
+
     @Schema(description = "课程ID。需要结合课程章节、题库或生成会话时建议传入", example = "22222222-2222-2222-2222-222222222222")
     private UUID courseId;
 
@@ -53,7 +56,7 @@ public class QuestionGenerateRequestDTO implements Serializable {
     @Schema(description = "题目数量", requiredMode = Schema.RequiredMode.REQUIRED, example = "8")
     @NotNull(message = "Question count is required")
     @Min(value = 1, message = "Question count must be at least 1")
-    @Max(value = 100, message = "Question count must be at most 100")
+    @Max(value = 50, message = "Question count must be at most 50")
     private Integer questionCount;
 
     @Schema(

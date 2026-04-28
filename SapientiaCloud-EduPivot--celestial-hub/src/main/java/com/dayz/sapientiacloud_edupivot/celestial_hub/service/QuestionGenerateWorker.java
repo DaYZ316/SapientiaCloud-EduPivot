@@ -3,7 +3,6 @@ package com.dayz.sapientiacloud_edupivot.celestial_hub.service;
 import com.alibaba.fastjson2.JSON;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.common.exception.BusinessException;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.constant.AIChatConstants;
-import com.dayz.sapientiacloud_edupivot.celestial_hub.constant.QuestionConstants;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.QuestionGenerateRequestDTO;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.QuestionResponseDTO;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.po.ChatMessage;
@@ -16,7 +15,9 @@ import com.dayz.sapientiacloud_edupivot.celestial_hub.repository.ChatMessageRepo
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.agent.QuestionAgentOrchestrator;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.agent.context.QuestionAgentStage;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.agent.context.QuestionGenerationAggregate;
+import com.dayz.sapientiacloud_edupivot.celestial_hub.service.agent.dto.QuestionGenerationTraceEntryDTO;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.utils.ChatMessageUtil;
+import com.dayz.sapientiacloud_edupivot.celestial_hub.utils.QuestionGenerationLocaleUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.CommitFailedException;
@@ -67,7 +68,13 @@ public class QuestionGenerateWorker {
         KafkaQuestionService.QuestionRequestMessage requestMessage =
                 parseQuestionRequestMessage(message, fallbackRequestId);
         if (requestMessage == null) {
-            sendProgress(fallbackRequestId, null, QuestionGenerationMode.QUESTION, QuestionAgentStage.FAILED, QUESTION_FAILURE_MESSAGE);
+            sendProgress(
+                    fallbackRequestId,
+                    null,
+                    QuestionGenerationMode.QUESTION,
+                    QuestionAgentStage.FAILED,
+                    QuestionGenerationLocaleUtils.text(QuestionGenerationLocaleUtils.LOCALE_ZH_CN, QUESTION_FAILURE_MESSAGE, "Question generation failed")
+            );
             kafkaQuestionService.sendQuestionResponse(fallbackRequestId, "[]");
             acknowledgeSafely(acknowledgment, fallbackRequestId);
             return;
@@ -80,12 +87,19 @@ public class QuestionGenerateWorker {
         UUID requestUserId = requestMessage.getUserId();
         if (request == null) {
             log.warn("Question generation request ignored because body is empty. requestId={}", finalRequestId);
-            sendProgress(finalRequestId, null, QuestionGenerationMode.QUESTION, QuestionAgentStage.FAILED, QUESTION_FAILURE_MESSAGE);
+            sendProgress(
+                    finalRequestId,
+                    null,
+                    QuestionGenerationMode.QUESTION,
+                    QuestionAgentStage.FAILED,
+                    QuestionGenerationLocaleUtils.text(QuestionGenerationLocaleUtils.LOCALE_ZH_CN, QUESTION_FAILURE_MESSAGE, "Question generation failed")
+            );
             kafkaQuestionService.sendQuestionResponse(finalRequestId, "[]");
             acknowledgeSafely(acknowledgment, finalRequestId);
             return;
         }
 
+        String locale = QuestionGenerationLocaleUtils.resolveLocale(request);
         QuestionGenerationMode generationMode = QuestionGenerationMode.resolve(request);
         request.setGenerationMode(generationMode.getCode());
 
@@ -94,7 +108,7 @@ public class QuestionGenerateWorker {
         try {
             UUID sessionId = getOrCreateSessionId(request, requestUserId);
             resolvedSessionId = sessionId;
-            sendProgress(finalRequestId, sessionId, generationMode, null, resolveWarmupMessage(generationMode));
+            sendProgress(finalRequestId, sessionId, generationMode, null, resolveWarmupMessage(generationMode, locale));
 
             ChatMessage existingResponseMessage = findExistingResponseMessage(sessionId, finalRequestId);
             if (existingResponseMessage != null && StringUtils.hasText(existingResponseMessage.getQuestionResponse())) {
@@ -104,7 +118,7 @@ public class QuestionGenerateWorker {
                         sessionId,
                         generationMode,
                         QuestionAgentStage.RESPONDED,
-                        resolveResultReplayMessage(generationMode),
+                        resolveResultReplayMessage(generationMode, locale),
                         lastStageProgressAt
                 );
                 kafkaQuestionService.sendQuestionResponse(finalRequestId, existingResponseMessage.getQuestionResponse());
@@ -113,7 +127,7 @@ public class QuestionGenerateWorker {
             }
 
             persistRequestMessage(sessionId, request, finalRequestId, generationMode);
-            sendProgress(finalRequestId, sessionId, generationMode, null, resolvePersistenceMessage(generationMode));
+            sendProgress(finalRequestId, sessionId, generationMode, null, resolvePersistenceMessage(generationMode, locale));
 
             QuestionGenerationAggregate aggregate = questionAgentOrchestrator.run(
                     request,
@@ -124,8 +138,14 @@ public class QuestionGenerateWorker {
                             sessionId,
                             generationMode,
                             stage,
-                            resolveStageMessage(stage, generationMode),
+                            resolveStageMessage(stage, generationMode, locale),
                             lastStageProgressAt
+                    ),
+                    traceEntry -> sendTraceProgress(
+                            finalRequestId,
+                            sessionId,
+                            generationMode,
+                            traceEntry
                     )
             );
             List<QuestionResponseDTO> questions = aggregate != null && !CollectionUtils.isEmpty(aggregate.getFinalQuestions())
@@ -138,7 +158,7 @@ public class QuestionGenerateWorker {
                     sessionId,
                     generationMode,
                     QuestionAgentStage.RESPONDED,
-                    resolveResultPersistenceMessage(generationMode),
+                    resolveResultPersistenceMessage(generationMode, locale),
                     lastStageProgressAt
             );
             kafkaQuestionService.sendQuestionResponse(finalRequestId, JSON.toJSONString(questions));
@@ -150,7 +170,7 @@ public class QuestionGenerateWorker {
                     resolvedSessionId,
                     generationMode,
                     QuestionAgentStage.FAILED,
-                    resolveFailureMessage(generationMode),
+                    resolveFailureMessage(generationMode, locale),
                     lastStageProgressAt
             );
             kafkaQuestionService.sendQuestionResponse(finalRequestId, "[]");
@@ -217,6 +237,33 @@ public class QuestionGenerateWorker {
                               QuestionGenerationMode generationMode,
                               QuestionAgentStage stage,
                               String message) {
+        sendProgress(requestId, sessionId, generationMode, stage, message, null);
+    }
+
+    private void sendTraceProgress(String requestId,
+                                   UUID sessionId,
+                                   QuestionGenerationMode generationMode,
+                                   QuestionGenerationTraceEntryDTO traceEntry) {
+        if (traceEntry == null) {
+            return;
+        }
+        QuestionAgentStage stage = null;
+        if (StringUtils.hasText(traceEntry.getStage())) {
+            try {
+                stage = QuestionAgentStage.valueOf(traceEntry.getStage());
+            } catch (IllegalArgumentException ignored) {
+                stage = null;
+            }
+        }
+        sendProgress(requestId, sessionId, generationMode, stage, null, traceEntry);
+    }
+
+    private void sendProgress(String requestId,
+                              UUID sessionId,
+                              QuestionGenerationMode generationMode,
+                              QuestionAgentStage stage,
+                              String message,
+                              QuestionGenerationTraceEntryDTO traceEntry) {
         kafkaQuestionService.sendQuestionProgress(
                 requestId,
                 sessionId,
@@ -224,63 +271,66 @@ public class QuestionGenerateWorker {
                 stage != null ? stage.name() : null,
                 message,
                 null,
-                generationMode != null ? generationMode.getCode() : QuestionGenerationMode.QUESTION.getCode()
+                generationMode != null ? generationMode.getCode() : QuestionGenerationMode.QUESTION.getCode(),
+                traceEntry
         );
     }
 
-    private String resolveStageMessage(QuestionAgentStage stage, QuestionGenerationMode generationMode) {
+    private String resolveStageMessage(QuestionAgentStage stage,
+                                       QuestionGenerationMode generationMode,
+                                       String locale) {
         if (stage == null) {
             return generationMode != null && generationMode.isPaper()
-                    ? "正在生成试卷中..."
-                    : QUESTION_IN_PROGRESS_MESSAGE;
+                    ? QuestionGenerationLocaleUtils.text(locale, "正在生成试卷中...", "Generating paper...")
+                    : QuestionGenerationLocaleUtils.text(locale, QUESTION_IN_PROGRESS_MESSAGE, "Generating questions...");
         }
         if (stage == QuestionAgentStage.FAILED) {
-            return resolveFailureMessage(generationMode);
+            return resolveFailureMessage(generationMode, locale);
         }
         if (generationMode == null || !generationMode.isPaper()) {
-            return QUESTION_IN_PROGRESS_MESSAGE;
+            return QuestionGenerationLocaleUtils.text(locale, QUESTION_IN_PROGRESS_MESSAGE, "Generating questions...");
         }
         return switch (stage) {
-            case RECEIVED -> "正在接收出卷请求";
-            case CONTEXT_READY -> "正在准备出卷上下文";
-            case PLANNED -> "正在规划试卷结构";
-            case GENERATED -> "正在生成题目草稿";
-            case VALIDATED -> "正在校验题目质量";
-            case REPAIRED -> "正在修复题目问题";
-            case ASSEMBLED -> "正在组装最终试卷";
-            case RESPONDED -> "正在写入并返回结果";
-            case FAILED -> resolveFailureMessage(generationMode);
+            case RECEIVED -> QuestionGenerationLocaleUtils.text(locale, "正在接收出卷请求", "Receiving paper generation request");
+            case CONTEXT_READY -> QuestionGenerationLocaleUtils.text(locale, "正在准备出卷上下文", "Preparing paper generation context");
+            case PLANNED -> QuestionGenerationLocaleUtils.text(locale, "正在规划试卷结构", "Planning paper structure");
+            case GENERATED -> QuestionGenerationLocaleUtils.text(locale, "正在生成题目草稿", "Generating question drafts");
+            case VALIDATED -> QuestionGenerationLocaleUtils.text(locale, "正在校验题目质量", "Validating question quality");
+            case REPAIRED -> QuestionGenerationLocaleUtils.text(locale, "正在修复题目问题", "Repairing question issues");
+            case ASSEMBLED -> QuestionGenerationLocaleUtils.text(locale, "正在组装最终试卷", "Assembling final paper");
+            case RESPONDED -> QuestionGenerationLocaleUtils.text(locale, "正在写入并返回结果", "Persisting and returning result");
+            case FAILED -> resolveFailureMessage(generationMode, locale);
         };
     }
 
-    private String resolveWarmupMessage(QuestionGenerationMode generationMode) {
+    private String resolveWarmupMessage(QuestionGenerationMode generationMode, String locale) {
         return generationMode != null && generationMode.isPaper()
-                ? "正在准备试卷生成任务"
-                : QUESTION_IN_PROGRESS_MESSAGE;
+                ? QuestionGenerationLocaleUtils.text(locale, "正在准备试卷生成任务", "Preparing paper generation task")
+                : QuestionGenerationLocaleUtils.text(locale, QUESTION_IN_PROGRESS_MESSAGE, "Generating questions...");
     }
 
-    private String resolvePersistenceMessage(QuestionGenerationMode generationMode) {
+    private String resolvePersistenceMessage(QuestionGenerationMode generationMode, String locale) {
         return generationMode != null && generationMode.isPaper()
-                ? "正在保存出卷请求"
-                : QUESTION_IN_PROGRESS_MESSAGE;
+                ? QuestionGenerationLocaleUtils.text(locale, "正在保存出卷请求", "Saving paper generation request")
+                : QuestionGenerationLocaleUtils.text(locale, QUESTION_IN_PROGRESS_MESSAGE, "Generating questions...");
     }
 
-    private String resolveResultPersistenceMessage(QuestionGenerationMode generationMode) {
+    private String resolveResultPersistenceMessage(QuestionGenerationMode generationMode, String locale) {
         return generationMode != null && generationMode.isPaper()
-                ? "正在返回生成结果"
-                : QUESTION_IN_PROGRESS_MESSAGE;
+                ? QuestionGenerationLocaleUtils.text(locale, "正在返回生成结果", "Returning generated result")
+                : QuestionGenerationLocaleUtils.text(locale, QUESTION_IN_PROGRESS_MESSAGE, "Generating questions...");
     }
 
-    private String resolveResultReplayMessage(QuestionGenerationMode generationMode) {
+    private String resolveResultReplayMessage(QuestionGenerationMode generationMode, String locale) {
         return generationMode != null && generationMode.isPaper()
-                ? "正在回传历史试卷结果"
-                : QUESTION_IN_PROGRESS_MESSAGE;
+                ? QuestionGenerationLocaleUtils.text(locale, "正在回传历史试卷结果", "Replaying historical paper result")
+                : QuestionGenerationLocaleUtils.text(locale, QUESTION_IN_PROGRESS_MESSAGE, "Generating questions...");
     }
 
-    private String resolveFailureMessage(QuestionGenerationMode generationMode) {
+    private String resolveFailureMessage(QuestionGenerationMode generationMode, String locale) {
         return generationMode != null && generationMode.isPaper()
-                ? PAPER_FAILURE_MESSAGE
-                : QUESTION_FAILURE_MESSAGE;
+                ? QuestionGenerationLocaleUtils.text(locale, PAPER_FAILURE_MESSAGE, "Paper generation failed")
+                : QuestionGenerationLocaleUtils.text(locale, QUESTION_FAILURE_MESSAGE, "Question generation failed");
     }
 
     private void persistRequestMessage(UUID sessionId,
@@ -322,7 +372,11 @@ public class QuestionGenerateWorker {
         responseMessageEntity.setId(UUID.randomUUID());
         responseMessageEntity.setSessionId(sessionId);
         responseMessageEntity.setRole(ChatRoleEnum.QUESTION_GENERATOR.getCode());
-        responseMessageEntity.setContent(String.format(QuestionConstants.QUESTION_COMPLETE_TEMPLATE, questions.size()));
+        responseMessageEntity.setContent(QuestionGenerationLocaleUtils.resolveResponseSummary(
+                request != null ? request.getLocale() : null,
+                generationMode,
+                questions.size()
+        ));
         responseMessageEntity.setMessageType(AIChatConstants.MESSAGE_TYPE_TEXT);
         responseMessageEntity.setQuestionResponse(JSON.toJSONString(questions));
         responseMessageEntity.setMetadata(buildGenerationMetadata(request, generationMode));
@@ -339,6 +393,7 @@ public class QuestionGenerateWorker {
                                                         QuestionGenerationMode generationMode) {
         Map<String, Object> metadata = new LinkedHashMap<>();
         metadata.put("generationMode", generationMode != null ? generationMode.getCode() : QuestionGenerationMode.QUESTION.getCode());
+        metadata.put("locale", QuestionGenerationLocaleUtils.resolveLocale(request));
         if (request != null && StringUtils.hasText(request.getPaperName())) {
             metadata.put("paperName", request.getPaperName().trim());
         }
@@ -380,7 +435,10 @@ public class QuestionGenerateWorker {
                 requestUserId,
                 request.getCourseId(),
                 SessionTypeEnum.SMART_QUESTION.getCode(),
-                QuestionConstants.SMART_QUESTION_SESSION_TITLE
+                QuestionGenerationLocaleUtils.resolveSessionTitle(
+                        request != null ? request.getLocale() : null,
+                        QuestionGenerationMode.resolve(request)
+                )
         );
         UUID sessionId = sessionVO.getId();
         request.setSessionId(sessionId);
@@ -388,32 +446,40 @@ public class QuestionGenerateWorker {
     }
 
     private String buildRequestSummary(QuestionGenerateRequestDTO request, QuestionGenerationMode generationMode) {
-        StringBuilder sb = new StringBuilder(generationMode != null && generationMode.isPaper() ? "天枢出卷：" : "天枢出题：");
-        sb.append("数量=").append(request.getQuestionCount());
-        sb.append("，题型=").append(request.getQuestionType());
-        sb.append("，难度=").append(request.getDifficulty());
+        String locale = QuestionGenerationLocaleUtils.resolveLocale(request);
+        boolean isPaper = generationMode != null && generationMode.isPaper();
+        StringBuilder sb = new StringBuilder(QuestionGenerationLocaleUtils.text(
+                locale,
+                isPaper ? "天枢出卷：" : "天枢出题：",
+                isPaper ? "AI paper generation: " : "AI question generation: "
+        ));
+        sb.append(QuestionGenerationLocaleUtils.text(locale, "数量=", "count=")).append(request.getQuestionCount());
+        sb.append(QuestionGenerationLocaleUtils.text(locale, "，题型=", ", type=")).append(request.getQuestionType());
+        sb.append(QuestionGenerationLocaleUtils.text(locale, "，难度=", ", difficulty=")).append(request.getDifficulty());
         if (request.getCourseId() != null) {
-            sb.append("，课程=").append(request.getCourseId());
+            sb.append(QuestionGenerationLocaleUtils.text(locale, "，课程=", ", course=")).append(request.getCourseId());
         }
         if (request.getQuestionBankId() != null) {
-            sb.append("，题库=").append(request.getQuestionBankId());
+            sb.append(QuestionGenerationLocaleUtils.text(locale, "，题库=", ", questionBank=")).append(request.getQuestionBankId());
         }
-        if (generationMode != null && generationMode.isPaper()) {
+        if (isPaper) {
             if (StringUtils.hasText(request.getPaperName())) {
-                sb.append("，试卷名称=").append(request.getPaperName().trim());
+                sb.append(QuestionGenerationLocaleUtils.text(locale, "，试卷名称=", ", paperName=")).append(request.getPaperName().trim());
             }
             if (request.getTotalScore() != null) {
-                sb.append("，总分=").append(request.getTotalScore());
+                sb.append(QuestionGenerationLocaleUtils.text(locale, "，总分=", ", totalScore=")).append(request.getTotalScore());
             }
             if (request.getTotalEstimatedTime() != null) {
-                sb.append("，总时长=").append(request.getTotalEstimatedTime()).append("分钟");
+                sb.append(QuestionGenerationLocaleUtils.text(locale, "，总时长=", ", totalTime="))
+                        .append(request.getTotalEstimatedTime())
+                        .append(QuestionGenerationLocaleUtils.text(locale, "分钟", " min"));
             }
         }
         if (StringUtils.hasText(request.getRequirement())) {
-            sb.append("，要求=").append(request.getRequirement());
+            sb.append(QuestionGenerationLocaleUtils.text(locale, "，要求=", ", requirement=")).append(request.getRequirement());
         }
         if (!CollectionUtils.isEmpty(request.getFileReferences())) {
-            sb.append("，文件数=").append(request.getFileReferences().size());
+            sb.append(QuestionGenerationLocaleUtils.text(locale, "，文件数=", ", fileCount=")).append(request.getFileReferences().size());
         }
         return sb.toString();
     }

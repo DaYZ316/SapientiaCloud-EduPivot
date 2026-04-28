@@ -272,16 +272,16 @@ public class ExamConstraintTool implements AgentTool {
                                                       Set<String> blockedSignatures) {
         List<ValidationIssueDTO> issues = new ArrayList<>();
         if (questions == null || questions.isEmpty()) {
-            issues.add(issue("EMPTY_RESULT", "error", "No questions were generated.", null,
-                    "Generate at least one valid question."));
+            issues.add(issue("EMPTY_RESULT", "error", "未生成任何题目。", null,
+                    "请至少生成一道有效题目。"));
             return issues;
         }
 
         if (expectedCount != null && expectedCount != questions.size()) {
             issues.add(issue("QUESTION_COUNT_MISMATCH", "error",
-                    "Generated question count does not match the expected count.",
+                    "生成题目数量与预期数量不一致。",
                     null,
-                    "Return exactly " + expectedCount + " questions."));
+                    "请严格返回 " + expectedCount + " 道题目。"));
         }
 
         if (expectedTotalScore != null) {
@@ -293,9 +293,9 @@ public class ExamConstraintTool implements AgentTool {
             }
             if (totalScore.compareTo(expectedTotalScore) != 0) {
                 issues.add(issue("TOTAL_SCORE_MISMATCH", "warn",
-                        "Generated total score does not match requested total score.",
+                        "题目总分与请求总分不一致。",
                         null,
-                        "Adjust question scores so the total score equals " + expectedTotalScore + '.'));
+                        "请调整各题分值，使总分等于 " + expectedTotalScore + " 分。"));
             }
         }
 
@@ -308,9 +308,9 @@ public class ExamConstraintTool implements AgentTool {
             }
             if (totalEstimatedTime != expectedTotalEstimatedTime) {
                 issues.add(issue("TOTAL_ESTIMATED_TIME_MISMATCH", "warn",
-                        "Generated total estimated time does not match requested total estimated time.",
+                        "预计总用时与请求总用时不一致。",
                         null,
-                        "Adjust question estimatedTime so the total time equals " + expectedTotalEstimatedTime + '.'));
+                        "请调整各题预计用时，使总时长等于 " + expectedTotalEstimatedTime + " 分钟。"));
             }
         }
 
@@ -320,47 +320,47 @@ public class ExamConstraintTool implements AgentTool {
             QuestionResponseDTO question = questions.get(i);
             int index = i + 1;
             if (question == null) {
-                issues.add(issue("NULL_QUESTION", "error", "Question is null.", index,
-                        "Return a non-null question object."));
+                issues.add(issue("NULL_QUESTION", "error", "第 " + index + " 题内容为空。", index,
+                        "请返回一个非空的题目对象。"));
                 continue;
             }
 
             if (!StringUtils.hasText(question.getQuestionTitle()) && !StringUtils.hasText(question.getQuestionContent())) {
-                issues.add(issue("EMPTY_CONTENT", "error", "Question title and content are both empty.", index,
-                        "Provide at least a title or content."));
+                issues.add(issue("EMPTY_CONTENT", "error", "第 " + index + " 题的题干标题和内容均为空。", index,
+                        "请至少提供题目标题或题目内容。"));
             }
             if (question.getQuestionType() == null || question.getQuestionType() < 0 || question.getQuestionType() > 4) {
-                issues.add(issue("INVALID_TYPE", "error", "Question type is invalid.", index,
-                        "Use a value between 0 and 4."));
+                issues.add(issue("INVALID_TYPE", "error", "第 " + index + " 题的题型无效。", index,
+                        "请将题型设置为 0 到 4 之间的有效值。"));
                 continue;
             }
             if (question.getDifficulty() == null || question.getDifficulty() < 1 || question.getDifficulty() > 3) {
-                issues.add(issue("INVALID_DIFFICULTY", "error", "Question difficulty is invalid.", index,
-                        "Use a difficulty between 1 and 3."));
+                issues.add(issue("INVALID_DIFFICULTY", "error", "第 " + index + " 题的难度无效。", index,
+                        "请将难度设置为 1 到 3 之间的有效值。"));
             }
             if (question.getScore() == null || question.getScore().compareTo(BigDecimal.ZERO) <= 0) {
-                issues.add(issue("INVALID_SCORE", "error", "Question score is missing or non-positive.", index,
-                        "Provide a positive question score."));
+                issues.add(issue("INVALID_SCORE", "error", "第 " + index + " 题分值缺失或不为正数。", index,
+                        "请提供大于 0 的题目分值。"));
             }
             if (question.getEstimatedTime() == null || question.getEstimatedTime() <= 0) {
-                issues.add(issue("INVALID_TIME", "warn", "Estimated time is missing or invalid.", index,
-                        "Provide a positive estimated time."));
+                issues.add(issue("INVALID_TIME", "warn", "第 " + index + " 题预计用时缺失或无效。", index,
+                        "请提供大于 0 的预计用时。"));
             }
 
             String signature = buildSignature(question);
             if (StringUtils.hasText(signature)) {
                 if (normalizedBlockedSignatures.contains(signature)) {
                     issues.add(issue("REFERENCE_DUPLICATE", "warn",
-                            "Question content is too similar to existing question bank samples or accepted drafts.",
+                            "第 " + index + " 题与现有题库样题或已接受草稿过于相似。",
                             index,
-                            "Rewrite the question stem so it stays aligned with the requirement but is not repeated."));
+                            "请在保持命题要求一致的前提下，重写题干并避免重复。"));
                 }
                 Integer firstIndex = duplicateMap.putIfAbsent(signature, index);
                 if (firstIndex != null) {
                     issues.add(issue("DUPLICATE_QUESTION", "warn",
-                            "Question content appears duplicated with question " + firstIndex + '.',
+                            "第 " + index + " 题与第 " + firstIndex + " 题内容重复或高度相似。",
                             index,
-                            "Rewrite the question to avoid duplication."));
+                            "请重写该题以避免重复。"));
                 }
             }
 
@@ -434,7 +434,7 @@ public class ExamConstraintTool implements AgentTool {
                 QuestionAnswerSimpleDTO answer = new QuestionAnswerSimpleDTO();
                 answer.setId(UuidCreator.getTimeOrderedEpoch());
                 answer.setQuestionId(question.getId());
-                answer.setAnswerContent("See explanation.");
+                answer.setAnswerContent("见解析。");
                 answer.setSortOrder(answerOrderFallback);
                 normalizedAnswers.add(answer);
             }
@@ -450,8 +450,8 @@ public class ExamConstraintTool implements AgentTool {
         if (questionType == TYPE_SINGLE || questionType == TYPE_MULTI || questionType == TYPE_JUDGE) {
             List<QuestionOptionSimpleDTO> options = question.getOptions();
             if (CollectionUtils.isEmpty(options)) {
-                issues.add(issue("MISSING_OPTIONS", "error", "Choice-style question is missing options.", index,
-                        "Provide valid options and keep answers empty."));
+                issues.add(issue("MISSING_OPTIONS", "error", "第 " + index + " 题缺少选项。", index,
+                        "请选择题需提供有效选项，并保持 answers 为空。"));
                 return;
             }
 
@@ -463,63 +463,63 @@ public class ExamConstraintTool implements AgentTool {
             }
             if ((questionType == TYPE_SINGLE || questionType == TYPE_JUDGE) && correctCount != 1) {
                 issues.add(issue("INVALID_CORRECT_COUNT", "error",
-                        "Single-choice or judge question must have exactly one correct option.",
+                        "第 " + index + " 题必须且只能有一个正确选项。",
                         index,
-                        "Mark exactly one option as correct."));
+                        "请只标记一个正确选项。"));
             }
             if (questionType == TYPE_MULTI && correctCount < 2) {
                 issues.add(issue("INVALID_MULTI_CORRECT_COUNT", "error",
-                        "Multiple-choice question must have at least two correct options.",
+                        "第 " + index + " 题为多选题时，至少需要两个正确选项。",
                         index,
-                        "Mark at least two options as correct."));
+                        "请至少标记两个正确选项。"));
             }
             if (questionType == TYPE_JUDGE && options.size() != 2) {
                 issues.add(issue("INVALID_JUDGE_OPTION_COUNT", "error",
-                        "Judge question must have exactly two options.",
+                        "第 " + index + " 题为判断题时，必须只有两个选项。",
                         index,
-                        "Keep only two options for judge questions."));
+                        "请仅保留两个判断选项。"));
             }
             if (!CollectionUtils.isEmpty(question.getAnswers())) {
                 issues.add(issue("UNEXPECTED_ANSWERS", "warn",
-                        "Choice-style question should not contain answers list.",
+                        "第 " + index + " 题为选择题，不应包含 answers 列表。",
                         index,
-                        "Remove the answers list."));
+                        "请移除 answers 列表。"));
             }
             return;
         }
 
         if (questionType == TYPE_BLANK || questionType == TYPE_SHORT) {
             if (CollectionUtils.isEmpty(question.getAnswers())) {
-                issues.add(issue("MISSING_ANSWERS", "error", "Open-ended question is missing answers.", index,
-                        "Provide valid answers and keep options empty."));
+                issues.add(issue("MISSING_ANSWERS", "error", "第 " + index + " 题缺少答案。", index,
+                        "开放题需提供有效答案，并保持 options 为空。"));
                 return;
             }
             Set<Integer> sortOrders = new HashSet<>();
             for (QuestionAnswerSimpleDTO answer : question.getAnswers()) {
                 if (answer == null || !StringUtils.hasText(answer.getAnswerContent())) {
-                    issues.add(issue("EMPTY_ANSWER", "error", "Answer content is empty.", index,
-                            "Fill each answer with non-empty content."));
+                    issues.add(issue("EMPTY_ANSWER", "error", "第 " + index + " 题存在空答案内容。", index,
+                            "请为每个答案填写非空内容。"));
                     continue;
                 }
                 if (questionType == TYPE_BLANK) {
                     if (answer.getSortOrder() == null || answer.getSortOrder() <= 0) {
                         issues.add(issue("INVALID_SORT_ORDER", "error",
-                                "Blank question answer sort order is invalid.",
+                                "第 " + index + " 题填空答案的排序无效。",
                                 index,
-                                "Use positive and continuous sort orders."));
+                                "请使用从 1 开始的正序且连续的排序值。"));
                     } else if (!sortOrders.add(answer.getSortOrder())) {
                         issues.add(issue("DUPLICATE_SORT_ORDER", "error",
-                                "Blank question answer sort order is duplicated.",
+                                "第 " + index + " 题填空答案的排序重复。",
                                 index,
-                                "Keep unique sort orders for each blank."));
+                                "请为每个空设置唯一排序值。"));
                     }
                 }
             }
             if (!CollectionUtils.isEmpty(question.getOptions())) {
                 issues.add(issue("UNEXPECTED_OPTIONS", "warn",
-                        "Open-ended question should not contain options list.",
+                        "第 " + index + " 题为开放题，不应包含 options 列表。",
                         index,
-                        "Remove the options list."));
+                        "请移除 options 列表。"));
             }
         }
     }

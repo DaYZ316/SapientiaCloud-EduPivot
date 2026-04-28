@@ -6,6 +6,7 @@ import com.dayz.sapientiacloud_edupivot.celestial_hub.common.exception.BusinessE
 import com.dayz.sapientiacloud_edupivot.celestial_hub.common.security.utils.UserContextUtil;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.QuestionGenerateRequestDTO;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.QuestionResponseDTO;
+import com.dayz.sapientiacloud_edupivot.celestial_hub.service.agent.dto.QuestionGenerationTraceEntryDTO;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import lombok.Getter;
@@ -201,6 +202,17 @@ public class KafkaQuestionService {
                                      String message,
                                      Integer questionCount,
                                      String generationMode) {
+        sendQuestionProgress(requestId, sessionId, status, stage, message, questionCount, generationMode, null);
+    }
+
+    public void sendQuestionProgress(String requestId,
+                                     UUID sessionId,
+                                     String status,
+                                     String stage,
+                                     String message,
+                                     Integer questionCount,
+                                     String generationMode,
+                                     QuestionGenerationTraceEntryDTO traceEntry) {
         if (!StringUtils.hasText(requestId)) {
             return;
         }
@@ -213,6 +225,7 @@ public class KafkaQuestionService {
         progressMessage.setMessage(message);
         progressMessage.setQuestionCount(questionCount);
         progressMessage.setGenerationMode(generationMode);
+        progressMessage.setTraceEntry(traceEntry);
         progressMessage.setTimestamp(System.currentTimeMillis());
 
         try {
@@ -279,7 +292,7 @@ public class KafkaQuestionService {
             return sink;
         }
 
-        Sinks.Many<QuestionProgressMessage> created = Sinks.many().replay().limit(32);
+        Sinks.Many<QuestionProgressMessage> created = Sinks.many().replay().limit(128);
         progressSinks.put(requestId, created);
         return created;
     }
@@ -344,6 +357,7 @@ public class KafkaQuestionService {
         private String message;
         private Integer questionCount;
         private String generationMode;
+        private QuestionGenerationTraceEntryDTO traceEntry;
         private Long timestamp;
     }
 }

@@ -13,7 +13,9 @@ import com.dayz.sapientiacloud_edupivot.celestial_hub.service.agent.dto.AgentEvi
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.agent.dto.PaperSectionPlanDTO;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.agent.dto.QuestionDraftDTO;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.agent.dto.ValidationIssueDTO;
+import com.dayz.sapientiacloud_edupivot.celestial_hub.service.agent.trace.QuestionGenerationTracePayloads;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.service.agent.tool.ExamConstraintTool;
+import com.dayz.sapientiacloud_edupivot.celestial_hub.utils.QuestionGenerationLocaleUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
@@ -126,6 +128,20 @@ public class QuestionGenerationSkill implements AgentSkill<List<QuestionDraftDTO
                     blockedSignatures
             );
 
+            context.appendTraceEntry(
+                    "questionGeneration",
+                    "section_attempt",
+                    context.localize(
+                            "第 " + section.getSectionNo() + " 部分，第 " + attemptNo + " 次生成",
+                            "Section " + section.getSectionNo() + ", generation attempt " + attemptNo
+                    ),
+                    context.localize(
+                            "已生成 " + normalizedQuestions.size() + " 道草稿题目，发现 " + issues.size() + " 个校验问题。",
+                            "Generated " + normalizedQuestions.size() + " draft questions with " + issues.size() + " validation issues."
+                    ),
+                    QuestionGenerationTracePayloads.sectionAttempt(section, attemptNo, normalizedQuestions, issues)
+            );
+
             return new SectionAttempt(normalizedQuestions, issues);
         } catch (Exception e) {
             log.warn("Section generation attempt failed. requestId={}, sectionNo={}, attemptNo={}, error={}",
@@ -134,9 +150,23 @@ public class QuestionGenerationSkill implements AgentSkill<List<QuestionDraftDTO
             ValidationIssueDTO issue = new ValidationIssueDTO();
             issue.setCode("SECTION_GENERATION_FAILED");
             issue.setLevel("error");
-            issue.setMessage("Model invocation failed during section generation.");
-            issue.setRepairHint("Retry the section generation and keep the output strictly as a JSON object with a questions array.");
-            return new SectionAttempt(List.of(), List.of(issue));
+            issue.setMessage(context.localize("本部分生成时模型调用失败。", "Model call failed while generating this section."));
+            issue.setRepairHint(context.localize(
+                    "请重试本部分生成，并严格只返回包含 questions 数组的 JSON 对象。",
+                    "Retry this section and return only a JSON object containing the questions array."
+            ));
+            List<ValidationIssueDTO> issues = List.of(issue);
+            context.appendTraceEntry(
+                    "questionGeneration",
+                    "section_attempt",
+                    context.localize(
+                            "第 " + section.getSectionNo() + " 部分，第 " + attemptNo + " 次生成",
+                            "Section " + section.getSectionNo() + ", generation attempt " + attemptNo
+                    ),
+                    context.localize("本轮生成未产出可用草稿题目。", "This attempt did not produce usable draft questions."),
+                    QuestionGenerationTracePayloads.sectionAttempt(section, attemptNo, List.of(), issues)
+            );
+            return new SectionAttempt(List.of(), issues);
         }
     }
 
@@ -147,6 +177,7 @@ public class QuestionGenerationSkill implements AgentSkill<List<QuestionDraftDTO
                                int attemptNo) {
         StringBuilder prompt = new StringBuilder(QuestionConstants.QUESTION_SYSTEM_PROMPT);
         prompt.append("\n\nCurrent task: generate questions for one blueprint section only.");
+        prompt.append("\n").append(QuestionGenerationLocaleUtils.buildOutputLanguageInstruction(context.resolveLocale()));
         prompt.append("\nReturn a JSON object matching QuestionGeneratePayload and nothing else.");
         prompt.append("\nUse this exact top-level shape: {\"questions\":[...]}.");
         prompt.append("\nThe questions array length must equal ").append(section.getTargetCount()).append('.');
@@ -155,7 +186,7 @@ public class QuestionGenerationSkill implements AgentSkill<List<QuestionDraftDTO
         prompt.append("\nEvery question must include estimatedTime as a positive integer number of minutes.");
         prompt.append("\nFormula formatting is strict: never output bare TeX or symbolic math outside $...$ or $$...$$.");
         prompt.append("\nIf any field contains only a formula, set notation, matrix, superscript/subscript, or symbolic expression, it still must be wrapped in math delimiters.");
-        prompt.append("\nUse \\text{...} for Chinese words inside formulas, and keep that \\text{...} inside the same math delimiters.");
+        prompt.append("\n").append(QuestionGenerationLocaleUtils.buildFormulaTextInstruction(context.resolveLocale()));
         prompt.append("\nKeep vector, matrix, and identity-matrix bold styles consistent across the whole section. Default to \\boldsymbol{...}; if you choose \\mathbf{...}, use it consistently everywhere in that section.");
         prompt.append("\nWhen formulas contain comma-separated conditions or parallel clauses, use spacing commands such as \\, or \\quad where they genuinely improve readability.");
         prompt.append("\nBefore returning JSON, self-check questionContent, options.optionContent, options.explanation, answers.answerContent, and answers.explanation for naked TeX such as \\frac, \\sqrt, \\mathbb, \\in, \\mid, \\{...\\}, or x^2.");
