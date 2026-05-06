@@ -223,14 +223,26 @@ public class KafkaChatConsumer {
         }
 
         // 保存用户消息（幂等）
-        ChatMessageUtil.addUserMessageIfNotDuplicate(sessionId, request.getMessage(),
-                request.getAttachments(), request.getFileReferences(), chatContext.lastMessage(),
-                requestId, chatMessageRepository);
+        boolean resendRequest = ChatMessageUtil.isResendRequest(request);
+        ChatMessage persistedUserMessage = null;
+        if (!resendRequest) {
+            persistedUserMessage = ChatMessageUtil.addUserMessageIfNotDuplicate(sessionId, request.getMessage(),
+                    request.getAttachments(), request.getFileReferences(), chatContext.lastMessage(),
+                    requestId, chatMessageRepository);
+        }
 
         // 流式处理
         StringBuffer fullResponse = new StringBuffer();
         String userQuery = request.getMessage();
         UUID courseId = request.getCourseId();
+        Map<String, Object> assistantMetadata = ChatMessageUtil.buildResponseVariantMetadata(
+                sessionId,
+                request.getResendSourceUserMessageId(),
+                request.getResendSourceAssistantMessageId(),
+                request.getResendSourceRequestId(),
+                persistedUserMessage,
+                chatMessageRepository
+        );
 
         Disposable subscription = chatClient.prompt()
                 .messages(messages)
@@ -239,22 +251,30 @@ public class KafkaChatConsumer {
                 .subscribeOn(Schedulers.boundedElastic())
                 .doOnNext(chunk -> handleChunk(requestId, chunk, fullResponse))
                 .doOnComplete(() -> onChatComplete(requestId, sessionId, userId, userQuery, courseId,
-                        fullResponse.toString(), startTime, acknowledgment))
+                        fullResponse.toString(), startTime, acknowledgment, assistantMetadata))
                 .doOnError(error -> onChatError(requestId, sessionId, error,
-                        fullResponse.toString(), userId, userQuery, courseId, startTime, acknowledgment))
+                        fullResponse.toString(), userId, userQuery, courseId, startTime, acknowledgment,
+                        assistantMetadata))
                 .doOnCancel(() -> onChatCancelled(requestId, sessionId, userId, userQuery, courseId,
-                        fullResponse.toString(), startTime, acknowledgment))
+                        fullResponse.toString(), startTime, acknowledgment, assistantMetadata))
                 .onErrorResume(Exceptions::isCancel, e -> Mono.empty())
                 .subscribe();
         activeSubscriptions.put(requestId, subscription);
     }
 
     private void onChatComplete(String requestId, UUID sessionId, UUID userId, String userQuery,
-                                UUID courseId, String response, long startTime, Acknowledgment acknowledgment) {
+                                UUID courseId, String response, long startTime, Acknowledgment acknowledgment,
+                                Map<String, Object> assistantMetadata) {
         clearActiveRequest(requestId);
         ChatMessage assistantMessage = null;
         if (!response.isEmpty()) {
-            assistantMessage = ChatMessageUtil.saveAssistantMessage(sessionId, response, requestId, chatMessageRepository);
+            assistantMessage = ChatMessageUtil.saveAssistantMessage(
+                    sessionId,
+                    response,
+                    requestId,
+                    assistantMetadata,
+                    chatMessageRepository
+            );
             chatSessionService.updateSessionLastMessage(sessionId, response);
         }
 
@@ -289,17 +309,24 @@ public class KafkaChatConsumer {
 
     private void onChatError(String requestId, UUID sessionId, Throwable error, String response,
                              UUID userId, String userQuery, UUID courseId, long startTime,
-                             Acknowledgment acknowledgment) {
+                             Acknowledgment acknowledgment, Map<String, Object> assistantMetadata) {
         boolean interrupted = isConnectionInterrupted(error);
         boolean wasCancelled = isCancelled(requestId);
         if (interrupted && !wasCancelled) {
-            onChatComplete(requestId, sessionId, userId, userQuery, courseId, response, startTime, acknowledgment);
+            onChatComplete(requestId, sessionId, userId, userQuery, courseId, response, startTime, acknowledgment,
+                    assistantMetadata);
             return;
         }
         if (interrupted) {
             // 保存已生成但未完成的回复，仍更新会话，便于追踪
             if (StringUtils.hasText(response)) {
-                ChatMessage assistantMessage = ChatMessageUtil.saveAssistantMessage(sessionId, response, requestId, chatMessageRepository);
+                ChatMessage assistantMessage = ChatMessageUtil.saveAssistantMessage(
+                        sessionId,
+                        response,
+                        requestId,
+                        assistantMetadata,
+                        chatMessageRepository
+                );
                 chatSessionService.updateSessionLastMessage(sessionId, response);
                 // 取消场景下不进行向量化
             }
@@ -334,10 +361,17 @@ public class KafkaChatConsumer {
     }
 
     private void onChatCancelled(String requestId, UUID sessionId, UUID userId, String userQuery,
-                                 UUID courseId, String response, long startTime, Acknowledgment acknowledgment) {
+                                 UUID courseId, String response, long startTime, Acknowledgment acknowledgment,
+                                 Map<String, Object> assistantMetadata) {
         clearActiveRequest(requestId);
         if (StringUtils.hasText(response)) {
-            ChatMessage assistantMessage = ChatMessageUtil.saveAssistantMessage(sessionId, response, requestId, chatMessageRepository);
+            ChatMessage assistantMessage = ChatMessageUtil.saveAssistantMessage(
+                    sessionId,
+                    response,
+                    requestId,
+                    assistantMetadata,
+                    chatMessageRepository
+            );
             chatSessionService.updateSessionLastMessage(sessionId, response);
         }
         kafkaChatService.completeResponse(requestId);

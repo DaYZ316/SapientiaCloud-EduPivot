@@ -92,6 +92,12 @@ public class AIChatConstants {
     public static final int MESSAGE_TYPE_TEXT = 0;
     public static final int MESSAGE_TYPE_IMAGE = 1;
 
+    public static final String METADATA_RESPONSE_VARIANT_GROUP_ID = "responseVariantGroupId";
+    public static final String METADATA_RESPONSE_VARIANT_INDEX = "responseVariantIndex";
+    public static final String METADATA_RESPONSE_VARIANT_SOURCE_USER_MESSAGE_ID = "responseVariantSourceUserMessageId";
+    public static final String METADATA_RESPONSE_VARIANT_SOURCE_ASSISTANT_MESSAGE_ID = "responseVariantSourceAssistantMessageId";
+    public static final String METADATA_RESPONSE_VARIANT_SOURCE_REQUEST_ID = "responseVariantSourceRequestId";
+
     // ==================== 音频状态 ====================
 
     public static final int AUDIO_STATUS_NONE = 0;
