@@ -21,7 +21,9 @@ import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -36,7 +38,15 @@ public class ChatMessageUtil {
      * 构建消息上下文（返回上下文消息与最后一条历史消息）
      */
     public static ChatContext buildContext(UUID sessionId, ChatRequestDTO request, ChatMessageRepository chatMessageRepository) {
-        return buildContext(sessionId, request.getMessage(), request.getAttachments(), request.getFileReferences(), chatMessageRepository);
+        return buildResendAwareContext(
+                sessionId,
+                request.getMessage(),
+                request.getAttachments(),
+                request.getFileReferences(),
+                request.getResendSourceUserMessageId(),
+                request.getResendSourceRequestId(),
+                chatMessageRepository
+        );
     }
 
     private static ChatContext buildContext(UUID sessionId,
@@ -56,6 +66,32 @@ public class ChatMessageUtil {
         if (!isSameAsLastUserMessage(last, message, attachments, fileReferences)) {
             messages.add(new UserMessage(message));
         }
+        return new ChatContext(messages, last);
+    }
+
+    private static ChatContext buildResendAwareContext(UUID sessionId,
+                                                       String message,
+                                                       List<String> attachments,
+                                                       List<FileReference> fileReferences,
+                                                       UUID resendSourceUserMessageId,
+                                                       String resendSourceRequestId,
+                                                       ChatMessageRepository chatMessageRepository) {
+        boolean resendRequest = resendSourceUserMessageId != null || StringUtils.hasText(resendSourceRequestId);
+        if (!resendRequest) {
+            return buildContext(sessionId, message, attachments, fileReferences, chatMessageRepository);
+        }
+
+        List<Message> messages = new ArrayList<>();
+        messages.add(new SystemMessage(AIChatConstants.SYSTEM_PROMPT));
+        messages.add(new SystemMessage(AIChatConstants.MATH_LATEX_STYLE_PROMPT));
+
+        List<ChatMessage> history = chatMessageRepository.findBySessionIdOrderByCreateTimeAsc(sessionId);
+        ChatMessage resendSourceUserMessage = resolveResendSourceUserMessage(history, resendSourceUserMessageId, resendSourceRequestId);
+        List<ChatMessage> contextHistory = trimHistoryBeforeSourceMessage(history, resendSourceUserMessage);
+
+        ChatMessage last = contextHistory.isEmpty() ? null : contextHistory.get(contextHistory.size() - 1);
+        appendHistoryMessages(messages, contextHistory);
+        messages.add(new UserMessage(message));
         return new ChatContext(messages, last);
     }
 
@@ -153,7 +189,15 @@ public class ChatMessageUtil {
      * 构建消息上下文（Kafka版本，返回上下文消息与最后一条历史消息）
      */
     public static ChatContext buildContext(UUID sessionId, KafkaChatRequestDTO request, ChatMessageRepository chatMessageRepository) {
-        return buildContext(sessionId, request.getMessage(), request.getAttachments(), request.getFileReferences(), chatMessageRepository);
+        return buildResendAwareContext(
+                sessionId,
+                request.getMessage(),
+                request.getAttachments(),
+                request.getFileReferences(),
+                request.getResendSourceUserMessageId(),
+                request.getResendSourceRequestId(),
+                chatMessageRepository
+        );
     }
     /**
      * 检索知识（ChatRequestDTO版本：知识库 + 文件内容）
@@ -456,6 +500,7 @@ public class ChatMessageUtil {
         message.setAttachments(attachments);
         message.setFileReferences(fileReferences);
         message.setRequestId(requestId);
+        message.setMetadata(buildUserVariantMetadata(message.getId(), requestId));
         message.setIsFeedback(AIChatConstants.FEEDBACK_NONE);
         message.setAudioStatus(AIChatConstants.AUDIO_STATUS_NONE);
         message.setCreateTime(LocalDateTime.now());
@@ -482,7 +527,7 @@ public class ChatMessageUtil {
      */
     public static ChatMessage saveAssistantMessage(UUID sessionId, String content,
                                                    ChatMessageRepository chatMessageRepository) {
-        return saveAssistantMessage(sessionId, content, null, chatMessageRepository);
+        return saveAssistantMessage(sessionId, content, null, null, chatMessageRepository);
     }
 
     /**
@@ -497,6 +542,13 @@ public class ChatMessageUtil {
     public static ChatMessage saveAssistantMessage(UUID sessionId, String content,
                                                    String requestId,
                                                    ChatMessageRepository chatMessageRepository) {
+        return saveAssistantMessage(sessionId, content, requestId, null, chatMessageRepository);
+    }
+
+    public static ChatMessage saveAssistantMessage(UUID sessionId, String content,
+                                                   String requestId,
+                                                   Map<String, Object> metadata,
+                                                   ChatMessageRepository chatMessageRepository) {
         ChatMessage message = new ChatMessage();
         message.setId(UuidCreator.getTimeOrderedEpoch());
         message.setSessionId(sessionId);
@@ -506,6 +558,7 @@ public class ChatMessageUtil {
         message.setModelName(AIChatConstants.MODEL_QWEN3_MAX);
         message.setTokenCount(estimateTokens(content));
         message.setRequestId(requestId);
+        message.setMetadata(metadata != null ? new LinkedHashMap<>(metadata) : null);
         message.setIsFeedback(AIChatConstants.FEEDBACK_NONE);
         message.setCreateTime(LocalDateTime.now());
         message.setUpdateTime(LocalDateTime.now());
@@ -596,6 +649,183 @@ public class ChatMessageUtil {
     /**
      * 上下文返回体：模型消息列表 + 最后一条历史消息
      */
+    public static boolean isResendRequest(ChatRequestDTO request) {
+        return request != null && (request.getResendSourceUserMessageId() != null
+                || request.getResendSourceAssistantMessageId() != null
+                || StringUtils.hasText(request.getResendSourceRequestId()));
+    }
+
+    public static boolean isResendRequest(KafkaChatRequestDTO request) {
+        return request != null && (request.getResendSourceUserMessageId() != null
+                || request.getResendSourceAssistantMessageId() != null
+                || StringUtils.hasText(request.getResendSourceRequestId()));
+    }
+
+    public static ChatMessage resolveResendSourceUserMessage(UUID sessionId,
+                                                             UUID sourceUserMessageId,
+                                                             String sourceRequestId,
+                                                             ChatMessageRepository chatMessageRepository) {
+        if (sessionId == null || chatMessageRepository == null) {
+            return null;
+        }
+        List<ChatMessage> history = chatMessageRepository.findBySessionIdOrderByCreateTimeAsc(sessionId);
+        return resolveResendSourceUserMessage(history, sourceUserMessageId, sourceRequestId);
+    }
+
+    public static String resolveResponseVariantGroupId(ChatMessage sourceUserMessage) {
+        if (sourceUserMessage == null) {
+            return null;
+        }
+        if (StringUtils.hasText(sourceUserMessage.getRequestId())) {
+            return sourceUserMessage.getRequestId();
+        }
+        return sourceUserMessage.getId() != null ? sourceUserMessage.getId().toString() : null;
+    }
+
+    public static int resolveResponseVariantIndex(UUID sessionId,
+                                                  UUID sourceUserMessageId,
+                                                  String sourceRequestId,
+                                                  ChatMessageRepository chatMessageRepository) {
+        if (sessionId == null || chatMessageRepository == null) {
+            return 0;
+        }
+        List<ChatMessage> history = chatMessageRepository.findBySessionIdOrderByCreateTimeAsc(sessionId);
+        ChatMessage sourceUserMessage = resolveResendSourceUserMessage(history, sourceUserMessageId, sourceRequestId);
+        if (sourceUserMessage == null || sourceUserMessage.getId() == null) {
+            return 0;
+        }
+        int sourceIndex = indexOfMessage(history, sourceUserMessage.getId());
+        if (sourceIndex < 0) {
+            return 0;
+        }
+        int variantCount = 0;
+        for (int i = sourceIndex + 1; i < history.size(); i++) {
+            ChatMessage current = history.get(i);
+            if (Objects.equals(current.getRole(), AIChatConstants.ROLE_USER)) {
+                break;
+            }
+            if (Objects.equals(current.getRole(), AIChatConstants.ROLE_ASSISTANT)) {
+                variantCount++;
+            }
+        }
+        return variantCount;
+    }
+
+    public static Map<String, Object> buildResponseVariantMetadata(String groupId,
+                                                                   Integer variantIndex,
+                                                                   ChatMessage sourceUserMessage,
+                                                                   UUID sourceAssistantMessageId,
+                                                                   String sourceRequestId) {
+        Map<String, Object> metadata = new LinkedHashMap<>();
+        if (StringUtils.hasText(groupId)) {
+            metadata.put(AIChatConstants.METADATA_RESPONSE_VARIANT_GROUP_ID, groupId);
+        }
+        if (variantIndex != null) {
+            metadata.put(AIChatConstants.METADATA_RESPONSE_VARIANT_INDEX, variantIndex);
+        }
+        if (sourceUserMessage != null && sourceUserMessage.getId() != null) {
+            metadata.put(AIChatConstants.METADATA_RESPONSE_VARIANT_SOURCE_USER_MESSAGE_ID,
+                    sourceUserMessage.getId().toString());
+        }
+        if (sourceAssistantMessageId != null) {
+            metadata.put(AIChatConstants.METADATA_RESPONSE_VARIANT_SOURCE_ASSISTANT_MESSAGE_ID,
+                    sourceAssistantMessageId.toString());
+        }
+        String resolvedSourceRequestId = StringUtils.hasText(sourceRequestId)
+                ? sourceRequestId
+                : sourceUserMessage != null ? sourceUserMessage.getRequestId() : null;
+        if (StringUtils.hasText(resolvedSourceRequestId)) {
+            metadata.put(AIChatConstants.METADATA_RESPONSE_VARIANT_SOURCE_REQUEST_ID, resolvedSourceRequestId);
+        }
+        return metadata.isEmpty() ? null : metadata;
+    }
+
+    public static Map<String, Object> buildResponseVariantMetadata(UUID sessionId,
+                                                                   UUID sourceUserMessageId,
+                                                                   UUID sourceAssistantMessageId,
+                                                                   String sourceRequestId,
+                                                                   ChatMessage persistedUserMessage,
+                                                                   ChatMessageRepository chatMessageRepository) {
+        ChatMessage sourceUserMessage = persistedUserMessage != null
+                ? persistedUserMessage
+                : resolveResendSourceUserMessage(sessionId, sourceUserMessageId, sourceRequestId, chatMessageRepository);
+        String groupId = resolveResponseVariantGroupId(sourceUserMessage);
+        if (!StringUtils.hasText(groupId)) {
+            groupId = sourceRequestId;
+        }
+        int variantIndex = persistedUserMessage != null
+                ? 0
+                : resolveResponseVariantIndex(sessionId, sourceUserMessageId, sourceRequestId, chatMessageRepository);
+        return buildResponseVariantMetadata(groupId, variantIndex, sourceUserMessage, sourceAssistantMessageId, sourceRequestId);
+    }
+
+    private static Map<String, Object> buildUserVariantMetadata(UUID userMessageId, String requestId) {
+        Map<String, Object> metadata = new LinkedHashMap<>();
+        String groupId = StringUtils.hasText(requestId)
+                ? requestId
+                : userMessageId != null ? userMessageId.toString() : null;
+        if (StringUtils.hasText(groupId)) {
+            metadata.put(AIChatConstants.METADATA_RESPONSE_VARIANT_GROUP_ID, groupId);
+        }
+        if (StringUtils.hasText(requestId)) {
+            metadata.put(AIChatConstants.METADATA_RESPONSE_VARIANT_SOURCE_REQUEST_ID, requestId);
+        }
+        return metadata.isEmpty() ? null : metadata;
+    }
+
+    private static ChatMessage resolveResendSourceUserMessage(List<ChatMessage> history,
+                                                              UUID sourceUserMessageId,
+                                                              String sourceRequestId) {
+        if (history == null || history.isEmpty()) {
+            return null;
+        }
+        if (sourceUserMessageId != null) {
+            for (ChatMessage current : history) {
+                if (Objects.equals(current.getRole(), AIChatConstants.ROLE_USER)
+                        && Objects.equals(current.getId(), sourceUserMessageId)) {
+                    return current;
+                }
+            }
+        }
+        if (!StringUtils.hasText(sourceRequestId)) {
+            return null;
+        }
+        for (ChatMessage current : history) {
+            if (Objects.equals(current.getRole(), AIChatConstants.ROLE_USER)
+                    && Objects.equals(current.getRequestId(), sourceRequestId)) {
+                return current;
+            }
+        }
+        return null;
+    }
+
+    private static List<ChatMessage> trimHistoryBeforeSourceMessage(List<ChatMessage> history,
+                                                                    ChatMessage sourceUserMessage) {
+        if (history == null || history.isEmpty() || sourceUserMessage == null || sourceUserMessage.getId() == null) {
+            return history;
+        }
+        int sourceIndex = indexOfMessage(history, sourceUserMessage.getId());
+        if (sourceIndex < 0) {
+            return history;
+        }
+        if (sourceIndex == 0) {
+            return new ArrayList<>();
+        }
+        return new ArrayList<>(history.subList(0, sourceIndex));
+    }
+
+    private static int indexOfMessage(List<ChatMessage> history, UUID messageId) {
+        if (history == null || history.isEmpty() || messageId == null) {
+            return -1;
+        }
+        for (int i = 0; i < history.size(); i++) {
+            if (Objects.equals(history.get(i).getId(), messageId)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
     public record ChatContext(List<Message> messages, ChatMessage lastMessage) {
     }
 }

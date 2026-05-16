@@ -28,6 +28,7 @@ import reactor.core.publisher.Flux;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -61,10 +62,28 @@ public class ChatMessageServiceImpl implements IChatMessageService {
 
         String aiResponse = callModel(messages);
 
-        ChatMessageUtil.addUserMessageIfNotDuplicate(sessionId, request.getMessage(), request.getAttachments(),
-                request.getFileReferences(), chatContext.lastMessage(), null, chatMessageRepository);
+        boolean resendRequest = ChatMessageUtil.isResendRequest(request);
+        ChatMessage persistedUserMessage = null;
+        if (!resendRequest) {
+            persistedUserMessage = ChatMessageUtil.addUserMessageIfNotDuplicate(
+                    sessionId,
+                    request.getMessage(),
+                    request.getAttachments(),
+                    request.getFileReferences(),
+                    chatContext.lastMessage(),
+                    null,
+                    chatMessageRepository
+            );
+        }
 
-        ChatMessage assistantMessage = ChatMessageUtil.saveAssistantMessage(sessionId, aiResponse, chatMessageRepository);
+        Map<String, Object> assistantMetadata = resolveAssistantVariantMetadata(sessionId, request, persistedUserMessage);
+        ChatMessage assistantMessage = ChatMessageUtil.saveAssistantMessage(
+                sessionId,
+                aiResponse,
+                null,
+                assistantMetadata,
+                chatMessageRepository
+        );
 
         chatSessionService.updateSessionLastMessage(sessionId, aiResponse);
 
@@ -120,13 +139,25 @@ public class ChatMessageServiceImpl implements IChatMessageService {
             }
         }
 
-        ChatMessageUtil.addUserMessageIfNotDuplicate(sessionId, request.getMessage(), request.getAttachments(),
-                request.getFileReferences(), chatContext.lastMessage(), null, chatMessageRepository);
+        boolean resendRequest = ChatMessageUtil.isResendRequest(request);
+        ChatMessage persistedUserMessage = null;
+        if (!resendRequest) {
+            persistedUserMessage = ChatMessageUtil.addUserMessageIfNotDuplicate(
+                    sessionId,
+                    request.getMessage(),
+                    request.getAttachments(),
+                    request.getFileReferences(),
+                    chatContext.lastMessage(),
+                    null,
+                    chatMessageRepository
+            );
+        }
 
         StringBuilder fullResponse = new StringBuilder();
         final UUID userId = sessionVO.getSysUserId();
         final String userQuery = request.getMessage();
         final UUID courseId = request.getCourseId();
+        final Map<String, Object> assistantMetadata = resolveAssistantVariantMetadata(sessionId, request, persistedUserMessage);
         AtomicBoolean responsePersisted = new AtomicBoolean(false);
 
         return chatClient
@@ -135,9 +166,36 @@ public class ChatMessageServiceImpl implements IChatMessageService {
                 .stream()
                 .content()
                 .doOnNext(fullResponse::append)
-                .doOnCancel(() -> persistStreamResponse(sessionId, fullResponse.toString(), userId, userQuery, courseId, false, responsePersisted))
-                .doOnError(error -> persistStreamResponse(sessionId, fullResponse.toString(), userId, userQuery, courseId, false, responsePersisted))
-                .doOnComplete(() -> persistStreamResponse(sessionId, fullResponse.toString(), userId, userQuery, courseId, true, responsePersisted));
+                .doOnCancel(() -> persistStreamResponse(
+                        sessionId,
+                        fullResponse.toString(),
+                        userId,
+                        userQuery,
+                        courseId,
+                        false,
+                        responsePersisted,
+                        assistantMetadata
+                ))
+                .doOnError(error -> persistStreamResponse(
+                        sessionId,
+                        fullResponse.toString(),
+                        userId,
+                        userQuery,
+                        courseId,
+                        false,
+                        responsePersisted,
+                        assistantMetadata
+                ))
+                .doOnComplete(() -> persistStreamResponse(
+                        sessionId,
+                        fullResponse.toString(),
+                        userId,
+                        userQuery,
+                        courseId,
+                        true,
+                        responsePersisted,
+                        assistantMetadata
+                ));
     }
 
     @Override
@@ -231,14 +289,21 @@ public class ChatMessageServiceImpl implements IChatMessageService {
     }
 
     private void persistStreamResponse(UUID sessionId, String response, UUID userId, String userQuery,
-                                       UUID courseId, boolean vectorize, AtomicBoolean persistedFlag) {
+                                       UUID courseId, boolean vectorize, AtomicBoolean persistedFlag,
+                                       Map<String, Object> assistantMetadata) {
         if (!StringUtils.hasText(response)) {
             return;
         }
         if (!persistedFlag.compareAndSet(false, true)) {
             return;
         }
-        ChatMessage assistantMessage = ChatMessageUtil.saveAssistantMessage(sessionId, response, chatMessageRepository);
+        ChatMessage assistantMessage = ChatMessageUtil.saveAssistantMessage(
+                sessionId,
+                response,
+                null,
+                assistantMetadata,
+                chatMessageRepository
+        );
         chatSessionService.updateSessionLastMessage(sessionId, response);
 
         if (!vectorize) {
@@ -260,6 +325,19 @@ public class ChatMessageServiceImpl implements IChatMessageService {
             log.warn("向量化对话内容失败，但不影响聊天流程: sessionId={}, messageId={}, userId={}, error={}",
                     sessionId, assistantMessage.getId(), userId, e.getMessage());
         }
+    }
+
+    private Map<String, Object> resolveAssistantVariantMetadata(UUID sessionId,
+                                                                ChatRequestDTO request,
+                                                                ChatMessage persistedUserMessage) {
+        return ChatMessageUtil.buildResponseVariantMetadata(
+                sessionId,
+                request.getResendSourceUserMessageId(),
+                request.getResendSourceAssistantMessageId(),
+                request.getResendSourceRequestId(),
+                persistedUserMessage,
+                chatMessageRepository
+        );
     }
 
 }

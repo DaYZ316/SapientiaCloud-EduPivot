@@ -59,5 +59,13 @@ public class ChatRequestDTO implements Serializable {
 
     @Schema(description = "引用文件数组（用于索引文件向量数据）")
     private List<FileReference> fileReferences;
-}
 
+    @Schema(description = "重发时的源用户消息ID")
+    private UUID resendSourceUserMessageId;
+
+    @Schema(description = "重发时的源AI消息ID")
+    private UUID resendSourceAssistantMessageId;
+
+    @Schema(description = "重发时的源请求ID（用于回溯同一问题版本）")
+    private String resendSourceRequestId;
+}

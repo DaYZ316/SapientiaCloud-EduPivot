@@ -8,10 +8,12 @@ import com.dayz.sapientiacloud_edupivot.celestial_hub.common.result.Result;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.common.security.annotation.HasPermission;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.common.security.utils.UserContextUtil;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.constant.PermissionConstants;
+import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.po.ChatMessage;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.QuestionGenerateRequestDTO;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.QuestionPaperExportRequestDTO;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.dto.QuestionResponseDTO;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.entity.vo.ChatSessionVO;
+import com.dayz.sapientiacloud_edupivot.celestial_hub.enums.ChatRoleEnum;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.enums.QuestionGenerationMode;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.enums.SessionTypeEnum;
 import com.dayz.sapientiacloud_edupivot.celestial_hub.repository.ChatMessageRepository;
@@ -112,6 +114,10 @@ public class QuestionGenerateController extends BaseController {
     public ResponseEntity<Flux<String>> generateQuestionsStream(
             @Valid @RequestBody QuestionGenerateRequestDTO request) {
         QuestionGenerationExecutionContext context = prepareExecutionContext(request);
+        ChatMessage persistedMessage = findPersistedGenerationMessage(context.sessionId(), context.requestId());
+        if (persistedMessage != null) {
+            return buildSseResponse(replayPersistedGenerationResult(context, persistedMessage));
+        }
 
         Flux<String> progressEvents = kafkaQuestionService.subscribeQuestionProgress(context.requestId())
                 .map(progress -> buildStreamEvent(new QuestionGenerateStreamEvent(
@@ -214,7 +220,7 @@ public class QuestionGenerateController extends BaseController {
                         System.currentTimeMillis()
                 ))),
                 Flux.merge(progressEvents.takeUntilOther(terminalEvent), heartbeatEvents, terminalEvent)
-        ).doFinally(signal -> kafkaQuestionService.clearQuestionProgress(context.requestId()));
+        );
 
         return buildSseResponse(streamBody);
     }
@@ -304,7 +310,10 @@ public class QuestionGenerateController extends BaseController {
         QuestionGenerationMode generationMode = QuestionGenerationMode.resolve(request);
         validateQuestionCount(request, generationMode, locale);
         request.setGenerationMode(generationMode.getCode());
-        String requestId = UUID.randomUUID().toString();
+        String requestId = StringUtils.hasText(request.getRequestId())
+                ? request.getRequestId().trim()
+                : UUID.randomUUID().toString();
+        request.setRequestId(requestId);
         return new QuestionGenerationExecutionContext(requestId, sessionId, needGenerateTitle, currentUserId, generationMode, locale);
     }
 
@@ -405,6 +414,82 @@ public class QuestionGenerateController extends BaseController {
 
     private String buildStreamEvent(QuestionGenerateStreamEvent event) {
         return JSON.toJSONString(event);
+    }
+
+    private Flux<String> replayPersistedGenerationResult(QuestionGenerationExecutionContext context,
+                                                         ChatMessage persistedMessage) {
+        if (persistedMessage == null) {
+            return Flux.empty();
+        }
+
+        if (StringUtils.hasText(persistedMessage.getQuestionResponse())) {
+            Integer questionCount = resolvePersistedQuestionCount(persistedMessage);
+            return Flux.just(buildStreamEvent(new QuestionGenerateStreamEvent(
+                    context.requestId(),
+                    context.sessionId(),
+                    "completed",
+                    QuestionAgentStage.RESPONDED.name(),
+                    questionCount,
+                    resolveGenerationCompletedMessage(context.generationMode(), context.locale()),
+                    context.generationMode().getCode(),
+                    shouldShowStageDetails(context.generationMode()),
+                    null,
+                    System.currentTimeMillis()
+            )));
+        }
+
+        return Flux.just(buildStreamEvent(new QuestionGenerateStreamEvent(
+                context.requestId(),
+                context.sessionId(),
+                "error",
+                QuestionAgentStage.FAILED.name(),
+                null,
+                StringUtils.hasText(persistedMessage.getContent())
+                        ? persistedMessage.getContent()
+                        : resolveGenerationFailureMessage(context.generationMode(), context.locale()),
+                context.generationMode().getCode(),
+                shouldShowStageDetails(context.generationMode()),
+                null,
+                System.currentTimeMillis()
+        )));
+    }
+
+    private Integer resolvePersistedQuestionCount(ChatMessage persistedMessage) {
+        if (persistedMessage == null || !StringUtils.hasText(persistedMessage.getQuestionResponse())) {
+            return null;
+        }
+        try {
+            List<QuestionResponseDTO> questions = JSON.parseArray(persistedMessage.getQuestionResponse(), QuestionResponseDTO.class);
+            return questions == null ? null : questions.size();
+        } catch (Exception e) {
+            log.debug("Failed to parse persisted question response. requestId={}", persistedMessage.getRequestId(), e);
+            return null;
+        }
+    }
+
+    private ChatMessage findPersistedGenerationMessage(UUID sessionId, String requestId) {
+        if (sessionId == null || !StringUtils.hasText(requestId)) {
+            return null;
+        }
+
+        ChatMessage responseMessage = chatMessageRepository.findFirstBySessionIdAndRoleAndRequestId(
+                sessionId,
+                ChatRoleEnum.QUESTION_GENERATOR.getCode(),
+                requestId
+        );
+        if (responseMessage != null && StringUtils.hasText(responseMessage.getQuestionResponse())) {
+            return responseMessage;
+        }
+
+        ChatMessage failureMessage = chatMessageRepository.findFirstBySessionIdAndRoleAndRequestId(
+                sessionId,
+                ChatRoleEnum.SYSTEM.getCode(),
+                requestId
+        );
+        if (failureMessage != null && StringUtils.hasText(failureMessage.getContent())) {
+            return failureMessage;
+        }
+        return null;
     }
 
     private String resolveStreamErrorMessage(Throwable error,

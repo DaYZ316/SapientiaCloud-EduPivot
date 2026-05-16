@@ -112,7 +112,7 @@ avatar:
   tts:
     enabled: true
     auto-generate: true
-    worker-base-url: ${AVATAR_TTS_WORKER_BASE_URL:http://tts-worker:32111}
+    worker-base-url: ${AVATAR_TTS_WORKER_BASE_URL:http://127.0.0.1:32111}
     worker-synthesize-path: ${AVATAR_TTS_WORKER_SYNTHESIZE_PATH:/tts/synthesize}
     default-voice-code: ${AVATAR_TTS_DEFAULT_VOICE_CODE:teacher-default}
     default-audio-format: ${AVATAR_TTS_DEFAULT_AUDIO_FORMAT:wav}

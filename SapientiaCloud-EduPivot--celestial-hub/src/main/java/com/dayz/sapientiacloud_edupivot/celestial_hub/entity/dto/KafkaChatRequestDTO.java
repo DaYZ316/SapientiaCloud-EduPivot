@@ -62,4 +62,13 @@ public class KafkaChatRequestDTO implements Serializable {
 
     @Schema(description = "是否需要生成标题（内部使用）")
     private Boolean needGenerateTitle;
+
+    @Schema(description = "重发时的源用户消息ID")
+    private UUID resendSourceUserMessageId;
+
+    @Schema(description = "重发时的源AI消息ID")
+    private UUID resendSourceAssistantMessageId;
+
+    @Schema(description = "重发时的源请求ID（用于回溯同一问题版本）")
+    private String resendSourceRequestId;
 }
