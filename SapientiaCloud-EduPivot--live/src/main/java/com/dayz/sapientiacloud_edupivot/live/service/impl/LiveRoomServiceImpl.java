@@ -175,7 +175,6 @@ public class LiveRoomServiceImpl implements ILiveRoomService {
             room.setStatus(LiveRoomConstants.STATUS_LIVING);
             room.setStartTime(LocalDateTime.now());
             liveRoomMapper.updateById(room);
-            autoStartRecordingIfEnabled(room);
 
             try {
                 Map<String, Object> payload = new HashMap<>();
@@ -290,7 +289,16 @@ public class LiveRoomServiceImpl implements ILiveRoomService {
         LiveRoom room = requireRoom(roomId);
         ensureRecordingCapability(room);
         if (StringUtils.hasText(room.getEgressTaskId())) {
-            throw new BusinessException(LiveRoomEnum.RECORDING_ALREADY_RUNNING);
+            // 如果 egress 已经停止或失败，清除残留状态允许重新录制
+            Integer status = room.getEgressStatus();
+            if (status != null && status != LiveEgressStatusEnum.RUNNING.getCode()) {
+                log.info("Clearing stale egress task {} (status={}) for room {}", room.getEgressTaskId(), status, roomId);
+                room.setEgressTaskId(null);
+                room.setEgressStatus(LiveEgressStatusEnum.IDLE.getCode());
+                liveRoomMapper.updateById(room);
+            } else {
+                throw new BusinessException(LiveRoomEnum.RECORDING_ALREADY_RUNNING);
+            }
         }
         if (!isEgressEnabled()) {
             throw new BusinessException(LiveRoomEnum.RECORDING_ENV_DISABLED);
@@ -329,8 +337,12 @@ public class LiveRoomServiceImpl implements ILiveRoomService {
         ensureLiveCanStart(room);
         room.setStatus(LiveRoomConstants.STATUS_LIVING);
         room.setStartTime(LocalDateTime.now());
+        if (!StringUtils.hasText(room.getLkRoomName())) {
+            room.setLkRoomName(buildLkRoomName(room.getRoomName(), room.getId()));
+        }
         liveRoomMapper.updateById(room);
-        autoStartRecordingIfEnabled(room);
+        // 先确保 LiveKit 房间存在
+        liveKitEgressClient.ensureRoomExists(room.getLkRoomName());
         // publish to kafka for hub forwarding
         try {
             var payload = new HashMap<String, Object>();
@@ -541,31 +553,6 @@ public class LiveRoomServiceImpl implements ILiveRoomService {
         }
     }
 
-    private void autoStartRecordingIfEnabled(LiveRoom room) {
-        if (!Objects.equals(room.getRecordingEnabled(), LiveRoomConstants.RECORDING_ENABLED)) {
-            return;
-        }
-        if (StringUtils.hasText(room.getEgressTaskId())) {
-            return;
-        }
-        if (!isEgressEnabled()) {
-            room.setEgressStatus(LiveEgressStatusEnum.FAILED.getCode());
-            liveRoomMapper.updateById(room);
-            log.warn("Auto recording skipped because egress is disabled, roomId={}", room.getId());
-            return;
-        }
-        String previousRecordingAssetUrl = room.getRecordingAssetUrl();
-        try {
-            startRecording(room.getId());
-        } catch (Exception e) {
-            room.setEgressTaskId(null);
-            room.setEgressStatus(LiveEgressStatusEnum.FAILED.getCode());
-            room.setRecordingAssetUrl(previousRecordingAssetUrl);
-            liveRoomMapper.updateById(room);
-            log.warn("Auto recording failed, live room remains started, roomId={}", room.getId(), e);
-        }
-    }
-
     private boolean isEgressEnabled() {
         return Optional.ofNullable(liveKitProperties.getEgress())
                 .map(LiveKitProperties.EgressDefaults::getEnable)
@@ -580,6 +567,19 @@ public class LiveRoomServiceImpl implements ILiveRoomService {
         LiveKitEgressFileOutput fileOutput = new LiveKitEgressFileOutput();
         fileOutput.setFileType(fileType);
         fileOutput.setFilepath(filepath);
+
+        // 将 S3/MinIO 配置写入请求，让 egress 知道上传目标
+        if (egress != null && egress.getS3() != null) {
+            LiveKitProperties.S3Config s3 = egress.getS3();
+            LiveKitEgressFileOutput.S3UploadConfig s3Config = new LiveKitEgressFileOutput.S3UploadConfig();
+            s3Config.setAccessKey(s3.getAccessKey());
+            s3Config.setSecret(s3.getSecretKey());
+            s3Config.setRegion(s3.getRegion());
+            s3Config.setEndpoint(s3.getEndpoint());
+            s3Config.setBucket(s3.getBucket());
+            s3Config.setForcePathStyle(s3.getForcePathStyle());
+            fileOutput.setS3(s3Config);
+        }
 
         LiveKitEgressStartRequest request = new LiveKitEgressStartRequest();
         if (!StringUtils.hasText(room.getLkRoomName())) {

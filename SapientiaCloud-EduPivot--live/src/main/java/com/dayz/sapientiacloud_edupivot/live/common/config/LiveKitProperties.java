@@ -41,5 +41,19 @@ public class LiveKitProperties {
          * 录制回放访问前缀
          */
         private String playbackBaseUrl;
+        /**
+         * S3/MinIO 上传配置
+         */
+        private S3Config s3;
+    }
+
+    @Data
+    public static class S3Config {
+        private String endpoint;
+        private String region;
+        private String bucket;
+        private String accessKey;
+        private String secretKey;
+        private Boolean forcePathStyle;
     }
 }

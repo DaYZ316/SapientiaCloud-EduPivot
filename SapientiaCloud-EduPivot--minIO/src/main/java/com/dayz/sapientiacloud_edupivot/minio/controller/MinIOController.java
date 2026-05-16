@@ -138,23 +138,21 @@ public class MinIOController {
             @Parameter(description = "业务桶编码", required = false) @RequestParam(value = "bucketCode", required = false) BusinessBucketEnum bucketCode,
             HttpServletResponse response
     ) {
-        try {
-            // 从对象名中提取文件名
+        // 先获取文件流（含文件存在性检查），成功后再设置响应头，避免异常时 Content-Type 已被占用
+        try (InputStream inputStream = minIOUtil.downloadFile(objectName, resolveBucketCode(bucketCode))) {
             String filename = objectName;
             if (objectName.contains("/")) {
                 filename = objectName.substring(objectName.lastIndexOf("/") + 1);
             }
 
-            // 设置响应头
             response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
             response.setHeader(HttpHeaders.CONTENT_DISPOSITION,
                     "attachment; filename=" + URLEncoder.encode(filename, StandardCharsets.UTF_8));
 
-            // 获取并写入文件内容
-            try (InputStream inputStream = minIOUtil.downloadFile(objectName, resolveBucketCode(bucketCode))) {
-                IOUtils.copy(inputStream, response.getOutputStream());
-                response.flushBuffer();
-            }
+            IOUtils.copy(inputStream, response.getOutputStream());
+            response.flushBuffer();
+        } catch (BusinessException e) {
+            throw e;
         } catch (Exception e) {
             throw new BusinessException(MinIOConstants.FILE_DOWNLOAD_FAILED_MESSAGE + ": " + e.getMessage());
         }

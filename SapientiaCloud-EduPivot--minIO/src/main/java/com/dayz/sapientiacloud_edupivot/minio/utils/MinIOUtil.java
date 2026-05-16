@@ -275,28 +275,19 @@ public class MinIOUtil {
     public String getPresignedObjectUrl(String objectName, Integer expiry, String bucketCode) {
         try {
             BucketContext bucketContext = resolveBucketContext(bucketCode);
-            if (!doesObjectExist(objectName, bucketContext)) {
-                throw new BusinessException(FileEnum.FILE_NOT_FOUND.getMessage());
-            }
 
             int expiryTime = expiry != null ? expiry : 7 * 24 * 3600;
-            String originalUrl = minioClient.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
+            String url = minioClient.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
                     .bucket(bucketContext.bucketName())
                     .object(objectName)
                     .method(Method.GET)
                     .expiry(expiryTime, TimeUnit.SECONDS)
                     .build());
 
-            // 只有在非本地开发环境时才替换 MinIO 内部地址为公网域名
-            String finalUrl = originalUrl;
-            String minioIp = minioProperties.getIp();
-            if (originalUrl != null && !MinIOConstants.LOCALHOST_IP.equals(minioIp) && !MinIOConstants.LOCALHOST_NAME.equals(minioIp)) {
-                if (originalUrl.contains(MinIOConstants.MINIO_INTERNAL_ENDPOINT)) {
-                    finalUrl = originalUrl.replace(MinIOConstants.MINIO_INTERNAL_ENDPOINT, MinIOConstants.PUBLIC_DOMAIN);
-                }
-            }
+            // Replace internal MinIO endpoint with public domain so browser can access
+            url = url.replace(MinIOConstants.MINIO_INTERNAL_ENDPOINT, MinIOConstants.PUBLIC_DOMAIN + "/minio");
 
-            return finalUrl;
+            return url;
         } catch (BusinessException e) {
             throw e;
         } catch (Exception e) {

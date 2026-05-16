@@ -15,6 +15,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -30,9 +32,26 @@ public class LiveKitEgressClient {
 
     private static final String START_PATH = "/twirp/livekit.Egress/StartRoomCompositeEgress";
     private static final String STOP_PATH = "/twirp/livekit.Egress/StopEgress";
+    private static final String CREATE_ROOM_PATH = "/twirp/livekit.RoomService/CreateRoom";
 
     private final RestTemplate restTemplate;
     private final LiveKitProperties liveKitProperties;
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    /**
+     * 确保 LiveKit 房间存在，不存在则创建
+     */
+    public void ensureRoomExists(String roomName) {
+        String endpoint = buildEndpoint(CREATE_ROOM_PATH);
+        try {
+            Map<String, Object> body = Map.of("name", roomName);
+            restTemplate.postForObject(endpoint, buildEntity(body), Object.class);
+            log.info("[LiveKit] Room ensured: {}", roomName);
+        } catch (RestClientException e) {
+            // 如果房间已存在，LiveKit 可能返回错误，忽略即可
+            log.warn("[LiveKit] ensureRoomExists for {} returned: {}", roomName, e.getMessage());
+        }
+    }
 
     public LiveKitEgressClient(LiveKitProperties liveKitProperties, RestTemplateBuilder restTemplateBuilder) {
         this.liveKitProperties = liveKitProperties;
@@ -44,6 +63,11 @@ public class LiveKitEgressClient {
 
     public LiveKitEgressStartResponse startCompositeEgress(LiveKitEgressStartRequest request) {
         String endpoint = buildEndpoint(START_PATH);
+        try {
+            log.info("[Egress] Request JSON: {}", objectMapper.writeValueAsString(request));
+        } catch (JsonProcessingException e) {
+            log.warn("[Egress] Failed to serialize request", e);
+        }
         LiveKitEgressStartResponse response;
         try {
             response = restTemplate.postForObject(endpoint, buildEntity(request), LiveKitEgressStartResponse.class);
